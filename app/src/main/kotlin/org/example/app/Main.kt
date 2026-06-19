@@ -1,21 +1,27 @@
 package org.example.app
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import org.example.app.navigation.DefaultRootComponent
+import org.example.app.ui.RootContent
 import org.example.shared.model.AppVersion
 
-fun main() = application {
-    val version = AppVersion(1, 0, 0)
-    Window(onCloseRequest = ::exitApplication, title = "Clinical Recording App (v$version)") {
-        MaterialTheme {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Welcome to the Clinical Recording App")
+fun main() {
+    val lifecycle = LifecycleRegistry()
+    val container = AppContainer()
+    val root = DefaultRootComponent(
+        context = DefaultComponentContext(lifecycle = lifecycle),
+        container = container
+    )
+
+    application {
+        val version = AppVersion(1, 0, 0)
+        Window(onCloseRequest = ::exitApplication, title = "Clinical Recording App (v$version)") {
+            MaterialTheme {
+                RootContent(root)
             }
         }
     }
