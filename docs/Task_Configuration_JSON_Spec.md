@@ -35,7 +35,7 @@ A protocol is a named, ordered list of configured tasks
 {
   "name": "Share",
   "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",  
-  "tasks": [ /* Task objects, §3 */],
+  "tasks": [ /* Task objects, §4 */],
   "recordingsFilePath": "/home/tomas/share",
   "recordingsFileName": "${Task.name}_${Task.nrepetition}"
 }
@@ -48,6 +48,8 @@ A protocol is a named, ordered list of configured tasks
 VOCAL = ddk, phonation etc.
 VIDEO = emotions
 INFO = final screen..
+
+### 4.1 VOCAL
 
 ```json
 {
@@ -62,6 +64,61 @@ INFO = final screen..
   "canSkip": 0,  
   "audioExamplePath": "audio_instructions/aaa.wav",
   "nrepetition": 1
+}
+```
+### 4.2 QUESTIONAIRE
+
+```json
+    { 
+    "nFields": 2,
+    "taskNumber": "1/10",
+    "titleKey": "questionaire_title",
+    "questions": [ /* Question objects */ ],
+    "length": 200,  
+    "canRepeat": 1,
+    "canSkip": 0,  
+    "nrepetition": 1
+    }
+```
+### 4.2.1 Question
+```json
+{
+  "questionType": enum(OPEN, MULTIPLE_CHOICE, SINGLE_CHOICE),
+  "questionRegex": ".*",
+  "questionKey": "question_key",
+  "questionTextKey": "question_text_key",
+  "questionOptions": [optionA, optionB,...]
+}
+```
+### 4.3 VIDEO
+```json
+{
+        "type": "EMOTIONS",
+        "taskNumber": "1/10",
+        "titleKey": "emotions_title",
+        "instructionKey": "emotions_instructions",
+        "length": 30,
+        "canRepeat": 1,
+        "canSkip": 0,
+        "nrepetition": 1,
+        "havePTZ": 0
+}
+```
+### 4.4 CALIBRATION
+```json
+{
+        "titleKey": "calibration_title",
+        "instructionKey": "calibration_instructions",
+        "optimalLoudness": [0.2, 0.5]        
+}
+```
+
+### 4.5 INFO
+```json
+{
+        "nTextFields": 2,
+        "titleKey": "info_title",
+        "instructionKeys": ["info_instructions1", "info_instructions2"],
 }
 ```
 ## 5. Minimal end-to-end example

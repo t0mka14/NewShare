@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-06-10.1",
+  "defaultLanguage": "cs",
+  "defaultMicName": "USBAudioDevice",
+  "enableEditor": 0,
+  "indicatorType": "CIRCLE",
+  "languages": ["cs"],
+  "protocols": [
+    {
+      "name": "Share",
+      "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "nTextFields": 2,
+          "taskNumber": "1/1",
+          "titleKey": "phonation_title",
+          "instructionKeys": ["phonation_instructions1"],
+          "length": 10,
+          "showIndicator": 1,
+          "canRepeat": 1,
+          "canSkip": 0,
+          "audioExamplePath": "audio_instructions/aaa.wav",
+          "nrepetition": 1
+        }
+      ],
+      "recordingsFilePath": "/home/user/recordings",
+      "recordingsFileName": "${Task.name}_${Task.nrepetition}"
+    }
+  ],
+  "strings": {
+    "cs": {
+      "phonation_title": "Prodloužená fonace",
+      "phonation_instructions1": "_bZačněte teď./bStiskněte START pro zahájení nahrávání."
+    }
+  }
+}

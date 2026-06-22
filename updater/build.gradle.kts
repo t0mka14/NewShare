@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     implementation(project(":shared"))
-    implementation(libs.kotlin.stdlib)
     implementation(libs.ktor.client.cio)
 }
 
