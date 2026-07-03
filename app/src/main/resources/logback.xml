@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logging sinks for the SHARE app (§11).
+
+  §11 (normative): log lines must never contain participant data (patient code, field
+  values, questionnaire answers) or the installation ID (bearer credential, §6.1).
+  Sessions are referenced by sessionId only. This is a call-site discipline (see
+  org.example.app.infrastructure.logging.LogPolicy) — this file only controls where log
+  lines end up and how long they are kept, not their content.
+
+  LOG_PATH defaults to `<user.dir>/data/logs`, matching DefaultAppDirectories' default
+  dataRoot (`<user.dir>/data`). If the data root ever becomes configurable (e.g. a CLI
+  flag), pass -DLOG_PATH=<dataRoot>/logs on the JVM command line so this stays in sync;
+  see AppContainer/Main wiring, which is out of this module's scope.
+-->
+<configuration>
+    <property name="LOG_PATH" value="${LOG_PATH:-${user.dir}/data/logs}" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>14</maxHistory>
+            <totalSizeCap>50MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+      Ktor's own internal instrumentation (e.g. io.ktor.client.plugins.HttpCallValidator)
+      logs transport exceptions at TRACE, and that log message embeds the full request
+      URL — for ConfigApi (and later UploadApi), that URL/body can carry the installation
+      ID or session data. An explicit level here is a hard ceiling: because it is set
+      directly on this logger, raising <root> to DEBUG/TRACE later (e.g. someone
+      troubleshooting connectivity) cannot cascade into it and resurrect that leak. Do
+      not remove this override or lower it below INFO.
+    -->
+    <logger name="io.ktor" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

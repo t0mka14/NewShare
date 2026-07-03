@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-07-01.1",
+  "defaultLanguage": "cs",
+  "languages": ["cs", "en"],
+  "defaultMicName": "USBAudioDevice",
+  "enableEditor": true,
+  "indicatorType": "CIRCLE",
+  "patientFields": [
+    {
+      "name": "code",
+      "labelKey": "patient_code_label",
+      "helpKey": "patient_code_help",
+      "placeholder": "HC001",
+      "regex": "[a-zA-Z0-9_-]+",
+      "required": true,
+      "useInFilename": true
+    },
+    {
+      "name": "visitNumber",
+      "labelKey": "patient_visit_number_label",
+      "helpKey": "patient_visit_number_help",
+      "placeholder": "V0",
+      "regex": "V\\d+",
+      "required": true,
+      "useInFilename": true
+    },
+    {
+      "name": "sex",
+      "labelKey": "patient_sex_label",
+      "helpKey": "patient_sex_help",
+      "placeholder": "F/M",
+      "regex": "",
+      "required": false,
+      "useInFilename": false
+    }
+  ],
+  "protocols": [
+    {
+      "name": "Share",
+      "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "tasks": [
+        {
+          "type": "CALIBRATION",
+          "titleKey": "calibration_title",
+          "instructionKeys": ["calibration_instructions"],
+          "optimalLoudness": [0.2, 0.5]
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "phonation_title",
+          "instructionKeys": ["phonation_instructions1", "phonation_instructions2"],
+          "length": 10,
+          "showIndicator": true,
+          "canRepeat": true,
+          "canSkip": false,
+          "audioExamplePath": "audio_instructions/aaa.wav",
+          "nrepetition": 2
+        },
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "questionnaire_title",
+          "length": 200,
+          "canRepeat": false,
+          "canSkip": false,
+          "nrepetition": 1,
+          "questions": [
+            {
+              "questionType": "OPEN",
+              "questionKey": "smoking_status",
+              "questionTextKey": "question_smoking_status_text",
+              "questionRegex": ".*"
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "voice_fatigue",
+              "questionTextKey": "question_voice_fatigue_text",
+              "questionOptions": ["option_yes", "option_no"]
+            }
+          ]
+        },
+        {
+          "type": "INFO",
+          "titleKey": "info_title",
+          "instructionKeys": ["info_done"]
+        }
+      ]
+    },
+    {
+      "name": "QuestionnaireOnly",
+      "manualFilePath": "protocol_manuals/questionnaire_only_manual.pdf",
+      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "tasks": [
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "intake_questionnaire_title",
+          "length": 120,
+          "canRepeat": false,
+          "canSkip": false,
+          "nrepetition": 1,
+          "questions": [
+            {
+              "questionType": "OPEN",
+              "questionKey": "intake_notes",
+              "questionTextKey": "question_intake_notes_text",
+              "questionRegex": ".*"
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "questionKey": "symptoms",
+              "questionTextKey": "question_symptoms_text",
+              "questionOptions": ["symptom_hoarseness", "symptom_fatigue", "symptom_pain"]
+            }
+          ]
+        },
+        {
+          "type": "INFO",
+          "titleKey": "info_title",
+          "instructionKeys": ["info_done"]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "cs": {
+      "calibration_title": "Kalibrace",
+      "calibration_instructions": "Mluvte běžnou hlasitostí a sledujte ukazatel úrovně.",
+      "patient_code_label": "Kód pacienta",
+      "patient_code_help": "Např. HC001",
+      "patient_visit_number_label": "Číslo návštěvy",
+      "patient_visit_number_help": "Např. V1",
+      "patient_sex_label": "Pohlaví",
+      "patient_sex_help": "F nebo M",
+      "phonation_title": "Prodloužená fonace",
+      "phonation_instructions1": "<bold>Začněte teď.</bold> Stiskněte START pro zahájení nahrávání.",
+      "phonation_instructions2": "Držte tón po dobu {length} sekund.",
+      "questionnaire_title": "Dotazník",
+      "question_smoking_status_text": "Kouříte?",
+      "question_voice_fatigue_text": "Pociťujete únavu hlasu?",
+      "option_yes": "Ano",
+      "option_no": "Ne",
+      "intake_questionnaire_title": "Vstupní dotazník",
+      "question_intake_notes_text": "Poznámky k vyšetření",
+      "question_symptoms_text": "Vyberte příznaky",
+      "symptom_hoarseness": "Chrapot",
+      "symptom_fatigue": "Únava",
+      "symptom_pain": "Bolest",
+      "info_title": "Hotovo",
+      "info_done": "Vyšetření je dokončeno.",
+      "welcome_message": "<bold>Vítejte</bold> v aplikaci SHARE.",
+      "bold_notice": "Uposlechněte <bold>pokyny</bold> pečlivě."
+    },
+    "en": {
+      "calibration_title": "Calibration",
+      "calibration_instructions": "Speak at a normal volume and watch the level indicator.",
+      "patient_code_label": "Patient code",
+      "patient_code_help": "e.g. HC001",
+      "patient_visit_number_label": "Visit number",
+      "patient_visit_number_help": "e.g. V1",
+      "patient_sex_label": "Sex",
+      "patient_sex_help": "F or M",
+      "phonation_title": "Sustained phonation",
+      "phonation_instructions1": "<bold>Start now.</bold> Press START to begin recording.",
+      "phonation_instructions2": "Hold the tone for {length} seconds.",
+      "questionnaire_title": "Questionnaire",
+      "question_smoking_status_text": "Do you smoke?",
+      "question_voice_fatigue_text": "Do you experience voice fatigue?",
+      "option_yes": "Yes",
+      "option_no": "No",
+      "intake_questionnaire_title": "Intake questionnaire",
+      "question_intake_notes_text": "Notes for this examination",
+      "question_symptoms_text": "Select symptoms",
+      "symptom_hoarseness": "Hoarseness",
+      "symptom_fatigue": "Fatigue",
+      "symptom_pain": "Pain",
+      "info_title": "Done",
+      "info_done": "The examination is complete.",
+      "welcome_message": "<bold>Welcome</bold> to the SHARE app.",
+      "bold_notice": "Please follow the <bold>instructions</bold> carefully."
+    }
+  }
+}

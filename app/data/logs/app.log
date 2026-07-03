@@ -1,0 +1,45 @@
+2026-07-03 08:29:31.505 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 08:29:31.694 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 08:29:31.712 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 08:29:31.723 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 08:29:31.762 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:29:31.772 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:29:31.781 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:29:31.788 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 08:29:31.796 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 08:29:58.020 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 08:29:58.173 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 08:29:58.190 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 08:29:58.196 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 08:29:58.224 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:29:58.230 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:29:58.236 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:29:58.240 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 08:29:58.244 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 08:30:39.629 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 08:30:39.825 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 08:30:39.843 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 08:30:39.849 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 08:30:39.877 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:30:39.884 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:30:39.891 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:30:39.896 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 08:30:39.900 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 08:32:46.396 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 08:32:46.578 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 08:32:46.596 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 08:32:46.603 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 08:32:46.634 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:32:46.642 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:32:46.652 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:32:46.656 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 08:32:46.661 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 08:40:40.410 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 08:40:40.575 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 08:40:40.595 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 08:40:40.604 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 08:40:40.642 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:40:40.653 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:40:40.661 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 08:40:40.668 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 08:40:40.674 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
