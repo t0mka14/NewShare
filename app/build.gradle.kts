@@ -15,6 +15,9 @@ dependencies {
     implementation(libs.decompose)
     implementation(libs.decompose.extensions.compose)
     implementation(libs.kotlinx.coroutines.core)
+    // Provides the Swing Main dispatcher — without it Dispatchers.Main throws at runtime
+    // on desktop JVM (tests don't catch this; they inject TestCoroutineDispatchers).
+    implementation(libs.kotlinx.coroutines.swing)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)

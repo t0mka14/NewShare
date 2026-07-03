@@ -43,3 +43,243 @@
 2026-07-03 08:40:40.661 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
 2026-07-03 08:40:40.668 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
 2026-07-03 08:40:40.674 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 09:02:50.462 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 09:02:50.791 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 09:02:50.819 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 09:02:50.834 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 09:02:50.897 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:02:50.913 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:02:50.929 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:02:50.940 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 09:02:50.952 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 09:06:40.657 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 09:06:40.850 [Test worker @kotlinx.coroutines.test runner#2] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 09:06:40.873 [Test worker @kotlinx.coroutines.test runner#6] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 09:06:40.880 [Test worker @kotlinx.coroutines.test runner#10] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 09:06:40.902 [Test worker @kotlinx.coroutines.test runner#18] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:06:40.908 [Test worker @kotlinx.coroutines.test runner#22] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:06:40.915 [Test worker @kotlinx.coroutines.test runner#26] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:06:40.919 [Test worker @kotlinx.coroutines.test runner#30] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 09:06:40.923 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 09:16:26.048 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 09:16:26.052 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 09:16:26.056 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 09:16:26.061 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 09:16:26.074 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 09:16:26.086 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 09:16:26.105 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 09:16:26.166 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 09:16:26.173 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 09:16:26.178 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 09:16:26.182 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 09:17:22.571 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 09:17:22.589 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 09:17:22.649 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 09:17:22.654 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 09:17:22.658 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 09:17:22.662 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 09:17:22.725 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 09:17:22.728 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 09:17:22.733 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 09:17:22.736 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 09:17:22.747 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 09:17:31.006 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 09:17:31.011 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 09:17:31.015 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 09:17:31.017 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 09:17:31.024 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 09:17:31.278 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 09:17:31.291 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 09:17:31.333 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 09:17:31.337 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 09:17:31.340 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 09:17:31.342 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 09:17:31.366 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 09:17:31.477 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 09:17:31.483 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 09:17:31.490 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 09:17:31.528 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:17:31.535 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:17:31.542 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 09:17:31.547 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 09:17:31.551 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 10:00:20.268 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 10:00:20.274 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 10:00:20.279 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 10:00:20.283 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 10:00:20.294 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 10:00:20.624 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 10:00:20.639 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 10:00:20.682 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 10:00:20.685 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 10:00:20.689 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 10:00:20.692 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 10:00:20.719 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 10:00:20.879 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 10:00:20.888 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 10:00:20.896 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 10:00:20.948 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 10:00:20.957 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 10:00:20.966 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 10:00:20.972 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 10:00:20.981 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 10:01:41.979 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 10:01:41.984 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 10:01:41.990 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 10:01:41.993 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 10:01:42.000 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 10:01:42.278 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 10:01:42.292 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 10:01:42.334 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 10:01:42.338 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 10:01:42.340 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 10:01:42.343 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 10:01:42.364 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 10:01:42.498 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 10:01:42.508 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 10:01:42.514 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 10:01:42.552 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 10:01:42.558 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 10:01:42.567 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 10:01:42.572 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 10:01:42.577 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 13:40:50.868 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 13:40:50.873 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 13:40:50.877 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 13:40:50.881 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 13:40:50.890 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 13:40:51.121 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 13:40:51.132 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 13:40:51.172 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 13:40:51.175 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 13:40:51.178 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 13:40:51.180 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 13:40:51.203 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 13:40:51.314 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 13:40:51.319 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 13:40:51.324 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 13:40:51.358 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 13:40:51.363 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 13:40:51.370 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 13:40:51.375 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 13:40:51.380 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 14:06:18.172 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 14:06:18.177 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 14:06:18.182 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 14:06:18.185 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 14:06:18.194 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 14:06:18.476 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 14:06:18.489 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 14:06:18.537 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:06:18.542 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:06:18.547 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:06:18.552 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:06:18.581 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 14:06:18.709 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 14:06:18.713 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 14:06:18.718 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 14:06:18.752 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:06:18.758 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:06:18.767 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:06:18.772 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 14:06:18.777 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 14:06:37.241 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 14:06:37.248 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 14:06:37.253 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 14:06:37.256 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 14:06:37.265 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 14:06:37.551 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 14:06:37.565 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 14:06:37.619 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:06:37.622 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:06:37.624 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:06:37.627 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:06:37.647 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 14:06:37.771 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 14:06:37.778 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 14:06:37.783 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 14:06:37.821 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:06:37.828 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:06:37.838 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:06:37.844 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 14:06:37.853 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 14:22:15.382 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 14:22:15.388 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 14:22:15.393 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 14:22:15.397 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 14:22:15.404 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 14:22:15.650 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 14:22:15.662 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 14:22:15.711 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:22:15.715 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:22:15.718 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:22:15.721 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:22:15.748 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 14:22:15.867 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 14:22:15.872 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 14:22:15.884 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 14:22:15.927 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:22:15.934 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:22:15.942 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:22:15.954 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 14:22:15.957 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 14:22:48.273 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 14:22:48.278 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 14:22:48.283 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 14:22:48.286 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 14:22:48.295 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 14:22:48.533 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 14:22:48.546 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 14:22:48.583 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:22:48.586 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:22:48.589 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:22:48.591 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:22:48.611 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 14:22:48.721 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 14:22:48.728 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 14:22:48.735 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 14:22:48.768 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:22:48.773 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:22:48.780 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:22:48.784 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 14:22:48.788 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 14:24:24.726 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 14:24:24.730 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 14:24:24.735 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 14:24:24.738 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 14:24:24.748 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 14:24:24.963 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 14:24:24.974 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 14:24:25.013 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:24:25.017 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:24:25.019 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:24:25.022 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:24:25.042 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 14:24:25.142 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 14:24:25.148 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 14:24:25.153 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 14:24:25.191 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:24:25.197 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:24:25.205 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:24:25.210 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 14:24:25.229 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403
+2026-07-03 14:33:37.123 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'totally.unknown.key' (language=en); falling back to the key itself
+2026-07-03 14:33:37.129 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'repeat.missing.key' (language=en); falling back to the key itself
+2026-07-03 14:33:37.133 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'nope' (language=en); falling back to the key itself
+2026-07-03 14:33:37.136 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'unlogged.key.test' (language=en); falling back to the key itself
+2026-07-03 14:33:37.144 [Test worker] WARN  o.e.a.d.l.LocalizedStringProvider - localization: no string for key 'greeting' (language=cs); falling back to the key itself
+2026-07-03 14:33:37.373 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed validation: MissingTaskIndexPlaceholder
+2026-07-03 14:33:37.384 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config failed validation; treating as no cache: MissingTaskIndexPlaceholder
+2026-07-03 14:33:37.424 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:33:37.427 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - cached config schema version is below the supported range and could not be migrated; treating as no cache (§6.1 pt 6)
+2026-07-03 14:33:37.431 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:33:37.435 [Test worker] WARN  o.e.a.i.c.JsonConfigurationRepository - fetched config failed to decode: JsonDecodingException
+2026-07-03 14:33:37.460 [Test worker] INFO  o.e.a.i.lock.SingleInstanceLock - single-instance lock unavailable, another instance is running
+2026-07-03 14:33:37.591 [Test worker @kotlinx.coroutines.test runner#34] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 404
+2026-07-03 14:33:37.598 [Test worker @kotlinx.coroutines.test runner#38] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 500
+2026-07-03 14:33:37.605 [Test worker @kotlinx.coroutines.test runner#42] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed: HTTP 502
+2026-07-03 14:33:37.642 [Test worker @kotlinx.coroutines.test runner#50] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:33:37.648 [Test worker @kotlinx.coroutines.test runner#54] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:33:37.655 [Test worker @kotlinx.coroutines.test runner#58] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.io.IOException
+2026-07-03 14:33:37.660 [Test worker @kotlinx.coroutines.test runner#62] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 401
+2026-07-03 14:33:37.665 [Test worker @kotlinx.coroutines.test runner#66] INFO  o.e.a.i.network.KtorConfigApi - config fetch rejected installation id: HTTP 403

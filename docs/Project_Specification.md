@@ -486,7 +486,9 @@ Decision: **continue with gap**, do not abort.
   archived `session_master.wav`.
 - The gap exists in wall-clock time, not in samples. Interruptions are summarized in
   `examination.json` (`interruptions[]`: sampleOffset, wallClock start/end, old/new device,
-  new part file).
+  new part file, and the new part's negotiated `captureFormat` — required so §8.4 recovery
+  can rebuild the header of a partial *part* file with the format that part was actually
+  captured in, not the session's initial format).
 - Device loss while `Monitoring` (calibration — no session recording yet): no timeline is
   involved; the calibration screen shows the device-lost error and lets the examiner
   re-select a device and restart monitoring.
@@ -620,7 +622,9 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
   "startedAt": "…", "endedAt": "…",
   "captureFormat": { "sampleRate": 48000, "bits": 16, "channels": 1 },
   "recovered": false,
-  "interruptions": [ { "sampleOffset": 0, "start": "…", "end": "…", "device": "…" } ],
+  "interruptions": [ { "sampleOffset": 0, "start": "…", "end": "…", "device": "…",
+                       "partFile": "master/session_master.part2.wav",
+                       "captureFormat": { "sampleRate": 48000, "bits": 16, "channels": 1 } } ],
   "tasks": [
     { "taskIndex": 3, "type": "VOCAL", "subtype": "PHONATION", "repetition": 1,
       "takes": 3, "skipped": false, "clipFile": "clips/…wav",
@@ -863,6 +867,31 @@ Error taxonomy (normative, inlined from the old plan):
     tags are the only markup; legacy markers are not detected, not converted, and render as
     literal text. Configs must be authored in tag syntax. (Supersedes the auto-convert
     behavior originally specified in §6.2/§7 and the conversion semantics in decision 24.)
+
+27. **Disk-preflight sizing:** required free space = 2× the worst-case master size computed
+    from the negotiated format (30 min × bytes/s), minimum 1 GiB at the target format
+    (§8.1); no-master (questionnaire/info-only) sessions require a 10 MiB minimum.
+28. **Per-part capture format:** each `interruptions[]` entry in `examination.json` records
+    the new part file and its negotiated `captureFormat`; §8.4 recovery rebuilds a partial
+    part file's header from the format of *that part* (last interruption entry), falling
+    back to the session's top-level `captureFormat` only for part 1.
+
+29. **Config refresh result semantics:** an explicit server rejection
+    (`InstallationIdRejected`, `SchemaUnsupported`, `ValidationFailed`) reports as a refresh
+    *failure* regardless of whether a cached config remains active; only transport failure
+    branches on cache presence (`OfflineUsingCache` vs `NetworkUnavailableNoCache`, §6.1
+    pt 4). The UI checks `activeConfig` separately to know whether the app is still usable.
+30. **Migrated caches:** applying a schema migration to a stale cached config currently
+    happens in-memory per startup (acceptable while no migrations exist). When the first
+    real migration ships, the migrated config must be persisted back to the cache in the
+    same change.
+
+31. **Questionnaire answer validity (§8.6):** `SINGLE_CHOICE` requires exactly one
+    selection; `MULTIPLE_CHOICE` accepts zero or more; `OPEN` is valid when its regex is
+    absent or matches. Repeat rejects the current take and immediately opens a new one.
+    Device loss auto-reject is written by `TaskComponent`; the session-level
+    `RECORDING_INTERRUPTED`/`RESUMED` events and `interruptions[]` bookkeeping have a single
+    writer, `SessionComponent`.
 
 **Still open:**
 
