@@ -147,7 +147,6 @@ private object TestDirectoriesStub : org.example.app.domain.AppDirectories {
     override val dataRoot: java.nio.file.Path = java.nio.file.Paths.get("fake-data-root")
     override val configDir: java.nio.file.Path = dataRoot.resolve("config")
     override val sessionsDir: java.nio.file.Path = dataRoot.resolve("sessions")
-    override val uploadQueueDir: java.nio.file.Path = dataRoot.resolve("upload_queue")
     override val logsDir: java.nio.file.Path = dataRoot.resolve("logs")
     override fun sessionDir(folderName: String): java.nio.file.Path = sessionsDir.resolve(folderName)
 }

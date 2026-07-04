@@ -100,6 +100,41 @@ class RootComponentTest {
     }
 
     @Test
+    fun `start protocol with a multi-protocol config shows the picker before patient info`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        container.rawConfigCache.write(ConfigFixtures.fullProtocol) // defines "Share" + "QuestionnaireOnly"
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+
+        val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+        menu.onStartProtocol()
+
+        val picker = root.stack.value.active.instance
+        assertTrue(picker is RootComponent.Child.ProtocolPicker)
+        val protocolNames = (picker as RootComponent.Child.ProtocolPicker).component.protocols.map { it.name }
+        assertTrue(protocolNames.containsAll(listOf("Share", "QuestionnaireOnly")))
+
+        picker.component.onProtocolSelected(picker.component.protocols.first { it.name == "QuestionnaireOnly" })
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.PatientInfo)
+    }
+
+    @Test
+    fun `protocol picker back returns to the main menu`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        container.rawConfigCache.write(ConfigFixtures.fullProtocol)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+
+        val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+        menu.onStartProtocol()
+        val picker = (root.stack.value.active.instance as RootComponent.Child.ProtocolPicker).component
+
+        picker.onBack()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
+    }
+
+    @Test
     fun `blocking screen open-settings button navigates to settings`(@TempDir tempDir: Path) {
         val container = buildContainer(tempDir)
         container.configurationRepository.loadCached()

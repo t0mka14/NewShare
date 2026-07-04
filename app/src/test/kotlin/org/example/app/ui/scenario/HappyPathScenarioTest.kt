@@ -37,6 +37,9 @@ class HappyPathScenarioTest {
         setContent { ScenarioApp(harness) }
 
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
+        // fullProtocol defines two protocols ("Share"/"QuestionnaireOnly", §3 follow-up), so
+        // Start opens the protocol picker before patient info.
+        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share")).performClick()
 
         onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC001")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
@@ -68,6 +71,13 @@ class HappyPathScenarioTest {
 
         // INFO: display-only.
         onNodeWithTag(TestTags.Task.NEXT_BUTTON).assertIsDisplayed().performClick()
+        harness.dispatchers.scheduler.advanceUntilIdle()
+        waitForIdle()
+
+        // fullProtocol has `enableEditor: true` — accept the editor untouched (§8.7 decision 13:
+        // an untouched pass writes no timeline_edited.json, exercised on its own in
+        // EditorScenarioTest) so processing can run and the session reach its summary.
+        onNodeWithTag(TestTags.Editor.ACCEPT_BUTTON).assertIsDisplayed().performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()
         waitForIdle()
 
@@ -114,6 +124,7 @@ class HappyPathScenarioTest {
         setContent { ScenarioApp(harness) }
 
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
+        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share")).performClick()
         onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC002")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()

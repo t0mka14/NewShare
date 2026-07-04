@@ -12,7 +12,6 @@ private class TestAppDirectories(private val root: Path) : AppDirectories {
     override val dataRoot: Path = root
     override val configDir: Path = root.resolve("config")
     override val sessionsDir: Path = root.resolve("sessions")
-    override val uploadQueueDir: Path = root.resolve("upload_queue")
     override val logsDir: Path = root.resolve("logs")
     override fun sessionDir(folderName: String): Path = sessionsDir.resolve(folderName)
 }

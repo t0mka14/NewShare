@@ -14,11 +14,10 @@ class DefaultAppDirectories(
 
     override val configDir: Path = dataRoot.resolve("config")
     override val sessionsDir: Path = dataRoot.resolve("sessions")
-    override val uploadQueueDir: Path = dataRoot.resolve("upload_queue")
     override val logsDir: Path = dataRoot.resolve("logs")
 
     init {
-        listOf(configDir, sessionsDir, uploadQueueDir, logsDir).forEach(Files::createDirectories)
+        listOf(configDir, sessionsDir, logsDir).forEach(Files::createDirectories)
     }
 
     override fun sessionDir(folderName: String): Path = sessionsDir.resolve(folderName)

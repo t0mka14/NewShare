@@ -21,6 +21,8 @@ import org.example.app.ui.RootContent
 import org.example.app.ui.TestTags
 import org.example.app.ui.theme.ShareTheme
 import org.example.shared.model.AppVersion
+import java.nio.file.Files
+import java.nio.file.Path
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
@@ -57,6 +59,13 @@ fun main() {
             container = container,
         ).also { lifecycle.resume() }
     }
+
+    // §9/§11 updater failed-launch recovery: reaching this point means startup succeeded, so any
+    // "update_pending.json" marker left by the updater (written right after a package swap) is
+    // stale — delete it so the *next* updater run doesn't mistake this successful start for a
+    // failed one and roll back. The updater launches the app from `<install_dir>` (§9 layout), so
+    // the marker sits beside the process's working directory, not under AppDirectories/data/.
+    runCatching { Files.deleteIfExists(Path.of(System.getProperty("user.dir")).resolve("update_pending.json")) }
 
     application {
         val version = AppVersion(1, 0, 0)

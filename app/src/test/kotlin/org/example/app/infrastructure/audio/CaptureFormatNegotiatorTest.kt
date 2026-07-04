@@ -52,15 +52,27 @@ class CaptureFormatNegotiatorTest {
     }
 
     @Test
-    fun `sample rate distance dominates bit depth or channel preference`() {
-        // Nearest rate (44_100) only supports 8-bit stereo; a farther rate (32_000)
-        // supports 16-bit mono. The nearest rate should still win.
+    fun `non-16-bit formats are never negotiated — decision 32`() {
+        // The nearest rate (44_100) offers only 8-bit; 16-bit exists at a farther
+        // rate (32_000). 8-bit must never be picked (§13 decision 32: the pipeline
+        // is 16-bit end to end), so the farther 16-bit format wins.
         val supported = setOf(
             CaptureFormat(44_100, 8, 2),
             CaptureFormat(32_000, 16, 1),
         )
         val result = CaptureFormatNegotiator.negotiate(isSupported = { it in supported })
-        assertEquals(CaptureFormat(44_100, 8, 2), result)
+        assertEquals(CaptureFormat(32_000, 16, 1), result)
+    }
+
+    @Test
+    fun `a device with no 16-bit PCM format at all is ineligible — decision 32`() {
+        val supported = setOf(
+            CaptureFormat(48_000, 24, 1),
+            CaptureFormat(48_000, 8, 1),
+            CaptureFormat(48_000, 32, 2),
+        )
+        val result = CaptureFormatNegotiator.negotiate(isSupported = { it in supported })
+        assertNull(result, "24/8/32-bit-only devices must be reported ineligible")
     }
 
     @Test

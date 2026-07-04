@@ -56,14 +56,58 @@ object BuiltinStrings {
 
         // Upload screen (§8.9).
         "upload.title" to "Upload",
+        "upload.instructions" to "Sessions listed below are ready to upload. Uploading may take a while depending on connection speed — please do not close the app.",
         "upload.readyCount" to "{count} sessions ready to upload",
+        "upload.noSessions" to "No sessions are ready to upload.",
         "upload.successMessage" to "Files successfully uploaded.",
         "upload.failureMessage" to "Upload failed: {reason}",
+        "upload.error.interrupted" to "the previous attempt was interrupted",
+        "upload.error.network" to "network failure",
+        "upload.error.server" to "server error",
+        "upload.error.rejected" to "the server rejected the upload",
+        "upload.error.generic" to "an unknown error occurred",
 
         // Session browser (§8.11).
         "sessionBrowser.title" to "Sessions",
+        "sessionBrowser.noSessions" to "No sessions recorded yet.",
         "sessionBrowser.reprocessButton" to "Reprocess",
         "sessionBrowser.openEditorButton" to "Open editor",
+        "sessionBrowser.retryUploadButton" to "Retry upload",
+        "sessionBrowser.goToUploadButton" to "Go to upload",
+        "sessionBrowser.recoveredLabel" to "Recovered",
+        "sessionBrowser.processingStatus.NotProcessed" to "Not processed",
+        "sessionBrowser.processingStatus.Processing" to "Processing…",
+        "sessionBrowser.processingStatus.Done" to "Processed",
+        "sessionBrowser.processingStatus.Failed" to "Processing failed",
+        "sessionBrowser.uploadStatus.NotUploaded" to "Not uploaded",
+        "sessionBrowser.uploadStatus.Uploading" to "Uploading…",
+        "sessionBrowser.uploadStatus.Uploaded" to "Uploaded",
+        "sessionBrowser.uploadStatus.Failed" to "Upload failed",
+
+        // Waveform editor (§8.7), shown after the protocol when `enableEditor` is true.
+        "editor.title" to "Review recordings",
+        "editor.instructions" to "Drag the start and end markers to trim this recording. Play it back to check, then accept to continue.",
+        "editor.segmentOfTotal" to "Recording {n} of {total}",
+        "editor.noSegments" to "There is nothing to review for this session.",
+        "action.accept" to "Accept",
+
+        // Processing progress screen (§8.8) — blocks navigation while the session is processed.
+        "processing.title" to "Processing",
+        "processing.step.selectingTimeline" to "Preparing…",
+        "processing.step.cuttingClips" to "Cutting recordings…",
+        "processing.step.buildingArchive" to "Building archive…",
+        "processing.step.updatingMetadata" to "Finishing up…",
+        "processing.error.title" to "Processing failed",
+        "processing.error.generic" to "This session could not be processed. You can retry or go back.",
+
+        // Protocol picker (§3 follow-up) — shown on the main menu only when the config defines
+        // more than one protocol; a single-protocol config skips straight to patient info.
+        "protocolPicker.title" to "Choose a protocol",
+        "protocolPicker.instructions" to "Select which protocol to run for this examination.",
+
+        // Example-audio playback on VOCAL task screens (§8.6 follow-up).
+        "task.playExample" to "Play example",
+        "task.stopExample" to "Stop example",
 
         // Common action-button labels shared across main-menu/patient-info/calibration/task/
         // editor/upload screens (§8.6, §8.7, §8.9).

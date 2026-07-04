@@ -11,9 +11,11 @@ import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioError
 import org.example.app.domain.audio.AudioInputDevice
+import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
 import org.example.app.domain.config.InfoTask
+import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
 import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.Task
@@ -105,15 +107,26 @@ interface TaskComponent {
     // Device-loss recovery (§8.5)
     fun onDeviceReselected(device: AudioInputDevice)
 
+    // Example audio (§8.6 follow-up) — disabled while `Capturing`.
+    fun onPlayExampleAudio()
+    fun onStopExampleAudio()
+
     sealed interface Content {
         data class Vocal(
             val screenState: TaskScreenState,
             val takeNumber: Int,
             val level: Float,
             val deviceLost: Boolean,
+            /** `VocalTask.showIndicator` (§6.2) — carried directly so the UI never needs the
+             * raw task definition (see the removed `RootComponent` re-expansion workaround). */
+            val showIndicator: Boolean,
+            val exampleAudioAvailable: Boolean,
+            val exampleAudioPlaying: Boolean,
         ) : Content
 
         data class Questionnaire(
+            /** The task's own question definitions (§8.6), carried directly for the same reason. */
+            val questions: List<Question>,
             val answers: Map<String, AnswerState>,
             val allValid: Boolean,
         ) : Content
@@ -124,11 +137,21 @@ interface TaskComponent {
     data class State(
         val taskIndex: Int,
         val repetition: Int,
+        /** 1-based position among *navigable* task instances (calibration excluded, §8.6) and
+         * the total count — e.g. "Task 3 of 10". Computed by `SessionComponent`, which already
+         * holds the full navigable list, instead of being re-derived by the UI layer. */
+        val positionInProtocol: Int,
+        val totalInstanceCount: Int,
         val titleKey: String,
         val instructionKeys: List<String>,
         val canSkip: Boolean,
         val content: Content,
         val buttons: TaskButtonState,
+        /** Device list + the device in use when this task screen was created, for the
+         * device-lost dialog (§8.5) — carried directly for the same reason as [Content]'s
+         * task-definition fields. */
+        val availableDevices: List<AudioInputDevice>,
+        val currentDevice: AudioInputDevice?,
     )
 }
 
@@ -147,6 +170,18 @@ class DefaultTaskComponent(
     private val taskInstance: TaskInstance,
     private val recorder: ContinuousSessionRecorder?,
     private val dispatchers: CoroutineDispatchers,
+    /** 1-based position / total among navigable task instances (§8.6), computed once by
+     * [SessionComponent] from the same expanded list it already holds internally. */
+    private val positionInProtocol: Int,
+    private val totalInstanceCount: Int,
+    /** Device list + the device in use when this task screen was created (§8.5), so the
+     * device-lost dialog needs nothing from the UI layer beyond this component's own state. */
+    private val availableDevices: List<AudioInputDevice>,
+    private val currentDevice: AudioInputDevice?,
+    /** `null` when the task has no `audioExamplePath`, or example playback isn't wired for a
+     * no-master session; resolved to an absolute path by [SessionComponent] (§8.6 follow-up). */
+    private val resolvedAudioExamplePath: Path?,
+    private val audioPlaybackService: AudioPlaybackService?,
     /** Emits one timeline event for this task instance; taskIndex/repetition are bound by the caller. */
     private val eventLogger: (type: TimelineEventType, take: Int?, reason: String?) -> Unit,
     /** Computes the next master part file path for a device-loss resume (§8.5), owned by [SessionComponent]. */
@@ -164,6 +199,7 @@ class DefaultTaskComponent(
     private var currentTake = 0
     private var level = 0f
     private var deviceLost = false
+    private var exampleAudioPlaying = false
     private var answers: Map<String, AnswerState> = initialAnswers()
 
     private val _state = MutableValue(buildState())
@@ -187,6 +223,15 @@ class DefaultTaskComponent(
                         is RecorderState.Failed -> onRecorderFailed(rs.error)
                         else -> Unit
                     }
+                }
+            }
+        }
+
+        if (task is VocalTask && audioPlaybackService != null) {
+            scope.launch(dispatchers.main) {
+                audioPlaybackService.isPlaying.collect { playing ->
+                    exampleAudioPlaying = playing
+                    publish()
                 }
             }
         }
@@ -313,6 +358,17 @@ class DefaultTaskComponent(
         publish()
     }
 
+    override fun onPlayExampleAudio() {
+        val path = resolvedAudioExamplePath ?: return
+        val playback = audioPlaybackService ?: return
+        if (screenState is TaskScreenState.Capturing) return // §8.6: disabled while a take is open
+        playback.play(path)
+    }
+
+    override fun onStopExampleAudio() {
+        audioPlaybackService?.stop()
+    }
+
     override fun onDeviceReselected(device: AudioInputDevice) {
         if (recorder == null) return
         scope.launch(dispatchers.main) {
@@ -374,9 +430,13 @@ class DefaultTaskComponent(
                 takeNumber = currentTake,
                 level = level,
                 deviceLost = deviceLost,
+                showIndicator = task.showIndicator,
+                exampleAudioAvailable = resolvedAudioExamplePath != null,
+                exampleAudioPlaying = exampleAudioPlaying,
             )
 
             is QuestionnaireTask -> TaskComponent.Content.Questionnaire(
+                questions = task.questions,
                 answers = answers,
                 allValid = allAnswersValid(),
             )
@@ -401,6 +461,8 @@ class DefaultTaskComponent(
         return TaskComponent.State(
             taskIndex = taskInstance.taskIndex,
             repetition = taskInstance.repetition,
+            positionInProtocol = positionInProtocol,
+            totalInstanceCount = totalInstanceCount,
             titleKey = task.titleKey,
             instructionKeys = (task as? VocalTask)?.instructionKeys
                 ?: (task as? InfoTask)?.instructionKeys
@@ -408,6 +470,8 @@ class DefaultTaskComponent(
             canSkip = task.canSkip,
             content = content,
             buttons = buttons,
+            availableDevices = availableDevices,
+            currentDevice = currentDevice,
         )
     }
 

@@ -26,6 +26,8 @@ fun RootContent(component: RootComponent) {
                 onBack = component::onSettingsBack,
             )
 
+            is RootComponent.Child.ProtocolPicker -> ProtocolPickerContent(instance.component, localization)
+
             is RootComponent.Child.PatientInfo -> PatientInfoContent(
                 component = instance.component,
                 localization = localization,
@@ -34,21 +36,22 @@ fun RootContent(component: RootComponent) {
 
             is RootComponent.Child.Session -> SessionContent(
                 component = instance.component,
-                navigableTasks = instance.navigableTasks,
-                availableDevices = instance.availableDevices,
-                initialDevice = instance.initialDevice,
                 localization = localization,
                 onBackToMenu = component::onSessionFailedBackToMenu,
             )
+
+            is RootComponent.Child.Editor -> EditorContent(instance.component, localization)
+
+            is RootComponent.Child.Processing -> ProcessingContent(instance.component, localization)
 
             is RootComponent.Child.SessionSummary -> SessionSummaryContent(
                 localization = localization,
                 onDone = component::onSessionSummaryDone,
             )
 
-            is RootComponent.Child.Upload,
-            is RootComponent.Child.SessionBrowser,
-            -> PlaceholderContent(localization = localization, onBack = component::onPlaceholderBack)
+            is RootComponent.Child.Upload -> UploadContent(instance.component, localization)
+
+            is RootComponent.Child.SessionBrowser -> SessionBrowserContent(instance.component, localization)
         }
     }
 }

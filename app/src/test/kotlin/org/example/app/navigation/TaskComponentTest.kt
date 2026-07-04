@@ -14,6 +14,7 @@ import org.example.app.domain.config.VocalTask
 import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.timeline.TaskInstance
 import org.example.app.domain.timeline.TimelineEventType
+import org.example.app.fakes.FakeAudioPlaybackService
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.TestCoroutineDispatchers
@@ -32,6 +33,7 @@ class TaskComponentTest {
         taskIndex: Int = 3,
         repetition: Int = 1,
         withRecorder: Boolean = true,
+        audioExamplePath: Path? = null,
     ) {
         val clock = FakeClock()
         val dispatchers = TestCoroutineDispatchers()
@@ -40,6 +42,9 @@ class TaskComponentTest {
         val finished = mutableListOf<TaskRecord>()
         val resumeCalls = mutableListOf<Pair<AudioInputDevice, Path>>()
         val instance = TaskInstance(taskIndex = taskIndex, repetition = repetition, task = task)
+        val devices = listOf(AudioInputDevice(id = "default", name = "Default Mic", eligible = true))
+        val audioPlaybackService = FakeAudioPlaybackService()
+        val resolvedAudioExamplePath = audioExamplePath
 
         init {
             recorder?.let {
@@ -52,6 +57,12 @@ class TaskComponentTest {
             taskInstance = instance,
             recorder = recorder,
             dispatchers = dispatchers,
+            positionInProtocol = taskIndex + 1,
+            totalInstanceCount = taskIndex + 1,
+            availableDevices = devices,
+            currentDevice = devices.first(),
+            resolvedAudioExamplePath = resolvedAudioExamplePath,
+            audioPlaybackService = audioPlaybackService,
             eventLogger = { type, take, reason -> events += LoggedEvent(type, take, reason) },
             nextPartFile = { Path.of("session_master.part2.wav") },
             onResumeRecorded = { device, partFile -> resumeCalls += device to partFile },
@@ -318,5 +329,52 @@ class TaskComponentTest {
 
         assertEquals(1, h.finished.size)
         assertTrue(h.events.any { it.type == TimelineEventType.TASK_COMPLETED })
+    }
+
+    // ---- State enrichment (§8.6 follow-up: no more RootComponent re-expansion workaround) ----
+
+    @Test
+    fun `state carries position, total, device list, and showIndicator directly`() {
+        val h = Harness(vocalTask.copy(showIndicator = false), taskIndex = 2)
+        val state = h.component.state.value
+
+        assertEquals(3, state.positionInProtocol) // taskIndex + 1 from the harness
+        assertEquals(3, state.totalInstanceCount)
+        assertEquals(h.devices, state.availableDevices)
+        assertEquals(h.devices.first(), state.currentDevice)
+        assertFalse((state.content as TaskComponent.Content.Vocal).showIndicator)
+    }
+
+    @Test
+    fun `questionnaire content carries the question definitions directly`() {
+        val h = Harness(questionnaireTask, withRecorder = false)
+        val content = h.component.state.value.content as TaskComponent.Content.Questionnaire
+        assertEquals(questionnaireTask.questions, content.questions)
+    }
+
+    @Test
+    fun `example audio is unavailable without a configured path and available with one`() {
+        val withoutExample = Harness(vocalTask)
+        assertFalse((withoutExample.component.state.value.content as TaskComponent.Content.Vocal).exampleAudioAvailable)
+
+        val withExample = Harness(vocalTask, audioExamplePath = Path.of("example.wav"))
+        assertTrue((withExample.component.state.value.content as TaskComponent.Content.Vocal).exampleAudioAvailable)
+    }
+
+    @Test
+    fun `play example audio forwards to the playback service unless a take is open`() {
+        val h = Harness(vocalTask, audioExamplePath = Path.of("example.wav"))
+
+        h.component.onPlayExampleAudio()
+        assertEquals(listOf(Path.of("example.wav")), h.audioPlaybackService.playCalls)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue((h.component.state.value.content as TaskComponent.Content.Vocal).exampleAudioPlaying)
+
+        h.component.onStopExampleAudio()
+        assertEquals(1, h.audioPlaybackService.stopCallCount)
+
+        h.component.onStart() // Capturing — example playback disabled (§8.6)
+        h.component.onPlayExampleAudio()
+        assertEquals(1, h.audioPlaybackService.playCalls.size) // no second call
     }
 }

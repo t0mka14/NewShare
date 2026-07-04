@@ -13,9 +13,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.example.app.domain.AppDirectories
 import org.example.app.domain.Clock
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioInputDevice
+import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
@@ -92,7 +94,15 @@ class DefaultSessionComponent(
     private val timelineRepository: TimelineRepository,
     private val clock: Clock,
     private val dispatchers: CoroutineDispatchers,
-    private val onSessionEnded: () -> Unit,
+    /** Resolves a VOCAL task's `audioExamplePath` (§6.2, relative) to an absolute file for
+     * `AudioPlaybackService` (§8.6 follow-up) — resolved relative to `configDir`, where
+     * config-adjacent assets are deployed alongside the fetched config JSON. */
+    private val directories: AppDirectories,
+    private val audioPlaybackService: AudioPlaybackService,
+    /** Carries the finished session's folder name, so the caller (RootComponent) can route
+     * into the editor (if `enableEditor`) or straight to processing (§8.8) without
+     * re-deriving it. */
+    private val onSessionEnded: (folderName: String) -> Unit,
 ) : SessionComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -195,11 +205,21 @@ class DefaultSessionComponent(
 
     private fun buildTaskComponent(childContext: ComponentContext, listIndex: Int): TaskComponent {
         val instance = navigableInstances[listIndex]
+        val task = instance.task
+        val resolvedAudioExamplePath = (task as? VocalTask)?.audioExamplePath
+            ?.let { directories.configDir.resolve(it) }
+        val currentDevice = availableDevices.firstOrNull { it.id == currentDeviceId }
         return DefaultTaskComponent(
             componentContext = childContext,
             taskInstance = instance,
             recorder = recorder,
             dispatchers = dispatchers,
+            positionInProtocol = listIndex + 1,
+            totalInstanceCount = navigableInstances.size,
+            availableDevices = availableDevices,
+            currentDevice = currentDevice,
+            resolvedAudioExamplePath = resolvedAudioExamplePath,
+            audioPlaybackService = audioPlaybackService,
             eventLogger = { type, take, reason ->
                 logEvent(type, instance.taskIndex, instance.repetition, take, reason)
             },
@@ -251,7 +271,7 @@ class DefaultSessionComponent(
         val compacted = TimelineCompactor.compact(exam.sessionId, sampleRate, parseResult.events)
         timelineRepository.writeOriginal(folder, compacted)
 
-        onSessionEnded()
+        onSessionEnded(folder)
     }
 
     private fun observeInterruptions(r: ContinuousSessionRecorder) {

@@ -13,7 +13,6 @@ class TestAppDirectories(root: Path) : AppDirectories {
     override val dataRoot: Path = root.createDirs()
     override val configDir: Path = root.resolve("config").createDirs()
     override val sessionsDir: Path = root.resolve("sessions").createDirs()
-    override val uploadQueueDir: Path = root.resolve("upload_queue").createDirs()
     override val logsDir: Path = root.resolve("logs").createDirs()
 
     override fun sessionDir(folderName: String): Path = sessionsDir.resolve(folderName).createDirs()

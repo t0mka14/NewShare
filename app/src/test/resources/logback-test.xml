@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Test-scoped logging config (§11). Logback resolves `logback-test.xml` ahead of the
+  production `logback.xml` when both are on the classpath, so the whole test suite uses this
+  file instead — console only, no file appender, so `./gradlew :app:test` never creates or
+  grows `data/logs/app.log` (the production file lives under the working directory, which
+  during a test run is the repo/module root, not a throwaway temp dir).
+
+  The `io.ktor` ceiling is kept here too, mirroring logback.xml, so tests that assert on log
+  output (KtorConfigApiTest/KtorUploadApiTest leak tests) see the same effective logger levels
+  production does.
+-->
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.ktor" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

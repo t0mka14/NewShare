@@ -31,34 +31,19 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.config.IndicatorType
+import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
-import org.example.app.domain.config.QuestionnaireTask
-import org.example.app.domain.config.Task
-import org.example.app.domain.config.VocalTask
 import org.example.app.navigation.AnswerState
 import org.example.app.navigation.TaskComponent
 import org.example.app.navigation.TaskScreenState
 
-/**
- * §8.6 task screen. [taskDefinition]/[positionInProtocol]/[totalNavigableTasks]/[availableDevices]
- * come from the caller ([SessionContent]) rather than [TaskComponent]'s own state — see the
- * chunk-2 gap notes on `TaskComponent.Content` (no question/task metadata, no instance count, no
- * device list) forwarded to the tech lead; [SessionContent] recomputes the same expansion
- * `SessionComponent` uses internally ([org.example.app.domain.timeline.TaskInstanceExpander])
- * purely to look these up for rendering, never to drive navigation itself.
- */
+/** §8.6 task screen — stateless render of [TaskComponent.state]; every field the screen needs
+ * (position/total, task-definition fields, device list) is carried directly on the component's
+ * own state (see the `TaskComponent`/`SessionComponent` doc comments for the removed
+ * `RootComponent` re-expansion workaround this replaced). */
 @Composable
-fun TaskContent(
-    component: TaskComponent,
-    localization: UiLocalization,
-    taskDefinition: Task,
-    positionInProtocol: Int,
-    totalNavigableTasks: Int,
-    availableDevices: List<AudioInputDevice>,
-    initialDevice: AudioInputDevice?,
-) {
+fun TaskContent(component: TaskComponent, localization: UiLocalization) {
     val state by component.state.subscribeAsState()
 
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
@@ -66,7 +51,7 @@ fun TaskContent(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            TaskHeader(state, localization, positionInProtocol, totalNavigableTasks)
+            TaskHeader(state, localization)
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(modifier = Modifier.fillMaxWidth(0.8f)) {
@@ -78,14 +63,14 @@ fun TaskContent(
 
             when (val content = state.content) {
                 is TaskComponent.Content.Vocal -> VocalTaskBody(
+                    component = component,
                     content = content,
                     localization = localization,
                     indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
-                    showIndicator = (taskDefinition as? VocalTask)?.showIndicator ?: true,
                 )
 
                 is TaskComponent.Content.Questionnaire -> QuestionnaireBody(
-                    task = taskDefinition as QuestionnaireTask,
+                    questions = content.questions,
                     content = content,
                     localization = localization,
                     onOpenAnswerChanged = component::onOpenAnswerChanged,
@@ -104,8 +89,8 @@ fun TaskContent(
         if (content is TaskComponent.Content.Vocal && content.deviceLost) {
             DeviceLostDialog(
                 localization = localization,
-                availableDevices = availableDevices,
-                defaultDevice = initialDevice,
+                availableDevices = state.availableDevices,
+                defaultDevice = state.currentDevice,
                 requiresExplicitResume = true,
                 messageTag = TestTags.Task.DEVICE_LOST_ERROR,
                 onDeviceAction = component::onDeviceReselected,
@@ -136,18 +121,13 @@ fun TaskContent(
 }
 
 @Composable
-private fun TaskHeader(
-    state: TaskComponent.State,
-    localization: UiLocalization,
-    positionInProtocol: Int,
-    totalNavigableTasks: Int,
-) {
+private fun TaskHeader(state: TaskComponent.State, localization: UiLocalization) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            if (totalNavigableTasks > 0) {
+            if (state.totalInstanceCount > 0) {
                 localization.resolve(
                     "task.numberOfTotalLabel",
-                    mapOf("n" to positionInProtocol.toString(), "total" to totalNavigableTasks.toString()),
+                    mapOf("n" to state.positionInProtocol.toString(), "total" to state.totalInstanceCount.toString()),
                 )
             } else {
                 localization.resolve("task.numberLabel", mapOf("n" to (state.taskIndex + 1).toString()))
@@ -166,20 +146,32 @@ private fun TaskHeader(
 
 @Composable
 private fun VocalTaskBody(
+    component: TaskComponent,
     content: TaskComponent.Content.Vocal,
     localization: UiLocalization,
     indicatorType: IndicatorType,
-    showIndicator: Boolean,
 ) {
     val capturing = content.screenState is TaskScreenState.Capturing
     val elapsedSeconds = rememberElapsedSeconds(capturing = capturing, resetKey = content.takeNumber)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (content.exampleAudioAvailable) {
+            Button(
+                onClick = {
+                    if (content.exampleAudioPlaying) component.onStopExampleAudio() else component.onPlayExampleAudio()
+                },
+                enabled = !capturing,
+                modifier = Modifier.testTag(TestTags.Task.EXAMPLE_AUDIO_BUTTON),
+            ) {
+                Text(localization.resolve(if (content.exampleAudioPlaying) "task.stopExample" else "task.playExample"))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
         if (content.takeNumber > 0) {
             Text(localization.resolve("task.takeLabel", mapOf("n" to content.takeNumber.toString())))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        if (showIndicator) {
+        if (content.showIndicator) {
             TaskLevelIndicator(indicatorType = indicatorType, level = content.level)
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -206,14 +198,14 @@ private fun rememberElapsedSeconds(capturing: Boolean, resetKey: Any?): Int {
 
 @Composable
 private fun QuestionnaireBody(
-    task: QuestionnaireTask,
+    questions: List<Question>,
     content: TaskComponent.Content.Questionnaire,
     localization: UiLocalization,
     onOpenAnswerChanged: (String, String) -> Unit,
     onOptionToggled: (String, String, Boolean) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth(0.8f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        task.questions.forEach { question ->
+        questions.forEach { question ->
             val answer = content.answers[question.questionKey] ?: AnswerState()
             Column {
                 Text(localization.resolve(question.questionTextKey), style = MaterialTheme.typography.subtitle1)
@@ -271,7 +263,7 @@ private fun QuestionnaireBody(
 @Composable
 private fun TaskButtonRow(component: TaskComponent, state: TaskComponent.State, localization: UiLocalization) {
     val buttons = state.buttons
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Button(onClick = component::onStart, enabled = buttons.startEnabled, modifier = Modifier.testTag(TestTags.Task.START_BUTTON)) {
             Text(localization.resolve("action.start"))
         }

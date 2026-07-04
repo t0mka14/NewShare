@@ -17,8 +17,12 @@ object CaptureFormatNegotiator {
         48_000, 44_100, 96_000, 32_000, 22_050, 16_000, 11_025, 88_200, 8_000, 192_000, 176_400,
     )
 
-    /** 16-bit preferred; the remaining depths are plausible PCM fallbacks. */
-    val STANDARD_BIT_DEPTHS: List<Int> = listOf(16, 24, 32, 8)
+    /**
+     * 16-bit only (§13 decision 32): the whole pipeline — processing, waveform,
+     * level metering — is 16-bit PCM end to end, so negotiation never falls back
+     * to another depth; a device with no 16-bit PCM format is ineligible.
+     */
+    val STANDARD_BIT_DEPTHS: List<Int> = listOf(16)
 
     /** Mono preferred; stereo fallback (processing downmixes later, §8.8). */
     val STANDARD_CHANNEL_COUNTS: List<Int> = listOf(1, 2)

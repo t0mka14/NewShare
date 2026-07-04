@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -49,7 +50,9 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 itemTag = { TestTags.Settings.deviceOption(it.id) },
                 onSelected = { component.onDeviceSelected(it.id) },
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Divider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.subtitle1)
             OutlinedTextField(
@@ -58,7 +61,9 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Divider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(localization.resolve("settings.language.label"), style = MaterialTheme.typography.subtitle1)
             DropdownSelector(

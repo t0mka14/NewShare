@@ -28,7 +28,14 @@ class JsonSessionRepository(
     override fun sessionDir(folderName: String): Path = directories.sessionDir(folderName)
     override fun masterDir(folderName: String): Path = sessionDir(folderName).resolve("master")
     override fun clipsDir(folderName: String): Path = sessionDir(folderName).resolve("clips")
+    override fun archiveDir(folderName: String): Path = sessionDir(folderName).resolve("archive")
     override fun defaultMasterFile(folderName: String): Path = masterDir(folderName).resolve("session_master.wav")
+
+    override fun archiveExists(folderName: String): Boolean {
+        val dir = archiveDir(folderName)
+        if (!Files.isDirectory(dir)) return false
+        return Files.list(dir).use { stream -> stream.anyMatch { it.fileName.toString().endsWith(".zip") } }
+    }
     private fun metadataDir(folderName: String): Path = sessionDir(folderName).resolve("metadata")
     private fun waveformCacheDir(folderName: String): Path = sessionDir(folderName).resolve("waveform_cache")
 

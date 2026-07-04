@@ -61,6 +61,9 @@ object TestTags {
         const val ERROR_DIALOG = "task.errorDialog"
         const val ERROR_DIALOG_DISMISS_BUTTON = "task.errorDialogDismissButton"
         const val DEVICE_LOST_ERROR = "task.errorDialog.deviceLost"
+
+        /** Example-audio playback button (§8.6, follow-up) — disabled while `Capturing`. */
+        const val EXAMPLE_AUDIO_BUTTON = "task.exampleAudioButton"
     }
 
     /** QUESTIONNAIRE task rendering (§8.6): one answer input per configured question. */
@@ -95,11 +98,6 @@ object TestTags {
         const val DONE_BUTTON = "sessionSummary.doneButton"
     }
 
-    /** Screens not yet implemented in this phase (Upload/Session browser land in a later chunk). */
-    object Placeholder {
-        const val BACK_BUTTON = "placeholder.backButton"
-    }
-
     /** Waveform boundary editor (§8.7), shown when `enableEditor` is true. */
     object Editor {
         const val WAVEFORM_CANVAS = "editor.waveformCanvas"
@@ -109,6 +107,23 @@ object TestTags {
         const val PREVIOUS_SEGMENT_BUTTON = "editor.previousSegmentButton"
         const val NEXT_SEGMENT_BUTTON = "editor.nextSegmentButton"
         const val ACCEPT_BUTTON = "editor.acceptButton"
+        const val SEGMENT_LABEL = "editor.segmentLabel"
+    }
+
+    /** Processing progress screen (§8.8) — blocks navigation while `ProcessSessionUseCase` runs. */
+    object Processing {
+        const val STEP_LABEL = "processing.stepLabel"
+        const val PROGRESS_BAR = "processing.progressBar"
+        const val ERROR_TEXT = "processing.errorText"
+        const val RETRY_BUTTON = "processing.retryButton"
+        const val BACK_BUTTON = "processing.backButton"
+    }
+
+    /** Protocol picker (§3 follow-up) — shown on the main menu only when the config has more
+     * than one protocol; a single-protocol config skips straight to patient info. */
+    object ProtocolPicker {
+        fun protocolButton(protocolName: String) = "protocolPicker.protocolButton.$protocolName"
+        const val BACK_BUTTON = "protocolPicker.backButton"
     }
 
     /** Upload screen (§8.9), reached via the main-screen Upload button. */
@@ -117,6 +132,7 @@ object TestTags {
         const val BACK_BUTTON = "upload.backButton"
         const val PROGRESS_BAR = "upload.progressBar"
         const val READY_COUNT_TEXT = "upload.readyCountText"
+        const val SUCCESS_MESSAGE = "upload.successMessage"
 
         /** One row per session eligible for upload; error reason is a child of the row, §8.9. */
         fun sessionRow(sessionId: String) = "upload.sessionRow.$sessionId"
@@ -125,10 +141,13 @@ object TestTags {
 
     /** Session browser (§8.11). */
     object SessionBrowser {
+        const val BACK_BUTTON = "sessionBrowser.backButton"
+        const val GO_TO_UPLOAD_BUTTON = "sessionBrowser.goToUploadButton"
+
         fun sessionRow(sessionId: String) = "sessionBrowser.sessionRow.$sessionId"
-        const val REPROCESS_BUTTON = "sessionBrowser.reprocessButton"
-        const val OPEN_EDITOR_BUTTON = "sessionBrowser.openEditorButton"
-        const val RETRY_UPLOAD_BUTTON = "sessionBrowser.retryUploadButton"
+        fun reprocessButton(sessionId: String) = "sessionBrowser.reprocessButton.$sessionId"
+        fun openEditorButton(sessionId: String) = "sessionBrowser.openEditorButton.$sessionId"
+        fun retryUploadButton(sessionId: String) = "sessionBrowser.retryUploadButton.$sessionId"
     }
 
     /** Settings screen (§3): mic device, installation ID, language, refresh config. */

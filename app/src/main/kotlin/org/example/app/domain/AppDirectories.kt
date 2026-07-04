@@ -11,7 +11,6 @@ interface AppDirectories {
     val dataRoot: Path
     val configDir: Path
     val sessionsDir: Path
-    val uploadQueueDir: Path
     val logsDir: Path
 
     /** Directory of one session, by its folder name (`yyyy-MM-dd_PatientCode_SessionId`, §8.2). */

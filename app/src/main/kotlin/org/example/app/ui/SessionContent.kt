@@ -17,23 +17,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.session.StorageError
-import org.example.app.domain.timeline.TaskInstance
 import org.example.app.navigation.SessionComponent
 
-/**
- * Renders one examination in progress (§8.6): calibration, then each task instance in turn.
- * [navigableTasks]/[availableDevices]/[initialDevice] are computed once by `RootComponent` at
- * session-start time — see [TaskContent]'s doc comment for why the UI layer needs them
- * alongside [SessionComponent] rather than reading them off it directly.
- */
+/** Renders one examination in progress (§8.6): calibration, then each task instance in turn.
+ * `TaskComponent.State` now carries everything the task screen needs directly (§8.6 follow-up),
+ * so this no longer re-expands the protocol itself. */
 @Composable
 fun SessionContent(
     component: SessionComponent,
-    navigableTasks: List<TaskInstance>,
-    availableDevices: List<AudioInputDevice>,
-    initialDevice: AudioInputDevice?,
     localization: UiLocalization,
     onBackToMenu: () -> Unit,
 ) {
@@ -45,22 +37,7 @@ fun SessionContent(
 
             is SessionComponent.Child.Calibration -> CalibrationContent(instance.component, localization)
 
-            is SessionComponent.Child.TaskScreen -> {
-                val taskState by instance.component.state.subscribeAsState()
-                val position = navigableTasks.indexOfFirst { it.taskIndex == taskState.taskIndex }
-                val taskInstance = navigableTasks.getOrNull(position)
-                if (taskInstance != null) {
-                    TaskContent(
-                        component = instance.component,
-                        localization = localization,
-                        taskDefinition = taskInstance.task,
-                        positionInProtocol = position + 1,
-                        totalNavigableTasks = navigableTasks.size,
-                        availableDevices = availableDevices,
-                        initialDevice = initialDevice,
-                    )
-                }
-            }
+            is SessionComponent.Child.TaskScreen -> TaskContent(component = instance.component, localization = localization)
 
             is SessionComponent.Child.Failed -> {
                 val startError by component.startError.subscribeAsState()

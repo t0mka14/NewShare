@@ -187,7 +187,7 @@ Rules:
 ### 5.3 System port interfaces
 
 ```
-AppDirectories            data root, config/, sessions/, upload_queue/, logs/, sessionDir(id)
+AppDirectories            data root, config/, sessions/, logs/, sessionDir(id)
 Clock                     now() (ISO-8601 UTC; clinic-local derivation for folder names, §8.2)
 IdGenerator               session IDs: opaque, unique, filesystem-safe (e.g. UUIDv4 hex)
 ContinuousSessionRecorder see §5.3.1
@@ -239,18 +239,16 @@ AppSettingsRepository       local-only settings: mic device, installation ID, la
 SessionRepository           session metadata, participant.json, examination.json
 TimelineRepository          event log + timeline_original.json / timeline_edited.json
 WaveformCacheRepository     downsampled min/max peaks per session
-UploadQueueRepository       pending/failed uploads
 ```
 
-Upload state has one authority: the per-session `metadata/upload_status.json`.
-`upload_queue/queue.json` is a **derived index** rebuilt from session metadata at startup;
-if they disagree, session metadata wins.
+Upload state has one authority: the per-session `metadata/upload_status.json`. The upload
+screen's session list is computed directly from session metadata on demand — there is no
+persisted queue index.
 
-An app-lifetime **UploadWorker** owned by `AppContainer` runs the retry loop: it scans the
-queue, computes `nextAttemptAt` from each session's `attemptCount` and last attempt time
-(both persisted in `upload_status.json`), and executes due uploads with exponential backoff
-(§8.9). This makes retries restart-safe by construction — schedules are recomputed from
-session metadata at startup.
+**Upload is always user-initiated (§13 decision 34):** there is no background upload
+worker, no automatic retry, and no backoff schedule. The examiner presses Upload on the
+upload screen; failures are shown with a localized reason and the session stays listed for
+manual retry.
 
 ### 5.5 Use cases (only where real logic exists)
 
@@ -390,7 +388,6 @@ data/
     clips/                        (per recordingsFileName template)
     archive/<PatientCode>_<SessionId>.zip
     metadata/upload_status.json
-  upload_queue/queue.json         (derived index, §5.4)
   logs/app.log
 ```
 
@@ -575,9 +572,9 @@ regenerates local artifacts, but re-upload is blocked.
   be uploaded again** — the server rejects a `sessionId` it has already accepted, and the
   app treats `Uploaded` as terminal (upload actions disabled in the UI).
 - Statuses in `metadata/upload_status.json`: `NotUploaded`, `Uploading`, `Uploaded`
-  (terminal), `Failed` (the single-ZIP payload removes `PartiallyUploaded`). Failures enter
-  the retry queue run by the `UploadWorker` (§5.4): exponential backoff, max 5 automatic
-  attempts, manual retry always available.
+  (terminal), `Failed` (the single-ZIP payload removes `PartiallyUploaded`). Failed uploads
+  are retried only when the examiner presses Upload again (§5.4, decision 34);
+  `attempts[]`/`attemptCount` remain as the audit trail.
 - **Primary session data is never deleted after upload** (master, timelines, JSONs,
   participant data). Derived artifacts may be regenerated (§8.8).
 
@@ -599,7 +596,7 @@ per §5):
   reflects partial success). Each session's result is persisted to its
   `upload_status.json` as it completes.
 - Uploaded sessions disappear from the list (`Uploaded` is terminal); failed ones remain
-  listed for manual retry, in addition to the `UploadWorker`'s automatic retries (§5.4).
+  listed, showing the failure reason, until a manual retry succeeds (§5.4, decision 34).
 
 ### 8.10 File schemas
 
@@ -645,8 +642,6 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
   "serverResponse": { … },
   "attempts": [ { "at": "…", "outcome": "…" } ], "attemptCount": 1 }
 
-// upload_queue/queue.json  (derived index)
-{ "version": 1, "entries": [ { "sessionId": "…", "attemptCount": 2, "nextAttemptAt": "…" } ] }
 ```
 
 ### 8.11 Session browser
@@ -892,6 +887,60 @@ Error taxonomy (normative, inlined from the old plan):
     Device loss auto-reject is written by `TaskComponent`; the session-level
     `RECORDING_INTERRUPTED`/`RESUMED` events and `interruptions[]` bookkeeping have a single
     writer, `SessionComponent`.
+
+32. **16-bit PCM end to end:** format negotiation (§5.3.1) only considers 16-bit PCM
+    candidates; a device offering no 16-bit PCM format is reported ineligible. Processing,
+    waveform, and level metering are 16-bit-only by design — no other bit depth ever enters
+    the pipeline. Resampling is linear interpolation (speech-adequate, documented);
+    downmix is channel averaging.
+
+33. **Edited timeline is complete:** when the editor writes `timeline_edited.json` (only
+    after at least one boundary moved, decision 13), it writes the **full segment list for
+    every VOCAL task instance**, not only touched segments. Processing treats a missing
+    segment as a fatal planning error rather than falling back to the original timeline —
+    a half-written edited timeline must never silently mix sources. Exports always target
+    `CaptureFormat.PREFERRED`; single-part masters go through the same `convert()` path
+    as multi-part ones.
+
+34. **Manual-only upload (2026-07-03, supersedes the UploadWorker design):** upload is
+    always initiated by the examiner from the upload screen. No background worker, no
+    automatic retries, no backoff, no `upload_queue/queue.json` — the screen lists eligible
+    sessions (archive present, status `NotUploaded`/`Failed`) computed from session
+    metadata; progress is shown during upload; failures display a localized reason and the
+    session remains listed for manual retry; `Uploaded` sessions leave the list (terminal,
+    decision 11).
+
+35. **Interrupted uploads are retryable:** an `Uploading` status encountered when computing
+    the upload screen's list (decision 34) can only be a leftover from a crash/kill during
+    a previous upload — the session is treated as `Failed` ("interrupted") and listed as
+    eligible for manual retry. No file rewrite is needed; the next attempt overwrites the
+    status through the normal state machine.
+
+36. **UI is 1:1 with the legacy shareapp (2026-07-03, supersedes "look and feel only"):**
+    screens that existed in the original app must look identical to it — the legacy UI is
+    production-tested and its visual design is adopted wholesale. Legacy composable code may
+    be copied and adapted (visual layer only — §4's logic bugs must still never be copied),
+    tweaked, and bug-fixed. Screens with no legacy counterpart (processing progress, session
+    browser, editor refinements) follow the same visual language, drawing directly from the
+    copied legacy screens. Anything in the legacy UI that prevents proper screen scaling
+    (fixed pixel sizes, non-responsive layouts) is a bug to fix, not a look to preserve.
+    The Phase 2 screens already built must be restyled to match.
+
+37. **Example-audio location (interim):** `audioExamplePath` from the config resolves
+    relative to `AppDirectories.configDir` until the server contract (open q1) defines how
+    example WAVs are distributed. The legacy Roboto fonts are bundled as classpath
+    resources (the original's working-directory `File` loading was a packaging bug, fixed
+    per decision 36); the material icon packs remain unbundled pending an environment with
+    registry access — buttons are text-only for now.
+
+38. **Updater edge semantics (Phase 4):** the version-check endpoint comes from a CLI arg
+    or `updater.properties` beside the install dir (placeholder until open q1 resolves).
+    A missing/unparseable local `app/version.json` is treated as "update needed" when the
+    server offers any parseable version — a broken app dir self-heals from the server
+    rather than being preserved. Failed-launch recovery uses an `update_pending.json`
+    marker in `<install_dir>` (never `data/`): written after a package swap, deleted by
+    the app once startup succeeds, and a marker still present on the next updater run
+    triggers backup restore.
 
 **Still open:**
 

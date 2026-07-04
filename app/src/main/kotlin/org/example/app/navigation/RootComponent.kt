@@ -17,11 +17,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.example.app.AppContainer
-import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
-import org.example.app.domain.timeline.TaskInstance
 import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
 
@@ -40,7 +38,6 @@ interface RootComponent {
     fun onOpenSettingsFromBlocking()
     fun onSessionFailedBackToMenu()
     fun onSessionSummaryDone()
-    fun onPlaceholderBack()
 
     sealed class Child {
         /** No active config and no cache (§6.1 pt 4) — rendered from bundled fallback strings. */
@@ -48,38 +45,40 @@ interface RootComponent {
 
         class MainMenu(val component: MainMenuComponent) : Child()
         class Settings(val component: SettingsComponent) : Child()
+
+        /** §3 follow-up: only reachable when the active config defines more than one protocol. */
+        class ProtocolPicker(val component: ProtocolPickerComponent) : Child()
         class PatientInfo(val component: PatientInfoComponent) : Child()
 
         /**
-         * [navigableTasks]/[availableDevices]/[initialDevice] are computed here (mirroring what
-         * [SessionComponent] itself does internally via [TaskInstanceExpander]) purely so the UI
-         * layer can look up each task's full definition (title/instructions already come via
-         * `TaskComponent.State`, but VOCAL's `showIndicator`/`length`/`audioExamplePath` and every
-         * QUESTIONNAIRE's `questions[]` do not) and the device-loss dialog's device list — neither
-         * is exposed by the frozen `TaskComponent`/`SessionComponent` public state. See the
-         * chunk-2 report to the tech lead for the recommended follow-up.
+         * Owns the examination in progress. `TaskComponent.State` carries everything the task
+         * screen needs directly (position/total, device list, task-definition fields, §8.6
+         * follow-up) — the UI layer no longer re-expands the protocol itself.
          */
-        class Session(
-            val component: SessionComponent,
-            val navigableTasks: List<TaskInstance>,
-            val availableDevices: List<AudioInputDevice>,
-            val initialDevice: AudioInputDevice?,
-        ) : Child()
+        class Session(val component: SessionComponent) : Child()
 
-        /** Minimal post-protocol confirmation (§8.6) — the real summary lands with processing/upload. */
+        /** §8.7 waveform editor, shown after the protocol only when `enableEditor` is true. */
+        class Editor(val component: EditorComponent) : Child()
+
+        /** §8.8 processing progress — blocks navigation while the session is processed. */
+        class Processing(val component: ProcessingComponent) : Child()
+
+        /** Minimal post-protocol confirmation (§8.6). */
         data object SessionSummary : Child()
 
-        /** §8.9/§8.11 land in a later chunk; these keep the main-menu buttons wired to a real
-         * (placeholder) destination instead of a dead click. */
-        data object Upload : Child()
-        data object SessionBrowser : Child()
+        /** §8.9 upload screen, reached via the main-screen Upload button. */
+        class Upload(val component: UploadComponent) : Child()
+
+        /** §8.11 session browser. */
+        class SessionBrowser(val component: SessionBrowserComponent) : Child()
     }
 }
 
 /**
- * §5.2 root navigation: blocking config-required screen ↔ main menu → settings / patient info →
- * session flow → summary → back to menu. Constructs every screen component from [container],
- * matching the frozen chunk-1 component constructors exactly (they are not modified here).
+ * §5.2 root navigation: blocking config-required screen ↔ main menu → (protocol picker) →
+ * patient info → session flow → editor (if `enableEditor`) → processing → summary → back to
+ * menu; Upload/session-browser are reachable from the main menu at any time. Constructs every
+ * screen component from [container].
  */
 @OptIn(DelicateDecomposeApi::class)
 class DefaultRootComponent(
@@ -90,7 +89,7 @@ class DefaultRootComponent(
     private val scope = CoroutineScope(SupervisorJob() + container.dispatchers.default)
     private val navigation = StackNavigation<Config>()
 
-    // Set immediately before pushing Config.Session (mirrors SessionComponent's own
+    // Set immediately before pushing Config.PatientInfo (mirrors SessionComponent's own
     // private-var-read-in-createChild pattern for its `TaskScreen(index)` config).
     private var pendingProtocol: Protocol? = null
     private var pendingParticipantValues: Map<String, String> = emptyMap()
@@ -140,7 +139,7 @@ class DefaultRootComponent(
                     componentContext = childContext,
                     configurationRepository = container.configurationRepository,
                     dispatchers = container.dispatchers,
-                    onStartProtocolClicked = { navigation.push(Config.PatientInfo) },
+                    onStartProtocolClicked = ::onStartProtocolClicked,
                     onUploadClicked = { navigation.push(Config.Upload) },
                     onSettingsClicked = { navigation.push(Config.Settings) },
                     onSessionBrowserClicked = { navigation.push(Config.SessionBrowser) },
@@ -148,6 +147,18 @@ class DefaultRootComponent(
             )
 
             Config.Settings -> buildSettingsChild(childContext)
+
+            Config.ProtocolPicker -> RootComponent.Child.ProtocolPicker(
+                DefaultProtocolPickerComponent(
+                    componentContext = childContext,
+                    protocols = container.configurationRepository.activeConfig.value?.protocols.orEmpty(),
+                    onProtocolSelectedClicked = { protocol ->
+                        pendingProtocol = protocol
+                        navigation.push(Config.PatientInfo)
+                    },
+                    onBackClicked = { navigation.pop() },
+                ),
+            )
 
             Config.PatientInfo -> RootComponent.Child.PatientInfo(
                 DefaultPatientInfoComponent(
@@ -160,10 +171,23 @@ class DefaultRootComponent(
 
             Config.Session -> buildSessionChild(childContext)
 
+            is Config.Editor -> buildEditorChild(childContext, config)
+            is Config.Processing -> buildProcessingChild(childContext, config)
+
             Config.SessionSummary -> RootComponent.Child.SessionSummary
-            Config.Upload -> RootComponent.Child.Upload
-            Config.SessionBrowser -> RootComponent.Child.SessionBrowser
+            Config.Upload -> buildUploadChild(childContext)
+            Config.SessionBrowser -> buildSessionBrowserChild(childContext)
         }
+
+    private fun onStartProtocolClicked() {
+        val protocols = container.configurationRepository.activeConfig.value?.protocols.orEmpty()
+        if (protocols.size > 1) {
+            navigation.push(Config.ProtocolPicker)
+        } else {
+            pendingProtocol = protocols.firstOrNull()
+            navigation.push(Config.PatientInfo)
+        }
+    }
 
     /**
      * Settings has no way to notify a caller of a language change (frozen interface, §12 "build
@@ -192,7 +216,9 @@ class DefaultRootComponent(
 
     private fun startSession(participantValues: Map<String, String>) {
         pendingParticipantValues = participantValues
-        pendingProtocol = container.configurationRepository.activeConfig.value?.protocols?.firstOrNull()
+        if (pendingProtocol == null) {
+            pendingProtocol = container.configurationRepository.activeConfig.value?.protocols?.firstOrNull()
+        }
         navigation.push(Config.Session)
     }
 
@@ -209,9 +235,6 @@ class DefaultRootComponent(
             ?: devices.firstOrNull { it.eligible }
             ?: devices.firstOrNull()
 
-        val navigableTasks = TaskInstanceExpander.expand(protocol.tasks).instances
-            .filterNot { it.task is CalibrationTask }
-
         val sessionComponent = DefaultSessionComponent(
             componentContext = childContext,
             installationId = savedSettings?.installationId.orEmpty(),
@@ -223,7 +246,7 @@ class DefaultRootComponent(
             // DefaultSessionComponent requires a non-null device even for no-master (VIDEO-free
             // questionnaire/info-only) protocols, where it is never actually opened; a zero-device
             // machine is an unsupported/edge deployment, not exercised by the fakes used in tests.
-            initialDevice = initialDevice ?: AudioInputDevice(id = "none", name = "No microphone", eligible = false),
+            initialDevice = initialDevice ?: org.example.app.domain.audio.AudioInputDevice(id = "none", name = "No microphone", eligible = false),
             availableDevices = devices,
             recorderFactory = container.sessionRecorderFactory,
             startSessionUseCase = container.startSessionUseCase,
@@ -231,18 +254,86 @@ class DefaultRootComponent(
             timelineRepository = container.timelineRepository,
             clock = container.clock,
             dispatchers = container.dispatchers,
-            onSessionEnded = { navigation.replaceAll(Config.SessionSummary) },
+            directories = container.directories,
+            audioPlaybackService = container.audioPlaybackService,
+            onSessionEnded = { folderName ->
+                val enableEditor = container.configurationRepository.activeConfig.value?.enableEditor ?: false
+                if (enableEditor) {
+                    navigation.replaceAll(Config.Editor(folderName, returnToBrowser = false))
+                } else {
+                    navigation.replaceAll(Config.Processing(folderName, returnToBrowser = false))
+                }
+            },
         )
 
-        return RootComponent.Child.Session(sessionComponent, navigableTasks, devices, initialDevice)
+        return RootComponent.Child.Session(sessionComponent)
     }
+
+    private fun buildEditorChild(childContext: ComponentContext, config: Config.Editor): RootComponent.Child =
+        RootComponent.Child.Editor(
+            DefaultEditorComponent(
+                componentContext = childContext,
+                folderName = config.folderName,
+                sessionRepository = container.sessionRepository,
+                timelineRepository = container.timelineRepository,
+                waveformService = container.waveformService,
+                audioPlaybackService = container.audioPlaybackService,
+                dispatchers = container.dispatchers,
+                onDone = { folderName ->
+                    if (config.returnToBrowser) {
+                        navigation.pop()
+                    } else {
+                        navigation.replaceAll(Config.Processing(folderName, returnToBrowser = false))
+                    }
+                },
+            ),
+        )
+
+    private fun buildProcessingChild(childContext: ComponentContext, config: Config.Processing): RootComponent.Child =
+        RootComponent.Child.Processing(
+            DefaultProcessingComponent(
+                componentContext = childContext,
+                folderName = config.folderName,
+                processSessionUseCase = container.processSessionUseCase,
+                dispatchers = container.dispatchers,
+                onDone = {
+                    if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.SessionSummary)
+                },
+                onBackClicked = {
+                    if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.MainMenu)
+                },
+            ),
+        )
+
+    private fun buildUploadChild(childContext: ComponentContext): RootComponent.Child =
+        RootComponent.Child.Upload(
+            DefaultUploadComponent(
+                componentContext = childContext,
+                eligibleUploadsQuery = container.eligibleUploadsQuery,
+                uploadSessionUseCase = container.uploadSessionUseCase,
+                dispatchers = container.dispatchers,
+                onBackClicked = { navigation.pop() },
+            ),
+        )
+
+    private fun buildSessionBrowserChild(childContext: ComponentContext): RootComponent.Child =
+        RootComponent.Child.SessionBrowser(
+            DefaultSessionBrowserComponent(
+                componentContext = childContext,
+                sessionRepository = container.sessionRepository,
+                uploadStatusRepository = container.uploadStatusRepository,
+                onOpenEditorClicked = { folderName -> navigation.push(Config.Editor(folderName, returnToBrowser = true)) },
+                onReprocessClicked = { folderName -> navigation.push(Config.Processing(folderName, returnToBrowser = true)) },
+                onGoToUploadClicked = { navigation.push(Config.Upload) },
+                onBackClicked = { navigation.pop() },
+            ),
+        )
 
     override fun onSettingsBack() = navigation.pop()
     override fun onPatientInfoBack() = navigation.pop()
     override fun onOpenSettingsFromBlocking() = navigation.push(Config.Settings)
     override fun onSessionFailedBackToMenu() = navigation.replaceAll(Config.MainMenu)
     override fun onSessionSummaryDone() = navigation.replaceAll(Config.MainMenu)
-    override fun onPlaceholderBack() = navigation.pop()
 
     @Serializable
     private sealed interface Config {
@@ -256,10 +347,19 @@ class DefaultRootComponent(
         data object Settings : Config
 
         @Serializable
+        data object ProtocolPicker : Config
+
+        @Serializable
         data object PatientInfo : Config
 
         @Serializable
         data object Session : Config
+
+        @Serializable
+        data class Editor(val folderName: String, val returnToBrowser: Boolean) : Config
+
+        @Serializable
+        data class Processing(val folderName: String, val returnToBrowser: Boolean) : Config
 
         @Serializable
         data object SessionSummary : Config

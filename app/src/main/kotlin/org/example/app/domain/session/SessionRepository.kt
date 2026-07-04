@@ -31,6 +31,14 @@ interface SessionRepository {
     fun masterDir(folderName: String): Path
     fun clipsDir(folderName: String): Path
 
+    /** `archive/` — home of the processing ZIP (§8.2, §8.8); [SessionArchivePaths] resolves
+     * the exact `<PatientCode>_<SessionId>.zip` file name within it. */
+    fun archiveDir(folderName: String): Path
+
+    /** True if the session has at least one processing archive `*.zip` on disk (§8.8) — the
+     * precondition `UploadSessionUseCase` checks before it will attempt an upload. */
+    fun archiveExists(folderName: String): Boolean
+
     /** `master/session_master.wav` — the canonical part-1 master file path. */
     fun defaultMasterFile(folderName: String): Path
 

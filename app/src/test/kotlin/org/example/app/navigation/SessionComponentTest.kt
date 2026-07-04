@@ -15,6 +15,7 @@ import org.example.app.domain.session.StartSessionUseCase
 import org.example.app.domain.session.StorageError
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.fakes.FakeAudioInputDeviceProvider
+import org.example.app.fakes.FakeAudioPlaybackService
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.FakeDiskSpaceProvider
@@ -84,7 +85,9 @@ class SessionComponentTest {
             clock = clock,
             clinicZone = ZoneOffset.UTC,
         )
+        val audioPlaybackService = FakeAudioPlaybackService()
         var ended = 0
+        var endedFolderName: String? = null
 
         fun build(protocol: Protocol): SessionComponent = DefaultSessionComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -102,7 +105,9 @@ class SessionComponentTest {
             timelineRepository = timelineRepository,
             clock = clock,
             dispatchers = dispatchers,
-            onSessionEnded = { ended++ },
+            directories = directories,
+            audioPlaybackService = audioPlaybackService,
+            onSessionEnded = { folderName -> ended++; endedFolderName = folderName },
         )
     }
 

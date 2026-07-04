@@ -28,6 +28,7 @@ class FakeSessionRepository : SessionRepository {
     private val partialMasterFiles = mutableMapOf<String, MutableList<Path>>()
     private val partialMasterFrameCounts = mutableMapOf<Path, Long>()
     private val finalizedMasterPartFrames = mutableMapOf<String, Long>()
+    private val archivedSessions = mutableSetOf<String>()
 
     /** Calls to [writeExamination], in order, for assertions on the update sequence. */
     val examinationWrites = mutableListOf<Examination>()
@@ -39,7 +40,16 @@ class FakeSessionRepository : SessionRepository {
     override fun sessionDir(folderName: String): Path = root.resolve(folderName)
     override fun masterDir(folderName: String): Path = sessionDir(folderName).resolve("master")
     override fun clipsDir(folderName: String): Path = sessionDir(folderName).resolve("clips")
+    override fun archiveDir(folderName: String): Path = sessionDir(folderName).resolve("archive")
     override fun defaultMasterFile(folderName: String): Path = masterDir(folderName).resolve("session_master.wav")
+
+    /** Test setup: makes [archiveExists] report `true` for [folderName], simulating a session
+     * that already went through `ProcessSessionUseCase` (no real ZIP is ever written). */
+    fun seedArchiveExists(folderName: String) {
+        archivedSessions += folderName
+    }
+
+    override fun archiveExists(folderName: String): Boolean = folderName in archivedSessions
 
     override fun createSessionDirectory(folderName: String): Path {
         createdDirs += folderName

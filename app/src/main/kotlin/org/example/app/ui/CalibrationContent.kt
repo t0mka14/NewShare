@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.navigation.CalibrationComponent
+import org.example.app.ui.theme.ShareAccentOrangeContainer
 
 /** §6.2 calibration screen: live input level vs. the configured `optimalLoudness` band, must be
  * confirmed before the master recording starts. */
@@ -91,8 +92,11 @@ private fun CalibrationLevelMeter(
     inRange: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    // The optimal-loudness band uses the original app's orange accent family
+    // (`materials/Color.kt`'s `light_OrangeContainer`, §13 decision 36) — its `SoundLevelBar`'s
+    // mixed loudness formula (§4) is not carried over, only the color.
     val trackColor = MaterialTheme.colors.onSurface.copy(alpha = 0.15f)
-    val bandColor = MaterialTheme.colors.secondary.copy(alpha = 0.35f)
+    val bandColor = ShareAccentOrangeContainer.copy(alpha = 0.6f)
     val levelColor = if (inRange) MaterialTheme.colors.secondary else MaterialTheme.colors.error
 
     Canvas(modifier = modifier) {
