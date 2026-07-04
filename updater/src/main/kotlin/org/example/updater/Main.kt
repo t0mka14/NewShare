@@ -1,10 +1,26 @@
 package org.example.updater
 
-import org.example.shared.model.AppVersion
+fun main(args: Array<String>) {
+    val installDir = UpdaterConfig.resolveInstallDir(args)
+    val layout = InstallLayout(installDir)
+    val log = UpdaterLog(layout.logFile)
 
-fun main() {
-    val version = AppVersion(1, 0, 0)
-    println("Auto-updater version $version")
-    println("Checking for updates...")
-    println("App is up to date. Launching...")
+    val endpoint = UpdaterConfig.resolveEndpoint(installDir, args)
+    val fetcher: VersionFetcher = if (endpoint != null) {
+        HttpVersionFetcher(endpoint, log)
+    } else {
+        log.warn("No version-check endpoint configured (updater.properties or --endpoint=); skipping update check")
+        VersionFetcher { VersionCheckResult.Unreachable }
+    }
+
+    val updater = Updater(
+        layout = layout,
+        fetcher = fetcher,
+        downloader = HttpDownloader(log),
+        launcher = ProcessAppLauncher(log),
+        replacer = Replacer(log),
+        log = log,
+    )
+
+    updater.run()
 }
