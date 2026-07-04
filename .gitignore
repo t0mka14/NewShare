@@ -43,3 +43,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+### Runtime data (never in VCS — clinical data, logs, lock files)
+app/data/
+data/
