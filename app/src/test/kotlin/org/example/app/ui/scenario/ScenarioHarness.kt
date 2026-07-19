@@ -22,6 +22,7 @@ import org.example.app.fakes.TestCoroutineDispatchers
 import org.example.app.navigation.DefaultRootComponent
 import org.example.app.navigation.RootComponent
 import org.example.app.ui.RootContent
+import org.example.app.ui.theme.ShareTheme
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
@@ -113,7 +114,9 @@ fun ScenarioApp(harness: ScenarioHarness) {
     val root = remember(harness) {
         DefaultRootComponent(DefaultComponentContext(LifecycleRegistry()), harness.container)
     }
-    RootContent(root)
+    ShareTheme {
+        RootContent(root)
+    }
 }
 
 /**

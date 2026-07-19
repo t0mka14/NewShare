@@ -5,7 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -19,44 +19,53 @@ import org.example.app.domain.config.IndicatorType
 
 /**
  * Live recording feedback on VOCAL task screens (§6.2), fed by
- * `ContinuousSessionRecorder.levels` via `TaskComponent.Content.Vocal.level`. Both variants are
- * purely presentational — the rolling history buffer for [WAVEFORM] is local Compose display
- * state (like `animateFloatAsState`), not domain state; it carries no business meaning and is
- * never read back by any component.
+ * `ContinuousSessionRecorder.levels` via `TaskComponent.Content.Vocal.level`. [CIRCLE] is the
+ * legacy `drawRecCircle` (§13 decision 36): a static gray dot with a green spring-animated
+ * stroke circle that swells with the input level only while [capturing] — at rest it sits at
+ * the minimum radius like the legacy did outside the STOP state. [WAVEFORM] has no legacy
+ * counterpart (the legacy waveform view showed the finished take, not a live signal) and keeps
+ * its rolling history buffer — local Compose display state, never read back by any component.
+ * Uses the legacy Material3 palette from `ShareLegacyM3Theme` (task screen wraps in it).
  */
 @Composable
 fun TaskLevelIndicator(
     indicatorType: IndicatorType,
     level: Float,
+    capturing: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     when (indicatorType) {
-        IndicatorType.CIRCLE -> CircleLevelIndicator(level, modifier)
+        IndicatorType.CIRCLE -> CircleLevelIndicator(level, capturing, modifier)
         IndicatorType.WAVEFORM -> WaveformLevelIndicator(level, modifier)
     }
 }
 
 @Composable
-private fun CircleLevelIndicator(level: Float, modifier: Modifier = Modifier) {
-    val clamped = level.coerceIn(0f, 1f)
-    val minRadius = 40f
-    val maxRadius = 130f
-    val targetRadius = minRadius + clamped * (maxRadius - minRadius)
-    val animatedRadius by animateFloatAsState(
+private fun CircleLevelIndicator(level: Float, capturing: Boolean, modifier: Modifier = Modifier) {
+    val circleColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val circleVolumeColor = MaterialTheme.colorScheme.tertiary
+    // Legacy radius band (dp): 35 at rest / silence, up to 60 at full level
+    val minRadius = 35f
+    val maxRadius = 60f
+    val targetRadius = if (capturing) minRadius + level.coerceIn(0f, 1f) * (maxRadius - minRadius) else minRadius
+    val anim: Float by animateFloatAsState(
         targetValue = targetRadius,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessVeryLow,
+        ),
     )
-    val animatedAlpha by animateFloatAsState(targetValue = 0.35f + clamped * 0.65f)
-
-    val baseColor = MaterialTheme.colors.onSurface.copy(alpha = 0.15f)
-    val levelColor = MaterialTheme.colors.secondary
-
+    // Bounded size instead of the legacy fillMaxSize(0.5f) canvas (scaling fix, §13/36);
+    // 160dp comfortably fits the 60dp max radius + stroke
     Canvas(modifier = modifier.size(160.dp).testTag(TestTags.Task.LEVEL_INDICATOR)) {
-        drawCircle(color = baseColor, radius = minRadius)
         drawCircle(
-            color = levelColor.copy(alpha = animatedAlpha),
-            radius = animatedRadius,
-            style = Stroke(width = 6.dp.toPx()),
+            color = circleColor,
+            radius = 30.dp.toPx(),
+        )
+        drawCircle(
+            color = circleVolumeColor,
+            radius = anim.dp.toPx(),
+            style = Stroke(width = 5.dp.toPx()),
         )
     }
 }
@@ -69,7 +78,7 @@ private fun WaveformLevelIndicator(level: Float, modifier: Modifier = Modifier) 
     history.add(level.coerceIn(0f, 1f))
     while (history.size > WAVEFORM_HISTORY_SIZE) history.removeAt(0)
 
-    val waveColor = MaterialTheme.colors.secondary
+    val waveColor = MaterialTheme.colorScheme.tertiary
 
     Canvas(modifier = modifier.size(width = 320.dp, height = 120.dp).testTag(TestTags.Task.LEVEL_INDICATOR)) {
         if (history.isEmpty()) return@Canvas

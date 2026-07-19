@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.dp
 fun BlockingConfigurationRequiredContent(localization: UiLocalization, onOpenSettings: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(localization.resolve("app.title"), style = MaterialTheme.typography.h4)
+            Text(localization.resolve("app.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 localization.resolve("error.config.required"),
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.fillMaxWidth(0.7f).testTag(TestTags.Blocking.CONFIGURATION_REQUIRED_MESSAGE),
             )
             Spacer(modifier = Modifier.height(32.dp))

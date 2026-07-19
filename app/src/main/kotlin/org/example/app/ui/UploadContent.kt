@@ -13,11 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -41,13 +41,13 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(localization.resolve("upload.title"), style = MaterialTheme.typography.h4)
+        Text(localization.resolve("upload.title"), style = MaterialTheme.typography.headlineLarge)
 
         Card {
             Text(
                 localization.resolve("upload.instructions"),
                 modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -57,13 +57,13 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
             } else {
                 localization.resolve("upload.readyCount", mapOf("count" to state.rows.size.toString()))
             },
-            style = MaterialTheme.typography.subtitle1,
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.testTag(TestTags.Upload.READY_COUNT_TEXT),
         )
 
         LazyColumn(
             modifier = Modifier
-                .border(width = 2.dp, color = MaterialTheme.colors.primary, shape = RoundedCornerShape(8.dp))
+                .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
                 .fillMaxWidth(0.7f)
                 .height(220.dp),
         ) {
@@ -75,14 +75,14 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("${row.patientCode} — ${row.sessionId}", style = MaterialTheme.typography.body1)
-                        Text(localization.resolve("sessionBrowser.uploadStatus.${row.status.name}"), style = MaterialTheme.typography.body2)
+                        Text("${row.patientCode} — ${row.sessionId}", style = MaterialTheme.typography.bodyLarge)
+                        Text(localization.resolve("sessionBrowser.uploadStatus.${row.status.name}"), style = MaterialTheme.typography.bodyMedium)
                     }
                     row.failureReasonKey?.let { key ->
                         Text(
                             localization.resolve("upload.failureMessage", mapOf("reason" to localization.resolvePlain(key))),
-                            color = MaterialTheme.colors.error,
-                            style = MaterialTheme.typography.caption,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag(TestTags.Upload.sessionErrorText(row.sessionId)),
                         )
                     }
@@ -91,14 +91,14 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
         }
 
         LinearProgressIndicator(
-            progress = state.overallProgress,
+            progress = { state.overallProgress },
             modifier = Modifier.fillMaxWidth(0.7f).testTag(TestTags.Upload.PROGRESS_BAR),
         )
 
         state.batchResultKey?.let { key ->
             Text(
                 localization.resolve(key),
-                color = MaterialTheme.colors.secondary,
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.testTag(TestTags.Upload.SUCCESS_MESSAGE),
             )
         }

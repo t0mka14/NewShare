@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,22 +34,22 @@ fun ProcessingContent(component: ProcessingComponent, localization: UiLocalizati
             modifier = Modifier.fillMaxWidth(0.6f),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(localization.resolve("processing.title"), style = MaterialTheme.typography.h4)
+            Text(localization.resolve("processing.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(24.dp))
 
             if (!state.failed) {
                 Text(
                     localization.resolve(state.step?.let(::stepKey) ?: "processing.step.selectingTimeline"),
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.testTag(TestTags.Processing.STEP_LABEL),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(
-                    progress = state.fraction,
+                    progress = { state.fraction },
                     modifier = Modifier.fillMaxWidth().testTag(TestTags.Processing.PROGRESS_BAR),
                 )
             } else {
-                Text(localization.resolve("processing.error.title"), style = MaterialTheme.typography.h6)
+                Text(localization.resolve("processing.error.title"), style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     localization.resolve("processing.error.generic"),

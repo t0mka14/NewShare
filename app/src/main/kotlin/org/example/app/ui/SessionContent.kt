@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,7 +35,9 @@ fun SessionContent(
                 CircularProgressIndicator()
             }
 
-            is SessionComponent.Child.Calibration -> CalibrationContent(instance.component, localization)
+            // The legacy calibration Back button dismissed the whole protocol; aborting to the
+            // main menu destroys this SessionComponent, which stops the recorder (doOnDestroy).
+            is SessionComponent.Child.Calibration -> CalibrationContent(instance.component, localization, onBack = onBackToMenu)
 
             is SessionComponent.Child.TaskScreen -> TaskContent(component = instance.component, localization = localization)
 
@@ -51,7 +53,7 @@ fun SessionContent(
 private fun SessionFailedContent(error: StorageError?, localization: UiLocalization, onBackToMenu: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(localization.resolve("session.failedTitle"), style = MaterialTheme.typography.h5)
+            Text(localization.resolve("session.failedTitle"), style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 localization.resolve(error?.messageKey() ?: "error.generic.message"),

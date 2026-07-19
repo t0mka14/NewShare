@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 fun SessionSummaryContent(localization: UiLocalization, onDone: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(localization.resolve("sessionSummary.title"), style = MaterialTheme.typography.h4)
+            Text(localization.resolve("sessionSummary.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(localization.resolve("sessionSummary.message"), style = MaterialTheme.typography.body1)
+            Text(localization.resolve("sessionSummary.message"), style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = onDone, modifier = Modifier.testTag(TestTags.SessionSummary.DONE_BUTTON)) {
                 Text(localization.resolve("action.done"))

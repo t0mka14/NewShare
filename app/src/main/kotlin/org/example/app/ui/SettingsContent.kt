@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,12 +34,12 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
         Column(modifier = contentWidth, horizontalAlignment = Alignment.Start) {
             Text(
                 localization.resolve("settings.title"),
-                style = MaterialTheme.typography.h4,
+                style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(localization.resolve("settings.device.label"), style = MaterialTheme.typography.subtitle1)
+            Text(localization.resolve("settings.device.label"), style = MaterialTheme.typography.titleMedium)
             DropdownSelector(
                 triggerTag = TestTags.Settings.DEVICE_SELECT,
                 selectedLabel = state.availableDevices.firstOrNull { it.id == state.selectedDeviceId }?.name
@@ -51,10 +51,10 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 onSelected = { component.onDeviceSelected(it.id) },
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Divider(modifier = Modifier.fillMaxWidth())
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.subtitle1)
+            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(
                 value = state.installationId,
                 onValueChange = component::onInstallationIdChanged,
@@ -62,10 +62,10 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Divider(modifier = Modifier.fillMaxWidth())
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(localization.resolve("settings.language.label"), style = MaterialTheme.typography.subtitle1)
+            Text(localization.resolve("settings.language.label"), style = MaterialTheme.typography.titleMedium)
             DropdownSelector(
                 triggerTag = TestTags.Settings.LANGUAGE_SELECT,
                 selectedLabel = state.selectedLanguage.orEmpty(),
@@ -93,7 +93,7 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 val isSuccess = key == "settings.refresh.success"
                 Text(
                     localization.resolve(key),
-                    color = if (isSuccess) MaterialTheme.colors.onSurface else MaterialTheme.colors.error,
+                    color = if (isSuccess) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
                 )
             }
 

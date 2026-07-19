@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,7 +30,7 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
         Column(modifier = Modifier.fillMaxWidth(0.65f), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(localization.resolve("patientInfo.title"), style = MaterialTheme.typography.h4)
+            Text(localization.resolve("patientInfo.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(32.dp))
 
             state.fields.forEach { field ->
@@ -45,13 +45,13 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
                         modifier = Modifier.fillMaxWidth().testTag(TestTags.PatientInfo.field(field.name)),
                     )
                     field.helpKey?.let { helpKey ->
-                        Text(localization.resolve(helpKey), style = MaterialTheme.typography.caption)
+                        Text(localization.resolve(helpKey), style = MaterialTheme.typography.bodySmall)
                     }
                     state.errors[field.name].orEmpty().forEach { error ->
                         Text(
                             localization.resolve(error.messageKey()),
-                            color = MaterialTheme.colors.error,
-                            style = MaterialTheme.typography.caption,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag(TestTags.PatientInfo.fieldError(field.name)),
                         )
                     }
@@ -61,7 +61,7 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
             if (state.errors.isNotEmpty()) {
                 Text(
                     localization.resolve("patientInfo.error.summary"),
-                    color = MaterialTheme.colors.error,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.testTag(TestTags.PatientInfo.ERROR_TEXT),
                 )
             }

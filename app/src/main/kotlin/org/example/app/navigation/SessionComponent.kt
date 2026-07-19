@@ -216,6 +216,7 @@ class DefaultSessionComponent(
             dispatchers = dispatchers,
             positionInProtocol = listIndex + 1,
             totalInstanceCount = navigableInstances.size,
+            nextTaskTitleKey = navigableInstances.getOrNull(listIndex + 1)?.task?.titleKey,
             availableDevices = availableDevices,
             currentDevice = currentDevice,
             resolvedAudioExamplePath = resolvedAudioExamplePath,

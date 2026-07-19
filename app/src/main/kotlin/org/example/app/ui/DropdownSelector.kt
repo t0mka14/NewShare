@@ -1,10 +1,10 @@
 package org.example.app.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,15 +35,14 @@ fun <T> DropdownSelector(
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             items.forEach { item ->
                 DropdownMenuItem(
+                    text = { Text(itemLabel(item)) },
                     onClick = {
                         expanded = false
                         onSelected(item)
                     },
                     enabled = itemEnabled(item),
                     modifier = Modifier.testTag(itemTag(item)),
-                ) {
-                    Text(itemLabel(item))
-                }
+                )
             }
         }
     }

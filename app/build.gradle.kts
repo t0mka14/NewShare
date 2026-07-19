@@ -10,7 +10,10 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
-    implementation(libs.compose.material)
+    // The whole UI is Material3 (M2 dropped 2026-07-16); the legacy-copied Task/Calibration
+    // screens use their own screen-scoped ShareLegacyM3Theme (§13 decision 36).
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.runtime)
     implementation(libs.decompose)
     implementation(libs.decompose.extensions.compose)

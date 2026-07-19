@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,8 +27,8 @@ fun ProtocolPickerContent(component: ProtocolPickerComponent, localization: UiLo
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(localization.resolve("protocolPicker.title"), style = MaterialTheme.typography.h4)
-            Text(localization.resolve("protocolPicker.instructions"), style = MaterialTheme.typography.body1)
+            Text(localization.resolve("protocolPicker.title"), style = MaterialTheme.typography.headlineLarge)
+            Text(localization.resolve("protocolPicker.instructions"), style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(16.dp))
 
             component.protocols.forEach { protocol ->

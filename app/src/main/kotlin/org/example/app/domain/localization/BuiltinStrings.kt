@@ -139,6 +139,11 @@ object BuiltinStrings {
         "task.numberOfTotalLabel" to "Task {n} of {total}",
         "task.repetitionLabel" to "Repetition {n}",
         "task.takeLabel" to "Take {n}",
+        // Legacy prev/next task-button chrome (§13 decision 36): small label line above the
+        // task name; `task.endOfProtocol` replaces the next task's name on the last task.
+        "task.nextLabel" to "Next task",
+        "task.prevLabel" to "Previous task",
+        "task.endOfProtocol" to "Finish",
 
         // Questionnaire task rendering (§8.6 OPEN/SINGLE_CHOICE/MULTIPLE_CHOICE).
         "questionnaire.error.invalid" to "Please provide a valid answer.",

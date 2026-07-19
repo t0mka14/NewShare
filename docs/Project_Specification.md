@@ -926,12 +926,28 @@ Error taxonomy (normative, inlined from the old plan):
     (fixed pixel sizes, non-responsive layouts) is a bug to fix, not a look to preserve.
     The Phase 2 screens already built must be restyled to match.
 
+    Addendum (2026-07-16): the Task and Calibration screens are copied from the legacy
+    Material3 composables verbatim under a screen-scoped `ShareLegacyM3Theme` (legacy
+    colors/typography/shapes literally); the rest of the app stays on the Material2
+    `ShareTheme`. The legacy 3-button task row is kept by mapping this app's state machine
+    onto it: the Start→Stop→Again button carries the testTag of its current role, and the
+    next-task button doubles as Skip (tag `task.skipButton`) on an unrecorded skippable task
+    (the legacy app had no skip). The legacy post-stop take waveform is deliberately not
+    reproduced yet — take audio isn't available to the UI during a session (single master
+    WAV; takes are cut in processing) — and would need recorder-side buffer plumbing.
+    The legacy prev-task button (default-hidden behind its `showBackButton` preference) is
+    an empty layout slot; there is no task back-navigation. Since 2026-07-16 the whole UI is
+    Material3 (user request): the app-wide `ShareTheme` was converted from Material2 with
+    its former M2 slots mapped onto M3 at identical sizes, and the `compose-material`
+    dependency was dropped.
+
 37. **Example-audio location (interim):** `audioExamplePath` from the config resolves
     relative to `AppDirectories.configDir` until the server contract (open q1) defines how
     example WAVs are distributed. The legacy Roboto fonts are bundled as classpath
     resources (the original's working-directory `File` loading was a packaging bug, fixed
-    per decision 36); the material icon packs remain unbundled pending an environment with
-    registry access — buttons are text-only for now.
+    per decision 36); the material icon packs are bundled since 2026-07-16
+    (`material-icons-extended` 1.7.3, the final release of the icon artifacts) — the legacy
+    task/calibration icons render 1:1.
 
 38. **Updater edge semantics (Phase 4):** the version-check endpoint comes from a CLI arg
     or `updater.properties` beside the install dir (placeholder until open q1 resolves).

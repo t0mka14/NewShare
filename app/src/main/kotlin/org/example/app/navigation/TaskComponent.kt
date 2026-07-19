@@ -144,6 +144,14 @@ interface TaskComponent {
         val totalInstanceCount: Int,
         val titleKey: String,
         val instructionKeys: List<String>,
+        /** `VocalTask.length` (target seconds, 0 = none) — drives the legacy timer's green
+         * "task can be finished" highlight (§13 decision 36); carried directly like the other
+         * task-definition fields. */
+        val taskLengthSeconds: Int,
+        /** Title key of the *next* navigable task instance, `null` on the last one — the
+         * legacy next-task button shows the upcoming task's name. Computed by
+         * `SessionComponent` like [positionInProtocol]. */
+        val nextTaskTitleKey: String?,
         val canSkip: Boolean,
         val content: Content,
         val buttons: TaskButtonState,
@@ -174,6 +182,9 @@ class DefaultTaskComponent(
      * [SessionComponent] from the same expanded list it already holds internally. */
     private val positionInProtocol: Int,
     private val totalInstanceCount: Int,
+    /** Title key of the next navigable task instance (`null` on the last), for the legacy
+     * next-task button (§13 decision 36); computed by [SessionComponent] like [positionInProtocol]. */
+    private val nextTaskTitleKey: String? = null,
     /** Device list + the device in use when this task screen was created (§8.5), so the
      * device-lost dialog needs nothing from the UI layer beyond this component's own state. */
     private val availableDevices: List<AudioInputDevice>,
@@ -467,6 +478,8 @@ class DefaultTaskComponent(
             instructionKeys = (task as? VocalTask)?.instructionKeys
                 ?: (task as? InfoTask)?.instructionKeys
                 ?: emptyList(),
+            taskLengthSeconds = (task as? VocalTask)?.length ?: 0,
+            nextTaskTitleKey = nextTaskTitleKey,
             canSkip = task.canSkip,
             content = content,
             buttons = buttons,

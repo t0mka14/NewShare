@@ -18,9 +18,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,9 +56,9 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(localization.resolve("editor.title"), style = MaterialTheme.typography.h4)
+            Text(localization.resolve("editor.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(localization.resolve("editor.instructions"), style = MaterialTheme.typography.body2)
+            Text(localization.resolve("editor.instructions"), style = MaterialTheme.typography.bodyMedium)
         }
 
         val segment = state.currentSegment
@@ -80,7 +80,7 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
                     "editor.segmentOfTotal",
                     mapOf("n" to (state.currentIndex + 1).toString(), "total" to state.segments.size.toString()),
                 ),
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.testTag(TestTags.Editor.SEGMENT_LABEL),
             )
 
@@ -143,7 +143,7 @@ private fun EditorWaveform(
         modifier = Modifier
             .fillMaxWidth(0.85f)
             .height(220.dp)
-            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.3f)))
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)))
             .testTag(TestTags.Editor.WAVEFORM_CANVAS),
     ) {
         val widthPx = constraints.maxWidth.toFloat()
@@ -153,9 +153,9 @@ private fun EditorWaveform(
 
         // MaterialTheme.colors is a @Composable reader — resolved here, outside the DrawScope
         // lambda below (which is plain, non-composable), then captured by closure.
-        val waveColor = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
-        val boundaryColor = MaterialTheme.colors.secondary
-        val boundaryFillColor = MaterialTheme.colors.secondary.copy(alpha = 0.12f)
+        val waveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        val boundaryColor = MaterialTheme.colorScheme.secondary
+        val boundaryFillColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             val midY = size.height / 2f
@@ -222,7 +222,7 @@ private fun EditorBoundaryHandle(xPx: Float, testTag: String, onDragToPixelX: (F
             .offset { IntOffset((xPx - HANDLE_WIDTH_DP.dp.toPx() / 2).toInt(), 0) }
             .width(HANDLE_WIDTH_DP.dp)
             .fillMaxHeight()
-            .background(MaterialTheme.colors.secondary.copy(alpha = 0.35f))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.35f))
             .testTag(testTag)
             .pointerInput(Unit) {
                 detectDragGestures(

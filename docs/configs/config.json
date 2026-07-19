@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-07-01.1",
+  "defaultLanguage": "cs",
+  "languages": ["cs"],
+  "defaultMicName": "USBAudioDevice",
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "patientFields": [
+    {
+      "name": "code",
+      "labelKey": "patient_code_label",
+      "helpKey": "patient_code_help",
+      "placeholder": "HC001",
+      "regex": "[a-zA-Z0-9_-]+",
+      "required": true,
+      "useInFilename": true
+    }
+  ],
+  "protocols": [
+    {
+      "name": "Share",
+      "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "tasks": [
+        {
+          "type": "CALIBRATION",
+          "titleKey": "calibration_title",
+          "instructionKeys": ["calibration_instructions"],
+          "optimalLoudness": [0.2, 0.5]
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "phonation_title",
+          "instructionKeys": ["phonation_instructions1"],
+          "length": 10,
+          "showIndicator": true,
+          "canRepeat": true,
+          "canSkip": false,
+          "audioExamplePath": "audio_instructions/aaa.wav",
+          "nrepetition": 1
+        },
+        {
+          "type": "INFO",
+          "titleKey": "info_title",
+          "instructionKeys": ["info_done"]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "cs": {
+      "calibration_title": "Kalibrace",
+      "calibration_instructions": "Mluvte běžnou hlasitostí a sledujte ukazatel úrovně.",
+      "patient_code_label": "Kód pacienta",
+      "patient_code_help": "Např. HC001",
+      "phonation_title": "Prodloužená fonace",
+      "phonation_instructions1": "<bold>Začněte teď.</bold> Stiskněte START pro zahájení nahrávání.",
+      "info_title": "Hotovo",
+      "info_done": "Vyšetření je dokončeno."
+    }
+  }
+}

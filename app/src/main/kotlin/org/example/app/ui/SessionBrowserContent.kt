@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,14 +36,14 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(localization.resolve("sessionBrowser.title"), style = MaterialTheme.typography.h4)
+        Text(localization.resolve("sessionBrowser.title"), style = MaterialTheme.typography.headlineLarge)
 
         if (state.rows.isEmpty()) {
-            Text(localization.resolve("sessionBrowser.noSessions"), style = MaterialTheme.typography.body1)
+            Text(localization.resolve("sessionBrowser.noSessions"), style = MaterialTheme.typography.bodyLarge)
         } else {
             LazyColumn(
                 modifier = Modifier
-                    .border(width = 2.dp, color = MaterialTheme.colors.primary, shape = RoundedCornerShape(8.dp))
+                    .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
                     .fillMaxWidth(0.85f)
                     .height(360.dp),
             ) {
@@ -53,20 +53,20 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
                     ) {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Column {
-                                Text("${row.patientCode} — ${row.startedAt}", style = MaterialTheme.typography.body1)
+                                Text("${row.patientCode} — ${row.startedAt}", style = MaterialTheme.typography.bodyLarge)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(
                                         localization.resolve("sessionBrowser.processingStatus.${(row.processingStatus ?: org.example.app.domain.session.ProcessingStatus.NotProcessed).name}"),
-                                        style = MaterialTheme.typography.body2,
+                                        style = MaterialTheme.typography.bodyMedium,
                                     )
                                     row.uploadStatus?.let { status ->
-                                        Text(localization.resolve("sessionBrowser.uploadStatus.${status.name}"), style = MaterialTheme.typography.body2)
+                                        Text(localization.resolve("sessionBrowser.uploadStatus.${status.name}"), style = MaterialTheme.typography.bodyMedium)
                                     }
                                     if (row.recovered) {
                                         Text(
                                             localization.resolve("sessionBrowser.recoveredLabel"),
-                                            style = MaterialTheme.typography.body2,
-                                            color = MaterialTheme.colors.error,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.error,
                                         )
                                     }
                                 }
@@ -86,7 +86,7 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
                                 }
                             }
                         }
-                        Divider(modifier = Modifier.padding(top = 8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                     }
                 }
             }

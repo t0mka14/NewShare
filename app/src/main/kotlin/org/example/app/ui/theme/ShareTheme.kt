@@ -1,11 +1,11 @@
 package org.example.app.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Shapes
-import androidx.compose.material.Typography
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -17,22 +17,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * §13 decision 36 ("UI is 1:1 with the legacy shareapp"): color values are taken verbatim from
- * the original app's Material3 seed (`shareapp/src/main/kotlin/materials/Color.kt`) and its type
- * scale is reproduced proportionally (`materials/Typography.kt`: 45sp headline / 35sp task title
- * / 30sp buttons / 20sp instructions / 12sp help text) — mapped onto this rewrite's own
- * Material2 (`androidx.compose.material`) stack, not a copy of the original's Material3
- * `ColorScheme`/`Typography` objects (§4 "do not copy its architecture"). [ShareShapes] mirrors
- * the original's pill-shaped primary buttons (`materials/Shapes.kt`: `large = RoundedCornerShape(200.dp)`).
+ * §13 decision 36 ("UI is 1:1 with the legacy shareapp"): color values are taken from the
+ * original app's Material3 seed (`shareapp/src/main/kotlin/materials/Color.kt`), with
+ * `secondary` deliberately remapped to the legacy *tertiary* green family — this rewrite's
+ * screens use `secondary` as the green accent. The whole app is Material3 (the former
+ * Material2 stack was dropped 2026-07-16 at user request); the Task/Calibration screens
+ * additionally wrap themselves in [ShareLegacyM3Theme], which carries the legacy theme
+ * files verbatim.
  */
 private val SharePrimary = Color(0xFF00668A)
-private val SharePrimaryVariant = Color(0xFF004C69)
 private val ShareSecondary = Color(0xFF006E2A)
 private val ShareSecondaryContainer = Color(0xFF81FC93)
 private val ShareError = Color(0xFFBA1A1A)
 private val ShareBackground = Color(0xFFFBFCFF)
 private val ShareSurface = Color(0xFFFFFFFF)
-private val ShareOnPrimary = Color(0xFFFFFFFF)
 private val ShareOnBackground = Color(0xFF191C1E)
 
 private val ShareDarkPrimary = Color(0xFF7BD0FF)
@@ -42,48 +40,77 @@ private val ShareDarkSurface = Color(0xFF242729)
 private val ShareDarkOnBackground = Color(0xFFE1E2E5)
 
 /** The original's `Orange`/`light_OrangeContainer` accent (`materials/Color.kt`) — used for the
- * calibration level meter's "in range" highlight band, matching the original `SoundLevelBar`'s
- * accent color family while fixing its mixed loudness formula (§4, `CalibrationContent`). */
+ * calibration level bar, matching the original `SoundLevelBar`'s accent color family. */
 val ShareAccentOrange = Color(0xFFFF9D30)
 val ShareAccentOrangeContainer = Color(0xFFFFDCBF)
 
-private val LightColors = lightColors(
+// Full schemes (not just the handful of slots the screens read) so no M3 slot falls back to
+// the library's purple baseline; values follow the legacy seed like ShareLegacyM3Theme's,
+// with the secondary/surface overrides described above.
+private val LightColors = lightColorScheme(
     primary = SharePrimary,
-    primaryVariant = SharePrimaryVariant,
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFC4E7FF),
+    onPrimaryContainer = Color(0xFF001E2C),
     secondary = ShareSecondary,
-    secondaryVariant = ShareSecondary,
-    background = ShareBackground,
-    surface = ShareSurface,
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = ShareSecondaryContainer,
+    onSecondaryContainer = Color(0xFF002108),
+    tertiary = ShareSecondary,
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = ShareSecondaryContainer,
+    onTertiaryContainer = Color(0xFF002108),
     error = ShareError,
-    onPrimary = ShareOnPrimary,
-    onSecondary = Color.White,
+    errorContainer = Color(0xFFFFDAD6),
+    onError = Color(0xFFFFFFFF),
+    onErrorContainer = Color(0xFF410002),
+    background = ShareBackground,
     onBackground = ShareOnBackground,
+    surface = ShareSurface,
     onSurface = ShareOnBackground,
-    onError = Color.White,
+    surfaceVariant = Color(0xFFDCE3E9),
+    onSurfaceVariant = Color(0xFF41484D),
+    outline = Color(0xFF71787D),
+    inverseOnSurface = Color(0xFFF0F1F3),
+    inverseSurface = Color(0xFF2E3133),
+    inversePrimary = ShareDarkPrimary,
+    surfaceTint = SharePrimary,
+    outlineVariant = Color(0xFFC0C7CD),
+    scrim = Color(0xFF000000),
 )
 
-private val DarkColors = darkColors(
+private val DarkColors = darkColorScheme(
     primary = ShareDarkPrimary,
-    secondary = ShareDarkSecondary,
-    background = ShareDarkBackground,
-    surface = ShareDarkSurface,
-    error = Color(0xFFFFB4AB),
     onPrimary = Color(0xFF003549),
+    primaryContainer = Color(0xFF004C69),
+    onPrimaryContainer = Color(0xFFC4E7FF),
+    secondary = ShareDarkSecondary,
     onSecondary = Color(0xFF00391F),
+    secondaryContainer = Color(0xFF00531E),
+    onSecondaryContainer = Color(0xFF81FC93),
+    tertiary = ShareDarkSecondary,
+    onTertiary = Color(0xFF00391F),
+    tertiaryContainer = Color(0xFF00531E),
+    onTertiaryContainer = Color(0xFF81FC93),
+    error = Color(0xFFFFB4AB),
+    errorContainer = Color(0xFF93000A),
+    onError = Color(0xFF690005),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = ShareDarkBackground,
     onBackground = ShareDarkOnBackground,
+    surface = ShareDarkSurface,
     onSurface = ShareDarkOnBackground,
+    surfaceVariant = Color(0xFF41484D),
+    onSurfaceVariant = Color(0xFFC0C7CD),
+    outline = Color(0xFF8B9297),
+    inverseOnSurface = Color(0xFF191C1E),
+    inverseSurface = Color(0xFFE1E2E5),
+    inversePrimary = SharePrimary,
+    surfaceTint = ShareDarkPrimary,
+    outlineVariant = Color(0xFF41484D),
+    scrim = Color(0xFF000000),
 )
 
-/**
- * Clinic-legible type scale, proportioned like the original's (`headlineLarge` 45sp screen
- * titles, `displayMedium` 35sp task titles, `labelMedium` 30sp buttons, `bodyMedium` 20sp
- * instructions, `displaySmall` 12sp help text) but capped a little below those literal sizes —
- * the original only ever laid out 2-3 buttons per row; this rewrite's task screen has five
- * (Start/Stop/Repeat/Skip/Next, §8.6) side by side, so keeping the original's exact 30sp button
- * text would overflow at moderate window widths. Scaling to fit every row without wrapping is a
- * bug fix (§13 decision 36: "prevents proper screen scaling... is a bug to fix, not a look to
- * preserve"), not a look to preserve.
- */
 /**
  * The legacy app's Roboto family (§1 kept resources, §13 decision 36), loaded from the
  * classpath — the original loaded the same TTFs via working-directory-relative
@@ -99,20 +126,36 @@ private val Roboto = FontFamily(
     Font(resource = "fonts/roboto/Roboto-BoldItalic.ttf", weight = FontWeight.Bold, style = FontStyle.Italic),
 )
 
+/**
+ * Clinic-legible type scale, proportioned like the original's but capped a little below its
+ * literal sizes (the cap is a deliberate §13/36 scaling fix for the denser non-legacy
+ * screens). The former Material2 slots map onto M3 at identical sizes: h4→[headlineLarge],
+ * h5→[headlineMedium], h6→[headlineSmall], subtitle1→[titleMedium], body1→[bodyLarge],
+ * body2→[bodyMedium], button→[labelLarge] (M3 buttons render labelLarge), caption→[bodySmall].
+ * M3 has no `defaultFontFamily`, so Roboto is set per style — including the slots screens
+ * don't reference explicitly but M3 components render internally (titleLarge for dialogs,
+ * labelMedium/labelSmall for small controls).
+ */
 private val ShareTypography = Typography(
-    defaultFontFamily = Roboto,
-    h4 = TextStyle(fontSize = 40.sp, fontWeight = FontWeight.Bold),
-    h5 = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold),
-    h6 = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold),
-    subtitle1 = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
-    body1 = TextStyle(fontSize = 20.sp),
-    body2 = TextStyle(fontSize = 16.sp),
-    button = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-    caption = TextStyle(fontSize = 13.sp),
+    headlineLarge = TextStyle(fontFamily = Roboto, fontSize = 40.sp, fontWeight = FontWeight.Bold),
+    headlineMedium = TextStyle(fontFamily = Roboto, fontSize = 32.sp, fontWeight = FontWeight.Bold),
+    headlineSmall = TextStyle(fontFamily = Roboto, fontSize = 22.sp, fontWeight = FontWeight.Bold),
+    titleLarge = TextStyle(fontFamily = Roboto, fontSize = 22.sp, fontWeight = FontWeight.Bold),
+    titleMedium = TextStyle(fontFamily = Roboto, fontSize = 18.sp, fontWeight = FontWeight.Medium),
+    titleSmall = TextStyle(fontFamily = Roboto, fontSize = 14.sp, fontWeight = FontWeight.Medium),
+    bodyLarge = TextStyle(fontFamily = Roboto, fontSize = 20.sp),
+    bodyMedium = TextStyle(fontFamily = Roboto, fontSize = 16.sp),
+    bodySmall = TextStyle(fontFamily = Roboto, fontSize = 13.sp),
+    labelLarge = TextStyle(fontFamily = Roboto, fontSize = 18.sp, fontWeight = FontWeight.Bold),
+    labelMedium = TextStyle(fontFamily = Roboto, fontSize = 12.sp, fontWeight = FontWeight.Medium),
+    labelSmall = TextStyle(fontFamily = Roboto, fontSize = 11.sp, fontWeight = FontWeight.Medium),
+    displayLarge = TextStyle(fontFamily = Roboto, fontSize = 57.sp),
+    displayMedium = TextStyle(fontFamily = Roboto, fontSize = 45.sp),
+    displaySmall = TextStyle(fontFamily = Roboto, fontSize = 36.sp),
 )
 
 /** Pill-shaped primary action buttons (`materials/Shapes.kt`'s `large = RoundedCornerShape(200.dp)`,
- * used by the original for Back/Next/Confirm/Upload) and rounded cards/dialogs (`medium = 16.dp`). */
+ * used by the original for Back/Next/Confirm/Upload) and rounded cards/dialogs (`medium` 16dp). */
 private val ShareShapes = Shapes(
     small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(16.dp),
@@ -122,7 +165,7 @@ private val ShareShapes = Shapes(
 @Composable
 fun ShareTheme(useDarkTheme: Boolean = false, content: @Composable () -> Unit) {
     MaterialTheme(
-        colors = if (useDarkTheme) DarkColors else LightColors,
+        colorScheme = if (useDarkTheme) DarkColors else LightColors,
         typography = ShareTypography,
         shapes = ShareShapes,
         content = content,
