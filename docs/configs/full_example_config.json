@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-07-19.1",
+  "defaultLanguage": "cs",
+  "languages": [
+    "cs",
+    "en"
+  ],
+  "defaultMicName": "USB audio CODEC",
+  "enableEditor": true,
+  "indicatorType": "CIRCLE",
+  "patientFields": [
+    {
+      "name": "code",
+      "labelKey": "patient_code_label",
+      "helpKey": "patient_info_help_code",
+      "placeholder": "HC001",
+      "regex": "[a-zA-Z0-9_-]+",
+      "required": true,
+      "useInFilename": true
+    },
+    {
+      "name": "initials",
+      "labelKey": "patient_initials_label",
+      "helpKey": "patient_info_help_initials",
+      "placeholder": "AB",
+      "regex": "[A-Za-z]{2,4}",
+      "required": true,
+      "useInFilename": true
+    },
+    {
+      "name": "projectName",
+      "labelKey": "patient_info_label_project_name",
+      "helpKey": "patient_info_help_project_name",
+      "placeholder": "STIMPULSE",
+      "regex": "",
+      "required": false,
+      "useInFilename": false
+    },
+    {
+      "name": "visitNumber",
+      "labelKey": "patient_visit_number_label",
+      "helpKey": "patient_info_help_visit_number",
+      "placeholder": "V0",
+      "regex": "V\\d+",
+      "required": true,
+      "useInFilename": true
+    },
+    {
+      "name": "medicationState",
+      "labelKey": "patient_medication_state_label",
+      "helpKey": "patient_info_help_medication_state",
+      "placeholder": "",
+      "regex": "",
+      "required": false,
+      "useInFilename": false
+    }
+  ],
+  "protocols": [
+    {
+      "name": "Share",
+      "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "tasks": [
+        {
+          "type": "CALIBRATION",
+          "titleKey": "calibration_screen_title",
+          "instructionKeys": [
+            "calibration_screen_instructions"
+          ],
+          "optimalLoudness": [
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "phonation_title",
+          "instructionKeys": [
+            "phonation_description",
+            "phonation_instructions"
+          ],
+          "length": 10,
+          "showIndicator": true,
+          "canRepeat": true,
+          "canSkip": false,
+          "audioExamplePath": "audio_instructions/aaa.wav",
+          "nrepetition": 2
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "PATAKA",
+          "titleKey": "pataka_title",
+          "instructionKeys": [
+            "pataka_description",
+            "pataka_procedure_description"
+          ],
+          "length": 15,
+          "showIndicator": true,
+          "canRepeat": true,
+          "canSkip": false,
+          "audioExamplePath": "audio_instructions/pataka.wav",
+          "nrepetition": 1
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "SYLLABLES",
+          "titleKey": "syllables_title",
+          "instructionKeys": [
+            "syllables_speed_description",
+            "syllables_procedure_description"
+          ],
+          "length": 15,
+          "showIndicator": true,
+          "canRepeat": true,
+          "canSkip": false,
+          "audioExamplePath": "audio_instructions/pa_speed.wav",
+          "nrepetition": 1
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "READING",
+          "titleKey": "reading_title",
+          "instructionKeys": [
+            "reading_description"
+          ],
+          "length": 60,
+          "showIndicator": false,
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "monologue_title",
+          "instructionKeys": [
+            "monologue_description",
+            "monologue_procedure_description"
+          ],
+          "length": 150,
+          "showIndicator": false,
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "RETELLING",
+          "titleKey": "retelling_title",
+          "instructionKeys": [
+            "retelling_description",
+            "retelling_procedure_description"
+          ],
+          "length": 90,
+          "showIndicator": false,
+          "canRepeat": true,
+          "canSkip": false,
+          "audioExamplePath": "audio_instructions/snehurka_3.wav",
+          "nrepetition": 1
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "COUNTING",
+          "titleKey": "counting_title",
+          "instructionKeys": [
+            "counting_instructions"
+          ],
+          "length": 20,
+          "showIndicator": false,
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "CUSTOM",
+          "titleKey": "custom_task_title",
+          "instructionKeys": [
+            "custom_task_instructions"
+          ],
+          "length": 20,
+          "showIndicator": false,
+          "canRepeat": true,
+          "canSkip": true,
+          "nrepetition": 1
+        },
+        {
+          "type": "VIDEO",
+          "subtype": "EMOTIONS",
+          "titleKey": "mimic_title",
+          "instructionKeys": [
+            "mimic_description1",
+            "mimic_description2"
+          ],
+          "length": 30,
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "havePTZ": false
+        },
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "questionnaire_title",
+          "questions": [
+            {
+              "questionType": "OPEN",
+              "questionKey": "examinationDate",
+              "questionTextKey": "predefinedPatientField4x",
+              "questionRegex": "\\d{4}-\\d{2}-\\d{2}"
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "sex",
+              "questionTextKey": "predefinedPatientField1x",
+              "questionOptions": [
+                "predefinedPatientField1Option1",
+                "predefinedPatientField1Option2"
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "questionKey": "education",
+              "questionTextKey": "predefinedPatientField2x",
+              "questionOptions": [
+                "predefinedPatientField2Option1",
+                "predefinedPatientField2Option2",
+                "predefinedPatientField2Option3"
+              ]
+            }
+          ],
+          "length": 200,
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1
+        },
+        {
+          "type": "INFO",
+          "titleKey": "standard_protocol_end_protocol_text",
+          "instructionKeys": [
+            "protocol_end_instructions"
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "cs": {
+      "patient_info_help_code": "Kód Redcap nebo kód odpovídající vaší databázi.",
+      "patient_info_help_initials": "Iniciály vašeho celého jména.",
+      "patient_info_label_project_name": "Jméno projektu",
+      "patient_info_help_project_name": "Napiště jméno projektu, kterého je účastník součástí (například STIMPULSE).",
+      "patient_info_help_visit_number": "V0 - baseline, V3 - follow-up po 3 měsících, V6 - follow-up po 6 měsísích, ...",
+      "patient_info_help_medication_state": "Pokud nevíte, vynechte.",
+      "calibration_screen_title": "Kalibrační obrazovka",
+      "calibration_screen_instructions": "Tato obrazovka slouží ke kalibraci pozice mikrofonu. Přesvědčte se, že mikrofon je umístěn stejně jako na obrázku níže. Poté požádejte pacienta ať provede fonaci hlásky /a/ v pro něj přirozené hlasitosti. Pokud je signál moc slabý dejte mikrofon blíže k puse a naopak. Poté pokračujte k první úloze.",
+      "phonation_title": "Prodloužená fonace",
+      "phonation_description": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /XX/. Měl/a byste vydržet alespoň xx sekund.\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+      "phonation_instructions": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než xx sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.",
+      "pataka_title": "PATAKA",
+      "pataka_description": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+      "pataka_procedure_description": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň xx trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování, by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).",
+      "syllables_title": "Opakování slabik",
+      "syllables_speed_description": "<bold>Zhluboka se nadechněte a začněte opakovat slabiku /XX/ co nejrychleji a nejpřesněji, dokud Vás nezastavím.\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky. Potřebný počet opakování je 25x /XX/.",
+      "syllables_procedure_description": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne xx sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).",
+      "reading_title": "Čtený text",
+      "reading_description": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>Dejte účastníkovi TEXT KE ČTENÍ - XX.\nÚčastníkovi nabídněte text s vhodnou velikostí písma.",
+      "monologue_title": "Monolog",
+      "monologue_description": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň xx sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>Požadovaná délka nahrávaného monologu je 2-2.5 minuty.",
+      "monologue_procedure_description": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne xx sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.",
+      "retelling_title": "Retelling",
+      "retelling_description": "<bold>V této úloze Vám přehraji úryvek mluvené pohádky.\nPo poslechu nahrávky prosím zopakujte příběh vlastními slovy, vůbec nezáleží na tom jestli je převyprávěný děj správně nebo dokončen.</bold>Stiskněte tlačítko PŘEHRÁT POHÁDKU pro přehrání příběhu.",
+      "retelling_procedure_description": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne xx sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.",
+      "mimic_title": "Mimika",
+      "mimic_description1": "Cílem další úlohy je napodobit emoce, které uvidíte na následujících obrázcích. Používejte prosím pouze mimiku obličeje.",
+      "mimic_description2": "Cílem další úlohy je popsat čtveřici obrázků, které vidíte před sebou.",
+      "predefinedPatientField1x": "Pohlaví",
+      "predefinedPatientField1Option1": "Žena",
+      "predefinedPatientField1Option2": "Muž",
+      "predefinedPatientField2x": "Maximalní dosažené vzdělání",
+      "predefinedPatientField2Option1": "ZŠ",
+      "predefinedPatientField2Option2": "SŠ",
+      "predefinedPatientField2Option3": "VŠ",
+      "predefinedPatientField4x": "Datum",
+      "standard_protocol_end_protocol_text": "Konec",
+      "patient_code_label": "Kód účastníka",
+      "patient_initials_label": "Iniciály",
+      "patient_visit_number_label": "Číslo návštěvy",
+      "patient_medication_state_label": "Aktuální medikace",
+      "counting_title": "Počítání",
+      "counting_instructions": "<bold>Začněte teď.</bold> Počítejte nahlas od jedné do sta tempem, které je pro Vás přirozené.",
+      "custom_task_title": "Vlastní úloha",
+      "custom_task_instructions": "Postupujte podle pokynů examinátora pro tuto specifickou úlohu.",
+      "questionnaire_title": "Dotazník",
+      "protocol_end_instructions": "Vyšetření je u konce. Děkujeme za spolupráci."
+    },
+    "en": {
+      "patient_info_help_code": "Redcap code or the code corresponding to your database.",
+      "patient_info_help_initials": "Your full name initials.",
+      "patient_info_label_project_name": "Project name",
+      "patient_info_help_project_name": "Fill the project name the participant is involved in (e.g. STIMPULSE).",
+      "patient_info_help_visit_number": "V0 - baseline, V3 - 3 month follow-up, V6 - 6 month follow-up, ...",
+      "patient_info_help_medication_state": "If unknown, leave blank.",
+      "calibration_screen_title": "Calibration screen",
+      "calibration_screen_instructions": "Please calibrate the microphone position. Make sure that the microphone is placed according to the picture below. Then ask the participant to perform a phonation of the vowel /a/ in a natural voice. If the signal is outside the bounds of the green area move the microphone closer to mouth or otherwise. Then, continue to the first task.",
+      "phonation_title": "Prolonged phonation",
+      "phonation_description": "<bold>Take a deep breath and perform prolonged phonation of vowel /XX/ as long and steadily as possible. Phonation should last at least 10 seconds.\nI will now play an example.</bold>Press PLAY EXAMPLE to play an example.",
+      "phonation_instructions": "<bold>Start now.</bold>Press the START button to begin recording. Please wait until respondent runs out of breath and then press STOP",
+      "pataka_title": "PATAKA",
+      "pataka_description": "<bold>Take a deep breath and consequently repeat the following syllables /pa/-/ta/-/ka/. Repeat the syllables as fast and precise as possible, until I stop you.\nI will now play an example.</bold> Press PLAY EXAMPLE to play an example. The required number of repeats is 12 triplets of /pa-ta-ka/.",
+      "pataka_procedure_description": "Nothing",
+      "syllables_title": "Syllables repetition",
+      "syllables_speed_description": "<bold>Please take a deep breath and repeat the syllable /XX/ as fast and precise as possible until I stop you.\nI will now play an example.</bold> Press PLAY EXAMPLE to play an example. The required number of repeats is 25 /XX/.",
+      "syllables_procedure_description": "<bold>Start now.</bold>Press the START button to begin recording. Wait until the respondent finishes the task and then press STOP button.",
+      "reading_title": "Reading",
+      "reading_description": "<bold>Please read the following short text.\nIf you are using glasses you can take them now.</bold>Give respondent the READING TEXT.\nIf respondent cannot read the text, press the START and STOP buttons in quick succesion and press CONTINUE.",
+      "monologue_title": "Free speech",
+      "monologue_description": "<bold>The goal of this task is to continuously talk without interruption for 2 to 2,5 minutes on freely chosen topic, such as hobbies, experiences, family, job, holidays or daily activities.</bold>",
+      "monologue_procedure_description": "<bold>You can start whenever you are ready.</bold>Press the START button to begin recording. Wait until the set time passes and then press STOP.\nIf respondent pauses and is unsure of what to say you can ask them open questions as a last resort.",
+      "retelling_title": "Retelling",
+      "retelling_description": "I will replay to you a spoken fairytale story. After listening to the story, please retell the tale in your own words. The goal is to speak continuously, so it doesn`t matter if the retold tale is correct or whole.",
+      "retelling_procedure_description": "<bold>Start now.</bold>Press the START button to begin recording. Wait until the time passes xx seconds and then press STOP button.",
+      "mimic_title": "Mimika",
+      "mimic_description1": "Cílem další úlohy je napodobit emoce, které uvidíte na následujících obrázcích. Používejte prosím pouze mimiku obličeje.",
+      "mimic_description2": "Cílem další úlohy je popsat čtveřici obrázků, které vidíte před sebou.",
+      "predefinedPatientField1x": "Sex",
+      "predefinedPatientField1Option1": "Female",
+      "predefinedPatientField1Option2": "Male",
+      "predefinedPatientField2x": "Educational attainment",
+      "predefinedPatientField2Option1": "Primary",
+      "predefinedPatientField2Option2": "Secondary",
+      "predefinedPatientField2Option3": "Tertiary",
+      "predefinedPatientField4x": "Date",
+      "standard_protocol_end_protocol_text": "Finish",
+      "patient_code_label": "Participant code",
+      "patient_initials_label": "Initials",
+      "patient_visit_number_label": "Visit number",
+      "patient_medication_state_label": "Current medication",
+      "counting_title": "Counting",
+      "counting_instructions": "<bold>Start now.</bold> Count out loud from one to a hundred at a pace that feels natural to you.",
+      "custom_task_title": "Custom task",
+      "custom_task_instructions": "Follow the examiner's instructions for this specific task.",
+      "questionnaire_title": "Questionnaire",
+      "protocol_end_instructions": "The examination is complete. Thank you for your cooperation."
+    }
+  }
+}
