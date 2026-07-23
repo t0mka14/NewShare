@@ -28,7 +28,7 @@ import org.example.app.navigation.SettingsComponent
 @Composable
 fun SettingsContent(component: SettingsComponent, localization: UiLocalization, onBack: () -> Unit) {
     val state by component.state.subscribeAsState()
-    val contentWidth = Modifier.fillMaxWidth(0.6f)
+    val contentWidth = Modifier.contentWidth(1100.dp)
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
         Column(modifier = contentWidth, horizontalAlignment = Alignment.Start) {

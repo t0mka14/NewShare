@@ -31,7 +31,7 @@ fun ProcessingContent(component: ProcessingComponent, localization: UiLocalizati
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.fillMaxWidth(0.6f),
+            modifier = Modifier.contentWidth(1100.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(localization.resolve("processing.title"), style = MaterialTheme.typography.headlineLarge)

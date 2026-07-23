@@ -64,7 +64,7 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
         LazyColumn(
             modifier = Modifier
                 .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
-                .fillMaxWidth(0.7f)
+                .contentWidth(1300.dp)
                 .height(220.dp),
         ) {
             items(state.rows, key = { it.sessionId }) { row ->
@@ -92,7 +92,7 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
 
         LinearProgressIndicator(
             progress = { state.overallProgress },
-            modifier = Modifier.fillMaxWidth(0.7f).testTag(TestTags.Upload.PROGRESS_BAR),
+            modifier = Modifier.contentWidth(1300.dp).testTag(TestTags.Upload.PROGRESS_BAR),
         )
 
         state.batchResultKey?.let { key ->

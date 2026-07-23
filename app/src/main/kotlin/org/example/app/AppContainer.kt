@@ -1,6 +1,7 @@
 package org.example.app
 
 import org.example.app.domain.AppDirectories
+import org.example.app.domain.ErrorReporter
 import org.example.app.domain.Clock
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.DefaultCoroutineDispatchers
@@ -72,6 +73,9 @@ class AppContainer(
 ) {
     /** Acquired at the top of Main before any other startup work (§5.2). */
     val singleInstanceLock: SingleInstanceLock = SingleInstanceLock(directories)
+
+    /** Last-resort sink for uncaught exceptions; wired to the global handlers in Main. */
+    val errorReporter = ErrorReporter()
 
     val rawConfigCache: RawConfigCache = RawConfigCache(directories)
 

@@ -3,7 +3,6 @@ package org.example.app.infrastructure.audio
 import org.example.app.domain.audio.CaptureFormat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -58,10 +57,24 @@ class JvmAudioPlaybackServiceTest {
         val file = dir.resolve("clip.wav")
         writeTestWav(file, format, monoRamp(100))
 
-        assertThrows(IllegalArgumentException::class.java) { service.playRange(file, 50, 50) }
-        assertThrows(IllegalArgumentException::class.java) { service.playRange(file, 60, 50) }
-        assertThrows(IllegalArgumentException::class.java) { service.playRange(file, 0, 200) }
+        // Fire-and-forget contract: rejected ranges are logged no-ops, never exceptions on the
+        // calling (UI) thread.
+        service.playRange(file, 50, 50)
+        service.playRange(file, 60, 50)
+        service.playRange(file, 0, 200)
         assertTrue(lines.isEmpty(), "no line should be opened for a rejected range")
+        assertFalse(service.isPlaying.value)
+    }
+
+    @Test
+    fun `play with a missing or unreadable file is a no-op instead of an exception`(@TempDir dir: Path) {
+        val missing = dir.resolve("missing.wav")
+
+        service.play(missing)
+        service.playRange(missing, 0, 100)
+
+        assertTrue(lines.isEmpty(), "no line should be opened for an unreadable file")
+        assertFalse(service.isPlaying.value)
     }
 
     @Test

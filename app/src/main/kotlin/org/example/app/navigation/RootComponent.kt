@@ -1,12 +1,11 @@
 package org.example.app.navigation
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -80,7 +79,6 @@ interface RootComponent {
  * menu; Upload/session-browser are reachable from the main menu at any time. Constructs every
  * screen component from [container].
  */
-@OptIn(DelicateDecomposeApi::class)
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val container: AppContainer,
@@ -140,9 +138,9 @@ class DefaultRootComponent(
                     configurationRepository = container.configurationRepository,
                     dispatchers = container.dispatchers,
                     onStartProtocolClicked = ::onStartProtocolClicked,
-                    onUploadClicked = { navigation.push(Config.Upload) },
-                    onSettingsClicked = { navigation.push(Config.Settings) },
-                    onSessionBrowserClicked = { navigation.push(Config.SessionBrowser) },
+                    onUploadClicked = { navigation.pushNew(Config.Upload) },
+                    onSettingsClicked = { navigation.pushNew(Config.Settings) },
+                    onSessionBrowserClicked = { navigation.pushNew(Config.SessionBrowser) },
                 ),
             )
 
@@ -154,7 +152,7 @@ class DefaultRootComponent(
                     protocols = container.configurationRepository.activeConfig.value?.protocols.orEmpty(),
                     onProtocolSelectedClicked = { protocol ->
                         pendingProtocol = protocol
-                        navigation.push(Config.PatientInfo)
+                        navigation.pushNew(Config.PatientInfo)
                     },
                     onBackClicked = { navigation.pop() },
                 ),
@@ -182,10 +180,10 @@ class DefaultRootComponent(
     private fun onStartProtocolClicked() {
         val protocols = container.configurationRepository.activeConfig.value?.protocols.orEmpty()
         if (protocols.size > 1) {
-            navigation.push(Config.ProtocolPicker)
+            navigation.pushNew(Config.ProtocolPicker)
         } else {
             pendingProtocol = protocols.firstOrNull()
-            navigation.push(Config.PatientInfo)
+            navigation.pushNew(Config.PatientInfo)
         }
     }
 
@@ -219,7 +217,7 @@ class DefaultRootComponent(
         if (pendingProtocol == null) {
             pendingProtocol = container.configurationRepository.activeConfig.value?.protocols?.firstOrNull()
         }
-        navigation.push(Config.Session)
+        navigation.pushNew(Config.Session)
     }
 
     private fun buildSessionChild(childContext: ComponentContext): RootComponent.Child {
@@ -322,16 +320,16 @@ class DefaultRootComponent(
                 componentContext = childContext,
                 sessionRepository = container.sessionRepository,
                 uploadStatusRepository = container.uploadStatusRepository,
-                onOpenEditorClicked = { folderName -> navigation.push(Config.Editor(folderName, returnToBrowser = true)) },
-                onReprocessClicked = { folderName -> navigation.push(Config.Processing(folderName, returnToBrowser = true)) },
-                onGoToUploadClicked = { navigation.push(Config.Upload) },
+                onOpenEditorClicked = { folderName -> navigation.pushNew(Config.Editor(folderName, returnToBrowser = true)) },
+                onReprocessClicked = { folderName -> navigation.pushNew(Config.Processing(folderName, returnToBrowser = true)) },
+                onGoToUploadClicked = { navigation.pushNew(Config.Upload) },
                 onBackClicked = { navigation.pop() },
             ),
         )
 
     override fun onSettingsBack() = navigation.pop()
     override fun onPatientInfoBack() = navigation.pop()
-    override fun onOpenSettingsFromBlocking() = navigation.push(Config.Settings)
+    override fun onOpenSettingsFromBlocking() = navigation.pushNew(Config.Settings)
     override fun onSessionFailedBackToMenu() = navigation.replaceAll(Config.MainMenu)
     override fun onSessionSummaryDone() = navigation.replaceAll(Config.MainMenu)
 

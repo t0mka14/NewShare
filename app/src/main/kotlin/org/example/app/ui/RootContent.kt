@@ -5,11 +5,20 @@ import androidx.compose.runtime.getValue
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.example.app.domain.ErrorReporter
 import org.example.app.navigation.RootComponent
 
 @Composable
-fun RootContent(component: RootComponent) {
+fun RootContent(
+    component: RootComponent,
+    errorReporter: ErrorReporter? = null,
+    onExitApp: () -> Unit = {},
+) {
     val localization by component.localization.subscribeAsState()
+
+    if (errorReporter != null) {
+        UnexpectedErrorDialog(errorReporter, localization, onExitApp)
+    }
 
     Children(stack = component.stack, animation = stackAnimation()) { child ->
         when (val instance = child.instance) {

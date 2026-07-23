@@ -89,7 +89,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
             TaskTitle(state, localization)
 
             // Instructions field, with the example-audio utility row between the two cards
-            InstructionsField(component, state, localization, Modifier.fillMaxWidth(0.8f))
+            InstructionsField(component, state, localization, Modifier.contentWidth(1500.dp))
 
             // Middle area: recording circle / live waveform (VOCAL) or the questionnaire.
             // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
@@ -110,7 +110,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                         onOpenAnswerChanged = component::onOpenAnswerChanged,
                         onOptionToggled = component::onOptionToggled,
                         modifier = Modifier
-                            .fillMaxWidth(0.8f)
+                            .contentWidth(1500.dp)
                             .fillMaxHeight()
                             .verticalScroll(rememberScrollState()),
                     )

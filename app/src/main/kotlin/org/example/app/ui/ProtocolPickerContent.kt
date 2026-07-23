@@ -23,7 +23,7 @@ import org.example.app.navigation.ProtocolPickerComponent
 fun ProtocolPickerContent(component: ProtocolPickerComponent, localization: UiLocalization) {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.fillMaxWidth(0.5f),
+            modifier = Modifier.contentWidth(900.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

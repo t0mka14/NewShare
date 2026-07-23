@@ -46,20 +46,31 @@ class JvmAudioPlaybackService(
     @Volatile private var currentLine: PlaybackLine? = null
 
     override fun play(file: Path) {
-        val header = WavIo.readHeader(file)
+        // Fire-and-forget contract (class doc): a missing/corrupt file must degrade to a logged
+        // no-op, never an exception on the calling (UI) thread.
+        val header = try {
+            WavIo.readHeader(file)
+        } catch (e: Exception) {
+            logger.warn(e) { "cannot start playback for $file" }
+            return
+        }
         val totalFrames = header.format.framesIn(header.dataSize)
         startPlayback(file, header.format, 0L, totalFrames)
     }
 
     override fun playRange(file: Path, startSample: Long, stopSample: Long) {
-        require(startSample >= 0) { "startSample must be >= 0, was $startSample" }
-        require(startSample < stopSample) { "startSample ($startSample) must be < stopSample ($stopSample)" }
-        val header = WavIo.readHeader(file)
-        val totalFrames = header.format.framesIn(header.dataSize)
-        require(stopSample <= totalFrames) {
-            "range [$startSample, $stopSample) exceeds frame count $totalFrames for $file"
+        try {
+            require(startSample >= 0) { "startSample must be >= 0, was $startSample" }
+            require(startSample < stopSample) { "startSample ($startSample) must be < stopSample ($stopSample)" }
+            val header = WavIo.readHeader(file)
+            val totalFrames = header.format.framesIn(header.dataSize)
+            require(stopSample <= totalFrames) {
+                "range [$startSample, $stopSample) exceeds frame count $totalFrames for $file"
+            }
+            startPlayback(file, header.format, startSample, stopSample)
+        } catch (e: Exception) {
+            logger.warn(e) { "cannot start range playback for $file" }
         }
-        startPlayback(file, header.format, startSample, stopSample)
     }
 
     override fun stop() {

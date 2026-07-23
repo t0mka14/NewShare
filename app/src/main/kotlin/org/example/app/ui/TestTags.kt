@@ -165,6 +165,14 @@ object TestTags {
         fun languageOption(language: String) = "settings.languageOption.$language"
     }
 
+    /** Last-resort uncaught-error dialog rendered over any screen (ErrorReporter). */
+    object ErrorDialog {
+        const val DIALOG = "errorDialog"
+        const val MESSAGE = "errorDialog.message"
+        const val DISMISS_BUTTON = "errorDialog.dismissButton"
+        const val EXIT_BUTTON = "errorDialog.exitButton"
+    }
+
     /** Blocking screens with no config / no cache (§6.1) and the single-instance message (§5.2). */
     object Blocking {
         const val CONFIGURATION_REQUIRED_MESSAGE = "blocking.configurationRequiredMessage"

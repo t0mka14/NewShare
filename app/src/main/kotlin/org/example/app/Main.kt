@@ -5,10 +5,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowExceptionHandler
+import androidx.compose.ui.window.WindowExceptionHandlerFactory
 import androidx.compose.ui.window.application
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
@@ -26,6 +31,7 @@ import java.nio.file.Path
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
+@OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     val container = AppContainer()
 
@@ -67,17 +73,38 @@ fun main() {
     // the marker sits beside the process's working directory, not under AppDirectories/data/.
     runCatching { Files.deleteIfExists(Path.of(System.getProperty("user.dir")).resolve("update_pending.json")) }
 
+    // Last-resort net: anything escaping the feature-level failure flows (recorder errors,
+    // session-start rejection, …) lands in ErrorReporter instead of the JVM default handler's
+    // error window + process death. Covers background threads and, transitively, coroutines —
+    // uncaught coroutine exceptions fall through to the thread's default handler.
+    Thread.setDefaultUncaughtExceptionHandler { _, e -> container.errorReporter.report(e) }
+
     application {
         val version = AppVersion(1, 0, 0)
-        Window(
-            onCloseRequest = {
-                container.singleInstanceLock.release()
-                exitApplication()
+        // Same net for the Compose UI thread: exceptions from composition/render/event handlers
+        // are routed to the window exception handler, which by default kills the app.
+        CompositionLocalProvider(
+            LocalWindowExceptionHandlerFactory provides WindowExceptionHandlerFactory {
+                WindowExceptionHandler { e -> container.errorReporter.report(e) }
             },
-            title = "SHARE (v$version)",
         ) {
-            ShareTheme {
-                RootContent(root)
+            Window(
+                onCloseRequest = {
+                    container.singleInstanceLock.release()
+                    exitApplication()
+                },
+                title = "SHARE (v$version)",
+            ) {
+                ShareTheme {
+                    RootContent(
+                        component = root,
+                        errorReporter = container.errorReporter,
+                        onExitApp = {
+                            container.singleInstanceLock.release()
+                            exitProcess(1)
+                        },
+                    )
+                }
             }
         }
     }

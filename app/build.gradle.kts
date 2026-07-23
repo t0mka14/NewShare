@@ -48,12 +48,18 @@ tasks.test {
     jvmArgs(
         "-Dskiko.renderApi=SOFTWARE",
         "-Djava.awt.headless=true",
+        // JEP 472 (JDK 24+): skiko loads its native lib via System.load from the
+        // classpath; without this flag the JVM warns now and will refuse later.
+        "--enable-native-access=ALL-UNNAMED",
     )
 }
 
 compose.desktop {
     application {
         mainClass = "org.example.app.MainKt"
+        // JEP 472 (JDK 24+): skiko loads its native lib via System.load from the
+        // classpath; without this flag the JVM warns now and will refuse later.
+        jvmArgs += "--enable-native-access=ALL-UNNAMED"
         nativeDistributions {
             targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg, org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi, org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
             packageName = "ClinicalRecordingApp"

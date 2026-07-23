@@ -32,6 +32,7 @@ object BuiltinStrings {
         // Generic error dialog, used when a subsystem has no more specific localized message.
         "error.dialog.title" to "Error",
         "error.dialog.dismiss" to "OK",
+        "error.dialog.exit" to "Close application",
         "error.generic.message" to "Something went wrong. Please try again.",
 
         // Settings screen (§3, local-only settings — never config-driven).

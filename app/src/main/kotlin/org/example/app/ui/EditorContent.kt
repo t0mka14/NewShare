@@ -141,7 +141,7 @@ private fun EditorWaveform(
 
     BoxWithConstraints(
         modifier = Modifier
-            .fillMaxWidth(0.85f)
+            .contentWidth(1600.dp)
             .height(220.dp)
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)))
             .testTag(TestTags.Editor.WAVEFORM_CANVAS),

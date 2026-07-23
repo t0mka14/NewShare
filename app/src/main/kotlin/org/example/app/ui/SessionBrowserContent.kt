@@ -44,7 +44,7 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
             LazyColumn(
                 modifier = Modifier
                     .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
-                    .fillMaxWidth(0.85f)
+                    .contentWidth(1600.dp)
                     .height(360.dp),
             ) {
                 items(state.rows, key = { it.sessionId }) { row ->

@@ -29,7 +29,7 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
     val state by component.state.subscribeAsState()
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
-        Column(modifier = Modifier.fillMaxWidth(0.65f), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = Modifier.contentWidth(1200.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(localization.resolve("patientInfo.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(32.dp))
 

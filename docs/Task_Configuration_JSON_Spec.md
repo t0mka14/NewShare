@@ -245,6 +245,9 @@ One map per language: `strings.<lang>.<key> → value`.
   literal text.
 - Placeholders use named syntax: `{vowel}`, `{length}`, `{version}` (replaces the old
   `XX`/`xx` conventions).
+- Newlines inside a string value use the standard JSON escape `\n` (a single backslash). A
+  doubled backslash (`\\n`) is **not** a newline — it decodes to a literal backslash followed
+  by the letter `n` and will render incorrectly.
 - Missing key resolution: selected language → `defaultLanguage` → the key itself (logged).
 
 ## 7. Minimal end-to-end example

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -24,7 +23,7 @@ import org.example.app.navigation.MainMenuComponent
 @Composable
 fun MainMenuContent(component: MainMenuComponent, localization: UiLocalization) {
     val state by component.state.subscribeAsState()
-    val buttonWidth = Modifier.fillMaxWidth(0.35f)
+    val buttonWidth = Modifier.contentWidth(400.dp)
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
