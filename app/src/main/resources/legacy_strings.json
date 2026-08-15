@@ -1,0 +1,622 @@
+{
+  "app_name": {
+    "cs": "Share App",
+    "en": "Share App"
+  },
+  "next_button_text_glob": {
+    "cs": "Pokračovat",
+    "en": "Continue"
+  },
+  "back_button_text_glob": {
+    "cs": "Zpět",
+    "en": "Back"
+  },
+  "menu_title": {
+    "cs": "SHARE - Řečový protokol",
+    "en": "Speech examination"
+  },
+  "menu_button_graf": {
+    "cs": "Graf",
+    "en": "Graph"
+  },
+  "menu_button_settings": {
+    "cs": "Nastavení",
+    "en": "Setting"
+  },
+  "menu_button_recording": {
+    "cs": "Nahrávání",
+    "en": "Recording"
+  },
+  "menu_button_start_protocol": {
+    "cs": "Start protokolu",
+    "en": "Start the protocol"
+  },
+  "menu_button_protocol_manual": {
+    "cs": "PDF manuál protokolu",
+    "en": "Get protocol PDF"
+  },
+  "menu_button_upload": {
+    "cs": "Odeslání nahrávek",
+    "en": "Send recordings"
+  },
+  "upload_screen_title": {
+    "cs": "Odeslání dat",
+    "en": "Send the data"
+  },
+  "upload_screen_instructions": {
+    "cs": "Stiskněte tlačítko odeslat pro odeslání nahraných souborů na server.",
+    "en": "Press the button to send the recorded files to the server."
+  },
+  "upload_screen_remaining_files_text": {
+    "cs": "Ve zvolené složce je xx souborů připravených k odeslání.",
+    "en": "In the selected folder are xx files ready to be sent."
+  },
+  "upload_screen_send_button_text": {
+    "cs": "Odeslat",
+    "en": "Send"
+  },
+  "settings_screen_title": {
+    "cs": "Nastavení",
+    "en": "Settings"
+  },
+  "settings_refresh": {
+    "cs": "Aktualizovat",
+    "en": "Update"
+  },
+  "settings_microphone_title": {
+    "cs": "Nastavení mikrofonu",
+    "en": "Microphone settings"
+  },
+  "settings_microphone_input": {
+    "cs": "Vstup:",
+    "en": "Input:"
+  },
+  "settings_tasks_control_title": {
+    "cs": "Ovládání úloh",
+    "en": "Tasks setting"
+  },
+  "settings_tasks_show_back_button": {
+    "cs": "Zapnout možnost jít o úlohu zpět",
+    "en": "Allow to go to the previous task"
+  },
+  "settings_protocol_item_description": {
+    "cs": "Jít do nastavení vyšetřovacího protokolu",
+    "en": "To the protocol settings"
+  },
+  "settings_patient_info_text": {
+    "cs": "Nastavení infa o pacientech",
+    "en": "To patient info settings"
+  },
+  "settings_protocol_item_button": {
+    "cs": "Nastavení",
+    "en": "Settings"
+  },
+  "settings_choose_folder_button": {
+    "cs": "Nastav výstupní složku",
+    "en": "Set up the output folder"
+  },
+  "setting_app_section_title": {
+    "cs": "Nastavení aplikace",
+    "en": "Application settings"
+  },
+  "settings_toggle_calibration_switch_text": {
+    "cs": "Zobrazit kalibrační obrazovku",
+    "en": "Show calibration and setup screen"
+  },
+  "settings_toggle_patient_dialogue_switch_text": {
+    "cs": "Při spuštění zadat info o pacientovi",
+    "en": "Ask for patient info at the start of the protocol"
+  },
+  "settings_toggle_audacity_text": {
+    "cs": "Zapnout Audacity po skončení vyšetření",
+    "en": "Start audio edit when the protocol is finished"
+  },
+  "settings_set_audacity_path_text": {
+    "cs": "Cesta k Audacity exe",
+    "en": "Path to Audacity executable"
+  },
+  "settings_network_address_server_text": {
+    "cs": "Adresa serveru",
+    "en": "Server address"
+  },
+  "settings_network_send_a_file_text": {
+    "cs": "Poslat soubor",
+    "en": "Send the file"
+  },
+  "settings_lock_button": {
+    "cs": "Odemknout nastavení",
+    "en": "Unlock the settings"
+  },
+  "settings_password_dialog_title": {
+    "cs": "Odemknout nastavení",
+    "en": "Unlock the settings"
+  },
+  "settings_password_dialog_text": {
+    "cs": "Zadejte heslo pro odemknutí položek v nastavení.",
+    "en": "Enter the password to unlock the settings"
+  },
+  "settings_password_dialog_ok_button": {
+    "cs": "Potvrdit",
+    "en": "Enter"
+  },
+  "settings_clear_all_preferences": {
+    "cs": "Vymazat preference",
+    "en": "Clear the preferences"
+  },
+  "settings_password_dialog_dismiss_button": {
+    "cs": "Zrušit",
+    "en": "cancel"
+  },
+  "settings_password_secret": {
+    "cs": "123",
+    "en": "SAm1*"
+  },
+  "settings_recommended_mic_gain": {
+    "cs": "Pro mikrofon Sennheiser doporučujeme hodnotu 63",
+    "en": "For the Sennheiser microphone the recommended level is 63"
+  },
+  "settings_clinic_id": {
+    "cs": "ID kliniky",
+    "en": "Clinic ID"
+  },
+  "patients_configuration_screen_title": {
+    "cs": "Nastavení údajů o pacientech",
+    "en": "Patient info settings"
+  },
+  "patients_configuration_screen_default_field_name": {
+    "cs": "Atribut",
+    "en": "Attribute"
+  },
+  "patients_configuration_screen_default_value": {
+    "cs": "unspecified",
+    "en": "unspecified"
+  },
+  "patients_configuration_screen_actual_title": {
+    "cs": "Aktuální nastavení pacienta: ",
+    "en": "Current participant settings: "
+  },
+  "patients_configuration_screen_remove_field": {
+    "cs": "Odebrat",
+    "en": "Remove"
+  },
+  "patients_configuration_screen_add_field": {
+    "cs": "Přidat pole",
+    "en": "Add field"
+  },
+  "patients_configuration_screen_used_header": {
+    "cs": "Používat:",
+    "en": "Used:"
+  },
+  "patients_configuration_screen_includeInFilename_header": {
+    "cs": "Zařadit do názvu souboru:",
+    "en": "Include in filename:"
+  },
+  "patients_configuration_screen_label_header": {
+    "cs": "Počáteční hodnota:",
+    "en": "Initial value:"
+  },
+  "patients_configuration_dialog_title": {
+    "cs": "Nastavte nové informační pole o účastníkovi",
+    "en": "Configure new patient info item"
+  },
+  "patients_configuration_dialog_add_item": {
+    "cs": "Přidat",
+    "en": "Add item"
+  },
+  "patients_configuration_dialog_item_title_name": {
+    "cs": "Jméno",
+    "en": "Name"
+  },
+  "patients_configuration_dialog_item_name_help": {
+    "cs": "Název pole.",
+    "en": "The name of the item."
+  },
+  "patients_configuration_dialog_item_title_enabled": {
+    "cs": "Používat",
+    "en": "Enabled"
+  },
+  "patients_configuration_dialog_item_enabled_help": {
+    "cs": "Bude vyžadováno před startem protokolu?",
+    "en": "Is the item required before the protocol?"
+  },
+  "patients_configuration_dialog_item_include": {
+    "cs": "Zařadit do názvu souboru",
+    "en": "Include in filename"
+  },
+  "patients_configuration_dialog_item_title_regex": {
+    "cs": "Regex",
+    "en": "Regex"
+  },
+  "patients_configuration_dialog_item_regex_help": {
+    "cs": "Regex vzor na ověření vstupu. Měli byste vědět co děláte. Doporučeno s hodnotou nehýbat.",
+    "en": "The regex pattern to check in the field. You should know what you are doing. Recommended not to touch."
+  },
+  "patients_configuration_dialog_item_title_display": {
+    "cs": "Zobrazovaná hodnota",
+    "en": "Display value"
+  },
+  "patients_configuration_dialog_item_display_help": {
+    "cs": "Zobrazovaná základní hodnota při spuštění sekce.",
+    "en": "The label of the item to display as a default value."
+  },
+  "patients_configuration_dialog_item_title_help": {
+    "cs": "Instruktážní text",
+    "en": "Instructions text"
+  },
+  "patients_configuration_dialog_item_help_help": {
+    "cs": "Instrukce jak správně vyplnit toto pole..",
+    "en": "The instructions how to fill this item properly."
+  },
+  "patient_info_screen_title": {
+    "cs": "Zadejte údaje o pacientovi:",
+    "en": "Enter the participant info:"
+  },
+  "patient_info_error_message": {
+    "cs": "Údaj musí být zadán.",
+    "en": "The field is required."
+  },
+  "patient_info_help_code": {
+    "cs": "Kód Redcap nebo kód odpovídající vaší databázi.",
+    "en": "Redcap code or the code corresponding to your database."
+  },
+  "patient_info_help_initials": {
+    "cs": "Iniciály vašeho celého jména.",
+    "en": "Your full name initials."
+  },
+  "patient_info_label_project_name": {
+    "cs": "Jméno projektu",
+    "en": "Project name"
+  },
+  "patient_info_help_project_name": {
+    "cs": "Napiště jméno projektu, kterého je účastník součástí (například STIMPULSE).",
+    "en": "Fill the project name the participant is involved in (e.g. STIMPULSE)."
+  },
+  "patient_info_help_visit_number": {
+    "cs": "V0 - baseline, V3 - follow-up po 3 měsících, V6 - follow-up po 6 měsísích, ...",
+    "en": "V0 - baseline, V3 - 3 month follow-up, V6 - 6 month follow-up, ..."
+  },
+  "patient_info_help_medication_state": {
+    "cs": "Pokud nevíte, vynechte.",
+    "en": "If unknown, leave blank."
+  },
+  "calibration_screen_title": {
+    "cs": "Kalibrační obrazovka",
+    "en": "Calibration screen"
+  },
+  "calibration_screen_instructions": {
+    "cs": "Tato obrazovka slouží ke kalibraci pozice mikrofonu. Přesvědčte se, že mikrofon je umístěn stejně jako na obrázku níže. Poté požádejte pacienta ať provede fonaci hlásky /a/ v pro něj přirozené hlasitosti. Pokud je signál moc slabý dejte mikrofon blíže k puse a naopak. Poté pokračujte k první úloze.",
+    "en": "Please calibrate the microphone position. Make sure that the microphone is placed according to the picture below. Then ask the participant to perform a phonation of the vowel /a/ in a natural voice. If the signal is outside the bounds of the green area move the microphone closer to mouth or otherwise. Then, continue to the first task."
+  },
+  "predefinedPatientField1x": {
+    "cs": "Pohlaví",
+    "en": "Sex"
+  },
+  "predefinedPatientField1Option1": {
+    "cs": "Žena",
+    "en": "Female"
+  },
+  "predefinedPatientField1Option2": {
+    "cs": "Muž",
+    "en": "Male"
+  },
+  "predefinedPatientField2x": {
+    "cs": "Maximalní dosažené vzdělání",
+    "en": "Educational attainment"
+  },
+  "predefinedPatientField2Option1": {
+    "cs": "ZŠ",
+    "en": "Primary"
+  },
+  "predefinedPatientField2Option2": {
+    "cs": "SŠ",
+    "en": "Secondary"
+  },
+  "predefinedPatientField2Option3": {
+    "cs": "VŠ",
+    "en": "Tertiary"
+  },
+  "predefinedPatientField3x": {
+    "cs": "Dnešní datum",
+    "en": "Today`s date"
+  },
+  "predefinedPatientField4x": {
+    "cs": "Datum",
+    "en": "Date"
+  },
+  "task_text_before_number": {
+    "cs": "Úloha",
+    "en": "Task"
+  },
+  "task3_number": {
+    "cs": "Úloha 3/5",
+    "en": "Task 3/5"
+  },
+  "reading_name": {
+    "cs": "Čtený text",
+    "en": "Reading"
+  },
+  "standard_protocol_repeat_text": {
+    "cs": "opakování",
+    "en": "repeat"
+  },
+  "standard_protocol_start_button_text": {
+    "cs": "START",
+    "en": "START"
+  },
+  "standard_protocol_end_button_text": {
+    "cs": "STOP",
+    "en": "STOP"
+  },
+  "standard_protocol_again_button_text": {
+    "cs": "Opakovat úlohu",
+    "en": "Retry task"
+  },
+  "standard_protocol_next_button_text1": {
+    "cs": "Následující úloha",
+    "en": "Next task"
+  },
+  "standard_protocol_next_button_finish": {
+    "cs": "Data se zipují, počkejte prosím",
+    "en": "Data are being zipped, please wait"
+  },
+  "standard_protocol_prev_button_text": {
+    "cs": "Předchozí úloha",
+    "en": "Previous task"
+  },
+  "standard_protocol_audio_example_playback_text": {
+    "cs": "Přehrát ukázku",
+    "en": "Play example"
+  },
+  "standard_protocol_end_protocol_text": {
+    "cs": "Konec",
+    "en": "Finish"
+  },
+  "standard_protocol_waveform_button_text": {
+    "cs": "Zobrazit nahrané audio",
+    "en": "Show recorded audio"
+  },
+  "standard_protocol_quit_waveform_button_text": {
+    "cs": "Odejít (esc)",
+    "en": "Exit (esc)"
+  },
+  "protocols_settings_title": {
+    "cs": "Nastavení protokolu",
+    "en": "Protocol setting"
+  },
+  "protocols_left_title": {
+    "cs": "Dostupné úlohy:",
+    "en": "Available tasks:"
+  },
+  "protocols_right_title": {
+    "cs": "Aktuální protokol: ",
+    "en": "Current protocol: "
+  },
+  "protocol_settings_button_cancel": {
+    "cs": "Odejít bez uložení",
+    "en": "Exit without saving"
+  },
+  "protocol_settings_button_save": {
+    "cs": "Uložit a odejít",
+    "en": "Save and exit"
+  },
+  "protocol_settings_add_new_save": {
+    "cs": "Přidat nový",
+    "en": "Add"
+  },
+  "protocol_general_instructions": {
+    "cs": "<bold>Začněte teď.</bold> Stikněte tlačítko START k zahájení nahrávání. Počkejte, dokud respondent nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.",
+    "en": "<bold>Start now.</bold>Press the START button to begin recording. Please wait until respondent finishes the task end then press the STOP button."
+  },
+  "phonation_title": {
+    "cs": "Prodloužená fonace",
+    "en": "Prolonged phonation"
+  },
+  "phonation_description": {
+    "cs": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /XX/. Měl/a byste vydržet alespoň xx sekund.\\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+    "en": "<bold>Take a deep breath and perform prolonged phonation of vowel /XX/ as long and steadily as possible. Phonation should last at least 10 seconds.\\nI will now play an example.</bold>Press PLAY EXAMPLE to play an example."
+  },
+  "phonation_instructions": {
+    "cs": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\\nV případě, že čas je kratší než xx sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.",
+    "en": "<bold>Start now.</bold>Press the START button to begin recording. Please wait until respondent runs out of breath and then press STOP"
+  },
+  "phonation_vowel_title": {
+    "cs": "Hláska",
+    "en": "Vowel"
+  },
+  "phonation_vowel_description": {
+    "cs": "Hláska k vyslovení při prodloužené fonaci (např. a, i, u...).",
+    "en": "Vowel for prolonged phonation (example. a, i, u...)."
+  },
+  "task_length_title": {
+    "cs": "Délka úlohy (s)",
+    "en": "Task length (s)"
+  },
+  "task_length_description": {
+    "cs": "Doba, po kterou má účastník úlohu aktivně provádět.",
+    "en": "The length of the task."
+  },
+  "pataka_title": {
+    "cs": "PATAKA",
+    "en": "PATAKA"
+  },
+  "pataka_description": {
+    "cs": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+    "en": "<bold>Take a deep breath and consequently repeat the following syllables /pa/-/ta/-/ka/. Repeat the syllables as fast and precise as possible, until I stop you.\\nI will now play an example.</bold> Press PLAY EXAMPLE to play an example. The required number of repeats is 12 triplets of /pa-ta-ka/."
+  },
+  "pataka_procedure_description": {
+    "cs": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň xx trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\\nRychlost opakování, by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).",
+    "en": "Nothing"
+  },
+  "reading_title": {
+    "cs": "Čtený text",
+    "en": "Reading"
+  },
+  "reading_description": {
+    "cs": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>Dejte účastníkovi TEXT KE ČTENÍ - XX.\\nÚčastníkovi nabídněte text s vhodnou velikostí písma.",
+    "en": "<bold>Please read the following short text.\\nIf you are using glasses you can take them now.</bold>Give respondent the READING TEXT.\\nIf respondent cannot read the text, press the START and STOP buttons in quick succesion and press CONTINUE."
+  },
+  "reading_passage_text_title": {
+    "cs": "Text",
+    "en": "Text"
+  },
+  "reading_passage_text_description": {
+    "cs": "Vyberte, jaký text budou účastníci číst.",
+    "en": "Choose which text are the participants reading."
+  },
+  "monologue_title": {
+    "cs": "Monolog",
+    "en": "Free speech"
+  },
+  "monologue_description": {
+    "cs": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň xx sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>Požadovaná délka nahrávaného monologu je 2-2.5 minuty.",
+    "en": "<bold>The goal of this task is to continuously talk without interruption for 2 to 2,5 minutes on freely chosen topic, such as hobbies, experiences, family, job, holidays or daily activities.</bold>"
+  },
+  "monologue_procedure_description": {
+    "cs": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne xx sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.",
+    "en": "<bold>You can start whenever you are ready.</bold>Press the START button to begin recording. Wait until the set time passes and then press STOP.\\nIf respondent pauses and is unsure of what to say you can ask them open questions as a last resort."
+  },
+  "monologue_modification_title": {
+    "cs": "Verze",
+    "en": "Version"
+  },
+  "monologue_modification_description": {
+    "cs": "Vyberte verzi úlohy",
+    "en": "Choose the version of the task"
+  },
+  "monologue_version1": {
+    "cs": "Volné vyprávění",
+    "en": "Free speech"
+  },
+  "monologue_version2": {
+    "cs": "Pohádka",
+    "en": "Fairytale"
+  },
+  "syllables_title": {
+    "cs": "Opakování slabik",
+    "en": "Syllables repetition"
+  },
+  "syllables_description": {
+    "cs": "<bold>Další úkolem bude co nejrychleji za sebou opakovat slabiku /XX/.</bold><bold>Úlohu Vám nyní přehraji</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+    "en": "Please take a deep breath and repeat the syllable /XX/ as fast as possible/constant rhythm."
+  },
+  "syllables_speed_description": {
+    "cs": "<bold>Zhluboka se nadechněte a začněte opakovat slabiku /XX/ co nejrychleji a nejpřesněji, dokud Vás nezastavím.\\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky. Potřebný počet opakování je 25x /XX/.",
+    "en": "<bold>Please take a deep breath and repeat the syllable /XX/ as fast and precise as possible until I stop you.\\nI will now play an example.</bold> Press PLAY EXAMPLE to play an example. The required number of repeats is 25 /XX/."
+  },
+  "syllables_rhythm_description": {
+    "cs": "<bold>Zhluboka se nadechněte a začněte opakovat slabiku /XX/ ve stejném rytmu, dokud Vás nezastavím. Tempo si můžete zvolit jaké chcete.\\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky. Potřebný počet opakování je 25x /XX/.",
+    "en": "<bold>Please take a deep breath and repeat the syllable /XX/ in constant rhythm until I stop you. You can choose the tempo yourself.\\nI will now play an example.</bold>Press PLAY EXAMPLE to play an example. The required number of repeats is 25 /XX/."
+  },
+  "syllables_procedure_description": {
+    "cs": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne xx sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.\\nRychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).",
+    "en": "<bold>Start now.</bold>Press the START button to begin recording. Wait until the respondent finishes the task and then press STOP button."
+  },
+  "syllables_version1": {
+    "cs": "Rytmus",
+    "en": "Rhythm"
+  },
+  "syllables_version2": {
+    "cs": "Rychlost",
+    "en": "Speed"
+  },
+  "syllables_version_title": {
+    "cs": "Verze",
+    "en": "Version"
+  },
+  "syllables_version_description": {
+    "cs": "Vyberte verzi úlohy",
+    "en": "Choose the version of the task"
+  },
+  "syllables_modification_title": {
+    "cs": "Slabika",
+    "en": "Syllable"
+  },
+  "syllables_modification_description": {
+    "cs": "Vyberte vyslovovanou slabiku.",
+    "en": "Choose the performed syllable, such as ta."
+  },
+  "retelling_title": {
+    "cs": "Retelling",
+    "en": "Retelling"
+  },
+  "retelling_description": {
+    "cs": "<bold>V této úloze Vám přehraji úryvek mluvené pohádky.\\nPo poslechu nahrávky prosím zopakujte příběh vlastními slovy, vůbec nezáleží na tom jestli je převyprávěný děj správně nebo dokončen.</bold>Stiskněte tlačítko PŘEHRÁT POHÁDKU pro přehrání příběhu.",
+    "en": "I will replay to you a spoken fairytale story. After listening to the story, please retell the tale in your own words. The goal is to speak continuously, so it doesn`t matter if the retold tale is correct or whole."
+  },
+  "retelling_procedure_description": {
+    "cs": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne xx sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.",
+    "en": "<bold>Start now.</bold>Press the START button to begin recording. Wait until the time passes xx seconds and then press STOP button."
+  },
+  "retelling_version1": {
+    "cs": "Perníková chaloupka",
+    "en": "Hansen and Gretchen"
+  },
+  "retelling_version2": {
+    "cs": "Sněhurka",
+    "en": "Snow White"
+  },
+  "retelling_version3": {
+    "cs": "Císařovy nové šaty",
+    "en": "Kaiser`s new dress"
+  },
+  "retelling_version_title": {
+    "cs": "Verze děje",
+    "en": "Tale version"
+  },
+  "retelling_version_description": {
+    "cs": "Vyberte který příběh budou účastníci převypravovat.",
+    "en": "Choose which tale are the participants retelling."
+  },
+  "repeat_task": {
+    "cs": "Prosím, zopakujte úlohu ještě jednou.",
+    "en": "<bold>Please repeat the task once again.</bold>"
+  },
+  "mimic_title": {
+    "cs": "Mimika",
+    "en": "Mimika"
+  },
+  "mimic_description1": {
+    "cs": "Cílem další úlohy je napodobit emoce, které uvidíte na následujících obrázcích. Používejte prosím pouze mimiku obličeje.",
+    "en": "Cílem další úlohy je napodobit emoce, které uvidíte na následujících obrázcích. Používejte prosím pouze mimiku obličeje."
+  },
+  "mimic_description2": {
+    "cs": "Cílem další úlohy je popsat čtveřici obrázků, které vidíte před sebou.",
+    "en": "Cílem další úlohy je popsat čtveřici obrázků, které vidíte před sebou."
+  },
+  "mimic_version1": {
+    "cs": "Emoce",
+    "en": "Emoce"
+  },
+  "button_title": {
+    "cs": "Tlačítko",
+    "en": "Tlačítko"
+  },
+  "button_description1": {
+    "cs": "Klikej na tlacitko",
+    "en": "Klikej na tlacitko"
+  },
+  "button_description2": {
+    "cs": "Klikej na tlačítko a rikej pohadku.",
+    "en": "Klikej na tlačítko a rikej pohadku."
+  },
+  "button_version1": {
+    "cs": "Tlačítko samostatně",
+    "en": "Tlačítko samostatně"
+  },
+  "button_version2": {
+    "cs": "Tlačítka pohádka",
+    "en": "Tlačítka pohádka"
+  },
+  "protocol_setting_dialog_confirm": {
+    "cs": "Přidat úlohu",
+    "en": "Add task"
+  },
+  "protocol_setting_dialog_cancel": {
+    "cs": "Zrušit",
+    "en": "cancel"
+  },
+  "default_microphone_name": {
+    "cs": "USB audio CODEC",
+    "en": "USB audio CODEC"
+  }
+}
