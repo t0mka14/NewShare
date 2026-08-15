@@ -33,8 +33,9 @@ private val logger = KotlinLogging.logger {}
  *
  * The endpoint is a **single configuration point**: [baseUrl] + [uploadPath] form the request
  * URL, mirroring [KtorConfigApi]. The server contract is pending (§13 open question 1); today
- * this defaults to a placeholder `POST /api/upload`. Only the constructor defaults (or the
- * values `AppContainer` passes in) need to change once the real contract lands.
+ * this defaults to `POST /api/upload` on the demo mock server (`tools/mock-server`, plain HTTP
+ * for the demo). Only the constructor defaults (or the values `AppContainer` passes in) need to
+ * change once the real contract lands.
  *
  * Request shape (§8.9, normative): a `multipart/form-data` POST with four parts — the ZIP file
  * (streamed from disk, never fully materialized in memory) plus the `installationId`,
@@ -60,7 +61,7 @@ private val logger = KotlinLogging.logger {}
  */
 class KtorUploadApi(
     engine: HttpClientEngine = CIO.create(),
-    private val baseUrl: String = "https://localhost/api",
+    private val baseUrl: String = DEMO_SERVER_BASE_URL,
     private val uploadPath: () -> String = { "/upload" },
 ) : UploadApi {
 

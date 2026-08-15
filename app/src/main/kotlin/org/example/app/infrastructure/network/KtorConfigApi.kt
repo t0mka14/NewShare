@@ -22,7 +22,8 @@ private val logger = KotlinLogging.logger {}
  *
  * The endpoint is a **single configuration point**: [baseUrl] + [configPath] together
  * form the request URL. The server contract is pending (§13); today this defaults to the
- * placeholder `GET /api/config/{installationId}`. When the real contract lands, only the
+ * placeholder `GET /api/config/{installationId}` on the demo mock server
+ * ([DEMO_SERVER_BASE_URL], `tools/mock-server`). When the real contract lands, only the
  * constructor defaults (or the values the composition root passes in) need to change —
  * no call-site edits.
  *
@@ -39,7 +40,7 @@ private val logger = KotlinLogging.logger {}
  */
 class KtorConfigApi(
     engine: HttpClientEngine = CIO.create(),
-    private val baseUrl: String = "https://localhost/api",
+    private val baseUrl: String = DEMO_SERVER_BASE_URL,
     private val configPath: (installationId: String) -> String = { installationId -> "/config/$installationId" },
 ) : ConfigApi {
 

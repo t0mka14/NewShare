@@ -1,0 +1,16 @@
+[Unit]
+Description=SHARE mock configuration/upload server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/share-mock-server
+ExecStart=/usr/bin/python3 /opt/share-mock-server/server.py --host 0.0.0.0 --port 80 --data /opt/share-mock-server/data
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
