@@ -110,7 +110,7 @@ private val LegacyTypography = Typography(
 
 private val LegacyShapes = Shapes(
     medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(200.dp),
+    large = RoundedCornerShape(250.dp),
 )
 
 @Composable

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -62,6 +64,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                 Text(
                     localization.resolve(state.titleKey),
                     style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(bottom = 20.dp),
                 )
                 Card {
                     Column(modifier = Modifier.padding(all = 16.dp)) {
@@ -70,9 +73,9 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                         }
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+                //Spacer(Modifier.height(20.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth(),//.weight(1f),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Image(
@@ -87,16 +90,6 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                         modifier = Modifier.fillMaxSize(0.5f).testTag(TestTags.Calibration.LEVEL_INDICATOR),
                     )
                 }
-                // No legacy counterpart: the input device must be selectable here (§8.5)
-                DropdownSelector(
-                    triggerTag = TestTags.Calibration.DEVICE_SELECT,
-                    selectedLabel = state.selectedDevice?.name.orEmpty(),
-                    items = state.availableDevices,
-                    itemLabel = { it.name },
-                    itemEnabled = { it.eligible },
-                    itemTag = { "${TestTags.Calibration.DEVICE_SELECT}.${it.id}" },
-                    onSelected = component::onDeviceSelected,
-                )
                 Spacer(Modifier.height(20.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -108,9 +101,20 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                     ) {
                         Text(localization.resolve("action.back"), style = MaterialTheme.typography.labelMedium)
                     }
+                    // No legacy counterpart: the input device must be selectable here (§8.5)
+                    DropdownSelector(
+                        triggerTag = TestTags.Calibration.DEVICE_SELECT,
+                        selectedLabel = state.selectedDevice?.name.orEmpty(),
+                        items = state.availableDevices,
+                        itemLabel = { it.name },
+                        itemEnabled = { it.eligible },
+                        itemTag = { "${TestTags.Calibration.DEVICE_SELECT}.${it.id}" },
+                        onSelected = component::onDeviceSelected,
+                    )
                     Button(
                         onClick = component::onConfirm,
-                        modifier = Modifier.testTag(TestTags.Calibration.CONFIRM_BUTTON),
+                        modifier = Modifier
+                            .testTag(TestTags.Calibration.CONFIRM_BUTTON),
                     ) {
                         Text(localization.resolve("action.next"), style = MaterialTheme.typography.labelMedium)
                     }
