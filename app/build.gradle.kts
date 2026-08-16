@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.compose.hot.reload)
 }
 
 dependencies {
@@ -52,6 +53,19 @@ tasks.test {
         // classpath; without this flag the JVM warns now and will refuse later.
         "--enable-native-access=ALL-UNNAMED",
     )
+}
+
+/**
+ * Renders `ui/previews` in a real window without starting the app (no AppContainer, recorder,
+ * session or config involved). The IDE's `@Preview` pane covers the static look; this covers
+ * animation, clicks and resizing.
+ */
+tasks.register<JavaExec>("previewCalibration") {
+    group = "application"
+    description = "Opens the CalibrationContent preview harness."
+    mainClass = "org.example.app.ui.previews.PreviewHarnessKt"
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 
 compose.desktop {

@@ -1,0 +1,136 @@
+# Previews and hot reload
+
+Two ways to look at a screen without clicking through the app, plus an MCP server that lets an
+AI agent drive the running application.
+
+- **`@Preview`** (`app/src/main/kotlin/org/example/app/ui/previews/`) — static render in the
+  IntelliJ preview pane. Needs the Compose Multiplatform IDE plugin.
+- **Compose Hot Reload** (plugin `org.jetbrains.compose.hot-reload` 1.2.0) — the app or a single
+  composable runs in a real window and picks up code edits without restarting.
+
+Hot reload runs on a **JetBrains Runtime**, which Gradle downloads automatically (JBR 25, via the
+foojay resolver already applied in `settings.gradle.kts`). Nothing about the project's own
+toolchain changes, and the first `hot*` task of a fresh checkout just takes a bit longer.
+
+## The three ways to run it
+
+```bash
+# 1. one composable, no app around it — the closest thing to a live preview
+./gradlew :app:hotDev --className=org.example.app.ui.previews.DevPreviewsKt \
+                      --funName=CalibrationDev --auto
+
+# 2. the preview harness: all states of a screen, with a chip row to switch between them
+./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.PreviewHarnessKt --auto
+
+# 3. the real app, real data directory, real config fetch
+./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto
+```
+
+`--auto` recompiles and reloads on every save. Without it the app starts in *explicit reload
+mode*: leave it running and apply changes with `./gradlew reload` whenever you want them.
+
+### Where the entry points live
+
+| Kind | Source set | Ships in the distribution? | Used by |
+|---|---|---|---|
+| `@Preview` functions | `app/src/main/.../ui/previews/` | yes (a few KB) | IDE preview pane |
+| `@DevelopmentEntryPoint` functions | `app/src/dev/.../ui/previews/` | **no** | `hotDev`, IDE gutter icons |
+| `PreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewCalibration` |
+
+The `dev` source set is created by the hot-reload plugin and sees `main`, so the
+`@DevelopmentEntryPoint` functions just delegate to the `@Preview` ones — each screen state is
+defined once. `hotDev` **only** accepts `@DevelopmentEntryPoint` functions from that source set;
+pointed at a plain `@Preview` in `main` it starts and exits 1 without a message.
+
+## What actually reloads
+
+Verified on this project: the full app starts under `hotRun` on JBR 25, uses the normal
+`app/data/` directory (it fetched its config from the mock server at startup like any other run),
+and survives `./gradlew reload` while running. What a given edit does depends on what you changed:
+
+- **Composable bodies** — the sweet spot. Layout, styling, text, state defaults in preview code.
+- **New/changed classes and functions** — JBR's enhanced class redefinition handles far more than
+  standard HotSwap (adding methods and fields included), but **objects that already exist keep the
+  state they were constructed with**. Editing `AppContainer` wiring, a component's constructor, or
+  anything built once at startup usually needs a restart to take effect.
+- **Startup-time reads** — the cached config, settings, and the session's config snapshot are read
+  once; reloading code does not re-read them.
+- **Long-lived machinery** — the recorder's capture thread, an open `TargetDataLine`, coroutine
+  scopes tied to a `SessionComponent`. Don't hot reload in the middle of a take; stop the session
+  first.
+- The `reset_ui` MCP tool (below) discards the composition and drops all `remember`-ed state,
+  which is the cheap way to get a clean UI without losing the process.
+
+Because option 3 runs against the real data directory, an edit-reload loop there acts on real
+sessions in `app/data/`. For pure visual work prefer options 1 and 2 — they touch no microphone,
+no filesystem, no server.
+
+Only one instance can run at a time: the app holds an exclusive lock on `app/data/app.lock`
+(spec §5.2), so stop an IDE-launched instance before starting a hot-reload one.
+
+## MCP server — letting an agent drive the app
+
+Compose Hot Reload ships an MCP server (stdio, protocol `2025-06-18`, experimental since 1.2.0)
+that connects to the running application's orchestration layer. It is registered for Claude Code
+in the project's [`.mcp.json`](../../.mcp.json):
+
+```json
+{
+  "mcpServers": {
+    "compose-hot-reload": {
+      "command": "./gradlew",
+      "args": ["--no-daemon", "--quiet", "--console=plain", "hotMcpServer"]
+    }
+  }
+}
+```
+
+The agent starts and stops the server itself — you never run the task by hand. The unqualified
+`hotMcpServer` name is enough: Gradle resolves it against the subprojects and matches the
+target-specific task (here `:app:hotMcpServer`, since `:app` has a single JVM target).
+
+The server does not need an application: it starts, waits for one to launch, and reconnects when
+it restarts. So the workflow is:
+
+1. start the app with hot reload (any of the three commands above),
+2. the agent calls `status` — `connected: false` simply means no app is running yet; it also
+   reports `buildContinuous`, which says whether to use `reload` (explicit) or `await_reload`
+   (started with `--auto`),
+3. it inspects and drives the app.
+
+Tools exposed:
+
+| Tool | What it does |
+|---|---|
+| `status` | is an app connected, reload state, last error, reload counts |
+| `reload` / `await_reload` | apply pending edits (`reload`), or wait for the `--auto` build to finish |
+| `take_screenshot` | PNG of a window |
+| `get_semantic_tree` | the semantics/accessibility tree — this is where `Modifier.testTag` values show up |
+| `click` / `long_click` / `type_text` / `scroll` / `scroll_to_index` | drive the UI |
+| `list_windows` / `resize_window` | window inventory and resizing (useful for the §13 decision 36 scaling rule) |
+| `get_ui_error` / `get_logs` | the exception behind a window that fails to render, and recent app output |
+| `restart` / `reset_ui` | restart the process, or drop the composition and all `remember`-ed state |
+
+The same `TestTags` constants that drive the UI test suite (§10.3) are what make the app
+addressable here — a tagged element is findable in the semantic tree, and `click`/`type_text`/
+`scroll` take the `nodeId` from that tree (the node has to expose the matching semantic action:
+`onClick`, `editableText`, `ScrollBy`, `ScrollToIndex`).
+
+The window-targeting tools (`take_screenshot`, `get_semantic_tree`, `click`, `long_click`,
+`type_text`, `scroll`, `scroll_to_index`, `resize_window`, `get_ui_error`) accept an optional
+`window_id`; without it they act on the first registered window — the first `Window` /
+`singleWindowApplication` / `DialogWindow` composed at startup. `list_windows` gives the ids.
+
+**On Wayland:** `take_screenshot` is captured by the application itself, so it works even where
+external tools (`grim`, etc.) are blocked. The input tools go through the desktop's remote-input
+portal, so the first `click`/`type_text` raises a system "Allow Remote Interaction" dialog that
+has to be granted before the agent can drive the UI.
+
+## Known sharp edges
+
+- Compilation errors surface as a failed `reload`; the app keeps running the previous code.
+- A runtime exception thrown while rendering leaves that window blank rather than killing the
+  app — `get_ui_error` (or the dev-tools overlay) has the stacktrace.
+- The `hot*` tasks do not inherit the `--enable-native-access=ALL-UNNAMED` flag that
+  `compose.desktop.application` sets, so the run prints JEP 472 warnings on JDK 24+. Harmless.
+- Upstream's own list: <https://github.com/JetBrains/compose-hot-reload/blob/master/docs/Known_limitations.md>

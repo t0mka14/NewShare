@@ -43,6 +43,7 @@ port (`domain/AppDirectories.kt`) — nothing else builds paths.
 - [`data-and-schemas.md`](data-and-schemas.md) — every persisted file, with examples
 - [`cookbook.md`](cookbook.md) — how to change/add things, with worked examples
 - [`ui.md`](ui.md) — visual language, screen inventory, "add a screen" checklist
+- [`hot-reload.md`](hot-reload.md) — previews, the three hot-reload run modes, the MCP server
 - [`testing.md`](testing.md) — test layers, harness, "add a scenario" walkthrough
 - [`updater.md`](updater.md) — `:updater` flow, install layout, failed-launch recovery
 - [`packaging-and-deployment.md`](packaging-and-deployment.md) — native images, signing, server-contract seams

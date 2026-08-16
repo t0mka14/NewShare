@@ -43,3 +43,6 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+# Live-updates a running desktop UI on save (needs a JetBrains Runtime, provisioned by the
+# foojay toolchain resolver in settings.gradle.kts). 1.2.0 requires CMP 1.10+ and Kotlin 2.1.20+.
+compose-hot-reload = { id = "org.jetbrains.compose.hot-reload", version = "1.2.0" }
