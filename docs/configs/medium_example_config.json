@@ -161,46 +161,6 @@
           "nrepetition": 1
         },
         {
-          "type": "VOCAL",
-          "subtype": "COUNTING",
-          "titleKey": "counting_title",
-          "instructionKeys": [
-            "counting_instructions"
-          ],
-          "length": 20,
-          "showIndicator": false,
-          "canRepeat": true,
-          "canSkip": false,
-          "nrepetition": 1
-        },
-        {
-          "type": "VOCAL",
-          "subtype": "CUSTOM",
-          "titleKey": "custom_task_title",
-          "instructionKeys": [
-            "custom_task_instructions"
-          ],
-          "length": 20,
-          "showIndicator": false,
-          "canRepeat": true,
-          "canSkip": true,
-          "nrepetition": 1
-        },
-        {
-          "type": "VIDEO",
-          "subtype": "EMOTIONS",
-          "titleKey": "mimic_title",
-          "instructionKeys": [
-            "mimic_description1",
-            "mimic_description2"
-          ],
-          "length": 30,
-          "canRepeat": true,
-          "canSkip": false,
-          "nrepetition": 1,
-          "havePTZ": false
-        },
-        {
           "type": "QUESTIONNAIRE",
           "titleKey": "questionnaire_title",
           "questions": [
@@ -256,10 +216,10 @@
       "calibration_screen_title": "Kalibrační obrazovka",
       "calibration_screen_instructions": "Tato obrazovka slouží ke kalibraci pozice mikrofonu. Přesvědčte se, že mikrofon je umístěn stejně jako na obrázku níže. Poté požádejte pacienta ať provede fonaci hlásky /a/ v pro něj přirozené hlasitosti. Pokud je signál moc slabý dejte mikrofon blíže k puse a naopak. Poté pokračujte k první úloze.",
       "phonation_title": "Prodloužená fonace",
-      "phonation_description": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /XX/. Měl/a byste vydržet alespoň xx sekund.\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+      "phonation_description": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /XX/. Měl/a byste vydržet alespoň xx sekund.\nNyní Vám přehraji ukázku.\n</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
       "phonation_instructions": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než xx sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.",
       "pataka_title": "PATAKA",
-      "pataka_description": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
+      "pataka_description": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.\n</bold>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.\n</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
       "pataka_procedure_description": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň xx trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování, by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).",
       "syllables_title": "Opakování slabik",
       "syllables_speed_description": "<bold>Zhluboka se nadechněte a začněte opakovat slabiku /XX/ co nejrychleji a nejpřesněji, dokud Vás nezastavím.\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky. Potřebný počet opakování je 25x /XX/.",
