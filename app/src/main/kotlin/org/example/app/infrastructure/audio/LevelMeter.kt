@@ -33,7 +33,20 @@ class LevelMeter(private val windowMs: Double = DEFAULT_WINDOW_MS) {
     }
 
     companion object {
+        /** Meter window for the calibration bar and any threshold decision (§5.3.1). */
         const val DEFAULT_WINDOW_MS = 300.0
+
+        /**
+         * Meter window behind `ContinuousSessionRecorder.fastLevels`, which drives both live
+         * task-screen indicators (§6.2) — **the knob to turn if they look too smeared or too
+         * twitchy.** Kept well below the capture chunk (`JvmContinuousSessionRecorder.CHUNK_MS`)
+         * so each value describes its own slice of audio: at 40 ms the previous value still
+         * contributes ~14%, which takes the edge off without blurring syllables together.
+         * `0.0` disables smoothing entirely and yields the plain per-chunk RMS (already an
+         * average over 80 ms of audio); raising it toward [DEFAULT_WINDOW_MS] progressively
+         * flattens both the WAVEFORM trace and the CIRCLE's swell.
+         */
+        const val FAST_WINDOW_MS = 40.0
 
         /** Exponential-moving-average weight for a chunk of [chunkMs] folded into a
          * smoothing window of [windowMs]: larger chunks (relative to the window) pull

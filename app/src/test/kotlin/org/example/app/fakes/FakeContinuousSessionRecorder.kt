@@ -52,6 +52,9 @@ class FakeContinuousSessionRecorder(
     private val _levels = MutableSharedFlow<Float>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val levels: Flow<Float> = _levels.asSharedFlow()
 
+    private val _fastLevels = MutableSharedFlow<Float>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    override val fastLevels: Flow<Float> = _fastLevels.asSharedFlow()
+
     private val _captureFormat = MutableStateFlow<CaptureFormat?>(null)
     override val captureFormat: StateFlow<CaptureFormat?> = _captureFormat.asStateFlow()
 
@@ -122,10 +125,20 @@ class FakeContinuousSessionRecorder(
 
     // ---- test hooks ----
 
-    /** Push one reading to [levels] subscribers (linear RMS, 0.0-1.0, §5.3.1). */
-    fun emitLevel(level: Float) {
+    /**
+     * Push one reading to [levels] **and** [fastLevels] subscribers (linear RMS, 0.0-1.0,
+     * §5.3.1). The real recorder derives both from the same chunk and only differs in
+     * smoothing, so a fake that fed just one of them would let a screen wired to the wrong
+     * flow still pass its test. Use [emitLevels] when a test needs them to differ.
+     */
+    fun emitLevel(level: Float) = emitLevels(level, level)
+
+    /** Push different readings to the smoothed [levels] and the fast [fastLevels]. */
+    fun emitLevels(level: Float, fastLevel: Float) {
         require(level in 0f..1f) { "level must be normalized 0.0-1.0, was $level" }
+        require(fastLevel in 0f..1f) { "fastLevel must be normalized 0.0-1.0, was $fastLevel" }
         _levels.tryEmit(level)
+        _fastLevels.tryEmit(fastLevel)
     }
 
     /**

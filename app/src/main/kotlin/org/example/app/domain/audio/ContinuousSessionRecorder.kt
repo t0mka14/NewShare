@@ -30,8 +30,26 @@ interface ContinuousSessionRecorder {
     /**
      * RMS level, linear, normalized 0.0–1.0 full scale, smoothed over ~300 ms.
      * Emitted in both Monitoring and Writing states. One formula everywhere.
+     *
+     * This is the level a human reads off a meter: the calibration bar and its
+     * in-range decision need a value that holds still while someone speaks.
      */
     val levels: Flow<Float>
+
+    /**
+     * The same RMS measurement with fast ballistics — one value per capture chunk,
+     * barely smoothed, so consecutive values describe distinct slices of audio rather
+     * than overlapping averages.
+     *
+     * Feeds the live task-screen indicators (§6.2), which do their own smoothing or want
+     * none: WAVEFORM plots a *history*, and the 300 ms window of [levels] applied to a
+     * trace sampled every 80 ms makes neighbouring points share most of their energy,
+     * smearing the envelope the trace exists to show; CIRCLE animates the value through a
+     * `spring`, which already smooths it.
+     *
+     * Never use this for a threshold decision — that is what [levels] is for.
+     */
+    val fastLevels: Flow<Float>
 
     /**
      * The format actually negotiated for the current device (§5.3.1), available from

@@ -210,9 +210,12 @@ The recorder is the **single source of truth for audio time**. Requirements:
   timeline event's offset is taken from this counter at event time** (§8.3); wall-clock time
   is stored as metadata only. Millisecond offsets, where needed, are derived from samples.
 - `levels: Flow<Float>` — RMS level (linear, normalized 0.0–1.0 full scale, smoothed over a
-  ~300 ms window; one formula, unlike the original) for calibration and the live indicator.
-  There is no separate `AudioLevelMeter` interface; levels come from the recorder in both
-  monitoring and writing modes.
+  ~300 ms window; one formula, unlike the original) for calibration and any threshold
+  decision. There is no separate `AudioLevelMeter` interface; levels come from the recorder in
+  both monitoring and writing modes.
+- `fastLevels: Flow<Float>` — the same RMS measurement with fast ballistics (~40 ms window,
+  one value per capture chunk) for the live task-screen indicators, which shape the signal
+  themselves (§13 decision 39).
 - `state: StateFlow<RecorderState>` — `Idle / Monitoring / Writing / Interrupted / Stopped /
   Failed(error)`; disconnection detection per §8.5.
 - **Capture architecture:** a dedicated capture thread reads fixed-size chunks (≤ 100 ms of
@@ -957,6 +960,16 @@ Error taxonomy (normative, inlined from the old plan):
     marker in `<install_dir>` (never `data/`): written after a package swap, deleted by
     the app once startup succeeds, and a marker still present on the next updater run
     triggers backup restore.
+
+39. **Two meter ballistics, one formula (2026-08-17):** the recorder exposes `levels`
+    (~300 ms window) and `fastLevels` (~40 ms, one value per capture chunk). Same RMS
+    computation, same `LevelMeter` class, only the smoothing window differs, so §5.3.1's "one
+    formula" property holds. Calibration and every threshold decision read `levels` — an
+    in-range judgment needs a value that holds still while someone speaks. The CIRCLE and
+    WAVEFORM task indicators read `fastLevels`: WAVEFORM plots a history, and a 300 ms window
+    sampled every 80 ms makes neighbouring points share most of their energy, smearing the
+    envelope; CIRCLE animates through a `spring`, which already smooths. The windows are the
+    two constants in `LevelMeter` (`DEFAULT_WINDOW_MS`, `FAST_WINDOW_MS`).
 
 **Still open:**
 

@@ -57,6 +57,9 @@ class JvmContinuousSessionRecorder(
     private val _levels = MutableStateFlow(0f)
     override val levels: Flow<Float> = _levels.asStateFlow()
 
+    private val _fastLevels = MutableStateFlow(0f)
+    override val fastLevels: Flow<Float> = _fastLevels.asStateFlow()
+
     private val _captureFormat = MutableStateFlow<CaptureFormat?>(null)
     override val captureFormat: StateFlow<CaptureFormat?> = _captureFormat.asStateFlow()
 
@@ -74,6 +77,9 @@ class JvmContinuousSessionRecorder(
     private val watchdogScope = CoroutineScope(SupervisorJob() + dispatchers.default)
 
     private val levelMeter = LevelMeter()
+
+    /** Barely-smoothed meter behind [fastLevels]; window tuned in [LevelMeter.FAST_WINDOW_MS]. */
+    private val fastMeter = LevelMeter(windowMs = LevelMeter.FAST_WINDOW_MS)
     private val globalSampleCounter = GlobalSampleCounter()
 
     @Volatile private var currentLine: TargetDataLine? = null
@@ -141,6 +147,7 @@ class JvmContinuousSessionRecorder(
             _captureFormat.value = format
             globalSampleCounter.startNewPart()
             levelMeter.reset()
+            fastMeter.reset()
             lastHeaderPatchAtMillis = System.currentTimeMillis()
             silenceAccumMs = 0.0
             interruptionHandled.set(false)
@@ -204,6 +211,7 @@ class JvmContinuousSessionRecorder(
 
                 lastSuccessfulReadAtMillis.set(System.currentTimeMillis())
                 _levels.value = levelMeter.process(buffer, 0, n, format)
+                _fastLevels.value = fastMeter.process(buffer, 0, n, format)
                 updateSilenceHeuristic(LevelMeter.isAllZero(buffer, 0, n), n, format)
 
                 val writer = currentWriter
@@ -322,7 +330,9 @@ class JvmContinuousSessionRecorder(
         _writtenSamples.value = 0
         _captureFormat.value = null
         _levels.value = 0f
+        _fastLevels.value = 0f
         levelMeter.reset()
+        fastMeter.reset()
         silenceAccumMs = 0.0
         _silenceWarning.value = false
         lastSuccessfulReadAtMillis.set(0L)
@@ -391,8 +401,8 @@ class JvmContinuousSessionRecorder(
     private class AudioException(val error: AudioError) : Exception()
 
     private companion object {
-        const val CHUNK_MS = 80
-        const val LINE_BUFFER_MS = 100
+        const val CHUNK_MS = 50
+        const val LINE_BUFFER_MS = 150
         const val WATCHDOG_POLL_MS = 200L
         const val WATCHDOG_STARVATION_MS = 1000L
         const val HEADER_PATCH_INTERVAL_MS = 5000L

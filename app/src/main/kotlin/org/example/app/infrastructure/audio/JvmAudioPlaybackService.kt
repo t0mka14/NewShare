@@ -145,7 +145,7 @@ class JvmAudioPlaybackService(
     }
 
     private companion object {
-        const val CHUNK_MS = 100
+        const val CHUNK_MS = 20
         const val THREAD_JOIN_TIMEOUT_MS = 2000L
     }
 }

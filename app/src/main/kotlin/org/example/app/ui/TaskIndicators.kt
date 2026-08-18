@@ -4,6 +4,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -19,12 +21,17 @@ import org.example.app.domain.config.IndicatorType
 
 /**
  * Live recording feedback on VOCAL task screens (§6.2), fed by
- * `ContinuousSessionRecorder.levels` via `TaskComponent.Content.Vocal.level`. [CIRCLE] is the
+ * `ContinuousSessionRecorder.fastLevels` via `TaskComponent.Content.Vocal.level` — the
+ * barely-smoothed per-chunk level, not the 300 ms meter value the calibration bar reads
+ * (both indicators shape the signal themselves; window in `LevelMeter.FAST_WINDOW_MS`). [CIRCLE] is the
  * legacy `drawRecCircle` (§13 decision 36): a static gray dot with a green spring-animated
  * stroke circle that swells with the input level only while [capturing] — at rest it sits at
  * the minimum radius like the legacy did outside the STOP state. [WAVEFORM] has no legacy
- * counterpart (the legacy waveform view showed the finished take, not a live signal) and keeps
- * its rolling history buffer — local Compose display state, never read back by any component.
+ * counterpart (the legacy waveform view showed the finished take, not a live signal) and renders
+ * **only while [capturing]** — a trace scrolling in `Idle`/`Stopped` would show room noise and
+ * suggest the app is recording when no take is open. Leaving the composition also drops its
+ * rolling history buffer (local Compose display state, never read back by any component), so
+ * each take starts from an empty trace instead of continuing the previous one.
  * Uses the legacy Material3 palette from `ShareLegacyM3Theme` (task screen wraps in it).
  */
 @Composable
@@ -36,7 +43,7 @@ fun TaskLevelIndicator(
 ) {
     when (indicatorType) {
         IndicatorType.CIRCLE -> CircleLevelIndicator(level, capturing, modifier)
-        IndicatorType.WAVEFORM -> WaveformLevelIndicator(level, modifier)
+        IndicatorType.WAVEFORM -> if (capturing) WaveformLevelIndicator(level, modifier)
     }
 }
 
@@ -70,7 +77,7 @@ private fun CircleLevelIndicator(level: Float, capturing: Boolean, modifier: Mod
     }
 }
 
-private const val WAVEFORM_HISTORY_SIZE = 90 // ~3s at a representative ~30 updates/s (§6.2).
+private const val WAVEFORM_HISTORY_SIZE = 120 // ~3s at a representative ~30 updates/s (§6.2).
 
 @Composable
 private fun WaveformLevelIndicator(level: Float, modifier: Modifier = Modifier) {
@@ -79,8 +86,17 @@ private fun WaveformLevelIndicator(level: Float, modifier: Modifier = Modifier) 
     while (history.size > WAVEFORM_HISTORY_SIZE) history.removeAt(0)
 
     val waveColor = MaterialTheme.colorScheme.tertiary
+    // Same outline treatment as the calibration level bar, so the trace reads as a bounded
+    // instrument rather than free-floating strokes.
+    val outlineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
-    Canvas(modifier = modifier.size(width = 320.dp, height = 120.dp).testTag(TestTags.Task.LEVEL_INDICATOR)) {
+    Canvas(
+        modifier = modifier
+            .size(width = 500.dp, height = 250.dp)
+            .border(width = 1.dp, color = outlineColor)
+            .padding(all = 4.dp) // keeps peaks off the outline
+            .testTag(TestTags.Task.LEVEL_INDICATOR),
+    ) {
         if (history.isEmpty()) return@Canvas
         val midY = size.height / 2f
         val stepX = size.width / WAVEFORM_HISTORY_SIZE

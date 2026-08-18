@@ -115,6 +115,13 @@ interface TaskComponent {
         data class Vocal(
             val screenState: TaskScreenState,
             val takeNumber: Int,
+            /**
+             * Live input level for the indicator (§6.2), from
+             * [ContinuousSessionRecorder.fastLevels] — one value per capture chunk, barely
+             * smoothed. WAVEFORM plots it as a history and needs the detail; CIRCLE animates
+             * it through a `spring`, which does its own smoothing, so neither wants the
+             * meter-ballistics value the calibration bar reads.
+             */
             val level: Float,
             val deviceLost: Boolean,
             /** `VocalTask.showIndicator` (§6.2) — carried directly so the UI never needs the
@@ -222,7 +229,7 @@ class DefaultTaskComponent(
 
         if (task is VocalTask && recorder != null) {
             scope.launch(dispatchers.main) {
-                recorder.levels.collect { l ->
+                recorder.fastLevels.collect { l ->
                     level = l
                     publish()
                 }
