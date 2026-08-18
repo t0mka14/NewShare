@@ -102,6 +102,46 @@ class JvmAudioPlaybackServiceTest {
         assertTrue(lines.single().closed)
     }
 
+    /**
+     * The §8.7 position line is drawn straight onto the waveform, so it must follow the audio the
+     * device is *rendering*, not the audio handed to the line: writes return immediately until
+     * the line's buffer fills, which used to push the reported position a whole buffer (0.25-0.5 s
+     * on real hardware) ahead of the sound.
+     */
+    @Test
+    fun `position follows rendered frames, not frames written into the line buffer`(@TempDir dir: Path) {
+        val file = dir.resolve("clip.wav")
+        writeTestWav(file, format, monoRamp(800))
+        val line = BufferingPlaybackLine(bufferFrames = 200)
+        val service = JvmAudioPlaybackService(lineFactory = { line })
+
+        service.playRange(file, startSample = 0, stopSample = 800)
+
+        // Buffer full, nothing rendered yet: the line has swallowed frames but none have sounded.
+        awaitCondition("line did not fill its buffer") { line.writtenFrames >= 200 }
+        assertEquals(0L, service.positionSamples.value)
+
+        line.renderedFrames = 400
+        awaitCondition("position did not follow the rendered frames") { service.positionSamples.value >= 400 }
+        assertTrue(
+            service.positionSamples.value <= line.renderedFrames,
+            "position ${service.positionSamples.value} ran ahead of the ${line.renderedFrames} rendered frames",
+        )
+
+        line.renderedFrames = 800
+        awaitCondition("playback did not finish") { !service.isPlaying.value }
+        assertEquals(800L, service.positionSamples.value)
+        assertTrue(line.drained)
+    }
+
+    private fun awaitCondition(message: String, timeoutMs: Long = 2_000, condition: () -> Boolean) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (!condition() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(1)
+        }
+        assertTrue(condition(), message)
+    }
+
     private fun awaitIdle(timeoutMs: Long = 2_000) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (service.isPlaying.value && System.currentTimeMillis() < deadline) {
@@ -109,6 +149,38 @@ class JvmAudioPlaybackServiceTest {
         }
         assertFalse(service.isPlaying.value, "playback did not finish within timeout")
     }
+}
+
+/**
+ * Models what a real `SourceDataLine` does and [FakePlaybackLine] cannot: accepts writes into a
+ * bounded buffer and reports a rendered-frame clock the test drives by hand.
+ */
+private class BufferingPlaybackLine(private val bufferFrames: Long) : PlaybackLine {
+    @Volatile var writtenFrames = 0L
+    @Volatile var renderedFrames = 0L
+    @Volatile var drained = false
+    private var frameSize = 2
+
+    override fun open(format: CaptureFormat) {
+        frameSize = format.frameSize()
+    }
+
+    override fun write(buffer: ByteArray, offset: Int, length: Int): Int {
+        while (writtenFrames - renderedFrames >= bufferFrames) {
+            Thread.sleep(1) // throws InterruptedException on stop(), like a real blocking write
+        }
+        writtenFrames += length / frameSize
+        return length
+    }
+
+    override fun framePosition(): Long = renderedFrames
+
+    override fun drain() {
+        drained = true
+    }
+
+    override fun stop() = Unit
+    override fun close() = Unit
 }
 
 private class FakePlaybackLine : PlaybackLine {

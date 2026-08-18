@@ -24,3 +24,20 @@ fun CalibrationTooQuietDev() = CalibrationTooQuietPreview()
 @DevelopmentEntryPoint
 @Composable
 fun CalibrationDeviceLostDev() = CalibrationDeviceLostPreview()
+
+@DevelopmentEntryPoint
+@Composable
+fun EditorDev() = EditorIdlePreview()
+
+@DevelopmentEntryPoint
+@Composable
+fun EditorPlayingDev() = EditorPlayingPreview()
+
+@DevelopmentEntryPoint
+@Composable
+fun EditorNoSegmentsDev() = EditorNoSegmentsPreview()
+
+/** See [EditorLive] — the real component over a recorded session, with audible playback. */
+@DevelopmentEntryPoint
+@Composable
+fun EditorLiveDev() = EditorLive()

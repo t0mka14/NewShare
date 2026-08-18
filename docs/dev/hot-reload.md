@@ -19,8 +19,9 @@ toolchain changes, and the first `hot*` task of a fresh checkout just takes a bi
 ./gradlew :app:hotDev --className=org.example.app.ui.previews.DevPreviewsKt \
                       --funName=CalibrationDev --auto
 
-# 2. the preview harness: all states of a screen, with a chip row to switch between them
+# 2. a preview harness: all states of a screen, with a chip row to switch between them
 ./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.PreviewHarnessKt --auto
+./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.EditorPreviewHarnessKt --auto
 
 # 3. the real app, real data directory, real config fetch
 ./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto
@@ -36,6 +37,21 @@ mode*: leave it running and apply changes with `./gradlew reload` whenever you w
 | `@Preview` functions | `app/src/main/.../ui/previews/` | yes (a few KB) | IDE preview pane |
 | `@DevelopmentEntryPoint` functions | `app/src/dev/.../ui/previews/` | **no** | `hotDev`, IDE gutter icons |
 | `PreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewCalibration` |
+| `EditorPreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewEditor` |
+
+The editor also has `EditorLiveDev` (dev source set only): the **real** `DefaultEditorComponent`
+over the newest reviewable session in `app/data/sessions/`, with the production waveform and
+playback services. Synthetic peaks cannot show whether the position line agrees with audio you can
+hear, which is the one thing §8.7's position tracking has to get right — so check that here:
+
+```bash
+./gradlew :app:hotDev --className=org.example.app.ui.previews.DevPreviewsKt \
+                      --funName=EditorLiveDev --auto
+```
+
+It reads sessions rather than driving one, builds no `AppContainer`, and so does not take
+`app/data/app.lock` — but pressing Accept after moving a boundary does write that session's
+`timeline_edited.json`, so point it at a session you do not mind re-editing.
 
 The `dev` source set is created by the hot-reload plugin and sees `main`, so the
 `@DevelopmentEntryPoint` functions just delegate to the `@Preview` ones — each screen state is

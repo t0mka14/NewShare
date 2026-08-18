@@ -27,10 +27,12 @@ private val logger = KotlinLogging.logger {}
  *
  * One playback at a time: starting a new [play]/[playRange] stops whatever
  * was previously playing (port contract). [positionSamples] tracks samples
- * *handed to the line*, not physically-sounding samples — the same bounded
- * skew the recorder documents for `writtenSamples` (§5.3.1), accepted here
- * for the same reason: the moving position line only needs to be
- * editor-frame-accurate, not output-latency-exact.
+ * the output device has **physically rendered** ([PlaybackLine.framePosition]),
+ * not samples handed to the line: writes return immediately until the line's
+ * buffer is full, so a written-frame count leaps ahead of the sound by the
+ * whole buffer depth (0.25-0.5 s on typical devices) and stays there. The
+ * editor draws its position line straight onto the waveform (§8.7), where that
+ * skew is plainly visible, so the accurate clock is worth the extra call.
  */
 class JvmAudioPlaybackService(
     private val lineFactory: () -> PlaybackLine = { SystemPlaybackLine() },
@@ -106,9 +108,15 @@ class JvmAudioPlaybackService(
                     raf.readFully(buffer, 0, bytesToRead)
                     line.write(buffer, 0, bytesToRead)
                     frame += framesToRead
-                    _positionSamples.value = frame
+                    // Once the line's buffer is full each write returns after roughly CHUNK_MS of
+                    // real time, so this publishes the rendered position ~50x/s. While the buffer
+                    // is still filling the writes return instantly and the position correctly
+                    // stays parked at startFrame — the sound has not begun yet.
+                    publishPosition(line, startFrame, stopFrame, writtenFrame = frame)
                 }
-                if (!Thread.currentThread().isInterrupted) line.drain()
+                if (!Thread.currentThread().isInterrupted) {
+                    drainTracking(line, startFrame, stopFrame)
+                }
             }
         } catch (e: InterruptedException) {
             // expected on stop() — the blocking line.write()/read may throw this
@@ -122,6 +130,40 @@ class JvmAudioPlaybackService(
                 logger.warn(e) { "error closing playback line" }
             }
             _isPlaying.value = false
+        }
+    }
+
+    /**
+     * Publishes the position the device is actually sounding. [writtenFrame] is only the fallback
+     * for lines with no position clock (test fakes) — see [PlaybackLine.framePosition].
+     */
+    private fun publishPosition(line: PlaybackLine, startFrame: Long, stopFrame: Long, writtenFrame: Long) {
+        val rendered = line.framePosition()
+        _positionSamples.value = if (rendered >= 0) {
+            (startFrame + rendered).coerceIn(startFrame, stopFrame)
+        } else {
+            writtenFrame
+        }
+    }
+
+    /**
+     * Plays out the buffered tail while keeping [positionSamples] moving. A bare
+     * `PlaybackLine.drain()` blocks silently, which used to pin the editor's position line at the
+     * segment end for the last buffer's worth of audio.
+     */
+    private fun drainTracking(line: PlaybackLine, startFrame: Long, stopFrame: Long) {
+        if (line.framePosition() < 0) {
+            line.drain()
+            return
+        }
+        val totalFrames = stopFrame - startFrame
+        while (!Thread.currentThread().isInterrupted && line.framePosition() < totalFrames) {
+            publishPosition(line, startFrame, stopFrame, writtenFrame = stopFrame)
+            Thread.sleep(POSITION_TICK_MS)
+        }
+        if (!Thread.currentThread().isInterrupted) {
+            publishPosition(line, startFrame, stopFrame, writtenFrame = stopFrame)
+            line.drain()
         }
     }
 
@@ -146,6 +188,8 @@ class JvmAudioPlaybackService(
 
     private companion object {
         const val CHUNK_MS = 20
+        /** ~60 Hz position updates while the buffered tail plays out. */
+        const val POSITION_TICK_MS = 16L
         const val THREAD_JOIN_TIMEOUT_MS = 2000L
     }
 }

@@ -18,11 +18,22 @@ interface PlaybackLine {
      * rule as the capture side — callers must run this off any shared dispatcher). */
     fun write(buffer: ByteArray, offset: Int, length: Int): Int
 
+    /**
+     * Frames the device has physically rendered since [open] — *not* frames handed to the line,
+     * which run ahead of the sound by the line's whole buffer. This is what the editor's position
+     * line is drawn from (§8.7); returns [UNSUPPORTED_FRAME_POSITION] on lines that cannot report
+     * it (test fakes), which makes the caller fall back to written-frame counting.
+     */
+    fun framePosition(): Long = UNSUPPORTED_FRAME_POSITION
+
     /** Blocks until all queued audio has physically played out. */
     fun drain()
     fun stop()
     fun close()
 }
+
+/** Sentinel for [PlaybackLine.framePosition] on lines with no position clock. */
+const val UNSUPPORTED_FRAME_POSITION = -1L
 
 /** Production [PlaybackLine] over the system's default audio output (§5.3, §8.6). */
 class SystemPlaybackLine : PlaybackLine {
@@ -39,6 +50,8 @@ class SystemPlaybackLine : PlaybackLine {
 
     override fun write(buffer: ByteArray, offset: Int, length: Int): Int =
         line?.write(buffer, offset, length) ?: 0
+
+    override fun framePosition(): Long = line?.longFramePosition ?: 0L
 
     override fun drain() {
         line?.drain()

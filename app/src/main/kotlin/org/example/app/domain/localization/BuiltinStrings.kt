@@ -90,6 +90,11 @@ object BuiltinStrings {
         "editor.instructions" to "Drag the start and end markers to trim this recording. Play it back to check, then accept to continue.",
         "editor.segmentOfTotal" to "Recording {n} of {total}",
         "editor.noSegments" to "There is nothing to review for this session.",
+        // Readouts under the waveform: the trimmed range and where the position line sits.
+        "editor.startLabel" to "Start",
+        "editor.stopLabel" to "End",
+        "editor.durationLabel" to "Length",
+        "editor.positionLabel" to "Position",
         "action.accept" to "Accept",
 
         // Processing progress screen (§8.8) — blocks navigation while the session is processed.

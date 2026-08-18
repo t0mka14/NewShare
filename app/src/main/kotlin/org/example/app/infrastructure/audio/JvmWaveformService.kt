@@ -53,7 +53,7 @@ class JvmWaveformService : WaveformService {
         return if (bucketCount >= baseBucketsInRange) {
             computeDirect(wav, format, startSample, endSample, bucketCount)
         } else {
-            aggregateFromBase(base, baseStart, baseBucketsInRange, bucketCount)
+            aggregateFromBase(base, startSample, endSample, bucketCount)
         }
     }
 
@@ -86,13 +86,23 @@ class JvmWaveformService : WaveformService {
 
     // region base cache: build/load/aggregate
 
-    private fun aggregateFromBase(base: BaseCache, baseStart: Int, baseBucketsInRange: Int, bucketCount: Int): WaveformPeaks {
+    /**
+     * Each display bucket is mapped through the *requested* sample range, not through whole base
+     * buckets: spreading `[floor(start/bf), ceil(end/bf))` evenly across the output would make the
+     * peaks cover a range snapped outward to the base grid (up to one base bucket at each end)
+     * while the caller's own pixel mapping covers `[startSample, endSample)` exactly — a small but
+     * visible shift where a position line is drawn over the peaks (§8.7).
+     */
+    private fun aggregateFromBase(base: BaseCache, startSample: Long, endSample: Long, bucketCount: Int): WaveformPeaks {
         val mins = FloatArray(bucketCount)
         val maxs = FloatArray(bucketCount)
+        val frameCount = endSample - startSample
         for (b in 0 until bucketCount) {
-            val lo = (baseStart + (b.toLong() * baseBucketsInRange / bucketCount).toInt())
+            val bucketStartSample = startSample + (b.toLong() * frameCount) / bucketCount
+            val bucketEndSample = startSample + ((b + 1).toLong() * frameCount) / bucketCount
+            val lo = (bucketStartSample / base.bucketFrames).toInt()
                 .coerceIn(0, base.bucketCount - 1)
-            val hi = (baseStart + ((b + 1).toLong() * baseBucketsInRange / bucketCount).toInt())
+            val hi = ceil(bucketEndSample.toDouble() / base.bucketFrames).toInt()
                 .coerceAtLeast(lo + 1).coerceAtMost(base.bucketCount)
             var mn = Float.POSITIVE_INFINITY
             var mx = Float.NEGATIVE_INFINITY

@@ -971,6 +971,29 @@ Error taxonomy (normative, inlined from the old plan):
     envelope; CIRCLE animates through a `spring`, which already smooths. The windows are the
     two constants in `LevelMeter` (`DEFAULT_WINDOW_MS`, `FAST_WINDOW_MS`).
 
+40. **The editor's position line tracks rendered frames, not written ones (2026-08-17):**
+    `AudioPlaybackService.positionSamples` previously reported frames handed to the output line,
+    with the same bounded-skew argument §5.3.1 makes for the recorder's `writtenSamples`. That
+    argument does not transfer: writes return immediately until the line's buffer fills, so the
+    reported position jumped ahead by the whole buffer (0.25-0.5 s, device-dependent) the moment
+    playback started and stayed there — plainly visible in §8.7, where the line is drawn straight
+    onto the waveform. `PlaybackLine` now exposes `framePosition()`
+    (`SourceDataLine.getLongFramePosition`), `JvmAudioPlaybackService` publishes from it, and the
+    buffered tail is played out with a polling loop instead of a silent `drain()` so the line
+    keeps moving to the end. Lines that cannot report a position (test fakes) return
+    `UNSUPPORTED_FRAME_POSITION` and fall back to written-frame counting. The recorder side is
+    unchanged — nothing draws `writtenSamples` against a waveform.
+
+41. **Editor screen redesigned, position line is also a cursor (2026-08-17):** §8.7's screen is
+    a full-height waveform panel (ruler, lit waveform lane, start/end/length/position readouts)
+    with one control row — play sits next to previous/next/accept rather than above them. Two
+    behavioral additions: clicking the waveform seeks (`EditorComponent.onSeek`, clamped to the
+    visible window; restarts playback when playing, otherwise parks the line and the next play
+    resumes from it), and the line stays visible when stopped instead of being masked by
+    `isPlaying`. `State` gained `sampleRate` so the UI can label times. This screen is
+    deliberately **not** legacy-1:1 (§13 decision 36): the legacy editor is two icon buttons over
+    an unlabelled canvas, and the user asked for an audio editor.
+
 **Still open:**
 
 1. Concrete server API contracts: config endpoint path, upload endpoint shape, and transport

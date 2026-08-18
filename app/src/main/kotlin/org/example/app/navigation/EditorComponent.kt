@@ -48,6 +48,13 @@ interface EditorComponent {
     fun onDragStart(newLocalSample: Long)
     fun onDragStop(newLocalSample: Long)
 
+    /**
+     * Moves the position line to [newLocalSample] (clamped to the visible window). While a
+     * segment is playing this restarts playback from there; otherwise it only parks the line,
+     * and the next [onPlayToggle] starts from it.
+     */
+    fun onSeek(newLocalSample: Long)
+
     fun onPlayToggle()
 
     /**
@@ -84,7 +91,11 @@ interface EditorComponent {
         val visibleStopSample: Long = 0,
         val waveform: WaveformPeaks? = null,
         val isPlaying: Boolean = false,
+        /** Position line: follows playback while [isPlaying], parks where it stopped or where the
+         * examiner last clicked otherwise. Null only before the first segment is shown. */
         val positionSample: Long? = null,
+        /** Capture sample rate — the UI needs it to label the time ruler (§8.7). */
+        val sampleRate: Int = 0,
         val accepted: Boolean = false,
     ) {
         val currentSegment: Segment? get() = segments.getOrNull(currentIndex)
@@ -127,7 +138,13 @@ class DefaultEditorComponent(
             audioPlaybackService.isPlaying.collect { playing -> _state.value = _state.value.copy(isPlaying = playing) }
         }
         scope.launch(dispatchers.main) {
-            audioPlaybackService.positionSamples.collect { pos -> _state.value = _state.value.copy(positionSample = pos) }
+            audioPlaybackService.positionSamples.collect { pos ->
+                // Only while the sound is running: the service keeps its last value after stop,
+                // and a stale replay of it would drag the line back off a manual seek.
+                if (audioPlaybackService.isPlaying.value) {
+                    _state.value = _state.value.copy(positionSample = pos)
+                }
+            }
         }
         scope.launch(dispatchers.main) { load() }
     }
@@ -179,6 +196,7 @@ class DefaultEditorComponent(
             loading = false,
             segments = loaded.map { it.segment },
             currentIndex = 0,
+            sampleRate = sampleRate,
         )
         refreshVisibleWindow()
     }
@@ -256,13 +274,34 @@ class DefaultEditorComponent(
         return loaded.subList(index + 1, loaded.size).firstOrNull { it.part.file == current.part.file }
     }
 
+    override fun onSeek(newLocalSample: Long) {
+        val current = loaded.getOrNull(_state.value.currentIndex) ?: return
+        val target = newLocalSample.coerceIn(_state.value.visibleStartSample, _state.value.visibleStopSample)
+        _state.value = _state.value.copy(positionSample = target)
+        if (_state.value.isPlaying) {
+            if (target < current.segment.stopSample) {
+                audioPlaybackService.playRange(current.part.file, target, current.segment.stopSample)
+            } else {
+                audioPlaybackService.stop()
+            }
+        }
+    }
+
     override fun onPlayToggle() {
         val current = loaded.getOrNull(_state.value.currentIndex) ?: return
         if (_state.value.isPlaying) {
             audioPlaybackService.stop()
-        } else {
-            audioPlaybackService.playRange(current.part.file, current.segment.startSample, current.segment.stopSample)
+            return
         }
+        // Resume from wherever the line was parked, as long as that is inside the segment — a
+        // line left at the end (or dropped outside by a boundary drag) replays the whole segment.
+        val position = _state.value.positionSample
+        val from = if (position != null && position in current.segment.startSample until current.segment.stopSample) {
+            position
+        } else {
+            current.segment.startSample
+        }
+        audioPlaybackService.playRange(current.part.file, from, current.segment.stopSample)
     }
 
     override fun onAccept() {
@@ -320,6 +359,9 @@ class DefaultEditorComponent(
             visibleStartSample = visibleStart,
             visibleStopSample = visibleStop,
             waveform = peaks,
+            // Each segment view starts with the line parked at its own start boundary; carrying
+            // the previous segment's position over would point at an unrelated part of the file.
+            positionSample = segment.startSample,
         )
     }
 }

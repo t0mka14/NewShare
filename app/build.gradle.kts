@@ -68,6 +68,14 @@ tasks.register<JavaExec>("previewCalibration") {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 
+tasks.register<JavaExec>("previewEditor") {
+    group = "application"
+    description = "Opens the EditorContent preview harness."
+    mainClass = "org.example.app.ui.previews.EditorPreviewHarnessKt"
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
+
 compose.desktop {
     application {
         mainClass = "org.example.app.MainKt"

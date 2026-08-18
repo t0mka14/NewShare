@@ -184,6 +184,76 @@ class EditorComponentTest {
     }
 
     @Test
+    fun `the position line starts at the segment's start boundary and follows navigation`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(100L, h.component.state.value.positionSample)
+
+        h.component.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(400L, h.component.state.value.positionSample)
+    }
+
+    @Test
+    fun `seeking while stopped only moves the position line, and the next play resumes from it`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onSeek(220)
+        assertEquals(220L, h.component.state.value.positionSample)
+        assertTrue(h.audioPlaybackService.playRangeCalls.isEmpty(), "seeking must not start playback")
+
+        h.component.onPlayToggle()
+        val call = h.audioPlaybackService.playRangeCalls.single()
+        assertEquals(220L, call.startSample)
+        assertEquals(300L, call.stopSample)
+    }
+
+    @Test
+    fun `seeking while playing restarts playback from the new position`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onPlayToggle()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onSeek(250)
+
+        assertEquals(2, h.audioPlaybackService.playRangeCalls.size)
+        assertEquals(250L, h.audioPlaybackService.playRangeCalls.last().startSample)
+    }
+
+    @Test
+    fun `a seek is clamped to the visible window, and one past the segment end replays it whole`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val state = h.component.state.value
+
+        h.component.onSeek(Long.MIN_VALUE / 2)
+        assertEquals(state.visibleStartSample, h.component.state.value.positionSample)
+
+        h.component.onSeek(Long.MAX_VALUE / 2)
+        assertEquals(state.visibleStopSample, h.component.state.value.positionSample)
+
+        // The line is now past the stop boundary, so there is nothing to resume: play the segment.
+        h.component.onPlayToggle()
+        assertEquals(100L, h.audioPlaybackService.playRangeCalls.single().startSample)
+    }
+
+    /** The service keeps its last value after stop; replaying it would drag the line off a seek. */
+    @Test
+    fun `a position emitted while playback is stopped does not move the line`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onSeek(150)
+        h.audioPlaybackService.setPosition(280)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(150L, h.component.state.value.positionSample)
+    }
+
+    @Test
     fun `an untouched pass writes no timeline_edited json`() {
         val h = Harness(folderName, format)
         h.dispatchers.scheduler.advanceUntilIdle()

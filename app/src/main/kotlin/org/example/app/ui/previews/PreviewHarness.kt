@@ -36,7 +36,7 @@ fun main() = singleWindowApplication(title = "Calibration — preview harness") 
 
 /** Chip row that swaps between the preview states, so one window covers all of them. */
 @Composable
-private fun PreviewSwitcher(vararg previews: Pair<String, @Composable () -> Unit>) {
+internal fun PreviewSwitcher(vararg previews: Pair<String, @Composable () -> Unit>) {
     var selected by remember { mutableStateOf(0) }
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
