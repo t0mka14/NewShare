@@ -105,11 +105,20 @@ The agent starts and stops the server itself — you never run the task by hand.
 `hotMcpServer` name is enough: Gradle resolves it against the subprojects and matches the
 target-specific task (here `:app:hotMcpServer`, since `:app` has a single JVM target).
 
+**The MCP server only sees the `main` run scope.** Gradle starts it with
+`-Dcompose.reload.pidFile=app/build/run/main/main.pid`, so it attaches to `hotRun` windows.
+`hotDev` writes `app/build/run/dev/dev.pid` and its window never registers — `status` keeps
+reporting `connected: false` with nothing wrong in the log. For agent-driven work use one of the
+`hotRun` commands above; `hotDev` is for a human at the keyboard. The
+[`hot-reload-screenshots`](../../.claude/skills/hot-reload-screenshots/SKILL.md) skill has the
+full procedure.
+
 The server does not need an application: it starts, waits for one to launch, and reconnects when
 it restarts. So the workflow is:
 
 1. start the app with hot reload (any of the three commands above),
-2. the agent calls `status` — `connected: false` simply means no app is running yet; it also
+2. the agent calls `status` — `connected: false` means no app is running **in the `main`
+   scope** yet (see the warning above); it also
    reports `buildContinuous`, which says whether to use `reload` (explicit) or `await_reload`
    (started with `--auto`),
 3. it inspects and drives the app.

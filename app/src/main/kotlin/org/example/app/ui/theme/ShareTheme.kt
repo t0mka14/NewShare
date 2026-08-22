@@ -21,9 +21,11 @@ import androidx.compose.ui.unit.sp
  * original app's Material3 seed (`shareapp/src/main/kotlin/materials/Color.kt`), with
  * `secondary` deliberately remapped to the legacy *tertiary* green family — this rewrite's
  * screens use `secondary` as the green accent. The whole app is Material3 (the former
- * Material2 stack was dropped 2026-07-16 at user request); the Task/Calibration screens
- * additionally wrap themselves in [ShareLegacyM3Theme], which carries the legacy theme
- * files verbatim.
+ * Material2 stack was dropped 2026-07-16 at user request) and this is its **only** theme:
+ * the separate `ShareLegacyM3Theme` that the Task/Calibration screens used to wrap themselves
+ * in was folded into this one on 2026-08-22, with those screens' call sites remapped onto the
+ * same-size slots here (its slot *names* could not be kept — the legacy file used them
+ * inverted, e.g. `bodySmall` 18sp larger than `bodyMedium`... a naming accident, not a look).
  */
 private val SharePrimary = Color(0xFF00668A)
 private val ShareSecondary = Color(0xFF006E2A)
@@ -45,8 +47,8 @@ val ShareAccentOrange = Color(0xFFFF9D30)
 val ShareAccentOrangeContainer = Color(0xFFFFDCBF)
 
 // Full schemes (not just the handful of slots the screens read) so no M3 slot falls back to
-// the library's purple baseline; values follow the legacy seed like ShareLegacyM3Theme's,
-// with the secondary/surface overrides described above.
+// the library's purple baseline; values follow the legacy seed, with the secondary/surface
+// overrides described above.
 private val LightColors = lightColorScheme(
     primary = SharePrimary,
     onPrimary = Color(0xFFFFFFFF),

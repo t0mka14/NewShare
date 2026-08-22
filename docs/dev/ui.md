@@ -8,35 +8,38 @@ practical companion.
 
 - **Material3 only** (the Material2 stack was dropped 2026-07-16 at user request; there must
   be no `androidx.compose.material.*` widget imports — `androidx.compose.material.icons.*`
-  is the icon artifacts' namespace and is fine). **Two M3 themes.** App-wide:
+  is the icon artifacts' namespace and is fine). **One M3 theme** (the second one,
+  `ShareLegacyM3Theme`, was folded into it 2026-08-22):
   `org.example.app.ui.theme.ShareTheme`, a full `ColorScheme` from the legacy seed values
   (`shareapp/src/main/kotlin/materials/Color.kt`) with `secondary`/`tertiary` remapped to the
   legacy tertiary green — this app's screens use `secondary` as the green accent: primary
   `#00668A`, secondary `#006E2A` (light) / `#7BD0FF`, `#64DF7A` (dark). `ShareAccentOrange`/
   `ShareAccentOrangeContainer` are the legacy `SoundLevelBar` accent family (calibration bar).
-  Task + Calibration screens additionally wrap themselves in `ui.theme.ShareLegacyM3Theme` —
-  the legacy `materials/{Color,Typography,Shapes,Theme}.kt` verbatim — because those two
-  screens are 1:1 copies of the legacy composables. `Main.kt` applies `ShareTheme` around
-  `RootContent`; the test `ScenarioApp` does the same, so scenario screenshots match
-  production.
+  No screen applies a theme of its own: `Main.kt` wraps `RootContent` in `ShareTheme` and the
+  test `ScenarioApp` does the same, so scenario screenshots match production. Previews are the
+  exception — neither `PreviewHarness` nor the IDE preview pane wraps its content, so
+  `CalibrationPreviews`/`EditorPreviews` apply `ShareTheme` themselves.
 - **Type scale**: the app-wide `ShareTheme` is proportioned like the legacy's but capped; the
   former M2 slots map onto M3 at identical sizes (`headlineLarge` 40sp ←h4, `headlineMedium`
   32sp ←h5, `headlineSmall` 22sp ←h6, `titleMedium` 18sp ←subtitle1, `bodyLarge` 20sp ←body1,
   `bodyMedium` 16sp ←body2, `labelLarge` 18sp ←button, `bodySmall` 13sp ←caption), all Roboto
-  (M3 has no `defaultFontFamily`; every slot sets it explicitly). The Task/Calibration screens
-  use the legacy literal sizes through `ShareLegacyM3Theme` (`headlineLarge` 45sp,
-  `displayMedium` 35sp task titles, `labelMedium` 30sp buttons, `labelSmall` 20sp button
-  top-lines, `bodyMedium` 20sp instructions, `bodySmall` 18sp button subtitles, `bodyLarge`
-  16sp instruction-card text, `displaySmall` 12sp) — with the legacy 3-button task row the
-  30sp button text fits again.
-- **Shapes**: app theme `small` 8dp corners, `medium` 16dp, `large` = pill
-  (`RoundedCornerShape(50)`); legacy theme `medium` 16dp, `large` `RoundedCornerShape(200.dp)`
-  — both mirror the legacy's `materials/Shapes.kt`. Used on Back/navigation buttons.
+  (M3 has no `defaultFontFamily`; every slot sets it explicitly). Task/Calibration used to
+  read the legacy literal sizes through `ShareLegacyM3Theme`, whose slot names were inverted
+  (`bodySmall` 18sp larger than `bodyMedium` 20sp larger than `bodyLarge` 16sp); when it was
+  folded in, each call site moved to the `ShareTheme` slot of the *same size* — task titles
+  35sp→`headlineMedium` 32sp, the timer 30sp→`headlineMedium`, button top-lines and question
+  text 20sp→`bodyLarge`, button subtitles 18sp→`titleMedium`, instruction-card text
+  16sp→`bodyMedium`, validation errors 12sp→`bodySmall` 13sp. Button labels are the one real
+  change: legacy 30sp → `labelLarge` 18sp, the M3 button slot the rest of the app already
+  uses.
+- **Shapes**: `small` 8dp corners, `medium` 16dp, `large` = pill (`RoundedCornerShape(50)`,
+  the legacy `materials/Shapes.kt`'s `RoundedCornerShape(200.dp)` in relative form). Used on
+  Back/navigation buttons.
 - **Spacing**: content columns are fraction-width (`fillMaxWidth(0.6-0.9f)`) or weighted, never
   fixed dp widths — this fixes the *actual* legacy scaling bugs (fixed `.width(350.dp)` buttons,
   `fillMaxSize(0.5f)` canvases). Screen padding is 20-32dp; card padding 16dp.
 - **Fonts and icons**: the legacy Roboto TTFs are classpath resources (`fonts/roboto/`), loaded
-  by both themes (the original's working-directory `File` loading was a packaging bug).
+  by the theme (the original's working-directory `File` loading was a packaging bug).
   Material icon packs are bundled (`material-icons-extended` 1.7.3, the final release of the
   icon artifacts — icons stopped being versioned with Compose there); the legacy task screen's
   Play/Close/Refresh/arrows/volume icons render 1:1.

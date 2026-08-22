@@ -10,6 +10,7 @@ import org.example.app.domain.localization.LocalizedStringProvider
 import org.example.app.navigation.CalibrationComponent
 import org.example.app.ui.CalibrationContent
 import org.example.app.ui.UiLocalization
+import org.example.app.ui.theme.ShareTheme
 
 /**
  * Design-time previews of [CalibrationContent] (§13 decision 36 — the legacy-copied screens are
@@ -71,13 +72,21 @@ private fun previewState(
     deviceLost = deviceLost,
 )
 
+/**
+ * [ShareTheme] is applied here rather than by the screen: `CalibrationContent` is themed by
+ * `Main.kt` in production (like every other screen), and neither `PreviewHarness` nor the IDE
+ * preview pane wraps its content — without this the preview would render on M3's purple
+ * baseline. No `Surface` either, so the preview matches what `Main.kt` actually renders.
+ */
 @Composable
 private fun CalibrationPreview(state: CalibrationComponent.State) {
-    CalibrationContent(
-        component = PreviewCalibrationComponent(state),
-        localization = previewLocalization,
-        onBack = {},
-    )
+    ShareTheme {
+        CalibrationContent(
+            component = PreviewCalibrationComponent(state),
+            localization = previewLocalization,
+            onBack = {},
+        )
+    }
 }
 
 /** Level inside the configured `optimalLoudness` band. */

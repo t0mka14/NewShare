@@ -58,7 +58,6 @@ import org.example.app.navigation.AnswerState
 import org.example.app.navigation.TaskButtonState
 import org.example.app.navigation.TaskComponent
 import org.example.app.navigation.TaskScreenState
-import org.example.app.ui.theme.ShareLegacyM3Theme
 
 /**
  * §8.6 task screen — a 1:1 copy of the legacy `StandardProtocolScreen` (§13 decision 36,
@@ -79,89 +78,87 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
     val capturing = vocal?.screenState is TaskScreenState.Capturing
     val elapsedSeconds = rememberElapsedSeconds(capturing = capturing, resetKey = vocal?.takeNumber)
 
-    ShareLegacyM3Theme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(all = 20.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // Top line - title and info
-            TaskTitle(state, localization)
+    Column(
+        modifier = Modifier.fillMaxSize().padding(all = 20.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Top line - title and info
+        TaskTitle(state, localization)
 
-            // Instructions field, with the example-audio utility row between the two cards
-            InstructionsField(component, state, localization, Modifier.contentWidth(1500.dp))
+        // Instructions field, with the example-audio utility row between the two cards
+        InstructionsField(component, state, localization, Modifier.contentWidth(1500.dp))
 
-            // Middle area: recording circle / live waveform (VOCAL) or the questionnaire.
-            // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                when (val content = state.content) {
-                    is TaskComponent.Content.Vocal -> if (content.showIndicator) {
-                        TaskLevelIndicator(
-                            indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
-                            level = content.level,
-                            capturing = capturing,
-                        )
-                    }
-
-                    is TaskComponent.Content.Questionnaire -> QuestionnaireBody(
-                        questions = content.questions,
-                        content = content,
-                        localization = localization,
-                        onOpenAnswerChanged = component::onOpenAnswerChanged,
-                        onOptionToggled = component::onOptionToggled,
-                        modifier = Modifier
-                            .contentWidth(1500.dp)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState()),
+        // Middle area: recording circle / live waveform (VOCAL) or the questionnaire.
+        // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
+        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            when (val content = state.content) {
+                is TaskComponent.Content.Vocal -> if (content.showIndicator) {
+                    TaskLevelIndicator(
+                        indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
+                        level = content.level,
+                        capturing = capturing,
                     )
-
-                    TaskComponent.Content.Info -> Unit
                 }
-            }
 
-            // The timer (legacy `timerBox`): invisible until a take is running, green once
-            // the configured task length is reached
-            TimerBox(
-                elapsedSeconds = if (capturing) elapsedSeconds else 0,
-                taskLengthSeconds = state.taskLengthSeconds,
-            )
-
-            // Bottom line: hidden prev slot / state button / next-task button
-            BottomButtonRow(component, state, localization)
-        }
-
-        if (vocal != null && vocal.deviceLost) {
-            DeviceLostDialog(
-                localization = localization,
-                availableDevices = state.availableDevices,
-                defaultDevice = state.currentDevice,
-                requiresExplicitResume = true,
-                messageTag = TestTags.Task.DEVICE_LOST_ERROR,
-                onDeviceAction = component::onDeviceReselected,
-            )
-        }
-
-        val screenState = vocal?.screenState
-        if (screenState is TaskScreenState.Failed) {
-            var dismissed by remember(screenState) { mutableStateOf(false) }
-            if (!dismissed) {
-                // Legacy `ErrorDialog` (shape = medium, single Close action)
-                AlertDialog(
-                    onDismissRequest = { dismissed = true },
-                    modifier = Modifier.testTag(TestTags.Task.ERROR_DIALOG),
-                    shape = MaterialTheme.shapes.medium,
-                    title = { Text(localization.resolve("error.dialog.title")) },
-                    text = { Text(localization.resolve(screenState.error.messageKey())) },
-                    confirmButton = {
-                        Button(
-                            onClick = { dismissed = true },
-                            modifier = Modifier.testTag(TestTags.Task.ERROR_DIALOG_DISMISS_BUTTON),
-                        ) {
-                            Text(localization.resolve("error.dialog.dismiss"))
-                        }
-                    },
+                is TaskComponent.Content.Questionnaire -> QuestionnaireBody(
+                    questions = content.questions,
+                    content = content,
+                    localization = localization,
+                    onOpenAnswerChanged = component::onOpenAnswerChanged,
+                    onOptionToggled = component::onOptionToggled,
+                    modifier = Modifier
+                        .contentWidth(1500.dp)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
                 )
+
+                TaskComponent.Content.Info -> Unit
             }
+        }
+
+        // The timer (legacy `timerBox`): invisible until a take is running, green once
+        // the configured task length is reached
+        TimerBox(
+            elapsedSeconds = if (capturing) elapsedSeconds else 0,
+            taskLengthSeconds = state.taskLengthSeconds,
+        )
+
+        // Bottom line: hidden prev slot / state button / next-task button
+        BottomButtonRow(component, state, localization)
+    }
+
+    if (vocal != null && vocal.deviceLost) {
+        DeviceLostDialog(
+            localization = localization,
+            availableDevices = state.availableDevices,
+            defaultDevice = state.currentDevice,
+            requiresExplicitResume = true,
+            messageTag = TestTags.Task.DEVICE_LOST_ERROR,
+            onDeviceAction = component::onDeviceReselected,
+        )
+    }
+
+    val screenState = vocal?.screenState
+    if (screenState is TaskScreenState.Failed) {
+        var dismissed by remember(screenState) { mutableStateOf(false) }
+        if (!dismissed) {
+            // Legacy `ErrorDialog` (shape = medium, single Close action)
+            AlertDialog(
+                onDismissRequest = { dismissed = true },
+                modifier = Modifier.testTag(TestTags.Task.ERROR_DIALOG),
+                shape = MaterialTheme.shapes.medium,
+                title = { Text(localization.resolve("error.dialog.title")) },
+                text = { Text(localization.resolve(screenState.error.messageKey())) },
+                confirmButton = {
+                    Button(
+                        onClick = { dismissed = true },
+                        modifier = Modifier.testTag(TestTags.Task.ERROR_DIALOG_DISMISS_BUTTON),
+                    ) {
+                        Text(localization.resolve("error.dialog.dismiss"))
+                    }
+                },
+            )
         }
     }
 }
@@ -190,10 +187,10 @@ private fun TaskTitle(state: TaskComponent.State, localization: UiLocalization) 
     ) {
         Text(
             numberLabel,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(bottom = 6.dp),
         )
-        Text(title, style = MaterialTheme.typography.displayMedium)
+        Text(title, style = MaterialTheme.typography.headlineMedium)
     }
 }
 
@@ -235,7 +232,7 @@ private fun InstructionsCard(keys: List<String>, placeholders: Map<String, Strin
             keys.forEach { key ->
                 Text(
                     localization.resolve(key, placeholders),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontStyle = FontStyle.Italic,
                 )
             }
@@ -268,7 +265,7 @@ private fun UtilitiesRowBelowInstructions(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     localization.resolve(if (vocal.exampleAudioPlaying) "task.stopExample" else "task.playExample"),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelLarge,
                 )
                 Icon(
                     if (vocal.exampleAudioPlaying) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
@@ -303,7 +300,7 @@ private fun TimerBox(elapsedSeconds: Int, taskLengthSeconds: Int) {
         Text(
             elapsedSeconds.toString(),
             modifier = Modifier.padding(horizontal = 10.dp),
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             overflow = TextOverflow.Ellipsis,
         )
@@ -402,7 +399,7 @@ private fun StartStateButton(
                 modifier = Modifier.size(75.dp),
             )
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Text(visual.text, style = MaterialTheme.typography.labelMedium)
+                Text(visual.text, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -429,10 +426,10 @@ private fun NextTaskButton(component: TaskComponent, state: TaskComponent.State,
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(
                     localization.resolve("task.nextLabel"),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
-                Text(nextTitle, style = MaterialTheme.typography.bodySmall)
+                Text(nextTitle, style = MaterialTheme.typography.titleMedium)
             }
             Icon(
                 Icons.Filled.ArrowForward,
@@ -471,7 +468,7 @@ private fun QuestionnaireBody(
         questions.forEach { question ->
             val answer = content.answers[question.questionKey] ?: AnswerState()
             Column {
-                Text(localization.resolve(question.questionTextKey), style = MaterialTheme.typography.bodyMedium)
+                Text(localization.resolve(question.questionTextKey), style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(4.dp))
 
                 when (question.questionType) {
@@ -490,7 +487,7 @@ private fun QuestionnaireBody(
                                     onClick = { onOptionToggled(question.questionKey, optionKey, true) },
                                     modifier = Modifier.testTag(TestTags.Questionnaire.answerOption(question.questionKey, optionKey)),
                                 )
-                                Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyLarge)
+                                Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -504,7 +501,7 @@ private fun QuestionnaireBody(
                                     onCheckedChange = { onOptionToggled(question.questionKey, optionKey, it) },
                                     modifier = Modifier.testTag(TestTags.Questionnaire.answerOption(question.questionKey, optionKey)),
                                 )
-                                Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyLarge)
+                                Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -514,7 +511,7 @@ private fun QuestionnaireBody(
                     Text(
                         localization.resolve("questionnaire.error.invalid"),
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.testTag(TestTags.Questionnaire.validationError(question.questionKey)),
                     )
                 }

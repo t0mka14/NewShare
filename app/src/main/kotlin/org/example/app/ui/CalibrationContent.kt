@@ -37,7 +37,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.navigation.CalibrationComponent
 import org.example.app.ui.theme.ShareAccentOrange
 import org.example.app.ui.theme.ShareAccentOrangeContainer
-import org.example.app.ui.theme.ShareLegacyM3Theme
 
 /**
  * §6.2 calibration screen — a 1:1 copy of the legacy `CalibrationScreen` (§13 decision 36,
@@ -54,83 +53,81 @@ import org.example.app.ui.theme.ShareLegacyM3Theme
 fun CalibrationContent(component: CalibrationComponent, localization: UiLocalization, onBack: () -> Unit) {
     val state by component.state.subscribeAsState()
 
-    ShareLegacyM3Theme {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(
-                modifier = Modifier.fillMaxSize(0.9f),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally,
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.fillMaxSize(0.9f),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                localization.resolve(state.titleKey),
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 20.dp),
+            )
+            Card {
+                Column(modifier = Modifier.padding(all = 16.dp)) {
+                    state.instructionKeys.forEach { key ->
+                        Text(localization.resolve(key), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+            //Spacer(Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),//.weight(1f),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(
-                    localization.resolve(state.titleKey),
-                    style = MaterialTheme.typography.headlineLarge,
-                    modifier = Modifier.padding(bottom = 20.dp),
+                Image(
+                    painter = painterResource("drawable/mic_position_trans.png"),
+                    contentDescription = "Microphone position",
+                    modifier = Modifier.fillMaxSize(0.5f),
                 )
-                Card {
-                    Column(modifier = Modifier.padding(all = 16.dp)) {
-                        state.instructionKeys.forEach { key ->
-                            Text(localization.resolve(key), style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-                //Spacer(Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),//.weight(1f),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                SoundLevelBar(
+                    level = state.level,
+                    minLoudness = state.minLoudness,
+                    maxLoudness = state.maxLoudness,
+                    modifier = Modifier.fillMaxSize(0.5f).testTag(TestTags.Calibration.LEVEL_INDICATOR),
+                )
+            }
+            Spacer(Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Button(
+                    shape = MaterialTheme.shapes.large,
+                    onClick = onBack,
                 ) {
-                    Image(
-                        painter = painterResource("drawable/mic_position_trans.png"),
-                        contentDescription = "Microphone position",
-                        modifier = Modifier.fillMaxSize(0.5f),
-                    )
-                    SoundLevelBar(
-                        level = state.level,
-                        minLoudness = state.minLoudness,
-                        maxLoudness = state.maxLoudness,
-                        modifier = Modifier.fillMaxSize(0.5f).testTag(TestTags.Calibration.LEVEL_INDICATOR),
-                    )
+                    Text(localization.resolve("action.back"), style = MaterialTheme.typography.labelLarge)
                 }
-                Spacer(Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                // No legacy counterpart: the input device must be selectable here (§8.5)
+                DropdownSelector(
+                    triggerTag = TestTags.Calibration.DEVICE_SELECT,
+                    selectedLabel = state.selectedDevice?.name.orEmpty(),
+                    items = state.availableDevices,
+                    itemLabel = { it.name },
+                    itemEnabled = { it.eligible },
+                    itemTag = { "${TestTags.Calibration.DEVICE_SELECT}.${it.id}" },
+                    onSelected = component::onDeviceSelected,
+                )
+                Button(
+                    onClick = component::onConfirm,
+                    modifier = Modifier
+                        .testTag(TestTags.Calibration.CONFIRM_BUTTON),
                 ) {
-                    Button(
-                        shape = MaterialTheme.shapes.large,
-                        onClick = onBack,
-                    ) {
-                        Text(localization.resolve("action.back"), style = MaterialTheme.typography.labelMedium)
-                    }
-                    // No legacy counterpart: the input device must be selectable here (§8.5)
-                    DropdownSelector(
-                        triggerTag = TestTags.Calibration.DEVICE_SELECT,
-                        selectedLabel = state.selectedDevice?.name.orEmpty(),
-                        items = state.availableDevices,
-                        itemLabel = { it.name },
-                        itemEnabled = { it.eligible },
-                        itemTag = { "${TestTags.Calibration.DEVICE_SELECT}.${it.id}" },
-                        onSelected = component::onDeviceSelected,
-                    )
-                    Button(
-                        onClick = component::onConfirm,
-                        modifier = Modifier
-                            .testTag(TestTags.Calibration.CONFIRM_BUTTON),
-                    ) {
-                        Text(localization.resolve("action.next"), style = MaterialTheme.typography.labelMedium)
-                    }
+                    Text(localization.resolve("action.next"), style = MaterialTheme.typography.labelLarge)
                 }
             }
+        }
 
-            if (state.deviceLost) {
-                DeviceLostDialog(
-                    localization = localization,
-                    availableDevices = state.availableDevices,
-                    defaultDevice = state.selectedDevice,
-                    requiresExplicitResume = false,
-                    messageTag = TestTags.Calibration.DEVICE_LOST_ERROR,
-                    onDeviceAction = component::onDeviceSelected,
-                )
-            }
+        if (state.deviceLost) {
+            DeviceLostDialog(
+                localization = localization,
+                availableDevices = state.availableDevices,
+                defaultDevice = state.selectedDevice,
+                requiresExplicitResume = false,
+                messageTag = TestTags.Calibration.DEVICE_LOST_ERROR,
+                onDeviceAction = component::onDeviceSelected,
+            )
         }
     }
 }

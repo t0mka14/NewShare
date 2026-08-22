@@ -930,9 +930,9 @@ Error taxonomy (normative, inlined from the old plan):
     The Phase 2 screens already built must be restyled to match.
 
     Addendum (2026-07-16): the Task and Calibration screens are copied from the legacy
-    Material3 composables verbatim under a screen-scoped `ShareLegacyM3Theme` (legacy
-    colors/typography/shapes literally); the rest of the app stays on the Material2
-    `ShareTheme`. The legacy 3-button task row is kept by mapping this app's state machine
+    Material3 composables verbatim; they were kept under a screen-scoped
+    `ShareLegacyM3Theme` (legacy colors/typography/shapes literally) until 2026-08-22 — see
+    the second addendum below. The legacy 3-button task row is kept by mapping this app's state machine
     onto it: the Start→Stop→Again button carries the testTag of its current role, and the
     next-task button doubles as Skip (tag `task.skipButton`) on an unrecorded skippable task
     (the legacy app had no skip). The legacy post-stop take waveform is deliberately not
@@ -943,6 +943,17 @@ Error taxonomy (normative, inlined from the old plan):
     Material3 (user request): the app-wide `ShareTheme` was converted from Material2 with
     its former M2 slots mapped onto M3 at identical sizes, and the `compose-material`
     dependency was dropped.
+
+    Addendum (2026-08-22, user request): `ShareLegacyM3Theme` was deleted and `ShareTheme` is
+    now the app's only theme — both were already Material3, and the two files' color schemes
+    agreed on every slot the screens read. The Task/Calibration call sites were remapped onto
+    the same-size `ShareTheme` slot rather than keeping the legacy slot *names*, which the
+    legacy file used inverted (`bodySmall` 18sp > `bodyMedium` 20sp > `bodyLarge` 16sp,
+    `displaySmall` 12sp). The one intended visual change is that those screens' button labels
+    drop from the legacy 30sp `labelMedium` to `ShareTheme`'s 18sp `labelLarge` — the M3
+    button slot every other screen already renders — which the §13/36 scaling rule wants
+    anyway (30sp text is what forced the legacy's fixed 350dp buttons). Body, instruction,
+    title and error text keep their sizes to within 3sp.
 
 37. **Example-audio location (interim):** `audioExamplePath` from the config resolves
     relative to `AppDirectories.configDir` until the server contract (open q1) defines how

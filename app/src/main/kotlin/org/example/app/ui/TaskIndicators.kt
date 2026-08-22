@@ -32,7 +32,7 @@ import org.example.app.domain.config.IndicatorType
  * suggest the app is recording when no take is open. Leaving the composition also drops its
  * rolling history buffer (local Compose display state, never read back by any component), so
  * each take starts from an empty trace instead of continuing the previous one.
- * Uses the legacy Material3 palette from `ShareLegacyM3Theme` (task screen wraps in it).
+ * Takes its colors from the app-wide `ShareTheme` palette (`tertiary` is the legacy green).
  */
 @Composable
 fun TaskLevelIndicator(
