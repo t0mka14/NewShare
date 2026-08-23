@@ -60,8 +60,9 @@ and all localized strings. There is no local task editing.
 
 **Non-Goals (deferred)**
 
-- **VIDEO tasks** (emotions recording, PTZ camera, native DLLs). The JSON schema reserves the
-  `VIDEO` task type, but the app skips such tasks with a logged warning in this phase.
+- **PTZ camera control** (pan/tilt/zoom). The `havePTZ` task flag is honoured by the UI, but
+  no platform has a PTZ backend yet; controls never render. The implementation is DirectShow
+  over COM and will be Windows-only (§13 decision 23).
 - Audacity integration for editing (the built-in editor replaces it).
 - Full-featured updater UI; the updater stays minimal (§9).
 - Encryption of local data at rest (open question, §13).
@@ -312,8 +313,7 @@ traceability against the original draft:
 | `manualFilePath` (install-relative path) | `protocolInstructionsPdfUrl` (URL), 2026-08-22 | Nothing resolved the path; a URL keeps the config machine-independent and drives the main screen's "Get protocol PDF" button |
 | `clinicID` | `installationId` everywhere | One name for one concept |
 
-Task types in scope: `VOCAL`, `QUESTIONNAIRE`, `CALIBRATION`, `INFO`.
-`VIDEO` is reserved in the schema; the app skips such tasks with a logged warning.
+Task types in scope: `VOCAL`, `QUESTIONNAIRE`, `CALIBRATION`, `INFO`, `VIDEO`.
 
 `CALIBRATION` behavior: mandatory **when the protocol contains at least one VOCAL task** and
 must precede the first VOCAL task (config validation rejects protocols where a VOCAL task
@@ -883,9 +883,39 @@ Error taxonomy (normative, inlined from the old plan):
     press, `DEVICE_LOST` for the §8.5 auto-reject); all other event types leave it null (§8.3).
 22. **`taskIndex` is 0-based** in all persisted data and domain models (position in the
     expanded instance list); UI-facing "task N of M" numbering renders `taskIndex + 1`.
-23. **VIDEO tasks are excluded from the expanded task-instance list entirely** — they occupy
-    no screen and consume no `taskIndex`; the skip is logged with a warning at expansion
-    time (§6.2).
+23. **VIDEO tasks are navigable** (amended 2026-08-22; they were previously excluded from the
+    expanded task-instance list entirely). They occupy a `taskIndex` like any other type and
+    share VOCAL's Start/Stop/Repeat state machine, with these differences:
+    - **Capture is per take, not continuous.** Audio remains the single source of truth for
+      session time; video owns no clock and has no part files or device-loss resume path.
+    - **Any UVC camera works, not just the PTZ model.** Devices are enumerated and selected by
+      the saved `cameraDeviceId` (falling back to the first eligible one); nothing keys off a
+      camera name, unlike the original app's hardcoded `"PTZ Pro 2"`. A requested resolution the
+      camera cannot produce is a hard *open failure* rather than a silent downgrade, so the
+      camera is asked what it supports (`-list_options` on dshow; AVFoundation prints its modes
+      when refusing one) and its own best mode is tried first — ranked MJPEG-capable first, then
+      closest to 1080p, so an unusual sensor is used at its native size instead of being dropped
+      to a standard rung. Fixed rungs (1080p, 720p, 480p, then no constraint at all) follow, so
+      an unreadable listing still recovers. Each resolution is tried as MJPEG passthrough before
+      letting ffmpeg encode. The mode actually negotiated is read back from ffmpeg's stream
+      banner and is what the remux uses — recordings carry no timestamps of their own, so a
+      wrong frame rate would alter playback speed.
+    - **Recording is a subprocess, not a library.** One bundled `ffmpeg` demuxes the camera and
+      does nothing else — no decode, scale, encode or mux. The camera's own MJPEG frames are
+      copied to `video/<task>_<rep>_<take>.mjpeg` as a bare elementary stream, and remuxed into
+      a playable container during processing. A capture fault therefore kills a subprocess, not
+      the JVM and the audio session with it.
+    - **Java decides which frames are recorded**, so Start and Stop land on exact frame
+      boundaries with no process restart and no spawn latency at the press.
+    - **The preview never back-pressures capture.** Frames reach the UI through a conflated
+      slot; a slow screen misses frames, while the file gets every one. Blocking the reader
+      would stall ffmpeg's pipe write and drop frames at the camera itself.
+    - **The ffmpeg binaries ship outside `app.jar`**, in `<install_dir>/native/ffmpeg/`, so the
+      updater does not re-download ~25 MB of unchanged natives with every app release (§9).
+    - **PTZ is Windows-only and unreachable elsewhere.** `AppContainer.ptzControllerFactory` is
+      the sole site permitted to name a platform implementation, so the COM classes are never
+      loaded off Windows rather than merely never called; a `havePTZ: true` task renders no
+      controls there. Enforced by `PtzPlatformIsolationTest`.
 24. **RichText edge semantics:** an unresolved `{placeholder}` renders literally (visible
     failure, consistent with §7's key-fallback philosophy).
 25. **Config fetch timeouts:** 15 s request / 10 s connect are the confirmed defaults for

@@ -31,6 +31,12 @@ interface SessionRepository {
     fun masterDir(folderName: String): Path
     fun clipsDir(folderName: String): Path
 
+    /**
+     * `video/` — one MJPEG elementary stream per VIDEO task attempt. Unlike `master/`, these
+     * enter the processing archive directly (see [SessionArchiveContents]).
+     */
+    fun videoDir(folderName: String): Path
+
     /** `archive/` — home of the processing ZIP (§8.2, §8.8); [SessionArchivePaths] resolves
      * the exact `<PatientCode>_<SessionId>.zip` file name within it. */
     fun archiveDir(folderName: String): Path

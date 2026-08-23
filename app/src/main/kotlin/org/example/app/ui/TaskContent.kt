@@ -114,6 +114,12 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                         .verticalScroll(rememberScrollState()),
                 )
 
+                is TaskComponent.Content.Video -> VideoTaskBody(
+                    content = content,
+                    onPtz = component::onPtz,
+                    modifier = Modifier.contentWidth(1500.dp).fillMaxHeight(),
+                )
+
                 TaskComponent.Content.Info -> Unit
             }
         }

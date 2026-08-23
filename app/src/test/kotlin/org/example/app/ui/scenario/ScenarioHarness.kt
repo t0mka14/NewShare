@@ -8,6 +8,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.AppContainer
 import org.example.app.domain.audio.ContinuousSessionRecorder
+import org.example.app.domain.video.SessionVideoRecorder
 import org.example.app.fakes.FakeAudioClipService
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioPlaybackService
@@ -16,6 +17,9 @@ import org.example.app.fakes.FakeConfigApi
 import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.FakeIdGenerator
 import org.example.app.fakes.FakeUploadApi
+import org.example.app.fakes.FakePtzController
+import org.example.app.fakes.FakeSessionVideoRecorder
+import org.example.app.fakes.FakeVideoInputDeviceProvider
 import org.example.app.fakes.FakeWaveformService
 import org.example.app.fakes.TestAppDirectories
 import org.example.app.fakes.TestCoroutineDispatchers
@@ -63,6 +67,19 @@ class ScenarioHarness(tempDir: Path) {
         FakeContinuousSessionRecorder(clock).also { recorder = it }
     }
 
+    val videoDeviceProvider = FakeVideoInputDeviceProvider()
+
+    /** Set the moment `SessionComponent` opens a camera; null for protocols with no VIDEO task. */
+    var videoRecorder: FakeSessionVideoRecorder? = null
+        private set
+
+    private val videoRecorderFactory: () -> SessionVideoRecorder = {
+        FakeSessionVideoRecorder().also { videoRecorder = it }
+    }
+
+    /** Off by default, as on every host without a PTZ backend; a scenario can opt in. */
+    var ptzController = FakePtzController()
+
     val audioClipService = FakeAudioClipService()
     val waveformService = FakeWaveformService()
     val audioPlaybackService = FakeAudioPlaybackService()
@@ -73,6 +90,9 @@ class ScenarioHarness(tempDir: Path) {
     val container = AppContainer(
         directories = TestAppDirectories(tempDir),
         clock = clock,
+        videoInputDeviceProvider = videoDeviceProvider,
+        sessionVideoRecorderFactory = videoRecorderFactory,
+        ptzControllerFactory = { ptzController },
         idGenerator = FakeIdGenerator(),
         dispatchers = dispatchers,
         // Never actually called (scenarios seed config via `loadConfig`/the raw cache, not a

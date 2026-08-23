@@ -19,6 +19,7 @@ import org.example.app.AppContainer
 import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
+import org.example.app.domain.config.VideoTask
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
@@ -243,6 +244,13 @@ class DefaultRootComponent(
 
         val savedSettings = container.appSettingsRepository.read()
         val devices = container.audioInputDeviceProvider.availableDevices()
+        // Enumerated only when the protocol actually has a VIDEO task: listing cameras spawns
+        // a process, and questionnaire-only protocols should not pay for it.
+        val videoDevices = if (protocol.tasks.any { it is VideoTask }) {
+            container.videoInputDeviceProvider.availableDevices()
+        } else {
+            emptyList()
+        }
         val initialDevice = devices.firstOrNull { it.id == savedSettings?.micDeviceId }
             ?: devices.firstOrNull { it.eligible }
             ?: devices.firstOrNull()
@@ -255,12 +263,17 @@ class DefaultRootComponent(
             rawConfigJson = container.rawConfigCache.read() ?: "{}",
             patientFields = activeConfig.patientFields,
             participantFieldValues = pendingParticipantValues,
-            // DefaultSessionComponent requires a non-null device even for no-master (VIDEO-free
-            // questionnaire/info-only) protocols, where it is never actually opened; a zero-device
+            // DefaultSessionComponent requires a non-null device even for no-master
+            // (questionnaire/info-only) protocols, where it is never actually opened; a zero-device
             // machine is an unsupported/edge deployment, not exercised by the fakes used in tests.
             initialDevice = initialDevice ?: org.example.app.domain.audio.AudioInputDevice(id = "none", name = "No microphone", eligible = false),
             availableDevices = devices,
             recorderFactory = container.sessionRecorderFactory,
+            initialVideoDevice = videoDevices.firstOrNull { it.id == savedSettings?.cameraDeviceId }
+                ?: videoDevices.firstOrNull { it.eligible }
+                ?: videoDevices.firstOrNull(),
+            videoRecorderFactory = container.sessionVideoRecorderFactory,
+            ptzControllerFactory = container.ptzControllerFactory,
             startSessionUseCase = container.startSessionUseCase,
             sessionRepository = container.sessionRepository,
             timelineRepository = container.timelineRepository,

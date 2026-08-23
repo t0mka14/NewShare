@@ -22,7 +22,15 @@ import org.example.app.domain.config.Task
 import org.example.app.domain.config.VocalTask
 import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.timeline.TaskInstance
+import org.example.app.domain.config.VideoTask
 import org.example.app.domain.timeline.TimelineEventType
+import org.example.app.domain.video.NoOpPtzController
+import org.example.app.domain.video.PtzAction
+import org.example.app.domain.video.PtzController
+import org.example.app.domain.video.VideoError
+import org.example.app.domain.video.VideoRecorderState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.nio.file.Path
 
 /**
@@ -107,6 +115,10 @@ interface TaskComponent {
     // Device-loss recovery (§8.5)
     fun onDeviceReselected(device: AudioInputDevice)
 
+    // VIDEO — press-and-hold PTZ. A no-op unless the host platform has a PTZ backend
+    // and the task sets `havePTZ`; see [org.example.app.domain.video.PtzController].
+    fun onPtz(action: PtzAction)
+
     // Example audio (§8.6 follow-up) — disabled while `Capturing`.
     fun onPlayExampleAudio()
     fun onStopExampleAudio()
@@ -136,6 +148,22 @@ interface TaskComponent {
             val questions: List<Question>,
             val answers: Map<String, AnswerState>,
             val allValid: Boolean,
+        ) : Content
+
+        /**
+         * [frames] is a flow rather than the frame itself, deliberately. Republishing the whole
+         * screen state thirty times a second would recompose the task screen for every frame;
+         * `ui/VideoSurface.kt` collects this and invalidates only its own draw phase.
+         */
+        data class Video(
+            val screenState: TaskScreenState,
+            val takeNumber: Int,
+            val frames: StateFlow<ByteArray?>,
+            /** True only where a PTZ backend exists *and* the task asked for PTZ. */
+            val ptzAvailable: Boolean,
+            val zoom: StateFlow<Int?>,
+            /** Set when capture failed; the screen shows it inline rather than as a dialog. */
+            val error: VideoError?,
         ) : Content
 
         data object Info : Content
@@ -202,6 +230,21 @@ class DefaultTaskComponent(
     private val audioPlaybackService: AudioPlaybackService?,
     /** Emits one timeline event for this task instance; taskIndex/repetition are bound by the caller. */
     private val eventLogger: (type: TimelineEventType, take: Int?, reason: String?) -> Unit,
+    /** Live preview frames for a VIDEO task; `null` for every other type. */
+    private val videoFrames: StateFlow<ByteArray?>? = null,
+    /** VIDEO capture state, so a backend failure can be surfaced on the task screen. */
+    private val videoState: StateFlow<VideoRecorderState>? = null,
+    /**
+     * PTZ for a VIDEO task. Bound to [org.example.app.domain.video.NoOpPtzController] on every
+     * platform without a PTZ backend, so `havePTZ` cannot produce live controls there.
+     */
+    private val ptzController: PtzController = NoOpPtzController,
+    /**
+     * Asks [SessionComponent] to begin/end video capture for a take. This component never
+     * touches the camera itself, for the same single-writer reason it never touches the mic.
+     */
+    private val onVideoTakeStarted: (take: Int) -> Unit = {},
+    private val onVideoTakeStopped: () -> Unit = {},
     /** Computes the next master part file path for a device-loss resume (§8.5), owned by [SessionComponent]. */
     private val nextPartFile: () -> Path,
     /** Notifies [SessionComponent] a resume succeeded, so it can log RECORDING_RESUMED + update examination.interruptions. */
@@ -219,6 +262,7 @@ class DefaultTaskComponent(
     private var deviceLost = false
     private var exampleAudioPlaying = false
     private var answers: Map<String, AnswerState> = initialAnswers()
+    private var videoError: VideoError? = null
 
     private val _state = MutableValue(buildState())
     override val state: Value<TaskComponent.State> = _state
@@ -245,6 +289,24 @@ class DefaultTaskComponent(
             }
         }
 
+        if (task is VideoTask && videoState != null) {
+            scope.launch(dispatchers.main) {
+                videoState.collect { vs ->
+                    videoError = (vs as? VideoRecorderState.Failed)?.error
+                    if (videoError != null && screenState is TaskScreenState.Capturing) {
+                        // Capture died mid-take. Reject the take and return to Idle rather than
+                        // leaving a Stop button that would imply a recording exists; the error
+                        // itself rides on Content.Video so the screen can show it inline.
+                        // (TaskScreenState.Failed is not usable here — it carries an AudioError.)
+                        eventLogger(TimelineEventType.TAKE_REJECTED, currentTake, REASON_CAPTURE_FAILED)
+                        onVideoTakeStopped()
+                        screenState = TaskScreenState.Idle
+                    }
+                    publish()
+                }
+            }
+        }
+
         if (task is VocalTask && audioPlaybackService != null) {
             scope.launch(dispatchers.main) {
                 audioPlaybackService.isPlaying.collect { playing ->
@@ -256,31 +318,57 @@ class DefaultTaskComponent(
     }
 
     override fun onStart() {
-        if (task !is VocalTask) return
+        if (!isCapturingType) return
+        if (videoCaptureUnavailable) return
         if (screenState !is TaskScreenState.Idle && screenState !is TaskScreenState.Failed) return
         currentTake += 1
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
+        if (task is VideoTask) {
+            videoError = null
+            onVideoTakeStarted(currentTake)
+        }
         publish()
     }
 
     override fun onStop() {
-        if (task !is VocalTask) return
+        if (!isCapturingType) return
         if (screenState !is TaskScreenState.Capturing) return
+        if (task is VideoTask) onVideoTakeStopped()
         eventLogger(TimelineEventType.STOP_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Stopped
         publish()
     }
 
     override fun onRepeat() {
-        if (task !is VocalTask || !task.canRepeat) return
+        if (!isCapturingType || !task.canRepeat) return
+        if (videoCaptureUnavailable) return
         if (screenState !is TaskScreenState.Stopped) return
         eventLogger(TimelineEventType.TAKE_REJECTED, currentTake, REASON_EXAMINER_REPEAT)
         currentTake += 1
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
+        if (task is VideoTask) {
+            videoError = null
+            onVideoTakeStarted(currentTake)
+        }
         publish()
     }
+
+    override fun onPtz(action: PtzAction) {
+        if (task !is VideoTask || !ptzController.isAvailable || !task.havePTZ) return
+        ptzController.move(action)
+    }
+
+    /** VOCAL and VIDEO share the Start/Stop/Repeat state machine; the other types do not. */
+    private val isCapturingType: Boolean get() = task is VocalTask || task is VideoTask
+
+    /**
+     * No working camera means a take would record nothing. Enforced here and not only by the
+     * disabled button, so a keyboard path or a caller that bypasses the UI cannot open an
+     * empty take and inflate the take counter.
+     */
+    private val videoCaptureUnavailable: Boolean get() = task is VideoTask && videoError != null
 
     override fun onNext() {
         when (task) {
@@ -315,6 +403,21 @@ class DefaultTaskComponent(
                 )
             }
 
+            is VideoTask -> {
+                if (screenState !is TaskScreenState.Stopped) return
+                eventLogger(TimelineEventType.TASK_COMPLETED, currentTake, null)
+                onTaskFinished(
+                    TaskRecord(
+                        taskIndex = taskInstance.taskIndex,
+                        type = "VIDEO",
+                        subtype = task.subtype,
+                        repetition = taskInstance.repetition,
+                        takes = currentTake,
+                        skipped = false,
+                    ),
+                )
+            }
+
             is InfoTask -> {
                 eventLogger(TimelineEventType.TASK_COMPLETED, null, null)
                 onTaskFinished(
@@ -335,7 +438,7 @@ class DefaultTaskComponent(
 
     override fun onSkip() {
         if (!task.canSkip) return
-        if (task is VocalTask && screenState !is TaskScreenState.Idle) return
+        if (isCapturingType && screenState !is TaskScreenState.Idle) return
         eventLogger(TimelineEventType.TASK_SKIPPED, null, null)
         onTaskFinished(
             TaskRecord(
@@ -434,6 +537,7 @@ class DefaultTaskComponent(
         is VocalTask -> "VOCAL"
         is QuestionnaireTask -> "QUESTIONNAIRE"
         is InfoTask -> "INFO"
+        is VideoTask -> "VIDEO"
         else -> task::class.simpleName.orEmpty()
     }
 
@@ -459,13 +563,30 @@ class DefaultTaskComponent(
                 allValid = allAnswersValid(),
             )
 
+            is VideoTask -> TaskComponent.Content.Video(
+                screenState = screenState,
+                takeNumber = currentTake,
+                frames = videoFrames ?: emptyFrames,
+                // Both halves matter: a config may ask for PTZ on a host that has no backend.
+                ptzAvailable = task.havePTZ && ptzController.isAvailable,
+                zoom = ptzController.zoom,
+                error = videoError,
+            )
+
             is InfoTask -> TaskComponent.Content.Info
 
             else -> TaskComponent.Content.Info
         }
 
-        val buttons = if (task is VocalTask) {
-            TaskButtonState.of(screenState, task.canRepeat, task.canSkip)
+        val buttons = if (isCapturingType) {
+            val base = TaskButtonState.of(screenState, task.canRepeat, task.canSkip)
+            // With no working camera there is nothing to record, so offering Start would
+            // produce an empty take and a take counter that lies about it.
+            if (task is VideoTask && videoError != null) {
+                base.copy(startEnabled = false, repeatEnabled = false)
+            } else {
+                base
+            }
         } else {
             TaskButtonState(
                 startEnabled = false,
@@ -484,8 +605,9 @@ class DefaultTaskComponent(
             titleKey = task.titleKey,
             instructionKeys = (task as? VocalTask)?.instructionKeys
                 ?: (task as? InfoTask)?.instructionKeys
+                ?: (task as? VideoTask)?.instructionKeys
                 ?: emptyList(),
-            taskLengthSeconds = (task as? VocalTask)?.length ?: 0,
+            taskLengthSeconds = (task as? VocalTask)?.length ?: (task as? VideoTask)?.length ?: 0,
             nextTaskTitleKey = nextTaskTitleKey,
             canSkip = task.canSkip,
             content = content,
@@ -498,5 +620,7 @@ class DefaultTaskComponent(
     private companion object {
         const val REASON_EXAMINER_REPEAT = "EXAMINER_REPEAT"
         const val REASON_DEVICE_LOST = "DEVICE_LOST"
+        const val REASON_CAPTURE_FAILED = "CAPTURE_FAILED"
+        val emptyFrames: StateFlow<ByteArray?> = MutableStateFlow(null)
     }
 }

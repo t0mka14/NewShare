@@ -45,20 +45,21 @@ class TaskInstanceExpanderTest {
     }
 
     @Test
-    fun `VIDEO tasks are excluded entirely and counted as skipped`() {
+    fun `VIDEO tasks are navigable and occupy a taskIndex`() {
         val tasks = listOf(
             InfoTask(titleKey = "before"),
-            VideoTask(titleKey = "video", nrepetition = 1),
+            VideoTask(titleKey = "video", nrepetition = 2),
             InfoTask(titleKey = "after"),
         )
         val result = TaskInstanceExpander.expand(tasks)
 
-        assertEquals(2, result.instances.size)
-        assertEquals(1, result.skippedVideoTaskCount)
-        // taskIndex stays continuous across the gap left by the skipped VIDEO task
-        assertEquals(listOf(0, 1), result.instances.map { it.taskIndex })
-        assertEquals("before", result.instances[0].task.titleKey)
-        assertEquals("after", result.instances[1].task.titleKey)
+        assertEquals(4, result.instances.size)
+        assertEquals(listOf(0, 1, 2, 3), result.instances.map { it.taskIndex })
+        assertEquals(
+            listOf("before", "video", "video", "after"),
+            result.instances.map { it.task.titleKey },
+        )
+        assertEquals(listOf(1, 1, 2, 1), result.instances.map { it.repetition })
     }
 
     @Test
@@ -72,6 +73,5 @@ class TaskInstanceExpanderTest {
     fun `empty task list expands to no instances`() {
         val result = TaskInstanceExpander.expand(emptyList())
         assertEquals(0, result.instances.size)
-        assertEquals(0, result.skippedVideoTaskCount)
     }
 }

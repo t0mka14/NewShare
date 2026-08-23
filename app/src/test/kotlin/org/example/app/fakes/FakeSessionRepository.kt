@@ -40,6 +40,7 @@ class FakeSessionRepository : SessionRepository {
     override fun sessionDir(folderName: String): Path = root.resolve(folderName)
     override fun masterDir(folderName: String): Path = sessionDir(folderName).resolve("master")
     override fun clipsDir(folderName: String): Path = sessionDir(folderName).resolve("clips")
+    override fun videoDir(folderName: String): Path = sessionDir(folderName).resolve("video")
     override fun archiveDir(folderName: String): Path = sessionDir(folderName).resolve("archive")
     override fun defaultMasterFile(folderName: String): Path = masterDir(folderName).resolve("session_master.wav")
 

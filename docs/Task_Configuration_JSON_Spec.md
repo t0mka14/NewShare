@@ -99,7 +99,7 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
 
 Tasks are polymorphic on the `type` discriminator:
 
-`VOCAL` · `QUESTIONNAIRE` · `CALIBRATION` · `INFO` · `VIDEO` (reserved)
+`VOCAL` · `QUESTIONNAIRE` · `CALIBRATION` · `INFO` · `VIDEO`
 
 - `VOCAL` — audio recording tasks (phonation, DDK/PATAKA, reading, monologue, …), refined by
   `subtype`.
@@ -107,8 +107,8 @@ Tasks are polymorphic on the `type` discriminator:
   `QUESTIONAIRE` with a logged warning during server migration).
 - `CALIBRATION` — mandatory microphone level check, normally the first task.
 - `INFO` — display-only screen (e.g., final screen).
-- `VIDEO` — reserved for a later phase (emotions, PTZ camera). The current app skips these
-  tasks with a logged warning.
+- `VIDEO` — camera recording (e.g. emotions). Shares VOCAL's Start/Stop/Repeat flow; one file
+  per take.
 
 Fields common to all task types:
 
@@ -209,7 +209,7 @@ a ~300 ms window.
 }
 ```
 
-### 4.5 VIDEO (reserved, deferred)
+### 4.5 VIDEO
 
 ```json
 {
@@ -224,6 +224,23 @@ a ~300 ms window.
   "havePTZ": false
 }
 ```
+
+`length` is the target take duration in seconds, shown on the task timer exactly as for VOCAL;
+it does not stop the recording, which ends when the examiner presses Stop.
+
+`havePTZ` requests pan/tilt/zoom controls. They render only where the host also has a PTZ
+backend — currently Windows alone, since the implementation is DirectShow over COM. On any
+other platform the flag is accepted and the controls are simply absent, so the same
+configuration is safe to deploy everywhere.
+
+Any UVC camera is supported, not only PTZ models. The app asks the camera which modes it
+offers and uses the best one available (preferring a mode it can record without re-encoding,
+then the one closest to 1080p), falling back to fixed resolutions and finally the device
+default if the camera reports nothing usable. A plain webcam records normally — it just shows
+no PTZ controls.
+
+Recordings are written to `video/task<NN>_rep<NN>_take<NN>.mjpeg` inside the session directory
+and are included in the upload ZIP.
 
 ## 5. PatientField
 

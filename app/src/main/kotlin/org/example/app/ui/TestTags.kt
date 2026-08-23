@@ -73,6 +73,16 @@ object TestTags {
 
         /** Example-audio playback button (§8.6, follow-up) — disabled while `Capturing`. */
         const val EXAMPLE_AUDIO_BUTTON = "task.exampleAudioButton"
+
+        /** VIDEO task: the live camera preview surface. */
+        const val VIDEO_PREVIEW = "task.videoPreview"
+
+        /** VIDEO task: inline capture-failure message (no dialog — the screen stays usable). */
+        const val VIDEO_ERROR = "task.videoError"
+
+        /** VIDEO task: PTZ cluster. Absent unless the host has a PTZ backend *and* `havePTZ`. */
+        const val PTZ_CONTROLS = "task.ptzControls"
+        fun ptzButton(action: String) = "task.ptz.$action"
     }
 
     /** QUESTIONNAIRE task rendering (§8.6): one answer input per configured question. */

@@ -85,8 +85,9 @@ migration is in-memory per startup because no migrations exist).
 subclass (+ `ConfigDecoder` alias if the server spelling differs — see the QUESTIONAIRE
 precedent), a `TaskComponent.Content` variant + state-machine behavior (`navigation/TaskComponent.kt`),
 UI rendering (`ui/TaskContent.kt`), expansion behavior if it deviates
-(`domain/timeline/TaskInstanceExpander.kt` — VIDEO is excluded there; that's the pattern
-for non-navigable types), fixture + tests at each layer, and the JSON spec doc.
+(`domain/timeline/TaskInstanceExpander.kt` — every type is navigable today; VIDEO was the one
+exclusion until 2026-08-22, and its removal is the reference for making a type navigable),
+fixture + tests at each layer, and the JSON spec doc.
 
 ## 7. Add a screen
 

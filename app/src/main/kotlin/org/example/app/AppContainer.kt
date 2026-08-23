@@ -13,6 +13,13 @@ import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.WaveformService
 import org.example.app.domain.config.ConfigApi
+import org.example.app.domain.video.NoOpPtzController
+import org.example.app.domain.video.PtzController
+import org.example.app.domain.video.SessionVideoRecorder
+import org.example.app.domain.video.VideoInputDevice
+import org.example.app.domain.video.VideoInputDeviceProvider
+import org.example.app.infrastructure.video.FfmpegDeviceEnumerator
+import org.example.app.infrastructure.video.FfmpegSessionVideoRecorder
 import org.example.app.infrastructure.DefaultAppDirectories
 import org.example.app.infrastructure.UuidIdGenerator
 import org.example.app.infrastructure.audio.JvmAudioClipService
@@ -70,6 +77,26 @@ class AppContainer(
      */
     val sessionRecorderFactory: () -> ContinuousSessionRecorder =
         { JvmContinuousSessionRecorder(dispatchers) },
+    val videoInputDeviceProvider: VideoInputDeviceProvider = FfmpegDeviceEnumerator(),
+    /** Session-scoped for the same reason as [sessionRecorderFactory]: no camera state
+     * outlives a session. */
+    val sessionVideoRecorderFactory: () -> SessionVideoRecorder =
+        { FfmpegSessionVideoRecorder(dispatchers) },
+    /**
+     * PTZ is DirectShow/COM and exists on Windows only. This factory is the single place that
+     * may name a platform implementation: everywhere else the app sees [PtzController], so the
+     * Windows classes are never even *loaded* off Windows — JVM class loading is lazy and the
+     * type appears in no other signature. A `havePTZ: true` task on macOS therefore produces
+     * no controls rather than dead ones.
+     *
+     * Stage 2 adds the DirectShow implementation, guarded exactly here:
+     *
+     *     if (HostOs.isWindows) DirectShowPtzController(device, dispatchers) else NoOpPtzController
+     *
+     * Until then no platform has a PTZ backend and [PtzController.isAvailable] is false
+     * everywhere, which is the correct answer on every non-Windows host in any case.
+     */
+    val ptzControllerFactory: (VideoInputDevice) -> PtzController = { _ -> NoOpPtzController },
 ) {
     /** Acquired at the top of Main before any other startup work (§5.2). */
     val singleInstanceLock: SingleInstanceLock = SingleInstanceLock(directories)

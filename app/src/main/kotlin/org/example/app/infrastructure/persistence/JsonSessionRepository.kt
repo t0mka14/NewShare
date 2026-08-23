@@ -28,6 +28,7 @@ class JsonSessionRepository(
     override fun sessionDir(folderName: String): Path = directories.sessionDir(folderName)
     override fun masterDir(folderName: String): Path = sessionDir(folderName).resolve("master")
     override fun clipsDir(folderName: String): Path = sessionDir(folderName).resolve("clips")
+    override fun videoDir(folderName: String): Path = sessionDir(folderName).resolve("video")
     override fun archiveDir(folderName: String): Path = sessionDir(folderName).resolve("archive")
     override fun defaultMasterFile(folderName: String): Path = masterDir(folderName).resolve("session_master.wav")
 
@@ -49,6 +50,7 @@ class JsonSessionRepository(
         Files.createDirectories(dir)
         Files.createDirectories(masterDir(folderName))
         Files.createDirectories(clipsDir(folderName))
+        Files.createDirectories(videoDir(folderName))
         Files.createDirectories(metadataDir(folderName))
         Files.createDirectories(waveformCacheDir(folderName))
         return dir

@@ -34,7 +34,15 @@ import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.timeline.TaskInstance
 import org.example.app.domain.timeline.TimelineCompactor
 import org.example.app.domain.timeline.TimelineEvent
+import org.example.app.domain.config.VideoTask
 import org.example.app.domain.timeline.TimelineEventType
+import org.example.app.domain.video.NoOpPtzController
+import org.example.app.domain.video.PtzController
+import org.example.app.domain.video.SessionVideoRecorder
+import org.example.app.domain.video.VideoError
+import org.example.app.domain.video.VideoRecorderState
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.timeline.TimelineRepository
 import java.nio.file.Path
 
@@ -89,6 +97,11 @@ class DefaultSessionComponent(
     private val initialDevice: AudioInputDevice,
     private val availableDevices: List<AudioInputDevice>,
     private val recorderFactory: () -> ContinuousSessionRecorder,
+    /** Cameras available at session start, and the one to open; `null` when none was found. */
+    private val initialVideoDevice: VideoInputDevice?,
+    private val videoRecorderFactory: () -> SessionVideoRecorder,
+    /** Bound to a real controller only on a host with a PTZ backend; see `AppContainer`. */
+    private val ptzControllerFactory: (VideoInputDevice) -> PtzController,
     private val startSessionUseCase: StartSessionUseCase,
     private val sessionRepository: SessionRepository,
     private val timelineRepository: TimelineRepository,
@@ -112,6 +125,16 @@ class DefaultSessionComponent(
     override val startError: Value<SessionComponent.StartError> = _startError
 
     private var recorder: ContinuousSessionRecorder? = null
+    private var videoRecorder: SessionVideoRecorder? = null
+
+    /**
+     * Stands in for the recorder's own state when the protocol wants video but no camera was
+     * found, so the task screen reports it and refuses Start instead of appearing to record.
+     */
+    private val noCameraState = MutableStateFlow<VideoRecorderState>(
+        VideoRecorderState.Failed(VideoError.DeviceUnavailable("none")),
+    )
+    private var ptzController: PtzController = NoOpPtzController
     private var folderName: String? = null
     private var examination: Examination? = null
     private var navigableInstances: List<TaskInstance> = emptyList()
@@ -132,6 +155,8 @@ class DefaultSessionComponent(
     init {
         lifecycle.doOnDestroy {
             recorder?.let { r -> scope.launch(dispatchers.main) { r.stop() } }
+            videoRecorder?.let { v -> scope.launch(dispatchers.main) { v.stop() } }
+            ptzController.close()
             scope.cancel()
         }
         scope.launch(dispatchers.main) { bootstrap() }
@@ -147,6 +172,14 @@ class DefaultSessionComponent(
             r.startMonitoring(initialDevice)
             negotiatedFormat = r.captureFormat.value
             observeInterruptions(r)
+        }
+
+        // Same gate as the recorder: no VIDEO task means the camera is never opened.
+        if (protocol.tasks.any { it is VideoTask } && initialVideoDevice != null) {
+            val v = videoRecorderFactory()
+            videoRecorder = v
+            v.startPreview(initialVideoDevice)
+            ptzController = ptzControllerFactory(initialVideoDevice)
         }
 
         val outcome = startSessionUseCase.start(
@@ -224,11 +257,43 @@ class DefaultSessionComponent(
             eventLogger = { type, take, reason ->
                 logEvent(type, instance.taskIndex, instance.repetition, take, reason)
             },
+            videoFrames = videoRecorder?.previewFrames,
+            videoState = videoRecorder?.state ?: noCameraState.takeIf { task is VideoTask },
+            ptzController = ptzController,
+            onVideoTakeStarted = { take -> startVideoTake(instance, take) },
+            onVideoTakeStopped = { stopVideoTake() },
             nextPartFile = { computeNextPartFile() },
             onResumeRecorded = { device, partFile -> onResumeRecorded(device, partFile) },
             onTaskFinished = { record -> onTaskInstanceFinished(listIndex, record) },
         )
     }
+
+    /**
+     * Begins a VIDEO take. The camera is session-owned, so [TaskComponent] asks for this
+     * rather than driving the recorder itself (single-writer principle, §5.2) — the same
+     * reason it never starts or stops the microphone.
+     *
+     * The file is a bare MJPEG elementary stream; `ProcessSessionUseCase` remuxes it into a
+     * playable container during processing, where the frame rate is known.
+     */
+    private fun startVideoTake(instance: TaskInstance, take: Int) {
+        val v = videoRecorder ?: return
+        val folder = folderName ?: return
+        scope.launch(dispatchers.main) {
+            val file = sessionRepository.videoDir(folder)
+                .resolve(videoFileName(instance, take))
+            v.startRecording(file)
+        }
+    }
+
+    private fun stopVideoTake() {
+        val v = videoRecorder ?: return
+        scope.launch(dispatchers.main) { v.stopRecording() }
+    }
+
+    /** Windows-safe by construction: only the sanitised task index, repetition and take. */
+    private fun videoFileName(instance: TaskInstance, take: Int): String =
+        "task%02d_rep%02d_take%02d.mjpeg".format(instance.taskIndex, instance.repetition, take)
 
     private fun onCalibrationConfirmed() {
         scope.launch(dispatchers.main) {

@@ -1,7 +1,6 @@
 package org.example.app.domain.timeline
 
 import org.example.app.domain.config.Task
-import org.example.app.domain.config.VideoTask
 
 /**
  * One navigable screen in the expanded protocol (§8.3): a task with `nrepetition: N` expands
@@ -20,27 +19,22 @@ data class TaskInstance(
 )
 
 /**
- * Result of expanding a protocol's task list. [skippedVideoTaskCount] counts `VIDEO` tasks
- * that were excluded entirely (not just non-navigable) because VIDEO is out of scope for this
- * phase (§2 non-goals); the app skips them with a logged warning, so they neither occupy a
- * task-instance slot nor consume a `taskIndex`.
+ * Result of expanding a protocol's task list.
+ *
+ * `VIDEO` tasks used to be dropped here and counted as skipped (§13 decision 23), because
+ * camera capture was out of scope. They are now navigable like any other type and occupy a
+ * `taskIndex`; nothing is excluded from the expansion.
  */
 data class ProtocolExpansion(
     val instances: List<TaskInstance>,
-    val skippedVideoTaskCount: Int,
 )
 
 object TaskInstanceExpander {
     fun expand(tasks: List<Task>): ProtocolExpansion {
         val instances = mutableListOf<TaskInstance>()
-        var skippedVideoTaskCount = 0
         var index = 0
 
         for (task in tasks) {
-            if (task is VideoTask) {
-                skippedVideoTaskCount++
-                continue
-            }
             val repetitions = task.nrepetition.coerceAtLeast(1)
             for (repetition in 1..repetitions) {
                 instances += TaskInstance(taskIndex = index, repetition = repetition, task = task)
@@ -48,6 +42,6 @@ object TaskInstanceExpander {
             }
         }
 
-        return ProtocolExpansion(instances, skippedVideoTaskCount)
+        return ProtocolExpansion(instances)
     }
 }

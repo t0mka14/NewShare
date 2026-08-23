@@ -13,6 +13,8 @@ import kotlinx.serialization.Serializable
 data class AppSettings(
     val version: Int = 1,
     val micDeviceId: String? = null,
+    /** Selected camera for VIDEO tasks; null falls back to the first eligible camera. */
+    val cameraDeviceId: String? = null,
     val installationId: String? = null,
     val language: String? = null,
 )

@@ -110,3 +110,34 @@ to change shape.
    (including one deliberately corrupted checksum to see it refuse).
 5. Upload the package; update the server's `/api/version/latest` entry (`version`,
    `downloadUrl`, `checksum` = SHA-256 of the package).
+
+## 8. The ffmpeg native payload (camera capture)
+
+VIDEO tasks capture through a bundled `ffmpeg` subprocess (spec §13 decision 23). Its binaries
+are **not** in `app.jar`:
+
+```
+<install_dir>/
+  runtime/
+  native/ffmpeg/<platform>/    ffmpeg[.exe] + av*/sw* shared libraries, ~58 MB per platform
+  app/app.jar                  <- the updater replaces this; the natives stay put
+```
+
+`app/build.gradle.kts` declares a detached `videoNatives` configuration and an
+`unpackVideoNatives` task that pulls the prebuilt LGPL shared builds from
+`org.bytedeco:ffmpeg:<version>:<classifier>` and strips what is not needed (`ffprobe`, the
+JavaCPP `jni*` shims, `META-INF`). bytedeco is used purely as a checksummed CDN — no bytedeco
+class is ever loaded, and nothing is added to the compile classpath. Packaging must copy
+`app/build/native/ffmpeg/<host platform>/` to `<install_dir>/native/ffmpeg/<platform>/`.
+
+Version this directory independently in the updater manifest. It changes only when ffmpeg is
+upgraded, and keeping it out of `app.jar` is what stops every routine app update from carrying
+~25 MB of unchanged natives.
+
+Dev runs and tests find the binaries through the `share.ffmpeg.path` system property, which
+`unpackVideoNatives` wires into `run`, `test` and the preview harnesses. `FfmpegBinaryLocator`
+falls back to `PATH`, so a machine without the payload still works for development; camera
+tests skip rather than fail when no binary is found.
+
+The jlink module list in §3 is unaffected — the capture path is a subprocess plus pipe I/O and
+adds no JDK module requirements.

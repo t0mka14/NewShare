@@ -12,7 +12,7 @@ data/
   app.lock                          single-instance lock (FileChannel.tryLock)
   config/
     config.json                     raw cached remote config (RawConfigCache)
-    settings.json                   AppSettings — mic device id, installation ID, language
+    settings.json                   AppSettings — mic + camera device ids, installation ID, language
   sessions/<yyyy-MM-dd_Patient_SessionId>/
     participant.json                ParticipantRecord
     examination.json                Examination — updated after every task (atomic)
@@ -24,6 +24,8 @@ data/
                                     device-loss resume (each part in its own negotiated format)
     waveform_cache/                 derived; versioned peak cache (regenerable)
     clips/                          derived; per recordingsFileName template (regenerable)
+    video/task<NN>_rep<NN>_take<NN>.mjpeg   VIDEO takes; bare MJPEG elementary stream, one
+                                    file per take, remuxed to a container during processing
     archive/<Patient>_<SessionId>.zip  derived; ZIP + manifest (regenerable)
     metadata/upload_status.json     UploadStatus — the single authority for upload state
   logs/app.log                      rolling, no participant data / installation ID ever

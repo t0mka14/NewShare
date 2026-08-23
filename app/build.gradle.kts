@@ -39,8 +39,78 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
+/**
+ * ffmpeg binaries for camera capture (§9 `native/` payload).
+ *
+ * Deliberately NOT an `implementation` dependency. These are ~25 MB of platform natives per
+ * OS; putting them on the compile classpath would bake them into `app.jar`, which the updater
+ * replaces wholesale, so every routine app update would re-download them. They ship instead as
+ * `<install_dir>/native/ffmpeg/<platform>/`, versioned independently.
+ *
+ * bytedeco is used here only as a checksummed CDN for prebuilt LGPL shared ffmpeg builds — no
+ * bytedeco class is ever loaded, and `javacv`/`javacpp`/`opencv` are not involved. Pulling
+ * `javacv-platform` instead, as the original app did, resolves to ~620 MB of jars.
+ */
+val videoNatives: Configuration by configurations.creating {
+    isTransitive = false
+    isCanBeConsumed = false
+}
+
+dependencies {
+    videoNatives("org.bytedeco:ffmpeg:${libs.versions.ffmpeg.get()}:windows-x86_64")
+    videoNatives("org.bytedeco:ffmpeg:${libs.versions.ffmpeg.get()}:macosx-x86_64")
+    videoNatives("org.bytedeco:ffmpeg:${libs.versions.ffmpeg.get()}:macosx-arm64")
+    videoNatives("org.bytedeco:ffmpeg:${libs.versions.ffmpeg.get()}:linux-x86_64")
+}
+
+/** Where `unpackVideoNatives` puts the binaries, and where `FfmpegBinaryLocator` looks in dev. */
+val videoNativesDir: Provider<Directory> = layout.buildDirectory.dir("native/ffmpeg")
+
+/**
+ * Unpacks just the shared libraries and the `ffmpeg` executable out of each platform jar.
+ *
+ * Dropped on the way through: `ffprobe` (unused), every `jni*.dll`/`libjni*` (JavaCPP JNI shims,
+ * ~2.7 MB, dead weight when nothing loads JavaCPP) and the GraalVM `native-image` metadata.
+ */
+val unpackVideoNatives by tasks.registering(Sync::class) {
+    group = "build"
+    description = "Unpacks the ffmpeg capture binaries into build/native/ffmpeg/<platform>/."
+    into(videoNativesDir)
+
+    from({
+        videoNatives.resolve().map { jar ->
+            zipTree(jar).matching {
+                include("org/bytedeco/ffmpeg/*/**")
+                exclude("**/*jni*")
+                exclude("**/*ffprobe*")
+                exclude("META-INF/**")
+            }
+        }
+    }) {
+        // org/bytedeco/ffmpeg/<platform>/<file>  ->  <platform>/<file>
+        eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(3).toTypedArray()) }
+        includeEmptyDirs = false
+    }
+
+    doLast {
+        videoNativesDir.get().asFile.walkTopDown()
+            .filter { it.isFile && (it.name == "ffmpeg" || it.name == "ffmpeg.exe") }
+            .forEach { it.setExecutable(true) }
+    }
+}
+
+/** Dev runs and tests find ffmpeg through this property; packaging ships `native/ffmpeg/`. */
+fun JavaExec.useVideoNatives() {
+    dependsOn(unpackVideoNatives)
+    systemProperty("share.ffmpeg.path", videoNativesDir.get().asFile.absolutePath)
+}
+
 tasks.test {
     useJUnitPlatform()
+    dependsOn(unpackVideoNatives)
+    // Camera tests drive the real capture pipeline from a synthetic ffmpeg source; without a
+    // binary they skip rather than fail, so this stays green on a machine with no natives.
+    systemProperty("share.ffmpeg.path", videoNativesDir.get().asFile.absolutePath)
     // §10.3: headless Compose UI tests run under Skia software rendering. CI must
     // also run these with no visible display; on Linux CI runners that additionally
     // means launching under Xvfb (or another virtual framebuffer) since AWT/Skiko
@@ -66,6 +136,7 @@ tasks.register<JavaExec>("previewCalibration") {
     mainClass = "org.example.app.ui.previews.PreviewHarnessKt"
     classpath = sourceSets["main"].runtimeClasspath
     jvmArgs("--enable-native-access=ALL-UNNAMED")
+    useVideoNatives()
 }
 
 tasks.register<JavaExec>("previewEditor") {
@@ -74,6 +145,7 @@ tasks.register<JavaExec>("previewEditor") {
     mainClass = "org.example.app.ui.previews.EditorPreviewHarnessKt"
     classpath = sourceSets["main"].runtimeClasspath
     jvmArgs("--enable-native-access=ALL-UNNAMED")
+    useVideoNatives()
 }
 
 compose.desktop {
