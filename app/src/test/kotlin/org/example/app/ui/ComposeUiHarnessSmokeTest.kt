@@ -53,6 +53,7 @@ class ComposeUiHarnessSmokeTest {
             onUploadClicked = {},
             onSettingsClicked = {},
             onSessionBrowserClicked = {},
+            onLanguageSelectedClicked = {},
         )
         val localization = UiLocalization(LocalizedStringProvider(), "en", sampleConfig())
 

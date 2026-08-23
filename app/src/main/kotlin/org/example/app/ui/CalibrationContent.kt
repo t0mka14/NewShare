@@ -61,7 +61,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
         ) {
             Text(
                 localization.resolve(state.titleKey),
-                style = MaterialTheme.typography.headlineLarge,
+                style = screenTitleTextStyle(),
                 modifier = Modifier.padding(bottom = 20.dp),
             )
             Card {
@@ -97,7 +97,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                     shape = MaterialTheme.shapes.large,
                     onClick = onBack,
                 ) {
-                    Text(localization.resolve("action.back"), style = MaterialTheme.typography.labelLarge)
+                    Text(localization.resolve("action.back"), style = actionButtonTextStyle())
                 }
                 // No legacy counterpart: the input device must be selectable here (§8.5)
                 DropdownSelector(
@@ -114,7 +114,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                     modifier = Modifier
                         .testTag(TestTags.Calibration.CONFIRM_BUTTON),
                 ) {
-                    Text(localization.resolve("action.next"), style = MaterialTheme.typography.labelLarge)
+                    Text(localization.resolve("calibration.continueButton"), style = actionButtonTextStyle())
                 }
             }
         }

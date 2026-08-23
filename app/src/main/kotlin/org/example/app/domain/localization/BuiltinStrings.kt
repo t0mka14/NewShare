@@ -36,6 +36,8 @@ object BuiltinStrings {
         "error.generic.message" to "Something went wrong. Please try again.",
 
         // Settings screen (§3, local-only settings — never config-driven).
+        "calibration.continueButton" to "Continue",
+
         "settings.title" to "Settings",
         "settings.device.label" to "Microphone",
         "settings.installationId.label" to "Installation ID",
@@ -45,11 +47,12 @@ object BuiltinStrings {
         "settings.refresh.failed" to "Could not refresh the configuration.",
 
         // Main menu.
-        "mainMenu.title" to "SHARE",
+        "mainMenu.title" to "Speech examination",
         "mainMenu.startButton" to "New examination",
         "mainMenu.uploadButton" to "Upload",
         "mainMenu.settingsButton" to "Settings",
         "mainMenu.sessionBrowserButton" to "Sessions",
+        "mainMenu.protocolPdfButton" to "Get protocol PDF",
 
         // Patient info screen.
         "patientInfo.title" to "Patient information",
@@ -117,9 +120,11 @@ object BuiltinStrings {
 
         // Common action-button labels shared across main-menu/patient-info/calibration/task/
         // editor/upload screens (§8.6, §8.7, §8.9).
-        "action.start" to "Start",
-        "action.stop" to "Stop",
-        "action.repeat" to "Repeat",
+        // The task screen's state button keeps the original's shouty labels (its
+        // `standard_protocol_*_button_text` strings) — no other screen uses these three keys.
+        "action.start" to "START",
+        "action.stop" to "STOP",
+        "action.repeat" to "Retry task",
         "action.next" to "Next",
         "action.skip" to "Skip",
         "action.back" to "Back",
@@ -142,7 +147,7 @@ object BuiltinStrings {
         // Task screen chrome (§8.6). Titles/instructions themselves are config-driven
         // (`titleKey`/`instructionKeys`); these are the surrounding numbering/labels only.
         "task.numberLabel" to "Task {n}",
-        "task.numberOfTotalLabel" to "Task {n} of {total}",
+        "task.numberOfTotalLabel" to "Task {n}/{total}",
         "task.repetitionLabel" to "Repetition {n}",
         "task.takeLabel" to "Take {n}",
         // Legacy prev/next task-button chrome (§13 decision 36): small label line above the

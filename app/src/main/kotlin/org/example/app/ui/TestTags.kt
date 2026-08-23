@@ -21,12 +21,21 @@ package org.example.app.ui
  */
 object TestTags {
 
-    /** Main menu (§3): New examination / Upload / Settings / Sessions. */
+    /** Main menu (§3): New examination / Settings / protocol PDF / Upload / Sessions, plus
+     * the top-right language flag. */
     object MainMenu {
         const val START_PROTOCOL_BUTTON = "mainMenu.startProtocolButton"
         const val UPLOAD_BUTTON = "mainMenu.uploadButton"
         const val SETTINGS_BUTTON = "mainMenu.settingsButton"
         const val SESSION_BROWSER_BUTTON = "mainMenu.sessionBrowserButton"
+        const val PROTOCOL_PDF_BUTTON = "mainMenu.protocolPdfButton"
+        const val LANGUAGE_SELECTOR = "mainMenu.languageSelector"
+
+        /** One entry of the protocol-PDF picker, shown only when several protocols declare one. */
+        fun protocolPdfOption(protocolName: String) = "mainMenu.protocolPdfOption.$protocolName"
+
+        /** One language of the top-right flag dropdown, e.g. `mainMenu.languageOption.cs`. */
+        fun languageOption(language: String) = "mainMenu.languageOption.$language"
     }
 
     /** Patient info screen (§8.10 participant.json; fields are config-driven, §6.2). */

@@ -2,6 +2,7 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.fakes.FakeConfigurationRepository
 import org.example.app.fakes.TestCoroutineDispatchers
@@ -24,6 +25,7 @@ class MainMenuComponentTest {
         var uploadClicks = 0
         var settingsClicks = 0
         var browserClicks = 0
+        val selectedLanguages = mutableListOf<String>()
 
         val component: MainMenuComponent = DefaultMainMenuComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -33,6 +35,7 @@ class MainMenuComponentTest {
             onUploadClicked = { uploadClicks++ },
             onSettingsClicked = { settingsClicks++ },
             onSessionBrowserClicked = { browserClicks++ },
+            onLanguageSelectedClicked = { selectedLanguages += it },
         )
     }
 
@@ -70,4 +73,41 @@ class MainMenuComponentTest {
         assertEquals(1, h.settingsClicks)
         assertEquals(1, h.browserClicks)
     }
+
+    @Test
+    fun `only protocols declaring an instructions URL reach the PDF button`() {
+        val repo = FakeConfigurationRepository(initialConfig = null)
+        val h = Harness(repo)
+        assertTrue(h.component.state.value.protocolPdfs.isEmpty())
+
+        repo.setActiveConfig(
+            sampleConfig().copy(
+                protocols = listOf(
+                    protocol("With manual", "https://example.org/manual.pdf"),
+                    protocol("Blank manual", "  "),
+                    protocol("No manual", null),
+                ),
+            ),
+        )
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(
+            listOf(MainMenuComponent.ProtocolPdf("With manual", "https://example.org/manual.pdf")),
+            h.component.state.value.protocolPdfs,
+        )
+    }
+
+    @Test
+    fun `selecting a language forwards it to the root`() {
+        val h = Harness(FakeConfigurationRepository(sampleConfig()))
+        h.component.onLanguageSelected("cs")
+
+        assertEquals(listOf("cs"), h.selectedLanguages)
+    }
+
+    private fun protocol(name: String, pdfUrl: String?) = Protocol(
+        name = name,
+        protocolInstructionsPdfUrl = pdfUrl,
+        recordingsFileName = "\${taskIndex}",
+    )
 }

@@ -19,6 +19,7 @@ import org.example.app.AppContainer
 import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
+import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
 
@@ -141,6 +142,7 @@ class DefaultRootComponent(
                     onUploadClicked = { navigation.pushNew(Config.Upload) },
                     onSettingsClicked = { navigation.pushNew(Config.Settings) },
                     onSessionBrowserClicked = { navigation.pushNew(Config.SessionBrowser) },
+                    onLanguageSelectedClicked = ::selectLanguage,
                 ),
             )
 
@@ -210,6 +212,18 @@ class DefaultRootComponent(
         }
         childContext.lifecycle.doOnDestroy { subscription.cancel() }
         return RootComponent.Child.Settings(settingsComponent)
+    }
+
+    /**
+     * The main menu's top-right language flag (§3, the legacy `MainComponent.languageChanged`).
+     * Writes through to `AppSettingsRepository` — merged onto the saved settings so the mic
+     * device and installation ID survive — and re-publishes [localization] so every screen
+     * re-resolves its text. Settings' own language dropdown stays the second way in.
+     */
+    private fun selectLanguage(language: String) {
+        val saved = container.appSettingsRepository.read() ?: AppSettings()
+        container.appSettingsRepository.write(saved.copy(language = language))
+        _localization.value = _localization.value.copy(language = language)
     }
 
     private fun startSession(participantValues: Map<String, String>) {

@@ -79,6 +79,18 @@ private val LightColors = lightColorScheme(
     surfaceTint = SharePrimary,
     outlineVariant = Color(0xFFC0C7CD),
     scrim = Color(0xFF000000),
+    // The neutral-variant surface ramp. M3 components that pick their own container tone read
+    // these — `Card` uses `surfaceContainerHighest` — so leaving them out is exactly the purple
+    // baseline leak the full scheme above exists to avoid. Tinted like the legacy blue-gray
+    // `surfaceVariant`, with `surfaceContainerHighest` equal to it so the original's instruction
+    // cards keep their color.
+    surfaceBright = ShareBackground,
+    surfaceDim = Color(0xFFD9DDE0),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF5F8FA),
+    surfaceContainer = Color(0xFFEFF3F6),
+    surfaceContainerHigh = Color(0xFFE9EEF2),
+    surfaceContainerHighest = Color(0xFFDCE3E9),
 )
 
 private val DarkColors = darkColorScheme(
@@ -111,6 +123,13 @@ private val DarkColors = darkColorScheme(
     surfaceTint = ShareDarkPrimary,
     outlineVariant = Color(0xFF41484D),
     scrim = Color(0xFF000000),
+    surfaceBright = Color(0xFF35383A),
+    surfaceDim = ShareDarkBackground,
+    surfaceContainerLowest = Color(0xFF0E1113),
+    surfaceContainerLow = Color(0xFF191C1E),
+    surfaceContainer = Color(0xFF1D2022),
+    surfaceContainerHigh = Color(0xFF242729),
+    surfaceContainerHighest = Color(0xFF2F3234),
 )
 
 /**

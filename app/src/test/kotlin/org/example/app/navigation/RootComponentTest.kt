@@ -7,7 +7,9 @@ import org.example.app.fakes.ConfigFixtures
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeIdGenerator
 import org.example.app.fakes.TestAppDirectories
+import org.example.app.domain.settings.AppSettings
 import org.example.app.fakes.TestCoroutineDispatchers
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -132,6 +134,25 @@ class RootComponentTest {
         picker.onBack()
 
         assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
+    }
+
+    @Test
+    fun `the main menu language flag persists the choice and re-publishes localization`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)
+        container.configurationRepository.loadCached()
+        container.appSettingsRepository.write(AppSettings(installationId = "DEMO-002", micDeviceId = "mic-1"))
+        val root = buildRoot(container)
+        val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+
+        menu.onLanguageSelected("cs")
+
+        assertEquals("cs", root.localization.value.language)
+        val saved = container.appSettingsRepository.read()
+        assertEquals("cs", saved?.language)
+        // The flag must not wipe what Settings owns.
+        assertEquals("DEMO-002", saved?.installationId)
+        assertEquals("mic-1", saved?.micDeviceId)
     }
 
     @Test

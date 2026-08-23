@@ -20,7 +20,7 @@
   "protocols": [
     {
       "name": "Share",
-      "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+      "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
       "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "tasks": [
         {

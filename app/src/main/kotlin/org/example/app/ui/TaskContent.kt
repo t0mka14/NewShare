@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -190,7 +191,7 @@ private fun TaskTitle(state: TaskComponent.State, localization: UiLocalization) 
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(bottom = 6.dp),
         )
-        Text(title, style = MaterialTheme.typography.headlineMedium)
+        Text(title, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Normal))
     }
 }
 
@@ -399,7 +400,7 @@ private fun StartStateButton(
                 modifier = Modifier.size(75.dp),
             )
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Text(visual.text, style = MaterialTheme.typography.labelLarge)
+                Text(visual.text, style = actionButtonTextStyle())
             }
         }
     }

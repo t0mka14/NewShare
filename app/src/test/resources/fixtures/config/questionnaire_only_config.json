@@ -41,7 +41,7 @@
   "protocols": [
     {
       "name": "QuestionnaireOnly",
-      "manualFilePath": "protocol_manuals/questionnaire_only_manual.pdf",
+      "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/questionnaire_only_manual.pdf",
       "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "tasks": [
         {

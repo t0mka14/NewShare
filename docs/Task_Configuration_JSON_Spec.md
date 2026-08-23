@@ -1,6 +1,7 @@
 # Remote Configuration — JSON Specification
 
-**Status:** Normative · **Date:** 2026-07-01 · **Target:** SHARE clinical recording app (rewrite)
+**Status:** Normative · **Date:** 2026-07-01 (rev. 2026-08-22) · **Target:** SHARE clinical
+recording app (rewrite)
 
 Companion to [Project_Specification.md](Project_Specification.md) (§6). This document defines
 the configuration JSON pushed from the server to the app.
@@ -66,12 +67,22 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
 ```json
 {
   "name": "Share",
-  "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+  "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
   "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
   "tasks": [ /* Task objects, §4 */ ]
 }
 ```
 
+- `protocolInstructionsPdfUrl` — optional URL of the protocol's instruction manual
+  (PDF). When at least one protocol defines it the main menu's "Get protocol PDF"
+  button is enabled and opens the URL with the system browser; when several protocols
+  define one, the button first offers a picker of protocol names. Omitted or blank
+  disables the button. It is a URL, never a filesystem path — the app resolves nothing
+  locally (machine independence).
+  **Renamed 2026-08-22** from `manualFilePath`, which held an install-relative path
+  (`protocol_manuals/…pdf`) that nothing ever resolved. Unknown keys are ignored, so a config
+  still sending `manualFilePath` decodes without error but leaves the button disabled — servers
+  must emit the new key (and a real URL) for the button to appear.
 - `recordingsFileName` — clip filename template, the authoritative source of clip names.
   Supported variables: `${installationId}`, `${patientCode}`, `${taskIndex}` (position in
   the expanded task list), `${task.subtype}`, `${repetition}`. The template **must include
@@ -243,8 +254,14 @@ One map per language: `strings.<lang>.<key> → value`.
 - Inline markup: `<bold>text</bold>` and `<italic>text</italic>` (nesting allowed). Legacy
   `_b` / `/b` tags are **not valid**; the app does not recognize them and they render as
   literal text.
+- Markup is **inline only** — it styles a run of text, it does not start a new paragraph.
+  `<bold>Start now.</bold>Press START…` renders as one continuous line. Where the original app
+  showed a paragraph break (its `_b`/`/b` splitter inserted one automatically), the string must
+  contain an explicit `\n\n`. Task instruction cards render each `instructionKeys` entry as its
+  own paragraph, so splitting a two-paragraph instruction into two keys works equally well.
 - Placeholders use named syntax: `{vowel}`, `{length}`, `{version}` (replaces the old
-  `XX`/`xx` conventions).
+  `XX`/`xx` conventions). A placeholder the app does not substitute is left in the string
+  verbatim — a leftover `XX` on screen means the config still uses the old convention.
 - Newlines inside a string value use the standard JSON escape `\n` (a single backslash). A
   doubled backslash (`\\n`) is **not** a newline — it decodes to a literal backslash followed
   by the letter `n` and will render incorrectly.
@@ -275,7 +292,7 @@ One map per language: `strings.<lang>.<key> → value`.
   "protocols": [
     {
       "name": "Share",
-      "manualFilePath": "protocol_manuals/MDSE_app_manual 2024.pdf",
+      "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
       "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "tasks": [
         {

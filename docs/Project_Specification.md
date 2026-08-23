@@ -309,6 +309,7 @@ traceability against the original draft:
 | `recordingsFilePath` (absolute path) | Removed; recordings always go under `AppDirectories.sessions` | Config is machine-independent |
 | `recordingsFileName` template | Kept as the **authoritative** clip-name source; must include `${taskIndex}` (validated at config load) so names are unique | Two tasks with the same subtype must not collide |
 | Legacy `_b`/`/b` markup in strings | `<bold>`/`<italic>` tags only; legacy markers are not recognized and render as literal text (§13 decision 26) | Single RichText parser |
+| `manualFilePath` (install-relative path) | `protocolInstructionsPdfUrl` (URL), 2026-08-22 | Nothing resolved the path; a URL keeps the config machine-independent and drives the main screen's "Get protocol PDF" button |
 | `clinicID` | `installationId` everywhere | One name for one concept |
 
 Task types in scope: `VOCAL`, `QUESTIONNAIRE`, `CALIBRATION`, `INFO`.
@@ -351,7 +352,13 @@ to `[A-Za-z0-9_-]` (Windows/macOS-safe), joined with `_` in config order.
   (replaces the original's `XX`/`xx`).
 - Language switching UI (flag icons, as in the original) is kept, limited to `languages` from
   the config; the chosen language is persisted in `AppSettingsRepository`. Exact-match key
-  lookup (fixes the `contains()` XPath bug).
+  lookup (fixes the `contains()` XPath bug). There are two ways in, both writing through the
+  same repository and both re-publishing `RootComponent.localization`: the **main screen's
+  top-right flag** (the original's placement, §8.12) and the **Settings** language dropdown.
+  A language with no bundled flag renders as its bare code rather than failing.
+- Markup is inline and does not create paragraph breaks; a string needing two paragraphs
+  carries an explicit `\n\n`, or is split across two `instructionKeys`
+  (`Task_Configuration_JSON_Spec.md` §6).
 
 ---
 
@@ -652,6 +659,28 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
 Lists previous sessions (id, patient code, date, processing/upload status, recovered flag);
 actions: open editor, reprocess, upload/retry. Metadata must remain loadable at any time;
 any session is reprocessable from master + timeline.
+
+### 8.12 Main screen
+
+The original's layout (§13 decision 36): a title bar with the language flag at the top right,
+a centered button column, and the SAMI logo bottom right. Buttons, in order:
+
+| Button | Enabled when | Goes to |
+|---|---|---|
+| Start the protocol | an active config exists | protocol picker (>1 protocol) or patient info |
+| Settings | always | Settings (§3) |
+| Get protocol PDF | some protocol declares `protocolInstructionsPdfUrl` | opens that URL in the system browser; with several, a picker of protocol names first |
+| Upload | always | upload screen (§8.9) |
+| Sessions | always | session browser (§8.11) |
+
+`Get protocol PDF` is the original's manual button, restored 2026-08-22; `Sessions` has no
+legacy counterpart and is therefore last. The title is `mainMenu.title`, config-overridable,
+defaulting to the original's "Speech examination".
+
+Scaling (§13 decision 36's rule that fixed-size legacy layouts are bugs): the buttons fill a
+60%-wide column capped at 560dp — about the original's `fillMaxWidth(0.3f)` on a 1920px screen,
+without collapsing to stubs on a small one — and the column scrolls rather than clipping once
+the window is shorter than it needs. Verified down to 1280×800.
 
 ---
 
@@ -954,6 +983,10 @@ Error taxonomy (normative, inlined from the old plan):
     button slot every other screen already renders — which the §13/36 scaling rule wants
     anyway (30sp text is what forced the legacy's fixed 350dp buttons). Body, instruction,
     title and error text keep their sizes to within 3sp.
+    **That last point is superseded by decision 42 (2026-08-22):** measured against the
+    original's screenshots the 18sp labels read wrong, so the legacy screens went back to
+    large regular-weight labels — without resizing the shared scale, which is what this
+    addendum was protecting.
 
 37. **Example-audio location (interim):** `audioExamplePath` from the config resolves
     relative to `AppDirectories.configDir` until the server contract (open q1) defines how
@@ -1004,6 +1037,45 @@ Error taxonomy (normative, inlined from the old plan):
     `isPlaying`. `State` gained `sampleRate` so the UI can label times. This screen is
     deliberately **not** legacy-1:1 (§13 decision 36): the legacy editor is two icon buttons over
     an unlabelled canvas, and the user asked for an audio editor.
+
+42. **Legacy screens re-matched against the original's screenshots (2026-08-22, user
+    request; supersedes the button-label part of decision 36's second addendum):** the main,
+    calibration and task screens were compared side by side with captures of the running
+    original (`docs/olds_share_screens/`) and the remaining gaps closed.
+
+    - **Button labels go back up.** 36's addendum had dropped them from the legacy 30sp
+      `labelMedium` to `ShareTheme`'s 18sp `labelLarge`, calling that the one intended visual
+      change. Against the screenshots that reads as a different app, so the three legacy
+      screens now ask for large regular-weight styles explicitly, via two helpers in
+      `ui/ShareTextStyles.kt` (`screenTitleTextStyle`, `actionButtonTextStyle`). The shared
+      scale is untouched, so the denser non-legacy screens keep 18sp buttons — which is what
+      36's addendum was actually protecting. The scaling rule still holds: the large labels
+      sit in weighted/capped layouts, not the legacy's fixed 350dp buttons.
+    - **Regular weight, not bold.** `materials/Typography.kt` set no font weight anywhere, so
+      every legacy screen rendered regular; `ShareTypography` had added Bold to the headline
+      and label slots. Titles and action labels on these three screens are back to regular.
+    - **Card color was a theme gap, not a legacy detail.** M3 `Card` reads
+      `surfaceContainerHighest`, which neither color scheme defined, so instruction cards
+      rendered in Material's purple baseline instead of the legacy blue-gray. The whole
+      surface-container ramp is now defined in both schemes (light `surfaceContainerHighest`
+      = `surfaceVariant` = `0xFFDCE3E9`, the legacy card color). This fixes every `Card` in
+      the app, not only these screens.
+    - **Original labels restored:** `action.start`/`action.stop`/`action.repeat` are
+      `START`/`STOP`/`Retry task` (only the task screen uses them), `task.numberOfTotalLabel`
+      is `Task {n}/{total}`, and calibration got its own `calibration.continueButton`
+      ("Continue") rather than changing `action.next`, which the editor uses for
+      "next segment".
+    - **Deliberately not matched:** the app keeps Roboto (the fonts the legacy shipped but
+      failed to load — it used relative `File` paths, §13/36's scaling-bug rule), so glyphs
+      differ slightly from screenshots rendered in the platform default sans.
+
+43. **The main screen's language flag is restored (2026-08-22, user request):** §7's flag-icon
+    switcher lives where the original put it, top right of the main screen, in addition to the
+    Settings dropdown. `RootComponent.onLanguageSelected` merges the choice onto the saved
+    `AppSettings` (so `micDeviceId`/`installationId` survive) and re-publishes `localization`;
+    `MainMenuComponent` forwards to it, keeping `MainMenuContent(component, localization)` the
+    same shape as every other screen. The available languages and the current one already
+    reach the UI through `UiLocalization`, so no new state was added for rendering.
 
 **Still open:**
 

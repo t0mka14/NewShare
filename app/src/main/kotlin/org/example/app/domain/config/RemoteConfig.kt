@@ -13,11 +13,15 @@ enum class IndicatorType { CIRCLE, WAVEFORM }
  * `recordingsFileName` is the authoritative clip filename template; it must include
  * `${taskIndex}` (validated by [ConfigValidator], §3/§6.2) so that two tasks with the same
  * subtype cannot collide.
+ *
+ * `protocolInstructionsPdfUrl` is the URL of this protocol's instruction manual, opened by the
+ * main menu's "Get protocol PDF" button — a URL, never a filesystem path, so the config stays
+ * machine-independent. Blank or absent disables the button for this protocol.
  */
 @Serializable
 data class Protocol(
     val name: String,
-    val manualFilePath: String? = null,
+    val protocolInstructionsPdfUrl: String? = null,
     val recordingsFileName: String,
     val tasks: List<Task> = emptyList(),
 )
