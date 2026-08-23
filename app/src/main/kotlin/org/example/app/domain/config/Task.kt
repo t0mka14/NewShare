@@ -7,10 +7,7 @@ import kotlinx.serialization.Serializable
  * Sealed task hierarchy, polymorphic on the `type` discriminator (§4 of
  * Task_Configuration_JSON_Spec.md, §6.2 of the project spec).
  *
- * Task types in scope: VOCAL, QUESTIONNAIRE, CALIBRATION, INFO. VIDEO is reserved for a
- * later phase — it must still decode successfully (no crash) so the app can skip it with a
- * logged warning; it is represented here as [VideoTask] so config parsing never throws on a
- * config that legitimately contains VIDEO tasks.
+ * Task types in scope: VOCAL, QUESTIONNAIRE, CALIBRATION, INFO, VIDEO.
  *
  * The legacy `QUESTIONAIRE` (misspelled) discriminator value is accepted as an alias for
  * `QUESTIONNAIRE`; see [ConfigDecoder] which normalizes it before polymorphic decoding
@@ -90,9 +87,16 @@ data class InfoTask(
 ) : Task
 
 /**
- * Reserved for a later phase (§2 non-goals, §4.5). Must decode without crashing; the app
- * skips these tasks with a logged warning. Kept out of [org.example.app.domain.timeline.TaskInstanceExpander]'s
- * navigable output.
+ * Camera recording (§4.5). Navigable like any other type, and shares VOCAL's
+ * Start/Stop/Repeat state machine — one file per take, under the session's `video/`.
+ *
+ * @param subtype free-form label carried into `examination.json` (e.g. `"EMOTIONS"`); unlike
+ *   [VocalSubtype] it is not an enum, so a new study can introduce one without a client release.
+ * @param length target take length in seconds, shown on the task timer. It does not stop the
+ *   recording — the examiner does.
+ * @param havePTZ requests pan/tilt/zoom controls. Honoured only where the host also has a PTZ
+ *   backend (Windows); elsewhere the flag is accepted and no controls render, so one config is
+ *   safe to deploy everywhere.
  */
 @Serializable
 @SerialName("VIDEO")

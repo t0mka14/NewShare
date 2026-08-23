@@ -201,6 +201,20 @@
           "havePTZ": false
         },
         {
+          "type": "VIDEO",
+          "subtype": "EMOTIONS_DETAIL",
+          "titleKey": "mimic_detail_title",
+          "instructionKeys": [
+            "mimic_detail_description",
+            "mimic_detail_procedure"
+          ],
+          "length": 45,
+          "canRepeat": true,
+          "canSkip": true,
+          "nrepetition": 2,
+          "havePTZ": true
+        },
+        {
           "type": "QUESTIONNAIRE",
           "titleKey": "questionnaire_title",
           "questions": [
@@ -275,6 +289,9 @@
       "mimic_title": "Mimika",
       "mimic_description1": "Cílem další úlohy je napodobit emoce, které uvidíte na následujících obrázcích. Používejte prosím pouze mimiku obličeje.",
       "mimic_description2": "Cílem další úlohy je popsat čtveřici obrázků, které vidíte před sebou.",
+      "mimic_detail_title": "Mimika - detail obličeje",
+      "mimic_detail_description": "<bold>Nyní se zaměříme na detail Vašeho obličeje. Sedněte si prosím pohodlně a dívejte se přímo do kamery.</bold>Pomocí ovládání kamery přibližte obraz tak, aby byl obličej účastníka vidět celý a byl ostrý.",
+      "mimic_detail_procedure": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Nechte účastníka postupně napodobit zobrazené emoce a poté stiskněte tlačítko STOP.",
       "predefinedPatientField1x": "Pohlaví",
       "predefinedPatientField1Option1": "Žena",
       "predefinedPatientField1Option2": "Muž",
@@ -321,9 +338,12 @@
       "retelling_title": "Retelling",
       "retelling_description": "I will replay to you a spoken fairytale story. After listening to the story, please retell the tale in your own words. The goal is to speak continuously, so it doesn`t matter if the retold tale is correct or whole.",
       "retelling_procedure_description": "<bold>Start now.</bold>Press the START button to begin recording. Wait until the time passes xx seconds and then press STOP button.",
-      "mimic_title": "Mimika",
-      "mimic_description1": "Cílem další úlohy je napodobit emoce, které uvidíte na následujících obrázcích. Používejte prosím pouze mimiku obličeje.",
-      "mimic_description2": "Cílem další úlohy je popsat čtveřici obrázků, které vidíte před sebou.",
+      "mimic_title": "Facial expression",
+      "mimic_description1": "The goal of this task is to imitate the emotions shown in the following pictures. Please use facial expression only.",
+      "mimic_description2": "The goal of this task is to describe the four pictures in front of you.",
+      "mimic_detail_title": "Facial expression - close-up",
+      "mimic_detail_description": "<bold>We will now focus on a close-up of your face. Please sit comfortably and look directly into the camera.</bold>Use the camera controls to zoom in so the participant's whole face is visible and in focus.",
+      "mimic_detail_procedure": "<bold>Start now.</bold>Press the START button to begin recording. Let the participant imitate each emotion in turn, then press STOP.",
       "predefinedPatientField1x": "Sex",
       "predefinedPatientField1Option1": "Female",
       "predefinedPatientField1Option2": "Male",
