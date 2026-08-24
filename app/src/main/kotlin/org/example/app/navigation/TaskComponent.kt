@@ -159,6 +159,12 @@ interface TaskComponent {
             val screenState: TaskScreenState,
             val takeNumber: Int,
             val frames: StateFlow<ByteArray?>,
+            /**
+             * False while the camera is still opening. Entering the screen starts the capture
+             * process, and negotiation may walk several modes, so there is a real window in
+             * which no frames exist yet and a take cannot be started.
+             */
+            val ready: Boolean,
             /** True only where a PTZ backend exists *and* the task asked for PTZ. */
             val ptzAvailable: Boolean,
             val zoom: StateFlow<Int?>,
@@ -263,6 +269,7 @@ class DefaultTaskComponent(
     private var exampleAudioPlaying = false
     private var answers: Map<String, AnswerState> = initialAnswers()
     private var videoError: VideoError? = null
+    private var videoReady = false
 
     private val _state = MutableValue(buildState())
     override val state: Value<TaskComponent.State> = _state
@@ -293,6 +300,7 @@ class DefaultTaskComponent(
             scope.launch(dispatchers.main) {
                 videoState.collect { vs ->
                     videoError = (vs as? VideoRecorderState.Failed)?.error
+                    videoReady = vs == VideoRecorderState.Previewing || vs == VideoRecorderState.Recording
                     if (videoError != null && screenState is TaskScreenState.Capturing) {
                         // Capture died mid-take. Reject the take and return to Idle rather than
                         // leaving a Stop button that would imply a recording exists; the error
@@ -364,11 +372,11 @@ class DefaultTaskComponent(
     private val isCapturingType: Boolean get() = task is VocalTask || task is VideoTask
 
     /**
-     * No working camera means a take would record nothing. Enforced here and not only by the
-     * disabled button, so a keyboard path or a caller that bypasses the UI cannot open an
-     * empty take and inflate the take counter.
+     * A camera that is not previewing — still opening, or failed — would record nothing.
+     * Enforced here and not only by the disabled button, so a keyboard path or a caller that
+     * bypasses the UI cannot open an empty take and inflate the take counter.
      */
-    private val videoCaptureUnavailable: Boolean get() = task is VideoTask && videoError != null
+    private val videoCaptureUnavailable: Boolean get() = task is VideoTask && !videoReady
 
     override fun onNext() {
         when (task) {
@@ -568,6 +576,7 @@ class DefaultTaskComponent(
                 takeNumber = currentTake,
                 frames = videoFrames ?: emptyFrames,
                 // Both halves matter: a config may ask for PTZ on a host that has no backend.
+                ready = videoReady,
                 ptzAvailable = task.havePTZ && ptzController.isAvailable,
                 zoom = ptzController.zoom,
                 error = videoError,
@@ -580,9 +589,9 @@ class DefaultTaskComponent(
 
         val buttons = if (isCapturingType) {
             val base = TaskButtonState.of(screenState, task.canRepeat, task.canSkip)
-            // With no working camera there is nothing to record, so offering Start would
+            // With no camera previewing there is nothing to record, so offering Start would
             // produce an empty take and a take counter that lies about it.
-            if (task is VideoTask && videoError != null) {
+            if (task is VideoTask && !videoReady) {
                 base.copy(startEnabled = false, repeatEnabled = false)
             } else {
                 base

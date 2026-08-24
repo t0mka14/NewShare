@@ -888,6 +888,18 @@ Error taxonomy (normative, inlined from the old plan):
     share VOCAL's Start/Stop/Repeat state machine, with these differences:
     - **Capture is per take, not continuous.** Audio remains the single source of truth for
       session time; video owns no clock and has no part files or device-loss resume path.
+    - **The camera is open only while a VIDEO task screen is shown** (amended 2026-08-23; it was
+      briefly opened once at session bootstrap). It opens on entering the screen and is released
+      on leaving, so the device's indicator light is off during every unrelated task — a
+      participant who consented to video for one task should not face a lit camera through the
+      questionnaire — and the bus shared with the USB microphone carries no UVC isochronous load
+      for the rest of the session. Screens are reference-counted rather than tracked by a
+      boolean, because Decompose may create the incoming child before destroying the outgoing
+      one; the count is correct under either ordering and keeps the camera open across the
+      consecutive screens of a repeated VIDEO task. The PTZ controller is scoped the same way,
+      so no COM handle outlives the screen. Entering a screen therefore starts a brief window in
+      which the camera is not yet previewing: Start is refused and the screen says so, enforced
+      in the component and not only by the disabled button.
     - **Any UVC camera works, not just the PTZ model.** Devices are enumerated and selected by
       the saved `cameraDeviceId` (falling back to the first eligible one); nothing keys off a
       camera name, unlike the original app's hardcoded `"PTZ Pro 2"`. A requested resolution the

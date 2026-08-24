@@ -67,12 +67,21 @@ fun VideoTaskBody(
                 testTag = TestTags.Task.VIDEO_PREVIEW,
             )
 
-            content.error?.let { error ->
-                Text(
-                    text = describe(error),
+            when {
+                content.error != null -> Text(
+                    text = describe(content.error),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_ERROR),
+                )
+
+                // Entering the screen opens the camera; until the first frame arrives the
+                // surface is black, so say why rather than looking broken.
+                !content.ready -> Text(
+                    text = "Starting camera…",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_STARTING),
                 )
             }
         }

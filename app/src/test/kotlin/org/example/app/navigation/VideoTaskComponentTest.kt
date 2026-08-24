@@ -241,4 +241,50 @@ class VideoTaskComponentTest {
         assertTrue(harness.component.state.value.buttons.startEnabled)
         assertEquals(null, harness.content.error)
     }
+    // region camera startup
+
+    /**
+     * Entering the screen is what opens the camera now, so there is a real window — potentially
+     * seconds, since mode negotiation may walk several rungs — where the state is Idle. Start
+     * must not be offered during it, or the take counter would advance over nothing.
+     */
+    @Test
+    fun `start is refused while the camera is still opening`() {
+        val harness = Harness(videoTask)
+        harness.videoState.value = VideoRecorderState.Idle
+
+        assertFalse(harness.content.ready)
+        assertFalse(harness.component.state.value.buttons.startEnabled)
+        assertEquals(null, harness.content.error, "still opening is not an error")
+
+        harness.component.onStart()
+
+        assertEquals(emptyList<Int>(), harness.takeStarts)
+    }
+
+    @Test
+    fun `start becomes available once the camera reaches preview`() {
+        val harness = Harness(videoTask)
+        harness.videoState.value = VideoRecorderState.Idle
+        harness.videoState.value = VideoRecorderState.Previewing
+
+        assertTrue(harness.content.ready)
+        assertTrue(harness.component.state.value.buttons.startEnabled)
+
+        harness.component.onStart()
+
+        assertEquals(listOf(1), harness.takeStarts)
+    }
+
+    /** Releasing the camera on the way out must not read as a take-able state. */
+    @Test
+    fun `a stopped camera is not ready`() {
+        val harness = Harness(videoTask)
+        harness.videoState.value = VideoRecorderState.Stopped
+
+        assertFalse(harness.content.ready)
+        assertFalse(harness.component.state.value.buttons.startEnabled)
+    }
+
+    // endregion
 }

@@ -10,6 +10,7 @@ import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.VocalSubtype
+import org.example.app.domain.config.VideoTask
 import org.example.app.domain.config.VocalTask
 import org.example.app.domain.session.StartSessionUseCase
 import org.example.app.domain.session.StorageError
@@ -20,7 +21,10 @@ import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.FakeDiskSpaceProvider
 import org.example.app.fakes.FakeIdGenerator
+import org.example.app.fakes.FakePtzController
 import org.example.app.fakes.FakeSessionRepository
+import org.example.app.fakes.FakeSessionVideoRecorder
+import org.example.app.fakes.FakeVideoInputDeviceProvider
 import org.example.app.fakes.FakeTimelineRepository
 import org.example.app.fakes.TestAppDirectories
 import org.example.app.fakes.TestCoroutineDispatchers
@@ -65,7 +69,26 @@ class SessionComponentTest {
         tasks = listOf(QuestionnaireTask(titleKey = "q1")),
     )
 
-    private inner class Harness {
+    /** A VOCAL screen precedes the VIDEO one, so "camera off until entered" is observable. */
+    private val vocalThenVideoProtocol = Protocol(
+        name = "VocalThenVideo",
+        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        tasks = listOf(
+            CalibrationTask(titleKey = "calib", optimalLoudness = listOf(0.2, 0.8)),
+            VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
+            VideoTask(titleKey = "video"),
+            InfoTask(titleKey = "info"),
+        ),
+    )
+
+    /** `nrepetition = 2` gives two consecutive VIDEO screens — the counter's reason to exist. */
+    private val repeatedVideoProtocol = Protocol(
+        name = "RepeatedVideo",
+        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        tasks = listOf(VideoTask(titleKey = "video", nrepetition = 2), InfoTask(titleKey = "info")),
+    )
+
+    private inner class Harness(private val withCamera: Boolean = false) {
         val clock = FakeClock(Instant.parse("2026-07-03T09:00:00Z"))
         val dispatchers = TestCoroutineDispatchers()
         val sessionRepository = FakeSessionRepository()
@@ -77,6 +100,8 @@ class SessionComponentTest {
         val recorderFactory: () -> org.example.app.domain.audio.ContinuousSessionRecorder = {
             FakeContinuousSessionRecorder(clock).also { recorder = it }
         }
+        var videoRecorder: FakeSessionVideoRecorder? = null
+        val ptzControllers = mutableListOf<FakePtzController>()
         val startSessionUseCase = StartSessionUseCase(
             directories = directories,
             sessionRepository = sessionRepository,
@@ -99,9 +124,9 @@ class SessionComponentTest {
             participantFieldValues = mapOf("code" to "HC001"),
             initialDevice = FakeAudioInputDeviceProvider.DEFAULT_DEVICE,
             availableDevices = listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
-            initialVideoDevice = null,
-            videoRecorderFactory = { org.example.app.fakes.FakeSessionVideoRecorder() },
-            ptzControllerFactory = { org.example.app.fakes.FakePtzController() },
+            initialVideoDevice = if (withCamera) FakeVideoInputDeviceProvider.DEFAULT_CAMERA else null,
+            videoRecorderFactory = { FakeSessionVideoRecorder().also { videoRecorder = it } },
+            ptzControllerFactory = { FakePtzController().also { ptzControllers += it } },
             recorderFactory = recorderFactory,
             startSessionUseCase = startSessionUseCase,
             sessionRepository = sessionRepository,
@@ -242,4 +267,129 @@ class SessionComponentTest {
         assertEquals("secondary", examination.interruptions.single().newDevice)
         assertEquals("session_master.part2.wav", examination.interruptions.single().partFile)
     }
+    // region camera lifecycle
+
+    /**
+     * The camera used to be opened once at session bootstrap and held for the whole
+     * examination, which left the device's indicator light on through every unrelated task and
+     * put a continuous UVC load on the bus shared with the USB microphone. Nothing asserted
+     * that it was ever opened, which is how that shipped — these cases are the guard.
+     */
+    @Test
+    fun `the camera stays closed until a VIDEO task screen is entered`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(vocalThenVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        // On the VOCAL screen: the recorder object exists, but no camera has been opened.
+        assertNotNull(h.videoRecorder)
+        assertEquals(emptyList<Any>(), h.videoRecorder!!.previewStarts)
+
+        var task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        // Now on the VIDEO screen.
+        assertEquals(1, h.videoRecorder!!.previewStarts.size, "entering the VIDEO screen opens the camera")
+        assertEquals(0, h.videoRecorder!!.stopCallCount)
+
+        task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.videoRecorder!!.stopCallCount, "leaving the VIDEO screen closes the camera")
+    }
+
+    /**
+     * A VIDEO task with `nrepetition = 2` produces two consecutive VIDEO screens. Whether
+     * Decompose creates the incoming child before destroying the outgoing one is not something
+     * this code controls, so the screen count — not a boolean — decides when to open and close.
+     * Either ordering must leave the camera open exactly once across the pair.
+     */
+    @Test
+    fun `consecutive VIDEO screens do not reopen the camera`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        var task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertEquals(1, h.videoRecorder!!.previewStarts.size)
+
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        // Second repetition: still a VIDEO screen, so the camera must not have been cycled.
+        task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertEquals(1, h.videoRecorder!!.previewStarts.size, "the camera should not be reopened between takes")
+        assertEquals(0, h.videoRecorder!!.stopCallCount, "the camera should not be closed between takes")
+
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        // Now on the INFO screen: the last VIDEO screen is gone, so the camera is released.
+        assertEquals(1, h.videoRecorder!!.stopCallCount)
+    }
+
+    @Test
+    fun `a protocol with no VIDEO task never creates a camera recorder`() {
+        val h = Harness(withCamera = true)
+        h.build(mixedProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertNull(h.videoRecorder)
+    }
+
+    /** PTZ handles are per-screen too, so nothing holds a COM device across the session. */
+    @Test
+    fun `the PTZ controller is created per VIDEO screen and closed on leaving`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.ptzControllers.size)
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.ptzControllers.first().closeCallCount, "the first screen's controller is released")
+        assertEquals(2, h.ptzControllers.size, "the second VIDEO screen gets its own controller")
+    }
+
+    /** A take must not be opened while the camera is still starting up. */
+    @Test
+    fun `no video file is written while the camera is still opening`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        val content = task.state.value.content as TaskComponent.Content.Video
+        assertTrue(content.ready, "the fake reaches Previewing immediately")
+
+        // Drop back to a not-ready state and confirm Start is refused.
+        h.videoRecorder!!.simulateFailure(org.example.app.domain.video.VideoError.CaptureInterrupted("gone"))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        task.onStart()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(emptyList<Any>(), h.videoRecorder!!.recordingStarts)
+    }
+
+    // endregion
 }

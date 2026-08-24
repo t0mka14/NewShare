@@ -8,6 +8,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -45,6 +46,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.timeline.TimelineRepository
 import java.nio.file.Path
+
+private val logger = KotlinLogging.logger {}
 
 interface SessionComponent {
     val stack: Value<ChildStack<*, Child>>
@@ -134,7 +137,15 @@ class DefaultSessionComponent(
     private val noCameraState = MutableStateFlow<VideoRecorderState>(
         VideoRecorderState.Failed(VideoError.DeviceUnavailable("none")),
     )
-    private var ptzController: PtzController = NoOpPtzController
+    /**
+     * How many VIDEO task screens are currently alive. A counter rather than a boolean because
+     * Decompose may create the incoming child before destroying the outgoing one: on a
+     * VIDEO -> VIDEO transition (a task with `nrepetition > 1`) a boolean would either try to
+     * open a camera the previous screen still holds, or let the outgoing screen's close kill a
+     * camera the incoming one just opened. With a count, either ordering is correct — and
+     * create-before-destroy keeps the camera open across consecutive takes for free.
+     */
+    private var videoScreensOpen = 0
     private var folderName: String? = null
     private var examination: Examination? = null
     private var navigableInstances: List<TaskInstance> = emptyList()
@@ -155,8 +166,8 @@ class DefaultSessionComponent(
     init {
         lifecycle.doOnDestroy {
             recorder?.let { r -> scope.launch(dispatchers.main) { r.stop() } }
+            // Idempotent safety net: the screen that opened the camera normally closes it.
             videoRecorder?.let { v -> scope.launch(dispatchers.main) { v.stop() } }
-            ptzController.close()
             scope.cancel()
         }
         scope.launch(dispatchers.main) { bootstrap() }
@@ -174,12 +185,11 @@ class DefaultSessionComponent(
             observeInterruptions(r)
         }
 
-        // Same gate as the recorder: no VIDEO task means the camera is never opened.
+        // The recorder *object* is created here so the flows handed to task components are
+        // stable for the whole session, but the camera itself is not opened until a VIDEO task
+        // screen is entered (see [buildTaskComponent]). Constructing it starts no process.
         if (protocol.tasks.any { it is VideoTask } && initialVideoDevice != null) {
-            val v = videoRecorderFactory()
-            videoRecorder = v
-            v.startPreview(initialVideoDevice)
-            ptzController = ptzControllerFactory(initialVideoDevice)
+            videoRecorder = videoRecorderFactory()
         }
 
         val outcome = startSessionUseCase.start(
@@ -242,6 +252,26 @@ class DefaultSessionComponent(
         val resolvedAudioExamplePath = (task as? VocalTask)?.audioExamplePath
             ?.let { directories.configDir.resolve(it) }
         val currentDevice = availableDevices.firstOrNull { it.id == currentDeviceId }
+
+        // The camera is opened here rather than from a lifecycle callback for two reasons:
+        // `childFactory` runs exactly once per screen entry (every transition is `replaceAll`,
+        // so each screen is a fresh child), and `doOnCreate` would not fire for a child that is
+        // already created by the time this returns — essenty's lifecycle does not replay past
+        // events. The PTZ controller has to exist before the component is constructed, because
+        // `Content.Video.ptzAvailable` reads it.
+        val ptz = if (task is VideoTask && initialVideoDevice != null) {
+            ptzControllerFactory(initialVideoDevice)
+        } else {
+            NoOpPtzController
+        }
+        if (task is VideoTask) {
+            onVideoScreenEntered()
+            childContext.lifecycle.doOnDestroy {
+                onVideoScreenExited()
+                ptz.close()
+            }
+        }
+
         return DefaultTaskComponent(
             componentContext = childContext,
             taskInstance = instance,
@@ -259,13 +289,41 @@ class DefaultSessionComponent(
             },
             videoFrames = videoRecorder?.previewFrames,
             videoState = videoRecorder?.state ?: noCameraState.takeIf { task is VideoTask },
-            ptzController = ptzController,
+            ptzController = ptz,
             onVideoTakeStarted = { take -> startVideoTake(instance, take) },
             onVideoTakeStopped = { stopVideoTake() },
             nextPartFile = { computeNextPartFile() },
             onResumeRecorded = { device, partFile -> onResumeRecorded(device, partFile) },
             onTaskFinished = { record -> onTaskInstanceFinished(listIndex, record) },
         )
+    }
+
+    /**
+     * Opens the camera for the first VIDEO screen. Previously this happened once at session
+     * bootstrap, which held the device — and its indicator light — for the whole examination
+     * and put a continuous UVC isochronous load on the bus shared with the USB microphone.
+     *
+     * The re-check inside the coroutine discards a decision a fast transition has already
+     * invalidated.
+     */
+    private fun onVideoScreenEntered() {
+        val v = videoRecorder ?: return
+        val device = initialVideoDevice ?: return
+        videoScreensOpen++
+        if (videoScreensOpen != 1) return
+        scope.launch(dispatchers.main) {
+            if (videoScreensOpen > 0) v.startPreview(device)
+        }
+    }
+
+    /** Releases the camera once the last VIDEO screen is gone. */
+    private fun onVideoScreenExited() {
+        val v = videoRecorder ?: return
+        videoScreensOpen--
+        if (videoScreensOpen != 0) return
+        scope.launch(dispatchers.main) {
+            if (videoScreensOpen == 0) v.stop()
+        }
     }
 
     /**
@@ -280,6 +338,12 @@ class DefaultSessionComponent(
         val v = videoRecorder ?: return
         val folder = folderName ?: return
         scope.launch(dispatchers.main) {
+            // The screen gates Start on readiness, but the camera could have failed in between;
+            // `startRecording` requires Previewing and would throw inside this coroutine.
+            if (v.state.value != VideoRecorderState.Previewing) {
+                logger.warn { "ignoring video take $take: capture is ${v.state.value}" }
+                return@launch
+            }
             val file = sessionRepository.videoDir(folder)
                 .resolve(videoFileName(instance, take))
             v.startRecording(file)

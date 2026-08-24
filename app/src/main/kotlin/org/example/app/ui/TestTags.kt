@@ -80,6 +80,9 @@ object TestTags {
         /** VIDEO task: inline capture-failure message (no dialog — the screen stays usable). */
         const val VIDEO_ERROR = "task.videoError"
 
+        /** VIDEO task: shown while the camera is opening, before the first frame. */
+        const val VIDEO_STARTING = "task.videoStarting"
+
         /** VIDEO task: PTZ cluster. Absent unless the host has a PTZ backend *and* `havePTZ`. */
         const val PTZ_CONTROLS = "task.ptzControls"
         fun ptzButton(action: String) = "task.ptz.$action"
