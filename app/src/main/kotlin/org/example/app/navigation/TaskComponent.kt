@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -159,6 +160,13 @@ interface TaskComponent {
             val screenState: TaskScreenState,
             val takeNumber: Int,
             val frames: StateFlow<ByteArray?>,
+            /**
+             * Where `ui/VideoSurface.kt` decodes [frames]. Carried here because the UI layer has
+             * no other route to an injected dispatcher and must not name `Dispatchers.*` itself
+             * (§5.2) — and this must not default to the composition's dispatcher: JPEG decode on
+             * the EDT put the preview in direct competition with input handling and rendering.
+             */
+            val decodeDispatcher: CoroutineDispatcher,
             /**
              * False while the camera is still opening. Entering the screen starts the capture
              * process, and negotiation may walk several modes, so there is a real window in
@@ -575,6 +583,7 @@ class DefaultTaskComponent(
                 screenState = screenState,
                 takeNumber = currentTake,
                 frames = videoFrames ?: emptyFrames,
+                decodeDispatcher = dispatchers.default,
                 // Both halves matter: a config may ask for PTZ on a host that has no backend.
                 ready = videoReady,
                 ptzAvailable = task.havePTZ && ptzController.isAvailable,

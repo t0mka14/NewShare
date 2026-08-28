@@ -19,6 +19,7 @@ import java.nio.file.Path
 import java.util.ArrayDeque
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 private val logger = KotlinLogging.logger {}
@@ -83,6 +84,9 @@ class FfmpegSessionVideoRecorder internal constructor(
     @Volatile private var process: Process? = null
     @Volatile private var readerThread: Thread? = null
     private val stderrTail = StderrTail()
+
+    /** Bytes the reader has taken off the pipe during the current attempt; see [awaitFirstFrame]. */
+    private val bytesRead = AtomicLong()
 
     // region SessionVideoRecorder
 
@@ -162,6 +166,7 @@ class FfmpegSessionVideoRecorder internal constructor(
         process = started
         stderrTail.drain(started)
 
+        bytesRead.set(0)
         val firstFrame = CountDownLatch(1)
         readerThread = Thread({ readLoop(started, firstFrame) }, "video-capture-reader").apply {
             isDaemon = true
@@ -196,7 +201,8 @@ class FfmpegSessionVideoRecorder internal constructor(
      * last rung constrains nothing at all, which any camera satisfies.
      *
      * Each resolution is tried as MJPEG passthrough (a byte copy, no encoding anywhere on the
-     * capture path) before letting ffmpeg encode it.
+     * capture path) before letting ffmpeg encode it — but only where the platform can actually
+     * deliver MJPEG, which AVFoundation cannot; see [CaptureInput.supportsPassthrough].
      */
     private fun negotiationLadder(binary: Path, device: VideoInputDevice): List<CaptureAttempt> {
         val advertised = probeModes(binary, device)
@@ -214,7 +220,11 @@ class FfmpegSessionVideoRecorder internal constructor(
         val formats = (probed + blind).distinct().plus(null) // null: whatever the driver defaults to
 
         return formats.flatMap { format ->
-            listOf(CaptureAttempt(format, passthrough = true), CaptureAttempt(format, passthrough = false))
+            if (captureInput.supportsPassthrough) {
+                listOf(CaptureAttempt(format, passthrough = true), CaptureAttempt(format, passthrough = false))
+            } else {
+                listOf(CaptureAttempt(format, passthrough = false))
+            }
         }
     }
 
@@ -227,12 +237,11 @@ class FfmpegSessionVideoRecorder internal constructor(
     private fun probeModes(binary: Path, device: VideoInputDevice): List<CameraMode> {
         val probe = captureInput.probeArgs(device) ?: return emptyList()
         return try {
-            val process = ProcessBuilder(listOf(binary.toString()) + probe)
-                .redirectErrorStream(true)
-                .start()
-            process.outputStream.close()
-            val output = process.inputStream.bufferedReader().use { it.readText() }
-            if (!process.waitFor(PROBE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) process.destroyForcibly()
+            val output = readWithTimeout(
+                command = listOf(binary.toString()) + probe,
+                timeoutMs = PROBE_TIMEOUT_MS,
+                what = "capture-mode probe for '${device.name}'",
+            )
             captureInput.parseModes(output)
         } catch (e: Exception) {
             logger.warn(e) { "could not probe capture modes for '${device.name}'" }
@@ -248,6 +257,17 @@ class FfmpegSessionVideoRecorder internal constructor(
             // A dead process can still have buffered frames in the pipe; let the reader
             // finish draining before concluding that the attempt produced nothing.
             if (!started.isAlive) return firstFrame.await(DRAIN_GRACE_MS, TimeUnit.MILLISECONDS)
+            // A rung that is streaming hard while producing no frame is not slow, it is wrong:
+            // the pipe is carrying something that is not an MJPEG stream. Waiting out the rest
+            // of the timeout only pushes more of it through the reader and the frame splitter,
+            // so abandon it as soon as the volume proves the point.
+            if (bytesRead.get() > NO_FRAME_BYTE_BUDGET) {
+                logger.warn {
+                    "abandoning this mode: ${bytesRead.get() / 1_048_576} MB read with no frame — " +
+                        "the stream is not MJPEG"
+                }
+                return false
+            }
         }
         return false
     }
@@ -259,6 +279,19 @@ class FfmpegSessionVideoRecorder internal constructor(
         command += captureInput.args(device, attempt)
         command += listOf("-an", "-map", "0:v")
         command += if (attempt.passthrough) listOf("-c:v", "copy") else listOf("-c:v", "mjpeg", "-q:v", "3")
+        // Constrain the *output* rate explicitly.
+        //
+        // Without this ffmpeg targets the input's declared frame rate, and AVFoundation declares
+        // `1000k tbr` for a camera it could not estimate a rate for ("not enough frames to
+        // estimate rate"). ffmpeg then duplicates every frame to fill that rate: measured on a
+        // FaceTime HD Camera, 1080p30 came out as ~1100 fps and ~20 MB/s with `dup=33349`,
+        // ffmpeg alone burning nine of twelve cores. Nothing fails, so nothing is logged — the
+        // app simply stops responding on the VIDEO screen.
+        //
+        // `-r` and not `-fpsmax`: the elementary stream carries no timestamps and the
+        // processing-time remux applies the negotiated rate to it, so a constant rate is not
+        // just cheaper, it is the only rate that plays back at the right speed.
+        command += listOf("-r", (attempt.format?.fps ?: requestedFormat.fps).toString())
         // A bare elementary stream: whole JPEGs back to back, no container to close.
         command += listOf("-f", "mjpeg", "pipe:1")
         return command
@@ -294,6 +327,7 @@ class FfmpegSessionVideoRecorder internal constructor(
                 while (!Thread.currentThread().isInterrupted) {
                     val read = stream.read(chunk)
                     if (read < 0) break
+                    bytesRead.addAndGet(read.toLong())
                     splitter.append(chunk, 0, read)
                 }
             }
@@ -398,6 +432,13 @@ class FfmpegSessionVideoRecorder internal constructor(
         val FALLBACK_480P = VideoCaptureFormat(640, 480, 30)
         const val FIRST_FRAME_TIMEOUT_MS = 5_000L
         const val PROBE_TIMEOUT_MS = 5_000L
+
+        /**
+         * Read volume that disproves an MJPEG stream. Comfortably more than the few hundred
+         * kilobytes a real first frame takes, and small enough that a raw 1080p stream (~100 MB/s
+         * measured) trips it in well under half a second.
+         */
+        const val NO_FRAME_BYTE_BUDGET = 32L * 1024 * 1024
 
         /** Enough to cover a camera's realistic best options without a long start-up walk. */
         const val MAX_PROBED_MODES = 4

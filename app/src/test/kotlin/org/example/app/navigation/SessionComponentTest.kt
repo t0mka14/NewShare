@@ -88,7 +88,15 @@ class SessionComponentTest {
         tasks = listOf(VideoTask(titleKey = "video", nrepetition = 2), InfoTask(titleKey = "info")),
     )
 
-    private inner class Harness(private val withCamera: Boolean = false) {
+    private inner class Harness(
+        withCamera: Boolean = false,
+        cameras: List<org.example.app.domain.video.VideoInputDevice>? = null,
+        private val savedCameraDeviceId: String? = null,
+    ) {
+        val videoDeviceProvider = FakeVideoInputDeviceProvider(
+            cameras ?: if (withCamera) listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA) else emptyList(),
+        )
+
         val clock = FakeClock(Instant.parse("2026-07-03T09:00:00Z"))
         val dispatchers = TestCoroutineDispatchers()
         val sessionRepository = FakeSessionRepository()
@@ -124,7 +132,8 @@ class SessionComponentTest {
             participantFieldValues = mapOf("code" to "HC001"),
             initialDevice = FakeAudioInputDeviceProvider.DEFAULT_DEVICE,
             availableDevices = listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
-            initialVideoDevice = if (withCamera) FakeVideoInputDeviceProvider.DEFAULT_CAMERA else null,
+            videoInputDeviceProvider = videoDeviceProvider,
+            savedCameraDeviceId = savedCameraDeviceId,
             videoRecorderFactory = { FakeSessionVideoRecorder().also { videoRecorder = it } },
             ptzControllerFactory = { FakePtzController().also { ptzControllers += it } },
             recorderFactory = recorderFactory,
@@ -275,6 +284,65 @@ class SessionComponentTest {
      * put a continuous UVC load on the bus shared with the USB microphone. Nothing asserted
      * that it was ever opened, which is how that shipped — these cases are the guard.
      */
+    /**
+     * Listing cameras spawns ffmpeg and waits for it, so a protocol with no VIDEO task must not
+     * pay for it — and it must not happen in `RootComponent.buildSessionChild` either, which is a
+     * Decompose `childFactory` and therefore runs on the Swing EDT. Bootstrap is the one place that
+     * is both off the EDT and finished before any task screen can exist.
+     */
+    @Test
+    fun `a protocol with no VIDEO task never lists cameras`() {
+        val h = Harness(withCamera = true)
+        h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(0, h.videoDeviceProvider.enumerationCount)
+    }
+
+    /** One process per session, not one per VIDEO screen. */
+    @Test
+    fun `cameras are listed exactly once, during bootstrap`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(vocalThenVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.videoDeviceProvider.enumerationCount, "listed during bootstrap")
+
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        var task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart(); task.onStop(); task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart(); task.onStop(); task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.videoDeviceProvider.enumerationCount, "and not again per VIDEO screen")
+    }
+
+    /** Camera selection lives here now, so the saved choice has to be honoured here. */
+    @Test
+    fun `the saved camera wins over the first eligible one`() {
+        val first = FakeVideoInputDeviceProvider.DEFAULT_CAMERA
+        val saved = first.copy(id = "saved-camera", name = "Saved Camera", platformIndex = 1)
+        val h = Harness(cameras = listOf(first, saved), savedCameraDeviceId = "saved-camera")
+        h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(listOf(saved), h.videoRecorder!!.previewStarts)
+    }
+
+    /** An unknown saved id — a camera that was unplugged — must not strand the session. */
+    @Test
+    fun `an unrecognised saved camera falls back to the first eligible one`() {
+        val h = Harness(withCamera = true, savedCameraDeviceId = "a-camera-that-is-gone")
+        h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA), h.videoRecorder!!.previewStarts)
+    }
+
     @Test
     fun `the camera stays closed until a VIDEO task screen is entered`() {
         val h = Harness(withCamera = true)

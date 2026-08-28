@@ -148,6 +148,27 @@ tasks.register<JavaExec>("previewEditor") {
     useVideoNatives()
 }
 
+tasks.register<JavaExec>("previewCamera") {
+    group = "application"
+    description = "Opens the VideoTaskBody harness over a real camera. -Pautostart opens it at once."
+    mainClass = "org.example.app.ui.previews.CameraLiveHarnessKt"
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    useVideoNatives()
+    // Lets the harness be driven from a terminal, reading its once-a-second stats out of the log
+    // instead of clicking Start — which is also how it works when hot reload is not attached.
+    if (project.hasProperty("autostart")) systemProperty("harness.autostart", "true")
+}
+
+/**
+ * The Compose Hot Reload tasks (`hotRun`, `hotDev`) are registered by the plugin and so miss
+ * `useVideoNatives()`, which every camera harness needs. Matched by name rather than by the
+ * plugin's task type so a plugin upgrade cannot silently stop applying this.
+ */
+tasks.withType<JavaExec>().configureEach {
+    if (name.startsWith("hot")) useVideoNatives()
+}
+
 compose.desktop {
     application {
         mainClass = "org.example.app.MainKt"

@@ -32,6 +32,19 @@ internal data class CaptureAttempt(
 internal interface CaptureInput {
     val isSupported: Boolean
 
+    /**
+     * Whether asking this backend for the camera's own MJPEG stream can ever work.
+     *
+     * False on AVFoundation. `-vcodec mjpeg` is accepted there rather than refused, and the
+     * demuxer then *labels* a raw stream mjpeg — `Stream #0:0: Video: mjpeg, uyvy422, 1920x1080`
+     * — so `-c:v copy` copies raw uyvy422 instead. Measured on a FaceTime HD Camera: 796 MB in
+     * 8 s (~100 MB/s) containing not one `FF D8 FF`, which the frame splitter byte-scans for the
+     * whole first-frame timeout before the rung is abandoned. The device's supported formats are
+     * `uyvy422 yuyv422 nv12 0rgb bgr0`; nothing compressed is on offer, so there is nothing to
+     * pass through.
+     */
+    val supportsPassthrough: Boolean get() = false
+
     fun args(device: VideoInputDevice, attempt: CaptureAttempt): List<String>
 
     /**
@@ -48,6 +61,9 @@ internal interface CaptureInput {
 internal class PlatformCaptureInput(private val hostOs: HostOs) : CaptureInput {
 
     override val isSupported: Boolean get() = hostOs == HostOs.WINDOWS || hostOs == HostOs.MAC
+
+    /** DirectShow exposes a UVC camera's MJPEG pin, which is the case the copy path exists for. */
+    override val supportsPassthrough: Boolean get() = hostOs == HostOs.WINDOWS
 
     override fun args(device: VideoInputDevice, attempt: CaptureAttempt): List<String> {
         val args = mutableListOf<String>()

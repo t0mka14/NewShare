@@ -101,6 +101,29 @@ class RootComponentTest {
         assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
     }
 
+    /** Validated patient details reach a session child, for a protocol with no VIDEO task. */
+    @Test
+    fun `validated patient details open the session`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val container = buildContainer(tempDir, dispatchers)
+        container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+
+        val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+        menu.onStartProtocol()
+        val patientInfo = (root.stack.value.active.instance as RootComponent.Child.PatientInfo).component
+        patientInfo.onFieldChanged("code", "HC001")
+        patientInfo.onFieldChanged("visitNumber", "V1")
+        patientInfo.onContinue()
+        dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(
+            root.stack.value.active.instance is RootComponent.Child.Session,
+            "expected a session, got ${root.stack.value.active.instance}",
+        )
+    }
+
     @Test
     fun `start protocol with a multi-protocol config shows the picker before patient info`(@TempDir tempDir: Path) {
         val container = buildContainer(tempDir)

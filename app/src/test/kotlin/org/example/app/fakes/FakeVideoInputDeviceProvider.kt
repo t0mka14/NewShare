@@ -8,7 +8,17 @@ class FakeVideoInputDeviceProvider(
     private val devices: List<VideoInputDevice> = listOf(DEFAULT_CAMERA),
 ) : VideoInputDeviceProvider {
 
-    override fun availableDevices(): List<VideoInputDevice> = devices
+    /**
+     * How many times the list was asked for. Real enumeration spawns a process and waits for it,
+     * so "was this called at all, and how often" is a property worth asserting.
+     */
+    var enumerationCount: Int = 0
+        private set
+
+    override fun availableDevices(): List<VideoInputDevice> {
+        enumerationCount++
+        return devices
+    }
 
     companion object {
         val DEFAULT_CAMERA = VideoInputDevice(

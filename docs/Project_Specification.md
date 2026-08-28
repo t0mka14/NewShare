@@ -902,16 +902,46 @@ Error taxonomy (normative, inlined from the old plan):
       in the component and not only by the disabled button.
     - **Any UVC camera works, not just the PTZ model.** Devices are enumerated and selected by
       the saved `cameraDeviceId` (falling back to the first eligible one); nothing keys off a
-      camera name, unlike the original app's hardcoded `"PTZ Pro 2"`. A requested resolution the
+      camera name, unlike the original app's hardcoded `"PTZ Pro 2"`. Both the enumeration and the
+      selection belong to `SessionComponent.bootstrap()` (amended 2026-08-27), which already owns
+      the camera and is already asynchronous. `RootComponent` used to enumerate and choose, but it
+      does so from a Decompose `childFactory`, which runs on the Swing EDT — and listing cameras
+      spawns ffmpeg and waits for it. Bootstrap is off the EDT and completes before the first task
+      screen exists, so nothing downstream, including the per-screen PTZ controller, has to cope
+      with an unresolved device. Enumeration happens once per session, and only for a protocol that
+      has a VIDEO task. A requested resolution the
       camera cannot produce is a hard *open failure* rather than a silent downgrade, so the
       camera is asked what it supports (`-list_options` on dshow; AVFoundation prints its modes
       when refusing one) and its own best mode is tried first — ranked MJPEG-capable first, then
       closest to 1080p, so an unusual sensor is used at its native size instead of being dropped
       to a standard rung. Fixed rungs (1080p, 720p, 480p, then no constraint at all) follow, so
       an unreadable listing still recovers. Each resolution is tried as MJPEG passthrough before
-      letting ffmpeg encode. The mode actually negotiated is read back from ffmpeg's stream
+      letting ffmpeg encode, **but only on DirectShow** (amended 2026-08-27): AVFoundation accepts
+      `-vcodec mjpeg` and then labels raw `uyvy422` frames as mjpeg, so the copy path emitted about
+      100 MB/s containing no JPEG at all and could never succeed — one wasted first-frame timeout
+      per resolution. macOS therefore goes straight to the encoding rung.
+      The **output frame rate is constrained explicitly** (amended 2026-08-27). Left to itself
+      ffmpeg matches the input's declared rate, and AVFoundation declares `1000k tbr` for a camera
+      whose rate it could not estimate, so it duplicated frames to fill it: 1080p30 was delivered
+      at roughly 1100 fps and 20 MB/s with ffmpeg taking nine of twelve cores, which presented as
+      the VIDEO screen freezing with nothing logged, since nothing had failed. It also wrecked the
+      recordings: a 30-second take was ~34,000 duplicated frames and ~645 MB, and plays back as
+      nineteen minutes of slow motion. A *constant* rate is the only correct choice here, because
+      the elementary stream carries no timestamps of its own, so whatever rate it was written at is
+      implicit and has to be a single known number.
+      **Not yet implemented, and a gap between this section and the code:** no remux exists. Nothing
+      in `ProcessSessionUseCase` touches video, so `video/*.mjpeg` enters the archive as a bare
+      elementary stream (as `SessionRepository.videoDir`'s own comment states), and the negotiated
+      format is never persisted — `SessionVideoRecorder.captureFormat` has no `examination.json`
+      counterpart the way audio's `captureFormat` does. A consumer of the ZIP therefore has to be
+      told the frame rate out of band. Either write the negotiated format into `examination.json` or
+      add the remux; until then, treat the rate as `VideoCaptureFormat.PREFERRED.fps`.
+      The mode actually negotiated is read back from ffmpeg's stream
       banner and is what the remux uses — recordings carry no timestamps of their own, so a
       wrong frame rate would alter playback speed.
+      A rung that streams past a byte budget without yielding a single frame is abandoned at once
+      rather than waiting out its timeout: at that volume the pipe is carrying something that is
+      not an MJPEG stream, and reading more of it only costs the reader and the frame splitter.
     - **Recording is a subprocess, not a library.** One bundled `ffmpeg` demuxes the camera and
       does nothing else — no decode, scale, encode or mux. The camera's own MJPEG frames are
       copied to `video/<task>_<rep>_<take>.mjpeg` as a bare elementary stream, and remuxed into
@@ -921,7 +951,10 @@ Error taxonomy (normative, inlined from the old plan):
       boundaries with no process restart and no spawn latency at the press.
     - **The preview never back-pressures capture.** Frames reach the UI through a conflated
       slot; a slow screen misses frames, while the file gets every one. Blocking the reader
-      would stall ffmpeg's pipe write and drop frames at the camera itself.
+      would stall ffmpeg's pipe write and drop frames at the camera itself. The JPEG decode also
+      runs on a background dispatcher, never the EDT (amended 2026-08-27): on the UI thread it
+      competed directly with input handling and rendering, so a capture arriving faster than
+      expected degraded into an unresponsive window instead of a dropped frame.
     - **The ffmpeg binaries ship outside `app.jar`**, in `<install_dir>/native/ffmpeg/`, so the
       updater does not re-download ~25 MB of unchanged natives with every app release (§9).
     - **PTZ is Windows-only and unreachable elsewhere.** `AppContainer.ptzControllerFactory` is

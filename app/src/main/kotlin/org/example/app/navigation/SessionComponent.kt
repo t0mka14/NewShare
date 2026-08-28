@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.example.app.domain.AppDirectories
 import org.example.app.domain.Clock
@@ -44,6 +45,7 @@ import org.example.app.domain.video.VideoError
 import org.example.app.domain.video.VideoRecorderState
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.example.app.domain.video.VideoInputDevice
+import org.example.app.domain.video.VideoInputDeviceProvider
 import org.example.app.domain.timeline.TimelineRepository
 import java.nio.file.Path
 
@@ -100,8 +102,17 @@ class DefaultSessionComponent(
     private val initialDevice: AudioInputDevice,
     private val availableDevices: List<AudioInputDevice>,
     private val recorderFactory: () -> ContinuousSessionRecorder,
-    /** Cameras available at session start, and the one to open; `null` when none was found. */
-    private val initialVideoDevice: VideoInputDevice?,
+    /**
+     * Where the camera comes from, rather than a camera already chosen.
+     *
+     * Listing cameras spawns ffmpeg and blocks until it exits, so it cannot happen in
+     * `RootComponent.buildSessionChild` — that is a Decompose `childFactory` and runs on the Swing
+     * EDT. It happens in [bootstrap] instead, on the IO dispatcher, which is also where the
+     * microphone is set up and which already completes before the first task screen exists.
+     */
+    private val videoInputDeviceProvider: VideoInputDeviceProvider,
+    /** `AppSettings.cameraDeviceId`; the first eligible camera is used when it no longer matches. */
+    private val savedCameraDeviceId: String?,
     private val videoRecorderFactory: () -> SessionVideoRecorder,
     /** Bound to a real controller only on a host with a PTZ backend; see `AppContainer`. */
     private val ptzControllerFactory: (VideoInputDevice) -> PtzController,
@@ -146,6 +157,9 @@ class DefaultSessionComponent(
      * create-before-destroy keeps the camera open across consecutive takes for free.
      */
     private var videoScreensOpen = 0
+
+    /** Resolved once by [bootstrap], before any task screen exists; null when no camera was found. */
+    private var initialVideoDevice: VideoInputDevice? = null
     private var folderName: String? = null
     private var examination: Examination? = null
     private var navigableInstances: List<TaskInstance> = emptyList()
@@ -185,10 +199,22 @@ class DefaultSessionComponent(
             observeInterruptions(r)
         }
 
+        // Cameras are listed only for a protocol that has a VIDEO task — it spawns a process, and a
+        // questionnaire-only protocol should not pay for it. On the IO dispatcher, because that
+        // process is waited on, and this is the last point before a task screen can exist, so
+        // everything downstream (including the per-screen PTZ controller) sees a resolved device.
+        if (protocol.tasks.any { it is VideoTask }) {
+            val cameras = withContext(dispatchers.io) { videoInputDeviceProvider.availableDevices() }
+            initialVideoDevice = cameras.firstOrNull { it.id == savedCameraDeviceId }
+                ?: cameras.firstOrNull { it.eligible }
+                ?: cameras.firstOrNull()
+            if (initialVideoDevice == null) logger.warn { "protocol wants video but no camera was found" }
+        }
+
         // The recorder *object* is created here so the flows handed to task components are
         // stable for the whole session, but the camera itself is not opened until a VIDEO task
         // screen is entered (see [buildTaskComponent]). Constructing it starts no process.
-        if (protocol.tasks.any { it is VideoTask } && initialVideoDevice != null) {
+        if (initialVideoDevice != null) {
             videoRecorder = videoRecorderFactory()
         }
 
@@ -259,8 +285,9 @@ class DefaultSessionComponent(
         // already created by the time this returns — essenty's lifecycle does not replay past
         // events. The PTZ controller has to exist before the component is constructed, because
         // `Content.Video.ptzAvailable` reads it.
-        val ptz = if (task is VideoTask && initialVideoDevice != null) {
-            ptzControllerFactory(initialVideoDevice)
+        val camera = initialVideoDevice
+        val ptz = if (task is VideoTask && camera != null) {
+            ptzControllerFactory(camera)
         } else {
             NoOpPtzController
         }

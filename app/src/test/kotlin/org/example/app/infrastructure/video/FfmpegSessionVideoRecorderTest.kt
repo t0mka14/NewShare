@@ -1,6 +1,7 @@
 package org.example.app.infrastructure.video
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
@@ -45,6 +46,8 @@ class FfmpegSessionVideoRecorderTest {
         private val rejectFormats: Set<Pair<Int, Int>> = emptySet(),
         /** Modes the "camera" advertises; empty means it reports nothing probeable. */
         private val advertisedModes: List<CameraMode> = emptyList(),
+        /** Defaults to the DirectShow answer, since that is the backend the copy path exists for. */
+        override val supportsPassthrough: Boolean = true,
     ) : CaptureInput {
         val attempts = mutableListOf<CaptureAttempt>()
 
@@ -204,6 +207,79 @@ class FfmpegSessionVideoRecorderTest {
 
             assertTrue(input.attempts.first().passthrough, "the first rung must be passthrough")
             assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+        } finally {
+            recorder.stop()
+        }
+    }
+
+    /**
+     * On AVFoundation the copy path cannot work — `-vcodec mjpeg` is accepted but the frames stay
+     * raw — and trying it anyway pushed ~100 MB/s of non-JPEG bytes through the reader and the
+     * frame splitter for the whole first-frame timeout, once per resolution in the ladder.
+     */
+    @Test
+    fun `skips passthrough where the platform cannot deliver MJPEG`() = runBlocking {
+        assumeFfmpegAvailable()
+        val input = SyntheticCaptureInput(fps = 15, supportsPassthrough = false)
+        val recorder = recorder(input = input)
+        try {
+            recorder.startPreview(device)
+
+            assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+            assertTrue(
+                input.attempts.none { it.passthrough },
+                "no rung may ask for passthrough; tried ${input.attempts.map { it.describe }}",
+            )
+        } finally {
+            recorder.stop()
+        }
+    }
+
+    /**
+     * The freeze this ladder caused on macOS. AVFoundation declares `1000k tbr` for a camera whose
+     * rate it could not estimate, and with no output rate ffmpeg duplicates frames to fill it:
+     * 1080p30 arrived as ~1100 fps and ~20 MB/s, ffmpeg alone taking nine of twelve cores, and the
+     * VIDEO screen stopped responding without logging anything.
+     *
+     * A 1000 fps source stands in for that declaration. The delivered rate must follow the
+     * requested one, not the source's.
+     */
+    @Test
+    fun `caps the delivered frame rate when the source declares a much higher one`() = runBlocking {
+        assumeFfmpegAvailable()
+        val input = SyntheticCaptureInput(fps = 1_000, supportsPassthrough = false)
+        val recorder = recorder(input = input, requested = VideoCaptureFormat(320, 240, 15))
+        try {
+            recorder.startPreview(device)
+            assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+
+            var frames = 0L
+            val collector = launch { recorder.previewFrames.collect { if (it != null) frames++ } }
+            delay(2_000)
+            collector.cancel()
+
+            // Two seconds at the requested 15 fps is ~30 frames; uncapped it was two thousand.
+            // The ceiling is deliberately loose — this is about the order of magnitude.
+            assertTrue(frames in 5..300, "expected roughly 30 frames in 2s, got $frames")
+        } finally {
+            recorder.stop()
+        }
+    }
+
+    /**
+     * The guard that abandons a rung once it has read a lot of bytes without producing a frame
+     * must not mistake a genuinely fast camera for a stream that is not MJPEG.
+     */
+    @Test
+    fun `does not abandon a high-bitrate stream that really is MJPEG`() = runBlocking {
+        assumeFfmpegAvailable()
+        val input = SyntheticCaptureInput(fps = 120, supportsPassthrough = false)
+        val recorder = recorder(input = input, requested = VideoCaptureFormat(1280, 720, 120))
+        try {
+            recorder.startPreview(device)
+
+            assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+            assertNotNull(recorder.previewFrames.value)
         } finally {
             recorder.stop()
         }

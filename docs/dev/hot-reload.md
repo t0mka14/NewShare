@@ -23,6 +23,9 @@ toolchain changes, and the first `hot*` task of a fresh checkout just takes a bi
 ./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.PreviewHarnessKt --auto
 ./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.EditorPreviewHarnessKt --auto
 
+# 2b. the VIDEO task body over a real camera, with capture statistics
+./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.CameraLiveHarnessKt --auto
+
 # 3. the real app, real data directory, real config fetch
 ./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto
 ```
@@ -38,6 +41,26 @@ mode*: leave it running and apply changes with `./gradlew reload` whenever you w
 | `@DevelopmentEntryPoint` functions | `app/src/dev/.../ui/previews/` | **no** | `hotDev`, IDE gutter icons |
 | `PreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewCalibration` |
 | `EditorPreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewEditor` |
+| `CameraLiveHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewCamera` |
+
+`CameraLiveHarness` renders the production `VideoTaskBody` over a **real camera**, with the real
+`FfmpegSessionVideoRecorder` and `FfmpegDeviceEnumerator` and no `AppContainer` (so no
+`app/data/app.lock`). It is in `main` rather than `dev` because the MCP server only attaches to
+`hotRun` — see the MCP section below.
+
+Camera faults on this path are quiet: negotiation walks several modes, every failure is a log line
+rather than a throw, and a capture that arrives far faster than the requested rate starves the UI
+instead of reporting anything. So the harness shows — and **also logs once a second** — the
+delivered frame rate and MB/s, the composition frame-clock interval and its worst case, the
+negotiated format, and the resolved ffmpeg path. When the UI thread is the thing being starved, the
+log is the only part still moving. The `decode on EDT` chip puts the JPEG decode back on the UI
+thread, which is the shape the preview had when the VIDEO screen locked up.
+
+It also runs headless-ish, driven from a terminal instead of by clicks:
+
+```bash
+./gradlew :app:previewCamera -Pautostart   # opens the camera as soon as one is found
+```
 
 The editor also has `EditorLiveDev` (dev source set only): the **real** `DefaultEditorComponent`
 over the newest reviewable session in `app/data/sessions/`, with the production waveform and
@@ -158,4 +181,8 @@ has to be granted before the agent can drive the UI.
   app — `get_ui_error` (or the dev-tools overlay) has the stacktrace.
 - The `hot*` tasks do not inherit the `--enable-native-access=ALL-UNNAMED` flag that
   `compose.desktop.application` sets, so the run prints JEP 472 warnings on JDK 24+. Harmless.
+- Reloading across a change to a `@Composable`'s *signature* (or to a lambda inside one) can leave
+  the running app holding a class that no longer matches, which shows up as a `ClassCastException`
+  from somewhere innocent — `... cannot be cast to kotlinx.coroutines.flow.FlowCollector` is a
+  characteristic one. It is a stale-class artifact, not a bug in the edit: `restart` clears it.
 - Upstream's own list: <https://github.com/JetBrains/compose-hot-reload/blob/master/docs/Known_limitations.md>

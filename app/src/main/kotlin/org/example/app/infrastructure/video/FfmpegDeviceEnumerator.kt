@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoInputDeviceProvider
 import org.example.app.infrastructure.HostOs
-import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
 
@@ -56,16 +55,12 @@ class FfmpegDeviceEnumerator(
         }
     }
 
-    private fun capture(command: List<String>): String {
-        val process = ProcessBuilder(command).redirectErrorStream(true).start()
-        process.outputStream.close()
-        val text = process.inputStream.bufferedReader().use { it.readText() }
-        if (!process.waitFor(ENUMERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-            process.destroyForcibly()
-            logger.warn { "camera enumeration timed out after ${ENUMERATION_TIMEOUT_SECONDS}s" }
-        }
-        return text
-    }
+    private fun capture(command: List<String>): String =
+        readWithTimeout(
+            command = command,
+            timeoutMs = ENUMERATION_TIMEOUT_SECONDS * 1_000,
+            what = "camera enumeration",
+        )
 
     internal companion object {
         private const val ENUMERATION_TIMEOUT_SECONDS = 10L

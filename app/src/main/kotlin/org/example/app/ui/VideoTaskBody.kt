@@ -63,6 +63,7 @@ fun VideoTaskBody(
         ) {
             VideoSurface(
                 frames = content.frames,
+                decodeDispatcher = content.decodeDispatcher,
                 modifier = Modifier.fillMaxHeight(),
                 testTag = TestTags.Task.VIDEO_PREVIEW,
             )

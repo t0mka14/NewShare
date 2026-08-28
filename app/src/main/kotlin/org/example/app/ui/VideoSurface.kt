@@ -18,7 +18,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ColorType
@@ -32,21 +34,27 @@ private val logger = KotlinLogging.logger {}
 /**
  * Renders the live camera preview.
  *
- * The recorder hands over JPEG bytes rather than an image, so the decode happens here. Three
+ * The recorder hands over JPEG bytes rather than an image, so the decode happens here. Four
  * things keep that affordable at 30 fps:
  *
+ * - **Off the UI thread.** [decodeDispatcher] is a background dispatcher, never the composition's.
+ *   Collecting on the composition dispatcher puts every decode in direct competition with input
+ *   handling and rendering on the single Swing EDT, so a capture that runs faster than expected
+ *   degrades into an unresponsive window rather than a dropped frame — which is exactly what a
+ *   camera declaring an unestimated frame rate did on macOS.
  * - **Scaled decode.** The destination bitmap is allocated at a 1/2, 1/4 or 1/8 fraction of the
  *   source, and Skia's JPEG codec satisfies exactly those fractions by discarding high-frequency
  *   DCT coefficients rather than reconstructing full resolution and resampling. A 1080p frame
  *   decoded to 480x270 costs roughly a millisecond.
  * - **Double buffering.** Two bitmaps alternate, so the decode never writes into the one Skia is
- *   uploading as a texture.
+ *   uploading as a texture. Still exactly one decoder, so the alternation stays correct.
  * - **Draw-phase invalidation.** A frame counter read inside [Canvas] means a new frame reruns
  *   the draw phase only — the task screen around it does not recompose thirty times a second.
  */
 @Composable
 fun VideoSurface(
     frames: StateFlow<ByteArray?>,
+    decodeDispatcher: CoroutineDispatcher,
     modifier: Modifier = Modifier,
     testTag: String? = null,
 ) {
@@ -55,9 +63,11 @@ fun VideoSurface(
 
     DisposableEffect(holder) { onDispose { holder.close() } }
 
-    LaunchedEffect(frames, holder) {
-        frames.collect { jpeg ->
-            if (holder.decode(jpeg)) revision.intValue++
+    LaunchedEffect(frames, holder, decodeDispatcher) {
+        withContext(decodeDispatcher) {
+            frames.collect { jpeg ->
+                if (holder.decode(jpeg)) revision.intValue++
+            }
         }
     }
 
@@ -86,7 +96,8 @@ private fun DrawScope.drawPreserveAspect(image: ImageBitmap) {
 
 /**
  * Owns the decode target bitmaps. Not a composable concern beyond lifetime, and deliberately
- * not thread-safe: [decode] is only ever called from the collector coroutine.
+ * not thread-safe: [decode] is only ever called from the single collector coroutine, which
+ * `VideoSurface` confines to one dispatcher.
  */
 private class VideoFrameHolder {
     private var bitmaps: Array<Bitmap>? = null

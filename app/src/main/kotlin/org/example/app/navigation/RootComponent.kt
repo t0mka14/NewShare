@@ -19,7 +19,6 @@ import org.example.app.AppContainer
 import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
-import org.example.app.domain.config.VideoTask
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
@@ -244,13 +243,6 @@ class DefaultRootComponent(
 
         val savedSettings = container.appSettingsRepository.read()
         val devices = container.audioInputDeviceProvider.availableDevices()
-        // Enumerated only when the protocol actually has a VIDEO task: listing cameras spawns
-        // a process, and questionnaire-only protocols should not pay for it.
-        val videoDevices = if (protocol.tasks.any { it is VideoTask }) {
-            container.videoInputDeviceProvider.availableDevices()
-        } else {
-            emptyList()
-        }
         val initialDevice = devices.firstOrNull { it.id == savedSettings?.micDeviceId }
             ?: devices.firstOrNull { it.eligible }
             ?: devices.firstOrNull()
@@ -269,9 +261,11 @@ class DefaultRootComponent(
             initialDevice = initialDevice ?: org.example.app.domain.audio.AudioInputDevice(id = "none", name = "No microphone", eligible = false),
             availableDevices = devices,
             recorderFactory = container.sessionRecorderFactory,
-            initialVideoDevice = videoDevices.firstOrNull { it.id == savedSettings?.cameraDeviceId }
-                ?: videoDevices.firstOrNull { it.eligible }
-                ?: videoDevices.firstOrNull(),
+            // The port, not a resolved device: listing cameras spawns ffmpeg and waits for it,
+            // and this factory is a Decompose `childFactory`, so it runs on the Swing EDT.
+            // `DefaultSessionComponent` resolves it during its own async bootstrap instead.
+            videoInputDeviceProvider = container.videoInputDeviceProvider,
+            savedCameraDeviceId = savedSettings?.cameraDeviceId,
             videoRecorderFactory = container.sessionVideoRecorderFactory,
             ptzControllerFactory = container.ptzControllerFactory,
             startSessionUseCase = container.startSessionUseCase,
