@@ -180,18 +180,19 @@ class FfmpegSessionVideoRecorder internal constructor(
         if (awaitFirstFrame(started, firstFrame)) {
             // Resolution as ffmpeg reports the camera actually opened it, not what we asked for.
             //
-            // The frame rate is taken from `-r` instead, so that what is reported here is by
-            // construction the rate the stream was *written* at. `examination.json` copies this
-            // into the take's record, and a bare MJPEG elementary stream carries no timestamps, so
-            // it is the only record of the rate the file plays back at. Where the two could differ
-            // — a dshow camera that opens at 25 fps while 30 was requested — ffmpeg duplicates up
-            // to 30, so 30 is the honest answer and the camera's 25 would play the footage slow.
+            // The frame rate has to describe the *file*, because `examination.json` copies it into
+            // the take's record and a bare MJPEG elementary stream carries no timestamps — it is
+            // the only record of the rate the footage plays back at. Which value that is depends on
+            // who chose the rate:
             //
-            // Not currently reachable on macOS: AVFoundation's input banner carries only `tbr` for
-            // a camera whose rate it could not estimate, and `parseNegotiatedFormat` ignores that,
-            // so the fallback below already yields the requested rate. See NegotiatedFormatTest.
+            // - Encoding: `-r` governs it. ffmpeg duplicates or drops frames to hit the requested
+            //   rate, so a camera opening at 25 while 30 was asked for still yields a 30 fps
+            //   stream, and reporting the camera's 25 would play it slow.
+            // - Passthrough: `-r` cannot re-time a stream it is only copying, so the file keeps the
+            //   camera's own rate whatever the output banner claims. Reporting the requested rate
+            //   here would play the footage fast.
             val opened = stderrTail.detectedFormat() ?: attempt.format ?: requestedFormat
-            _captureFormat.value = opened.copy(fps = outputFps(attempt))
+            _captureFormat.value = if (attempt.passthrough) opened else opened.copy(fps = outputFps(attempt))
             _state.value = VideoRecorderState.Previewing
             return true
         }
@@ -301,7 +302,11 @@ class FfmpegSessionVideoRecorder internal constructor(
         // `-r` and not `-fpsmax`: the elementary stream carries no timestamps and the
         // processing-time remux applies the negotiated rate to it, so a constant rate is not
         // just cheaper, it is the only rate that plays back at the right speed.
-        command += listOf("-r", outputFps(attempt).toString())
+        // Encoding only. A copied stream cannot be re-timed, so on the passthrough path `-r` changes
+        // no bytes and merely stamps the output banner with a rate the file does not have — which
+        // `parseNegotiatedFormat` would then believe if the input banner had scrolled out of the
+        // retained stderr lines.
+        if (!attempt.passthrough) command += listOf("-r", outputFps(attempt).toString())
         // A bare elementary stream: whole JPEGs back to back, no container to close.
         command += listOf("-f", "mjpeg", "pipe:1")
         return command

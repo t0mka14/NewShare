@@ -71,6 +71,42 @@ class FfmpegSessionVideoRecorderTest {
         override fun parseModes(output: String): List<CameraMode> = advertisedModes
     }
 
+    /**
+     * A "camera" that genuinely emits MJPEG, which [SyntheticCaptureInput] cannot: `testsrc` is raw,
+     * so every passthrough rung against it fails and the copy path is never actually taken. This
+     * replays a pre-made elementary stream instead, so `-c:v copy` succeeds the way it does on a
+     * DirectShow camera with an MJPEG pin — the only configuration where passthrough happens at all.
+     */
+    private class MjpegSourceCaptureInput(private val source: Path, private val fps: Int) : CaptureInput {
+        val attempts = mutableListOf<CaptureAttempt>()
+
+        override val isSupported = true
+        override val supportsPassthrough = true
+
+        override fun args(device: VideoInputDevice, attempt: CaptureAttempt): List<String> {
+            attempts += attempt
+            // Looped, so the capture keeps running while the assertions look at it.
+            return listOf(
+                "-stream_loop", "-1", "-f", "mjpeg", "-framerate", fps.toString(), "-i", source.toString(),
+            )
+        }
+    }
+
+    /** Builds the MJPEG fixture with the bundled ffmpeg, reusing the module's own bounded runner. */
+    private fun writeMjpegSource(target: Path, fps: Int) {
+        val binary = requireNotNull(FfmpegBinaryLocator().locate())
+        readWithTimeout(
+            command = listOf(
+                binary.toString(), "-hide_banner", "-loglevel", "error",
+                "-f", "lavfi", "-i", "testsrc=size=320x240:rate=$fps:duration=2",
+                "-c:v", "mjpeg", "-f", "mjpeg", target.toString(), "-y",
+            ),
+            timeoutMs = 30_000,
+            what = "mjpeg fixture",
+        )
+        assumeTrue(Files.size(target) > 0, "could not build the MJPEG fixture")
+    }
+
     private val device = VideoInputDevice(id = "synthetic", name = "synthetic", nameOrdinal = 0, platformIndex = 0, eligible = true)
 
     private fun recorder(
@@ -307,6 +343,33 @@ class FfmpegSessionVideoRecorderTest {
             )
             // The preview frames must genuinely be that size.
             assertEquals(negotiated!!.width, jpegWidth(recorder.previewFrames.value!!))
+        } finally {
+            recorder.stop()
+        }
+    }
+
+    /**
+     * A copied stream keeps the camera's rate, and that is the rate that must be reported.
+     *
+     * `-r` re-times an *encoded* stream by duplicating or dropping frames, but it cannot do that to
+     * a stream ffmpeg is only copying: measured, 100 frames in gives 100 frames out while the output
+     * banner still claims the requested rate. Since `examination.json` copies this number and a bare
+     * elementary stream has no timestamps, reporting 30 for a 25 fps copy would make a remux play
+     * the footage 20% fast.
+     */
+    @Test
+    fun `a passthrough capture reports the camera's rate, not the requested one`(@TempDir tempDir: Path) = runBlocking {
+        assumeFfmpegAvailable()
+        val source = tempDir.resolve("camera.mjpeg")
+        writeMjpegSource(source, fps = 25)
+        val input = MjpegSourceCaptureInput(source, fps = 25)
+        val recorder = recorder(input = input, requested = VideoCaptureFormat(320, 240, 30))
+        try {
+            recorder.startPreview(device)
+
+            assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+            assertTrue(input.attempts.first().passthrough, "the copy path is the one under test")
+            assertEquals(25, recorder.captureFormat.value?.fps, "the file is 25 fps, so 25 is the answer")
         } finally {
             recorder.stop()
         }
