@@ -33,6 +33,13 @@ internal interface CaptureInput {
     val isSupported: Boolean
 
     /**
+     * ffmpeg's name for the capture backend, e.g. `avfoundation`. Diagnostics only — which backend
+     * is in play decides what can go wrong, so it is worth being able to read it off a screen or a
+     * log line rather than inferring it from the host OS.
+     */
+    val backendName: String get() = "unknown"
+
+    /**
      * Whether asking this backend for the camera's own MJPEG stream can ever work.
      *
      * False on AVFoundation. `-vcodec mjpeg` is accepted there rather than refused, and the
@@ -64,6 +71,12 @@ internal class PlatformCaptureInput(private val hostOs: HostOs) : CaptureInput {
 
     /** DirectShow exposes a UVC camera's MJPEG pin, which is the case the copy path exists for. */
     override val supportsPassthrough: Boolean get() = hostOs == HostOs.WINDOWS
+
+    override val backendName: String get() = when (hostOs) {
+        HostOs.WINDOWS -> "dshow"
+        HostOs.MAC -> "avfoundation"
+        HostOs.LINUX, HostOs.OTHER -> "unsupported"
+    }
 
     override fun args(device: VideoInputDevice, attempt: CaptureAttempt): List<String> {
         val args = mutableListOf<String>()

@@ -73,6 +73,23 @@ class PlatformCaptureInputTest {
     }
 
     @Test
+    fun `each platform names its ffmpeg backend`() {
+        assertEquals("dshow", PlatformCaptureInput(HostOs.WINDOWS).backendName)
+        assertEquals("avfoundation", PlatformCaptureInput(HostOs.MAC).backendName)
+        assertEquals("unsupported", PlatformCaptureInput(HostOs.LINUX).backendName)
+    }
+
+    /** The name has to be the one actually passed to `-f`, or it describes nothing. */
+    @Test
+    fun `the backend name is the one passed to ffmpeg`() {
+        listOf(HostOs.WINDOWS, HostOs.MAC).forEach { host ->
+            val input = PlatformCaptureInput(host)
+            val args = input.args(device, CaptureAttempt(format, passthrough = false))
+            assertTrue(args.containsInOrder("-f", input.backendName), "$host: $args")
+        }
+    }
+
+    @Test
     fun `capture is unsupported off Windows and macOS`() {
         assertFalse(PlatformCaptureInput(HostOs.LINUX).isSupported)
         assertFalse(PlatformCaptureInput(HostOs.LINUX).supportsPassthrough)

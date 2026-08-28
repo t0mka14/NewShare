@@ -52,7 +52,15 @@ Camera faults on this path are quiet: negotiation walks several modes, every fai
 rather than a throw, and a capture that arrives far faster than the requested rate starves the UI
 instead of reporting anything. So the harness shows — and **also logs once a second** — the
 delivered frame rate and MB/s, the composition frame-clock interval and its worst case, the
-negotiated format, and the resolved ffmpeg path. When the UI thread is the thing being starved, the
+negotiated format, and the resolved ffmpeg path.
+
+It also names the **backend** (`avfoundation` / `dshow`, and whether that backend can do MJPEG
+passthrough at all) and the **rung** the open capture is running on — copying the camera's own MJPEG
+or letting ffmpeg encode. Neither is visible in the output, since both produce the same elementary
+stream, but they decide where the CPU goes and whether the frame rate came from the camera or from
+`-r`. A MB/s figure also means quite different things between the two, and note that it is
+content-dependent either way: the same camera at a steady 30 fps measured 0.8 MB/s in a dark room
+and 3.6 MB/s in daylight, because JPEG compresses detail. The frame rate is the number to watch. When the UI thread is the thing being starved, the
 log is the only part still moving. The `decode on EDT` chip puts the JPEG decode back on the UI
 thread, which is the shape the preview had when the VIDEO screen locked up.
 

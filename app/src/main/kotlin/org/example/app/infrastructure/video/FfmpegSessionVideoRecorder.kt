@@ -78,6 +78,23 @@ class FfmpegSessionVideoRecorder internal constructor(
     private val _framesWritten = MutableStateFlow(0L)
     override val framesWritten: StateFlow<Long> = _framesWritten.asStateFlow()
 
+    /**
+     * The negotiation rung capture is currently running on, or null when nothing is open.
+     *
+     * Diagnostics, not part of the [SessionVideoRecorder] contract: whether frames are being copied
+     * or re-encoded is invisible in the output — both produce the same MJPEG elementary stream — yet
+     * it decides where the CPU goes and whether the rate came from the camera or from `-r`. Use
+     * [captureFormat] for the format itself.
+     */
+    internal val activeAttempt: StateFlow<CaptureAttempt?> get() = _activeAttempt.asStateFlow()
+    private val _activeAttempt = MutableStateFlow<CaptureAttempt?>(null)
+
+    /** Which ffmpeg capture backend this recorder will use; see [CaptureInput.backendName]. */
+    internal val backendName: String get() = captureInput.backendName
+
+    /** Whether that backend can copy a camera's MJPEG at all; see [CaptureInput.supportsPassthrough]. */
+    internal val supportsPassthrough: Boolean get() = captureInput.supportsPassthrough
+
     /** Flipped by [startRecording]/[stopRecording]; read by the reader thread per frame. */
     private val sink = AtomicReference<RecordingSink?>(null)
 
@@ -193,6 +210,7 @@ class FfmpegSessionVideoRecorder internal constructor(
             //   here would play the footage fast.
             val opened = stderrTail.detectedFormat() ?: attempt.format ?: requestedFormat
             _captureFormat.value = if (attempt.passthrough) opened else opened.copy(fps = outputFps(attempt))
+            _activeAttempt.value = attempt
             _state.value = VideoRecorderState.Previewing
             return true
         }
@@ -401,6 +419,7 @@ class FfmpegSessionVideoRecorder internal constructor(
         _previewFrames.value = null
         _framesWritten.value = 0L
         _captureFormat.value = null
+        _activeAttempt.value = null
     }
 
     private class RecordingSink(val file: Path, val stream: OutputStream) {

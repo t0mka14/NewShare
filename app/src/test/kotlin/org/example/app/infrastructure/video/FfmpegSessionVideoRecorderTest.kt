@@ -1,7 +1,6 @@
 package org.example.app.infrastructure.video
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
@@ -13,7 +12,9 @@ import org.example.app.domain.video.VideoRecorderState
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -48,6 +49,8 @@ class FfmpegSessionVideoRecorderTest {
         private val advertisedModes: List<CameraMode> = emptyList(),
         /** Defaults to the DirectShow answer, since that is the backend the copy path exists for. */
         override val supportsPassthrough: Boolean = true,
+        /** Bounds the source, so the frames it produces are a fixed number rather than a rate. */
+        private val durationSeconds: Int? = null,
     ) : CaptureInput {
         val attempts = mutableListOf<CaptureAttempt>()
 
@@ -61,7 +64,8 @@ class FfmpegSessionVideoRecorderTest {
                 return listOf("-f", "lavfi", "-i", "no_such_filter_source")
             }
             val size = format?.let { "${it.width}x${it.height}" } ?: "320x240"
-            return listOf("-f", "lavfi", "-i", "testsrc=size=$size:rate=$fps")
+            val duration = durationSeconds?.let { ":duration=$it" } ?: ""
+            return listOf("-f", "lavfi", "-i", "testsrc=size=$size:rate=$fps$duration")
         }
 
         // A trivially successful command; its output is ignored in favour of parseModes.
@@ -281,22 +285,26 @@ class FfmpegSessionVideoRecorderTest {
      * requested one, not the source's.
      */
     @Test
-    fun `caps the delivered frame rate when the source declares a much higher one`() = runBlocking {
+    fun `caps the delivered frame rate when the source declares a much higher one`(@TempDir tempDir: Path) = runBlocking {
         assumeFfmpegAvailable()
-        val input = SyntheticCaptureInput(fps = 1_000, supportsPassthrough = false)
+        // Two seconds of a 1000 fps source: 2000 frames go in, and at the requested 15 fps ffmpeg
+        // drops that to 32. Counted out of the *file* rather than sampled over wall-clock, because
+        // lavfi is not a real-time source: ffmpeg runs flat out, so a wall-clock count measures how
+        // fast the machine encodes and is flaky by construction.
+        val input = SyntheticCaptureInput(fps = 1_000, durationSeconds = 2, supportsPassthrough = false)
         val recorder = recorder(input = input, requested = VideoCaptureFormat(320, 240, 15))
+        val file = tempDir.resolve("capped.mjpeg")
         try {
             recorder.startPreview(device)
-            assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+            recorder.startRecording(file)
 
-            var frames = 0L
-            val collector = launch { recorder.previewFrames.collect { if (it != null) frames++ } }
-            delay(2_000)
-            collector.cancel()
+            // The source ends on its own, which ends the capture.
+            withTimeout(60_000) {
+                while (recorder.state.value == VideoRecorderState.Recording) delay(50)
+            }
 
-            // Two seconds at the requested 15 fps is ~30 frames; uncapped it was two thousand.
-            // The ceiling is deliberately loose — this is about the order of magnitude.
-            assertTrue(frames in 5..300, "expected roughly 30 frames in 2s, got $frames")
+            val written = recorder.framesWritten.value
+            assertTrue(written in 10..200, "expected ~32 frames, got $written; uncapped this is 2000")
         } finally {
             recorder.stop()
         }
@@ -370,9 +378,33 @@ class FfmpegSessionVideoRecorderTest {
             assertEquals(VideoRecorderState.Previewing, recorder.state.value)
             assertTrue(input.attempts.first().passthrough, "the copy path is the one under test")
             assertEquals(25, recorder.captureFormat.value?.fps, "the file is 25 fps, so 25 is the answer")
+            assertEquals(true, recorder.activeAttempt.value?.passthrough, "and it reports itself as copying")
         } finally {
             recorder.stop()
         }
+    }
+
+    /**
+     * Which rung is live is invisible in the output — copied and encoded frames are both just JPEGs
+     * — so it is only knowable if the recorder says. The harness shows it, because a throughput
+     * figure means something quite different copied than encoded.
+     */
+    @Test
+    fun `reports the rung it is running on, and forgets it on stop`() = runBlocking {
+        assumeFfmpegAvailable()
+        val recorder = recorder(input = SyntheticCaptureInput(fps = 15, supportsPassthrough = false))
+        assertNull(recorder.activeAttempt.value, "nothing is open yet")
+        try {
+            recorder.startPreview(device)
+
+            val active = recorder.activeAttempt.value
+            assertNotNull(active)
+            assertFalse(active!!.passthrough, "this platform cannot copy, so it must be encoding")
+        } finally {
+            recorder.stop()
+        }
+
+        assertNull(recorder.activeAttempt.value, "the camera is closed, so no rung is live")
     }
 
     /**

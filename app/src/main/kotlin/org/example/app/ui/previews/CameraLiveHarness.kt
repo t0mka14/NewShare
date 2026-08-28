@@ -116,6 +116,7 @@ private fun CameraLive() {
     val state by recorder.state.collectAsState()
     val captureFormat by recorder.captureFormat.collectAsState()
     val framesWritten by recorder.framesWritten.collectAsState()
+    val activeAttempt by recorder.activeAttempt.collectAsState()
     val throughput = rememberThroughput(recorder)
     val frameClock = rememberFrameClockLag()
 
@@ -195,6 +196,22 @@ private fun CameraLive() {
         Text(
             text = buildString {
                 appendLine("state          $state")
+                // Which backend, and whether it can copy a camera's MJPEG at all — a static property
+                // of the platform, so it reads the same before anything is opened.
+                appendLine(
+                    "backend        ${recorder.backendName}" +
+                        "   passthrough ${if (recorder.supportsPassthrough) "available" else "unavailable here"}",
+                )
+                // Whether the *open* capture is copying or re-encoding. Invisible in the output —
+                // both produce the same MJPEG stream — but it decides where the CPU goes, and
+                // whether the frame rate came from the camera or from `-r`.
+                appendLine(
+                    "mode           " + when {
+                        activeAttempt == null -> "—"
+                        activeAttempt!!.passthrough -> "mjpeg passthrough (byte copy, camera's rate)"
+                        else -> "encoded by ffmpeg (rate forced with -r)"
+                    },
+                )
                 appendLine("negotiated     ${captureFormat?.let { "${it.width}x${it.height}@${it.fps}" } ?: "—"}")
                 appendLine("preview rate   ${throughput.fps} fps   ${throughput.megabytesPerSecond} MB/s")
                 appendLine("frame clock    ${frameClock.lastMillis} ms   worst ${frameClock.worstMillis} ms")
@@ -261,8 +278,13 @@ private fun rememberThroughput(recorder: FfmpegSessionVideoRecorder): Throughput
                 val next = Throughput(fps.toInt(), "%.2f".format(megabytes))
                 published = next
                 // Logged as well as shown: when the UI thread is starved this is the only
-                // surviving evidence of what the camera is doing.
-                logger.info { "harness preview: ${next.fps} fps, ${next.megabytesPerSecond} MB/s" }
+                // surviving evidence of what the camera is doing. The rung is included because a
+                // throughput figure means something quite different copied than encoded.
+                val mode = recorder.activeAttempt.value?.describe ?: "not capturing"
+                logger.info {
+                    "harness preview: ${next.fps} fps, ${next.megabytesPerSecond} MB/s " +
+                        "via ${recorder.backendName}, $mode"
+                }
             }
         }
     }
