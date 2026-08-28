@@ -43,9 +43,12 @@ class FakeSessionVideoRecorder : SessionVideoRecorder {
     var openFile: Path? = null
         private set
 
+    /** What [startPreview] will report as negotiated; set it to model a camera that is not 1080p30. */
+    var negotiatedFormat: VideoCaptureFormat = VideoCaptureFormat.PREFERRED
+
     override suspend fun startPreview(device: VideoInputDevice) {
         previewStarts += device
-        _captureFormat.value = VideoCaptureFormat.PREFERRED
+        _captureFormat.value = negotiatedFormat
         _state.value = VideoRecorderState.Previewing
     }
 

@@ -929,13 +929,18 @@ Error taxonomy (normative, inlined from the old plan):
       nineteen minutes of slow motion. A *constant* rate is the only correct choice here, because
       the elementary stream carries no timestamps of its own, so whatever rate it was written at is
       implicit and has to be a single known number.
-      **Not yet implemented, and a gap between this section and the code:** no remux exists. Nothing
-      in `ProcessSessionUseCase` touches video, so `video/*.mjpeg` enters the archive as a bare
-      elementary stream (as `SessionRepository.videoDir`'s own comment states), and the negotiated
-      format is never persisted — `SessionVideoRecorder.captureFormat` has no `examination.json`
-      counterpart the way audio's `captureFormat` does. A consumer of the ZIP therefore has to be
-      told the frame rate out of band. Either write the negotiated format into `examination.json` or
-      add the remux; until then, treat the rate as `VideoCaptureFormat.PREFERRED.fps`.
+      Because that rate is the only thing describing playback speed, every started take is recorded
+      in `examination.json` as a `videoTakes[]` entry carrying its file and its `captureFormat`
+      (added 2026-08-27). Per take, not per session: each take is its own file, the camera is
+      released with the last VIDEO screen and renegotiated on the next one, and a rung is capped to
+      its mode's own ceiling, so two takes in one session can legally differ. The entry is written
+      when the take opens, so a crash mid-take still leaves the rate on record. The reported rate is
+      the one `-r` enforced rather than the one the camera advertised, so it always describes the
+      file rather than the device.
+      **Still not implemented:** no remux. Nothing in `ProcessSessionUseCase` touches video, so
+      `video/*.mjpeg` enters the archive as a bare elementary stream (as `SessionRepository.videoDir`
+      states). A consumer must remux using the rate from `videoTakes[]`, e.g.
+      `ffmpeg -f mjpeg -r <fps> -i <file> -c:v copy out.mp4`.
       The mode actually negotiated is read back from ffmpeg's stream
       banner and is what the remux uses — recordings carry no timestamps of their own, so a
       wrong frame rate would alter playback speed.

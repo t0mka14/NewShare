@@ -5,6 +5,8 @@ import org.example.app.domain.session.Examination
 import org.example.app.domain.session.ParticipantRecord
 import org.example.app.domain.session.ProcessingInfo
 import org.example.app.domain.session.ProcessingStatus
+import org.example.app.domain.session.VideoTakeRecord
+import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.session.SessionFolderNaming
 import org.example.app.fakes.TestAppDirectories
 import org.example.app.infrastructure.audio.WavFileWriter
@@ -61,11 +63,42 @@ class JsonSessionRepositoryTest {
             configVersion = "2026-07-01.1",
             startedAt = "2026-07-03T09:00:00Z",
             captureFormat = format,
+            videoTakes = listOf(
+                VideoTakeRecord(
+                    file = "video/task09_rep01_take01.mjpeg",
+                    taskIndex = 9,
+                    repetition = 1,
+                    take = 1,
+                    captureFormat = VideoCaptureFormat(1920, 1080, 30),
+                ),
+            ),
             processing = ProcessingInfo(status = ProcessingStatus.Done, processedAt = "2026-07-03T09:30:00Z", timelineUsed = "original"),
         )
         repository.writeExamination("s1", examination)
 
         assertEquals(examination, repository.readExamination("s1"))
+    }
+
+    /**
+     * `videoTakes` was added after sessions had already been written. It has a default and the
+     * reader ignores unknown keys, so both directions must survive — a recording in progress when
+     * the app is updated must not become unreadable.
+     */
+    @Test
+    fun `an examination written before videoTakes existed still reads`(@TempDir tempDir: Path) {
+        val repository = repo(tempDir)
+        repository.createSessionDirectory("s1")
+        Files.writeString(
+            tempDir.resolve("sessions/s1/examination.json"),
+            """
+            {"version":1,"sessionId":"s1","installationId":"i","protocolName":"Share",
+             "configVersion":"1","startedAt":"2026-07-03T09:00:00Z"}
+            """.trimIndent(),
+        )
+
+        val read = repository.readExamination("s1")
+
+        assertEquals(emptyList<VideoTakeRecord>(), read?.videoTakes)
     }
 
     @Test

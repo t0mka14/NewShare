@@ -178,10 +178,20 @@ class FfmpegSessionVideoRecorder internal constructor(
         // first rather than always burning the whole timeout, so the passthrough attempt
         // costs nothing when the camera has no MJPEG mode.
         if (awaitFirstFrame(started, firstFrame)) {
-            // What ffmpeg reports the camera actually opened at, not what we asked for. The
-            // processing-time remux needs the true frame rate: an MJPEG elementary stream
-            // carries no timestamps, so remuxing 25 fps footage as 30 would speed it up.
-            _captureFormat.value = stderrTail.detectedFormat() ?: attempt.format ?: requestedFormat
+            // Resolution as ffmpeg reports the camera actually opened it, not what we asked for.
+            //
+            // The frame rate is taken from `-r` instead, so that what is reported here is by
+            // construction the rate the stream was *written* at. `examination.json` copies this
+            // into the take's record, and a bare MJPEG elementary stream carries no timestamps, so
+            // it is the only record of the rate the file plays back at. Where the two could differ
+            // — a dshow camera that opens at 25 fps while 30 was requested — ffmpeg duplicates up
+            // to 30, so 30 is the honest answer and the camera's 25 would play the footage slow.
+            //
+            // Not currently reachable on macOS: AVFoundation's input banner carries only `tbr` for
+            // a camera whose rate it could not estimate, and `parseNegotiatedFormat` ignores that,
+            // so the fallback below already yields the requested rate. See NegotiatedFormatTest.
+            val opened = stderrTail.detectedFormat() ?: attempt.format ?: requestedFormat
+            _captureFormat.value = opened.copy(fps = outputFps(attempt))
             _state.value = VideoRecorderState.Previewing
             return true
         }
@@ -291,11 +301,18 @@ class FfmpegSessionVideoRecorder internal constructor(
         // `-r` and not `-fpsmax`: the elementary stream carries no timestamps and the
         // processing-time remux applies the negotiated rate to it, so a constant rate is not
         // just cheaper, it is the only rate that plays back at the right speed.
-        command += listOf("-r", (attempt.format?.fps ?: requestedFormat.fps).toString())
+        command += listOf("-r", outputFps(attempt).toString())
         // A bare elementary stream: whole JPEGs back to back, no container to close.
         command += listOf("-f", "mjpeg", "pipe:1")
         return command
     }
+
+    /**
+     * The rate the written stream will actually have. Single source for both the `-r` argument and
+     * the reported [captureFormat], so the number recorded alongside a take cannot drift from the
+     * number the file was written at.
+     */
+    private fun outputFps(attempt: CaptureAttempt): Int = attempt.format?.fps ?: requestedFormat.fps
 
     /**
      * Owns the process's stdout for the lifetime of one capture. Every frame is offered to the

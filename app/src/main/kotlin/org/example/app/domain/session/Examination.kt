@@ -2,6 +2,7 @@ package org.example.app.domain.session
 
 import kotlinx.serialization.Serializable
 import org.example.app.domain.audio.CaptureFormat
+import org.example.app.domain.video.VideoCaptureFormat
 
 /** `processing.status` in `examination.json` (§8.8, §8.10). */
 @Serializable
@@ -71,6 +72,36 @@ data class TaskRecord(
 )
 
 /**
+ * One `videoTakes[]` entry in `examination.json`: a VIDEO capture that was opened for writing.
+ *
+ * Its reason to exist is [captureFormat]. A take is stored as a bare MJPEG elementary stream —
+ * whole JPEGs back to back, no container — which carries no timestamps at all, so the rate it plays
+ * back at is implicit in the file and recoverable from nothing else. Without this, a consumer of the
+ * archive has to be told the frame rate out of band and guesses wrong the moment a camera opens at
+ * anything other than the requested rate.
+ *
+ * Per take rather than per session, for the same reason [Interruption] carries its own
+ * `captureFormat`: one session can hold several. Each take is its own file; the camera is released
+ * when the last VIDEO screen closes and renegotiated from scratch on the next one; and a rung is
+ * capped to the mode's own ceiling (`CameraMode.toFormat`), so two takes in one session can legally
+ * differ.
+ *
+ * Written when the take opens, not when it closes, so a crash mid-take still leaves the rate on
+ * record — which is exactly when nothing else can supply it. Entries therefore describe takes that
+ * were *started*, including ones a later repeat rejected; the timeline says which take counts.
+ */
+@Serializable
+data class VideoTakeRecord(
+    /** Session-relative, `/`-separated, e.g. `video/task09_rep01_take01.mjpeg` — like `clipFile`. */
+    val file: String,
+    val taskIndex: Int,
+    val repetition: Int,
+    val take: Int,
+    /** What the file *is*, which is not always what the camera advertised; see the class comment. */
+    val captureFormat: VideoCaptureFormat,
+)
+
+/**
  * `examination.json` (§8.10): created at session start with `captureFormat`, `startedAt`,
  * `configVersion` populated; updated incrementally after every task completion via
  * [SessionRepository.writeExamination] (atomic tmp+rename, §8.10 write lifecycle) so a crash
@@ -94,5 +125,11 @@ data class Examination(
     val recovered: Boolean = false,
     val interruptions: List<Interruption> = emptyList(),
     val tasks: List<TaskRecord> = emptyList(),
+    /**
+     * Empty for a protocol with no VIDEO task. Additive with a default, and `JsonSessionRepository`
+     * reads with `ignoreUnknownKeys`, so this needs no [version] bump: sessions written before it
+     * existed still decode, and one written now still decodes on a build without it.
+     */
+    val videoTakes: List<VideoTakeRecord> = emptyList(),
     val processing: ProcessingInfo? = null,
 )

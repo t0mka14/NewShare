@@ -14,6 +14,7 @@ import org.example.app.domain.config.VideoTask
 import org.example.app.domain.config.VocalTask
 import org.example.app.domain.session.StartSessionUseCase
 import org.example.app.domain.session.StorageError
+import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioPlaybackService
@@ -88,10 +89,20 @@ class SessionComponentTest {
         tasks = listOf(VideoTask(titleKey = "video", nrepetition = 2), InfoTask(titleKey = "info")),
     )
 
+    /** `canRepeat`, so a take can be rejected and re-taken — which is what produces a take02 file. */
+    private val repeatableVideoProtocol = Protocol(
+        name = "RepeatableVideo",
+        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        tasks = listOf(VideoTask(titleKey = "video", canRepeat = true), InfoTask(titleKey = "info")),
+    )
+
     private inner class Harness(
         withCamera: Boolean = false,
         cameras: List<org.example.app.domain.video.VideoInputDevice>? = null,
         private val savedCameraDeviceId: String? = null,
+        /** Applied at construction: the recorder is created during bootstrap, so a test cannot
+         *  reach in and set this afterwards. */
+        private val negotiatedVideoFormat: VideoCaptureFormat = VideoCaptureFormat.PREFERRED,
     ) {
         val videoDeviceProvider = FakeVideoInputDeviceProvider(
             cameras ?: if (withCamera) listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA) else emptyList(),
@@ -134,7 +145,11 @@ class SessionComponentTest {
             availableDevices = listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
             videoInputDeviceProvider = videoDeviceProvider,
             savedCameraDeviceId = savedCameraDeviceId,
-            videoRecorderFactory = { FakeSessionVideoRecorder().also { videoRecorder = it } },
+            videoRecorderFactory = {
+                FakeSessionVideoRecorder()
+                    .also { it.negotiatedFormat = negotiatedVideoFormat }
+                    .also { videoRecorder = it }
+            },
             ptzControllerFactory = { FakePtzController().also { ptzControllers += it } },
             recorderFactory = recorderFactory,
             startSessionUseCase = startSessionUseCase,
@@ -457,6 +472,87 @@ class SessionComponentTest {
         h.dispatchers.scheduler.advanceUntilIdle()
 
         assertEquals(emptyList<Any>(), h.videoRecorder!!.recordingStarts)
+    }
+
+    /**
+     * A take is a bare MJPEG elementary stream, so it carries no timestamps and nothing else in the
+     * archive says what rate it plays back at. `examination.json` has to.
+     */
+    @Test
+    fun `a video take records its file and frame rate`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val takes = h.sessionRepository.examinationWrites.last().videoTakes
+        assertEquals(1, takes.size, "one take started, one record")
+        assertEquals("video/task00_rep01_take01.mjpeg", takes[0].file)
+        assertEquals(0, takes[0].taskIndex)
+        assertEquals(1, takes[0].repetition)
+        assertEquals(1, takes[0].take)
+        assertEquals(VideoCaptureFormat.PREFERRED, takes[0].captureFormat)
+        // The path in the record must name the file that was actually opened.
+        assertTrue(h.videoRecorder!!.recordingStarts.single().toString().endsWith(takes[0].file))
+    }
+
+    /** A rejected take is still a file on disk, so it stays listed; the timeline says which counts. */
+    @Test
+    fun `a repeated take appends a second record rather than replacing the first`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatableVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        task.onRepeat()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val takes = h.sessionRepository.examinationWrites.last().videoTakes
+        assertEquals(
+            listOf("video/task00_rep01_take01.mjpeg", "video/task00_rep01_take02.mjpeg"),
+            takes.map { it.file },
+        )
+        assertEquals(listOf(1, 2), takes.map { it.take })
+    }
+
+    /** Not every camera is 1080p30, and the recorded rate has to be the one that was used. */
+    @Test
+    fun `the recorded format is whatever the camera negotiated`() {
+        val h = Harness(withCamera = true, negotiatedVideoFormat = VideoCaptureFormat(1280, 720, 15))
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(
+            VideoCaptureFormat(1280, 720, 15),
+            h.sessionRepository.examinationWrites.last().videoTakes.single().captureFormat,
+        )
+    }
+
+    /** No VIDEO task, nothing to describe — the list must not gain speculative entries. */
+    @Test
+    fun `a protocol with no VIDEO task records no video takes`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(h.sessionRepository.examinationWrites.all { it.videoTakes.isEmpty() })
     }
 
     // endregion

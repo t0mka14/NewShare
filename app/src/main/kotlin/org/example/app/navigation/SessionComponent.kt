@@ -33,6 +33,7 @@ import org.example.app.domain.session.SessionRepository
 import org.example.app.domain.session.StartSessionUseCase
 import org.example.app.domain.session.StorageError
 import org.example.app.domain.session.TaskRecord
+import org.example.app.domain.session.VideoTakeRecord
 import org.example.app.domain.timeline.TaskInstance
 import org.example.app.domain.timeline.TimelineCompactor
 import org.example.app.domain.timeline.TimelineEvent
@@ -44,6 +45,7 @@ import org.example.app.domain.video.SessionVideoRecorder
 import org.example.app.domain.video.VideoError
 import org.example.app.domain.video.VideoRecorderState
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoInputDeviceProvider
 import org.example.app.domain.timeline.TimelineRepository
@@ -371,10 +373,45 @@ class DefaultSessionComponent(
                 logger.warn { "ignoring video take $take: capture is ${v.state.value}" }
                 return@launch
             }
-            val file = sessionRepository.videoDir(folder)
-                .resolve(videoFileName(instance, take))
-            v.startRecording(file)
+            val name = videoFileName(instance, take)
+            v.startRecording(sessionRepository.videoDir(folder).resolve(name))
+            // Only once the file is genuinely open, so a take that failed on disk is not advertised
+            // as a file that exists. Recorded now rather than at stop: the format is already known,
+            // and a crash mid-take then still leaves the frame rate on record — the one thing a
+            // timestamp-less elementary stream cannot supply for itself.
+            if (v.state.value == VideoRecorderState.Recording) {
+                recordVideoTake(folder, instance, take, name, v.captureFormat.value)
+            }
         }
+    }
+
+    private fun recordVideoTake(
+        folder: String,
+        instance: TaskInstance,
+        take: Int,
+        fileName: String,
+        format: VideoCaptureFormat?,
+    ) {
+        val exam = examination ?: return
+        if (format == null) {
+            // `startPreview` sets the format before it reports Previewing, and `startRecording`
+            // refuses anything else, so this is unreachable — but a take is worth more than its
+            // metadata, so it proceeds unrecorded rather than failing.
+            logger.warn { "video take $take has no capture format; not recording its metadata" }
+            return
+        }
+        val updated = exam.copy(
+            videoTakes = exam.videoTakes + VideoTakeRecord(
+                // Same shape as `TaskRecord.clipFile`: session-relative with a literal '/'.
+                file = "video/$fileName",
+                taskIndex = instance.taskIndex,
+                repetition = instance.repetition,
+                take = take,
+                captureFormat = format,
+            ),
+        )
+        examination = updated
+        sessionRepository.writeExamination(folder, updated)
     }
 
     private fun stopVideoTake() {

@@ -30,6 +30,26 @@ class NegotiatedFormatTest {
         assertEquals(VideoCaptureFormat(1280, 720, 25), parseNegotiatedFormat(lines))
     }
 
+    /**
+     * AVFoundation's input banner carries no frame rate at all for a camera whose rate it could not
+     * estimate — only `tbr`, which this parser ignores on purpose because a timebase is not a rate.
+     * Verbatim from a FaceTime HD Camera opened at 1920x1080.
+     *
+     * So on macOS the rate never comes from here; the caller falls back to what it requested, which
+     * is also what `-r` enforces on the output. Worth pinning down, because it is the reason the
+     * reported rate and the rate the file was written at cannot diverge on this platform.
+     */
+    @Test
+    fun `an avfoundation banner with only tbr yields no rate`() {
+        val lines = listOf(
+            "Input #0, avfoundation, from '0:none':",
+            "  Duration: N/A, start: 723666.483330, bitrate: N/A",
+            "  Stream #0:0: Video: rawvideo (UYVY / 0x59565955), uyvy422, 1920x1080, 1000k tbr, 1000k tbn",
+        )
+
+        assertNull(parseNegotiatedFormat(lines))
+    }
+
     /** NTSC-rate webcams report 29.97; the remux needs a whole number. */
     @Test
     fun `rounds a fractional frame rate`() {
