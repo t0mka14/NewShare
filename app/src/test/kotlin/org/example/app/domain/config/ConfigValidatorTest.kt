@@ -11,10 +11,12 @@ class ConfigValidatorTest {
         schemaVersion: Int = 1,
         protocols: List<Protocol> = listOf(validProtocol()),
         strings: Map<String, Map<String, String>> = emptyMap(),
+        defaultMicGain: Int? = null,
     ) = RemoteConfig(
         schemaVersion = schemaVersion,
         configVersion = "2026-07-01.1",
         defaultLanguage = "cs",
+        defaultMicGain = defaultMicGain,
         protocols = protocols,
         strings = strings,
     )
@@ -104,5 +106,22 @@ class ConfigValidatorTest {
         )
         val result = ConfigValidator.validate(baseConfig(protocols = listOf(badProtocol)))
         assertEquals(2, result.errors.size)
+    }
+
+    @Test
+    fun `defaultMicGain within 0-100 is accepted, absent is accepted`() {
+        assertTrue(ConfigValidator.validate(baseConfig(defaultMicGain = 0)).isValid)
+        assertTrue(ConfigValidator.validate(baseConfig(defaultMicGain = 63)).isValid)
+        assertTrue(ConfigValidator.validate(baseConfig(defaultMicGain = 100)).isValid)
+        assertTrue(ConfigValidator.validate(baseConfig(defaultMicGain = null)).isValid)
+    }
+
+    @Test
+    fun `defaultMicGain outside 0-100 is rejected`() {
+        for (bad in listOf(-1, 101, 250)) {
+            val result = ConfigValidator.validate(baseConfig(defaultMicGain = bad))
+            assertFalse(result.isValid, "expected $bad to be rejected")
+            assertEquals(listOf(ConfigValidationError.InvalidDefaultMicGain(bad)), result.errors)
+        }
     }
 }

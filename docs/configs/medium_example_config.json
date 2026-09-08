@@ -7,6 +7,7 @@
     "en"
   ],
   "defaultMicName": "USB audio CODEC",
+  "defaultMicGain": 63,
   "enableEditor": true,
   "indicatorType": "CIRCLE",
   "patientFields": [

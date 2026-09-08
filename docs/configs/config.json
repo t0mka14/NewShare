@@ -4,6 +4,7 @@
   "defaultLanguage": "cs",
   "languages": ["cs"],
   "defaultMicName": "USBAudioDevice",
+  "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "patientFields": [

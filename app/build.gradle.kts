@@ -148,6 +148,15 @@ tasks.register<JavaExec>("previewEditor") {
     useVideoNatives()
 }
 
+tasks.register<JavaExec>("previewSettings") {
+    group = "application"
+    description = "Opens the SettingsContent preview harness (microphone level slider states)."
+    mainClass = "org.example.app.ui.previews.SettingsPreviewHarnessKt"
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    useVideoNatives()
+}
+
 tasks.register<JavaExec>("previewCamera") {
     group = "application"
     description = "Opens the VideoTaskBody harness over a real camera. -Pautostart opens it at once."
@@ -158,6 +167,24 @@ tasks.register<JavaExec>("previewCamera") {
     // Lets the harness be driven from a terminal, reading its once-a-second stats out of the log
     // instead of clicking Start — which is also how it works when hot reload is not attached.
     if (project.hasProperty("autostart")) systemProperty("harness.autostart", "true")
+}
+
+/**
+ * Lists Java Sound mixers and ports with their name lengths (a 31-char name on Windows is
+ * truncated, JDK-7116070) and optionally sets a device's input level (§13 decision 44) — the
+ * check to run on a deployment machine before trusting `defaultMicGain`.
+ */
+tasks.register<JavaExec>("listAudioPorts") {
+    group = "application"
+    description = "Lists audio mixers/ports; -Pset=\"<device name>:<percent>\" sets that device's input level."
+    mainClass = "org.example.app.tools.AudioPortsHarnessKt"
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    (project.findProperty("set") as String?)?.let { spec ->
+        val separator = spec.lastIndexOf(':')
+        require(separator > 0) { "-Pset expects \"<device name>:<percent>\", got \"$spec\"" }
+        args("--set", spec.substring(0, separator), spec.substring(separator + 1))
+    }
 }
 
 /**

@@ -15,6 +15,7 @@ class ConfigDecoderTest {
           "defaultLanguage": "cs",
           "languages": ["cs"],
           "defaultMicName": "USBAudioDevice",
+          "defaultMicGain": 63,
           "enableEditor": false,
           "indicatorType": "CIRCLE",
           "patientFields": [
@@ -44,7 +45,15 @@ class ConfigDecoderTest {
         assertEquals("2026-07-01.1", result.config.configVersion)
         assertEquals(1, result.config.protocols.size)
         assertEquals(3, result.config.protocols[0].tasks.size)
+        assertEquals("USBAudioDevice", result.config.defaultMicName)
+        assertEquals(63, result.config.defaultMicGain)
         assertTrue(result.warnings.isEmpty())
+    }
+
+    @Test
+    fun `defaultMicGain is optional and decodes to null when absent`() {
+        val json = minimalConfigJson.replace("\"defaultMicGain\": 63,", "")
+        assertEquals(null, ConfigDecoder.decode(json).config.defaultMicGain)
     }
 
     @Test

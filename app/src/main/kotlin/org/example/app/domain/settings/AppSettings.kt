@@ -17,4 +17,9 @@ data class AppSettings(
     val cameraDeviceId: String? = null,
     val installationId: String? = null,
     val language: String? = null,
+    /**
+     * Microphone level 0..100 set on the Settings slider (§13 decision 44). Overrides the
+     * config's `defaultMicGain` for whichever device the session opens; null follows the config.
+     */
+    val micGain: Int? = null,
 )

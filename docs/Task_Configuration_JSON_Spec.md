@@ -39,6 +39,7 @@ The configuration fully describes:
   "defaultLanguage": "cs",
   "languages": ["cs", "en"],
   "defaultMicName": "USBAudioDevice",
+  "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "patientFields": [ /* PatientField objects, §5 */ ],
@@ -53,7 +54,8 @@ The configuration fully describes:
 | `configVersion` | string | Server-side revision identifier, stored in session snapshots |
 | `defaultLanguage` | string | Fallback language |
 | `languages` | string[] | Languages selectable in the UI |
-| `defaultMicName` | string | Hint only — the locally selected device in Settings wins |
+| `defaultMicName` | string | The microphone **model** the session records from when Settings has no saved device (a device saved in Settings wins), and the target of `defaultMicGain`. Give the device's product string as the sound panel shows it, e.g. `USB audio CODEC` — the same physical device is named `Microphone (USB audio CODEC)` on Windows, `USB audio CODEC` on macOS and `CODEC [plughw:3,0]` on Linux, so the value is matched case-insensitively as a substring of the device's name + description, which all three contain. It identifies a model, not a unit. Java on Windows cuts device names to 31 characters (JDK-7116070); a name cut through the model string still matches while at least half of it (and six characters) remain |
+| `defaultMicGain` | int | 0..100 input level (the Windows sound panel's units) set on the device matching `defaultMicName` right before it is opened for a session. Validated (a value outside 0..100 rejects the config). A level set on the Settings slider wins over this value. Omit to leave the OS level alone (§13 decision 44 of the project specification) |
 | `enableEditor` | boolean | Show waveform boundary editor after the protocol |
 | `indicatorType` | enum | `CIRCLE` (pulsating circle following RMS level) \| `WAVEFORM` (rolling ~3 s amplitude envelope) — live feedback on VOCAL task screens |
 
@@ -293,6 +295,7 @@ One map per language: `strings.<lang>.<key> → value`.
   "defaultLanguage": "cs",
   "languages": ["cs"],
   "defaultMicName": "USBAudioDevice",
+  "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "patientFields": [

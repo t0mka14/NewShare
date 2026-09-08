@@ -175,6 +175,11 @@ object TestTags {
     /** Settings screen (§3): mic device, installation ID, language, refresh config. */
     object Settings {
         const val DEVICE_SELECT = "settings.deviceSelect"
+        /** Microphone level slider under the device dropdown (§13 decision 44). */
+        const val MIC_GAIN_SLIDER = "settings.micGainSlider"
+        const val MIC_GAIN_VALUE = "settings.micGainValue"
+        /** Clears the local level override; shown only while one exists and the config has a default. */
+        const val MIC_GAIN_RESET_BUTTON = "settings.micGainResetButton"
         const val INSTALLATION_ID_FIELD = "settings.installationIdField"
         const val LANGUAGE_SELECT = "settings.languageSelect"
         const val REFRESH_CONFIG_BUTTON = "settings.refreshConfigButton"

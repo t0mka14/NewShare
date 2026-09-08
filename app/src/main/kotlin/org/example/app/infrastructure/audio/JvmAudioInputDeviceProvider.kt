@@ -42,6 +42,11 @@ class JvmAudioInputDeviceProvider : AudioInputDeviceProvider {
             false
         }
 
-        return AudioInputDevice(id = MixerIds.stableId(info), name = info.name, eligible = eligible)
+        return AudioInputDevice(
+            id = MixerIds.stableId(info),
+            name = info.name,
+            eligible = eligible,
+            description = info.description.orEmpty(),
+        )
     }
 }

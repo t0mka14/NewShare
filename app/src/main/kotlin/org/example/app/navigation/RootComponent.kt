@@ -16,6 +16,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.example.app.AppContainer
+import org.example.app.domain.audio.MicGainReapplyingRecorder
+import org.example.app.domain.audio.MicNames
 import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
@@ -202,6 +204,7 @@ class DefaultRootComponent(
             settingsRepository = container.appSettingsRepository,
             configurationRepository = container.configurationRepository,
             refreshConfigurationUseCase = container.refreshConfigurationUseCase,
+            micGainApplier = container.micGainApplier,
             dispatchers = container.dispatchers,
         )
         val subscription = settingsComponent.state.subscribe { state ->
@@ -243,7 +246,10 @@ class DefaultRootComponent(
 
         val savedSettings = container.appSettingsRepository.read()
         val devices = container.audioInputDeviceProvider.availableDevices()
+        // §6.2: the device saved in Settings wins; the config's `defaultMicName` is the fallback
+        // (matched tolerantly, §13 decision 44); then any usable device.
         val initialDevice = devices.firstOrNull { it.id == savedSettings?.micDeviceId }
+            ?: devices.firstOrNull { it.eligible && MicNames.matches(activeConfig.defaultMicName, it) }
             ?: devices.firstOrNull { it.eligible }
             ?: devices.firstOrNull()
 
@@ -260,7 +266,12 @@ class DefaultRootComponent(
             // machine is an unsupported/edge deployment, not exercised by the fakes used in tests.
             initialDevice = initialDevice ?: org.example.app.domain.audio.AudioInputDevice(id = "none", name = "No microphone", eligible = false),
             availableDevices = devices,
-            recorderFactory = container.sessionRecorderFactory,
+            // Every device open (bootstrap, calibration switch, device-loss resume) first sets the
+            // microphone level — the single trigger for `defaultMicGain`/the Settings slider (§13
+            // decision 44). The session's own config is used, like every other snapshot value.
+            recorderFactory = {
+                MicGainReapplyingRecorder(container.sessionRecorderFactory(), container.micGainApplier) { activeConfig }
+            },
             // The port, not a resolved device: listing cameras spawns ffmpeg and waits for it,
             // and this factory is a Decompose `childFactory`, so it runs on the Swing EDT.
             // `DefaultSessionComponent` resolves it during its own async bootstrap instead.

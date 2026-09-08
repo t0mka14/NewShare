@@ -76,8 +76,9 @@ but is retired for these reasons:
 
 1. **It predates the remote-config model.** Its Settings sections (task management UI, local
    `tasks.json` editing, participant field configuration screens) conflict with server-pushed
-   configuration. In the rewrite, Settings contains only: audio input device selection,
-   installation ID, language, and a "refresh configuration" action.
+   configuration. In the rewrite, Settings contains only: audio input device selection, the
+   microphone level slider (§13 decision 44), installation ID, language, and a "refresh
+   configuration" action.
 2. **Localization mismatch.** It specifies bundled `strings_*.xml` files; the new model ships
    all strings inside the configuration JSON (§7).
 3. **Missing concepts.** It has no notion of *protocols* (named ordered task lists selectable
@@ -327,7 +328,9 @@ pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — a ro
 amplitude envelope drawn on a canvas. Both consume `ContinuousSessionRecorder.levels`.
 
 Config-level fields: `schemaVersion`, `configVersion`, `defaultLanguage`, `languages`,
-`defaultMicName` (hint only — local Settings wins), `enableEditor`, `indicatorType`,
+`defaultMicName` (the session's microphone when Settings has none saved — a saved device
+wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
+the Settings slider; decision 44), `enableEditor`, `indicatorType`,
 `protocols[]`, `strings{lang → {key → value}}`, and `patientFields[]` (participant-input
 field definitions — name, label key, regex, required, useInFilename). The `${patientCode}`
 template variable is **composed from the `useInFilename` fields**: their values, sanitized
@@ -1156,6 +1159,67 @@ Error taxonomy (normative, inlined from the old plan):
     `MainMenuComponent` forwards to it, keeping `MainMenuContent(component, localization)` the
     same shape as every other screen. The available languages and the current one already
     reach the UI through `UiLocalization`, so no new state was added for rendering.
+
+44. **Microphone level: `defaultMicGain`, the Settings slider, and `defaultMicName` wired
+    (2026-09-07, user request).** The legacy Settings screen had a 0–100 level slider under the
+    microphone dropdown, driven through a bundled `SetVol.exe`; it is restored without the binary.
+    - **Mechanism.** The `TargetDataLine` the recorder opens has no volume control on Windows
+      (DirectSound), so the level is set through Java Sound's separate *port* mixer, named
+      `Port <device name>` (winmm mixer API → endpoint volume on Windows; CoreAudio on macOS).
+      Its input ports carry a linear 0.0–1.0 `Volume` `FloatControl`, which is the 0–100 level the
+      Windows sound panel shows; every volume control on every *input* port of the matching mixer
+      is written, output ports never, and ports named like `Mic Boost` are skipped — a boost is a
+      preamp the sound panels show separately (and ALSA's has three steps), not the level.
+      Reading takes the finest-grained control. Port: `AudioInputGainControl` (domain) →
+      `JvmAudioInputGainControl` (infrastructure); `MicGainApplier` owns the precedence rule.
+      Contingency if a deployment's port exposes no volume control: reintroduce the SetVol
+      approach behind the same port interface.
+    - **Precedence.** A level set on the Settings slider (`AppSettings.micGain`) wins and applies
+      to whichever device is opened; otherwise the config's `defaultMicGain`, but only for the
+      device whose name matches `defaultMicName`; otherwise the OS level is left alone.
+    - **Single trigger: every device open.** `MicGainReapplyingRecorder` wraps the session
+      recorder (wired once in `RootComponent.buildSessionChild`) and applies the level before
+      `startMonitoring`/`resume` — session bootstrap, a calibration-screen device switch and a
+      device-loss resume. Deliberately *not* at app start or on config refresh: a refreshed config
+      takes effect for the next session like every other field (§6.1 pt 5), and re-applying at
+      each open also covers a replugged USB microphone whose level Windows reset. The Settings
+      slider additionally applies its value on release, so the examiner sees the effect at once.
+    - **`defaultMicName` is a model string, matched against name + description (amended
+      2026-09-07).** Java Sound names the same USB device differently per platform — Linux
+      `CODEC [plughw:3,0]` (ALSA card id + slot), Windows `Microphone (USB audio CODEC)`, macOS
+      `USB audio CODEC` — so a name is no cross-platform key. The USB product string is: it sits
+      in the name on Windows/macOS and in the description on Linux (`Direct Audio Device: USB
+      audio CODEC, …`), so `AudioInputDevice` now carries `description` and `MicNames.matches`
+      treats the configured value as a case-insensitive substring of name + description. This
+      identifies a model, not a unit — two plugged-in devices of one model both match, first
+      eligible wins.
+      **Windows truncation.** JDK-7116070 (closed "External", never fixed): capture-device and
+      port-mixer names are cut to 31 characters on Windows (`DirectSoundCaptureEnumerateW`
+      descriptions and `MIXERCAPS.szPname` are bounded by `MAXPNAMELEN`); playback names are
+      not. A cut can land inside the model string (`Microphone (Sennheiser USB head`), so a
+      31-character name also matches when it ends with a prefix of the model string that keeps
+      at least half of it and at least six characters. The legacy app worked around the same bug
+      by comparing 31-char prefixes against SetVol's full-length list.
+      **Device → port pairing is a separate rule** (`PortMixers.belongsTo`): the port mixer is
+      `Port <same name>` on Windows/macOS, but `Port <card id> [hw:<n>]` against
+      `<card id> [plughw:<n>,<d>]` on ALSA — name equality alone never paired them on Linux.
+    - **`defaultMicName` is now read.** It was decoded and never used; it is the fallback in the
+      session's device chain (saved `micDeviceId` → device matching `defaultMicName` → first
+      eligible → first) and the target of `defaultMicGain`. `ConfigValidator` rejects a
+      `defaultMicGain` outside 0..100.
+    - **Settings screen.** The slider (`settings.micGainSlider`, value label, disabled until the
+      selected device's level has been read — the legacy `micSliderEnabled`) sits under the
+      device dropdown and shows the level *read from the device every time the screen opens*
+      (amended 2026-09-07: it used to show the saved override or config default first, so a
+      change made in the OS sound panel never appeared; those are now only the fallback while
+      the level is unreadable — what a session applies is unchanged); a "Use configured default (N)" button appears only while a local override
+      exists and the config has a level for that device. `settings.micGain.hint` is an empty
+      built-in a config may fill (the legacy "recommended level is 63" line). Side fix in the same
+      function: `SettingsComponent.persist()` now merges onto the saved settings instead of
+      rebuilding them, so `cameraDeviceId` no longer disappears on any Settings edit.
+    - **Verification on the target OS.** `./gradlew :app:listAudioPorts` lists every mixer with
+      its name length (31 = truncated) and each port's controls; `-Pset="<device>:<percent>"`
+      applies a level so the mechanism can be checked against the Windows sound panel.
 
 **Still open:**
 

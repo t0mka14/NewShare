@@ -370,7 +370,7 @@ class JvmContinuousSessionRecorder(
         val mixer = try {
             AudioSystem.getMixer(mixerInfo)
         } catch (e: Exception) {
-            throw AudioException(AudioError.DeviceUnavailable(device.id))
+            throw AudioException(AudioError.DeviceUnavailable(device.id), e)
         }
 
         val negotiated = CaptureFormatNegotiator.negotiate(isSupported = { candidate ->
@@ -389,16 +389,20 @@ class JvmContinuousSessionRecorder(
                 start()
             }
         } catch (e: LineUnavailableException) {
-            throw AudioException(AudioError.DeviceUnavailable(device.id))
+            // Typically "Device or resource busy": another process holds the device — on Linux
+            // PipeWire/PulseAudio keep `hw`/`plughw` devices open, so only their "default" device works.
+            throw AudioException(AudioError.DeviceUnavailable(device.id), e)
         } catch (e: Exception) {
-            throw AudioException(AudioError.RecordingStartFailed(e.message ?: "failed to open line"))
+            throw AudioException(AudioError.RecordingStartFailed(e.message ?: "failed to open line"), e)
         }
         return line to negotiated
     }
 
     // endregion
 
-    private class AudioException(val error: AudioError) : Exception()
+    /** Carries the [AudioError] for the state machine; message and cause keep the log useful. */
+    private class AudioException(val error: AudioError, cause: Throwable? = null) :
+        Exception("${error::class.simpleName}: ${cause?.message ?: error}", cause)
 
     private companion object {
         const val CHUNK_MS = 50

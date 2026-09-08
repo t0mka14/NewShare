@@ -15,4 +15,10 @@ data class AudioInputDevice(
     val name: String,
     /** False when the device offers no PCM format the recorder can use. */
     val eligible: Boolean,
+    /**
+     * The mixer's description as Java Sound reports it — on Linux the only place the USB
+     * product string appears (`Direct Audio Device: USB audio CODEC, …`), so `MicNames`
+     * matches the configured model against name + description (§13 decision 44).
+     */
+    val description: String = "",
 )

@@ -7,6 +7,7 @@
     "en"
   ],
   "defaultMicName": "USBAudioDevice",
+  "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "patientFields": [

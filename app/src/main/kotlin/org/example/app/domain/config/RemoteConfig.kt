@@ -38,8 +38,20 @@ data class RemoteConfig(
     val configVersion: String,
     val defaultLanguage: String,
     val languages: List<String> = emptyList(),
-    /** Hint only — the locally selected device in Settings wins (§6.2). */
+    /**
+     * The microphone *model* (its USB product string, e.g. `USB audio CODEC`) the session
+     * records from when Settings has no saved device, and the target of [defaultMicGain]
+     * (§6.2, §13 decision 44). A device saved in Settings wins. Matched with `MicNames.matches`
+     * as a substring of the device's name + description, since each platform names the same
+     * device differently, and tolerant of the 31-character truncation Java applies on Windows.
+     */
     val defaultMicName: String? = null,
+    /**
+     * Input level 0..100 (the Windows sound panel's units) set on the device matching
+     * [defaultMicName] right before it is opened, unless a level was set on the Settings slider
+     * (§13 decision 44). Validated by [ConfigValidator]; null leaves the OS level alone.
+     */
+    val defaultMicGain: Int? = null,
     val enableEditor: Boolean = false,
     val indicatorType: IndicatorType = IndicatorType.CIRCLE,
     val patientFields: List<PatientField> = emptyList(),

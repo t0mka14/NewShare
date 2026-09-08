@@ -40,6 +40,10 @@ object BuiltinStrings {
 
         "settings.title" to "Settings",
         "settings.device.label" to "Microphone",
+        "settings.micGain.label" to "Microphone level",
+        "settings.micGain.reset" to "Use configured default ({value})",
+        // Empty by design: a config may supply a hint (the legacy app's "recommended level is 63").
+        "settings.micGain.hint" to "",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
         "settings.refresh.button" to "Refresh configuration",

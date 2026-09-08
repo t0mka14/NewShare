@@ -9,6 +9,8 @@ import org.example.app.domain.IdGenerator
 import org.example.app.domain.RealClock
 import org.example.app.domain.audio.AudioClipService
 import org.example.app.domain.audio.AudioInputDeviceProvider
+import org.example.app.domain.audio.AudioInputGainControl
+import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.WaveformService
@@ -24,6 +26,7 @@ import org.example.app.infrastructure.DefaultAppDirectories
 import org.example.app.infrastructure.UuidIdGenerator
 import org.example.app.infrastructure.audio.JvmAudioClipService
 import org.example.app.infrastructure.audio.JvmAudioInputDeviceProvider
+import org.example.app.infrastructure.audio.JvmAudioInputGainControl
 import org.example.app.infrastructure.audio.JvmAudioPlaybackService
 import org.example.app.infrastructure.audio.JvmContinuousSessionRecorder
 import org.example.app.infrastructure.audio.JvmWaveformService
@@ -68,6 +71,8 @@ class AppContainer(
     val configApi: ConfigApi = KtorConfigApi(),
     val uploadApi: UploadApi = KtorUploadApi(),
     val audioInputDeviceProvider: AudioInputDeviceProvider = JvmAudioInputDeviceProvider(),
+    /** OS-level microphone gain, addressed by device name (§13 decision 44). */
+    val audioInputGainControl: AudioInputGainControl = JvmAudioInputGainControl(),
     val audioClipService: AudioClipService = JvmAudioClipService(),
     val waveformService: WaveformService = JvmWaveformService(),
     val audioPlaybackService: AudioPlaybackService = JvmAudioPlaybackService(),
@@ -109,6 +114,13 @@ class AppContainer(
     val configurationRepository: ConfigurationRepository = JsonConfigurationRepository(rawConfigCache)
 
     val appSettingsRepository: AppSettingsRepository = JsonAppSettingsRepository(directories)
+
+    /**
+     * Decides and applies the microphone level (§13 decision 44): the Settings slider wins over
+     * the config's `defaultMicGain`. `RootComponent` wraps each session recorder in a
+     * `MicGainReapplyingRecorder` around this, so the level is set every time a device is opened.
+     */
+    val micGainApplier = MicGainApplier(audioInputGainControl, appSettingsRepository, dispatchers)
 
     val sessionRepository = JsonSessionRepository(directories)
     val timelineRepository: TimelineRepository = JsonTimelineRepository(directories)

@@ -9,6 +9,9 @@ sealed interface ConfigValidationError {
 
     /** §3/§6.2: a VOCAL task exists without a preceding CALIBRATION task in the same protocol. */
     data class MissingCalibrationBeforeVocal(val protocolName: String) : ConfigValidationError
+
+    /** §6.2/§13 decision 44: `defaultMicGain` is a percentage, 0..100. */
+    data class InvalidDefaultMicGain(val value: Int) : ConfigValidationError
 }
 
 data class ConfigValidationResult(
@@ -26,12 +29,17 @@ object ConfigValidator {
     val SUPPORTED_SCHEMA_VERSIONS: IntRange = 1..1
 
     private const val TASK_INDEX_PLACEHOLDER = "\${taskIndex}"
+    val MIC_GAIN_RANGE: IntRange = 0..100
 
     fun validate(config: RemoteConfig): ConfigValidationResult {
         val errors = mutableListOf<ConfigValidationError>()
 
         if (config.schemaVersion !in SUPPORTED_SCHEMA_VERSIONS) {
             errors += ConfigValidationError.UnsupportedSchemaVersion(config.schemaVersion, SUPPORTED_SCHEMA_VERSIONS)
+        }
+
+        config.defaultMicGain?.let { gain ->
+            if (gain !in MIC_GAIN_RANGE) errors += ConfigValidationError.InvalidDefaultMicGain(gain)
         }
 
         for (protocol in config.protocols) {
