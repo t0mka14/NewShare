@@ -36,6 +36,9 @@ purpose to exercise the app's error paths.
 | GET | `/health` | `{"status":"ok"}` |
 | GET | `/config`, POST `/config`, `/config/delete`, `/config/toggle`, GET `/config/raw/{name}` | web UI |
 | GET | `/uploads/{sessionId}/session.zip` | download a received session |
+| GET | `/api/version/latest` | **What the updater calls** (spec §9). `{version, downloadUrl, checksum}` for the highest published release; 404 if nothing is published. |
+| GET | `/api/version/download/{version}[/{artifact}]` | The release payload. Artifact defaults to `app.zip` (the §9 update package); `install-linux-x64.tar.gz` is the full first-install bundle. |
+| GET | `/api/version/releases` | Everything published, for scripts. |
 
 Upload responses: `200` with `{"status":"ok","sessionId":…,"bytes":…,"sha256":…,"receivedAt":…}`
 (stored verbatim by the app in `metadata/upload_status.json`); `404` unknown installation ID;
@@ -52,6 +55,7 @@ SHA-256 mismatch. Uploads are streamed to disk, never buffered in memory.
     configs/<name>.json       stored configuration bodies (verbatim)
     uploads/<sessionId>/      session.zip + meta.json
     requests.jsonl            rolling log of the last 200 app requests
+    releases/<x.y.z>/         published app packages + .sha256 sidecars (see tools/release/publish.sh)
 ```
 
 Everything survives restarts. To wipe the demo state: `rm -rf /opt/share-mock-server/data` and restart.
@@ -100,3 +104,27 @@ endpoint now lists the part names it did receive, in the response and in the req
 so the app talks to this server out of the box. Set the same installation ID in the app's Settings as
 the one you assigned here. The real server contract is still open (spec §13 open q1) — when it lands,
 only those two constructor defaults change.
+
+## Publishing an app release
+
+Releases are *content*, not code: the server reads `data/releases/` on every request, so
+publishing needs no restart (unlike `deploy.sh`, which replaces `server.py` itself).
+
+```bash
+./gradlew -PappVersion=1.0.1 :packaging:releaseLinuxX64
+tools/release/publish.sh 1.0.1
+curl -s http://192.168.122.183:10001/api/version/latest
+```
+
+`latest` is the numeric maximum of the `x.y.z` directory names under `data/releases/`, matching
+`AppVersion.compareTo` in `:shared` — so `1.0.10` outranks `1.0.9`, which neither string sorting
+nor a naive `max()` would get right.
+
+The advertised `checksum` comes from the `.sha256` sidecar beside each artifact when one is
+present, and is computed on demand otherwise. That is deliberate: editing a sidecar on the server
+is how the updater's checksum-mismatch path (§11) gets exercised without building a corrupt
+artifact.
+
+`downloadUrl` is built from the request's `Host` header — the authority the client actually
+dialed, which is not the one the service binds (container `:80` vs. published `:10001`).
+`--public-base-url` overrides it if something ever fronts this server.

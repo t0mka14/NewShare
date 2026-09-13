@@ -11,6 +11,14 @@ logback = "1.5.18"
 # native/ffmpeg/ (see the videoNatives configuration in app/build.gradle.kts).
 ffmpeg = "7.1-1.5.11"
 
+# GraalVM native-build-tools: compiles :updater into the standalone `updater` executable the
+# §9 install layout ships. Version line went 0.11.5 -> 1.0.0 -> 1.1.x.
+graalvm-buildtools = "1.1.12"
+# GraalVM Community feature version requested from foojay. Must be >= the class-file version
+# :shared and :updater compile to, which is the Gradle JVM (temurin 25) — a GraalVM 21
+# native-image cannot read major-69 class files.
+graalvm-jdk = "25"
+
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -49,3 +57,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 # Live-updates a running desktop UI on save (needs a JetBrains Runtime, provisioned by the
 # foojay toolchain resolver in settings.gradle.kts). 1.2.0 requires CMP 1.10+ and Kotlin 2.1.20+.
 compose-hot-reload = { id = "org.jetbrains.compose.hot-reload", version = "1.2.0" }
+graalvm-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-buildtools" }

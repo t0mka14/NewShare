@@ -23,9 +23,13 @@ class HttpVersionFetcherTest {
         server?.stop(0)
     }
 
+    /** Query string of the last request the fake server saw, for the platform-parameter test. */
+    private var lastQuery: String? = null
+
     private fun startServer(status: Int, body: String): String {
         val httpServer = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         httpServer.createContext("/api/version/latest") { exchange ->
+            lastQuery = exchange.requestURI.query
             val bytes = body.toByteArray()
             exchange.sendResponseHeaders(status, bytes.size.toLong())
             exchange.responseBody.use { it.write(bytes) }
@@ -39,7 +43,9 @@ class HttpVersionFetcherTest {
     fun `parses a well-formed response`(@TempDir tempDir: Path) {
         val endpoint = startServer(
             200,
-            """{"version":"2.1.0","downloadUrl":"http://example.test/app-2.1.0.zip","checksum":"abc123"}""",
+            """{"release":"2.1.0","components":[
+                 {"id":"app","target":"app","url":"http://example.test/app.zip","checksum":"abc123"},
+                 {"id":"runtime","target":"runtime","url":"http://example.test/rt.zip","checksum":"def456"}]}""",
         )
         val fetcher = HttpVersionFetcher(endpoint, UpdaterLog(tempDir.resolve("updater.log")))
 
@@ -47,9 +53,31 @@ class HttpVersionFetcherTest {
 
         assertTrue(result is VersionCheckResult.Available)
         result as VersionCheckResult.Available
-        assertEquals("2.1.0", result.response.version)
-        assertEquals("http://example.test/app-2.1.0.zip", result.response.downloadUrl)
-        assertEquals("abc123", result.response.checksum)
+        assertEquals("2.1.0", result.response.release)
+        assertEquals(listOf("app", "runtime"), result.response.components.map { it.id })
+        assertEquals("http://example.test/app.zip", result.response.components[0].url)
+        assertEquals("abc123", result.response.components[0].checksum)
+        assertEquals("runtime", result.response.components[1].target)
+    }
+
+    @Test
+    fun `asks the server for this platform's components`(@TempDir tempDir: Path) {
+        val endpoint = startServer(200, """{"release":"2.1.0","components":[]}""")
+        val fetcher = HttpVersionFetcher(endpoint, UpdaterLog(tempDir.resolve("updater.log")), platform = "windows-x86_64")
+
+        fetcher.fetchLatest()
+
+        assertEquals("platform=windows-x86_64", lastQuery)
+    }
+
+    @Test
+    fun `appends the platform to an endpoint that already has a query string`(@TempDir tempDir: Path) {
+        val endpoint = startServer(200, """{"release":"2.1.0","components":[]}""") + "?channel=beta"
+        val fetcher = HttpVersionFetcher(endpoint, UpdaterLog(tempDir.resolve("updater.log")), platform = "linux-x86_64")
+
+        fetcher.fetchLatest()
+
+        assertEquals("channel=beta&platform=linux-x86_64", lastQuery)
     }
 
     @Test
@@ -64,7 +92,7 @@ class HttpVersionFetcherTest {
 
     @Test
     fun `treats a malformed JSON body as unreachable`(@TempDir tempDir: Path) {
-        val endpoint = startServer(200, """{"version":"2.1.0"}""") // missing required fields
+        val endpoint = startServer(200, """{"components":[]}""") // missing the required release
         val fetcher = HttpVersionFetcher(endpoint, UpdaterLog(tempDir.resolve("updater.log")))
 
         val result = fetcher.fetchLatest()

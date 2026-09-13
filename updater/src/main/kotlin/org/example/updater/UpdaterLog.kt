@@ -22,3 +22,12 @@ class UpdaterLog(private val logFile: Path) {
         Files.writeString(logFile, line, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
     }
 }
+
+/**
+ * A description of [this] that is never blank.
+ *
+ * Several JDK exceptions carry a null `message` — `ConnectException` from `HttpClient` is the one
+ * that bites here, and it turned a "server unreachable" log line into the literally useless
+ * `unreachable: null`. Falling back to the type name keeps the diagnostic meaningful.
+ */
+internal fun Throwable.describe(): String = message?.takeIf { it.isNotBlank() } ?: this::class.java.simpleName

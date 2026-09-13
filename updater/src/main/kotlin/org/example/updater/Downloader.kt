@@ -28,7 +28,7 @@ class HttpDownloader(
             if (!ok) log.warn("Download returned HTTP ${response.statusCode()}")
             ok
         } catch (e: Exception) {
-            log.warn("Download failed: ${e.message}")
+            log.warn("Download failed: ${e.describe()}")
             false
         }
     }

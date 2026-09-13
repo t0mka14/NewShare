@@ -16,4 +16,11 @@ data class InstallLayout(val installDir: Path) {
     val versionFile: Path = appDir.resolve("version.json")
     val markerFile: Path = installDir.resolve("update_pending.json")
     val logFile: Path = installDir.resolve("updater.log")
+
+    /** The updater's record of what is currently installed (see [InstalledStateStore]). */
+    val stateFile: Path = installDir.resolve("installed.json")
+
+    /** Verified payloads live here between download and swap. Deleted at the start of every run,
+     * so nothing half-downloaded survives a crash. */
+    val stagingDir: Path = installDir.resolve("update-staging")
 }

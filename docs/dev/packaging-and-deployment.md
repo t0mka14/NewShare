@@ -2,7 +2,12 @@
 
 What has to happen to turn this repo into a shippable, self-updating install — and where
 the pending server contract (spec §13 "Still open" q1) plugs into the code when it lands.
-Nothing in this document is implemented yet; it is the worklist for the release engineer.
+
+**Status (2026-09-08): linux-x64 is implemented and verified end to end.** `:packaging` builds
+the §9 layout, `:updater` compiles to a GraalVM native binary, and the demo mock server serves
+releases — an install staged at 1.0.0 was observed updating itself to 1.0.1 and launching, over
+real HTTP, against `http://192.168.122.183:10001`. Windows/macOS packaging and all code signing
+remain a worklist (§5). See "Building a release" below for the two commands.
 
 ## 1. Target install layout (§9)
 
@@ -16,6 +21,57 @@ Nothing in this document is implemented yet; it is the worklist for the release 
     version.json       {"version":1,"appVersion":"x.y.z"} — written at package time
   data/                created at first run; NEVER shipped, NEVER touched by the updater
 ```
+
+## 1b. Building a release (implemented)
+
+```bash
+./gradlew -PappVersion=1.0.1 :packaging:releaseLinuxX64   # -> packaging/build/release/1.0.1/
+tools/release/publish.sh 1.0.1                            # -> the demo server, no restart needed
+```
+
+`appVersion` (in `gradle.properties`, overridable with `-P`) is the single version source: it
+feeds every module's Gradle `version`, the generated `app/version.json`, the resource
+`BuildInfo.appVersion` reads for the window title, and jpackage's `packageVersion`. It is
+validated as strict `x.y.z` in the root build script, because a value `AppVersion.parse` rejects
+would read as "no local version installed" and make every remote version look newer forever.
+
+A release is a set of independently downloadable **components** plus a manifest, all with
+`.sha256` sidecars in `sha256sum -c` format:
+
+| Artifact | What it is |
+|---|---|
+| `app.zip` | `app.jar` + `version.json` |
+| `runtime-linux-x86_64.zip` | The jlink JRE |
+| `ffmpeg-linux-x86_64.zip` | The ffmpeg binary and its shared libraries |
+| `manifest-linux-x86_64.json` | Which components this release has and where each installs. No URLs or checksums — the server owns both. |
+| `install-linux-x64.tar.gz` | The whole §9 layout for a first-time install, including a seeded `installed.json`. No JDK needed on the target. |
+
+**Every component zip's entries sit at the archive root**, because the updater unzips a component
+straight into its target directory — an enclosing folder would produce `runtime/runtime/bin/java`.
+Each packaging task asserts this; it is silent and destructive otherwise.
+
+`appVersion` and `releaseVersion` are separate for one concrete reason: a release that only
+rebuilds the runtime keeps `app.zip` byte-identical, and identical bytes are exactly what lets the
+updater skip re-downloading 77 MB. Bump both for an app change; bump `releaseVersion` alone for a
+runtime- or natives-only release.
+
+Notes worth knowing before changing any of this:
+
+- **`jdeps` cannot analyse the Compose uber jar** (`Module org.slf4j not found, required by
+  ch.qos.logback.classic` — flattened `module-info` entries), even with `--ignore-missing-deps`.
+  `jlinkRuntime` therefore unions whatever jdeps manages with an explicit module list and
+  tolerates jdeps failing outright. `jdk.crypto.ec` is in that list because it is
+  ServiceLoader-provided and structurally invisible to bytecode analysis.
+- **Archive tasks normalise unix permissions.** Both `stageInstallDir` and `packageInstallBundle`
+  map each file's mode from its source, or the shipped `updater` and `runtime/bin/java` arrive
+  non-executable. `stageInstallDir` asserts the three that matter.
+- **Gradle's JDK auto-provisioning does not preserve symlinks**, so GraalVM's
+  `bin/native-image` extracts as a zero-byte file while the real 25 MB launcher sits in
+  `lib/svm/bin/`. `:updater:repairGraalvmLaunchers` restores the links and runs before
+  `nativeCompile`.
+- **`data/` is deliberately not shipped.** `DefaultAppDirectories` creates `config/`, `sessions/`
+  and `logs/` under `<user.dir>/data` on first run, and §9 pt 5 forbids the updater from touching
+  it. Shipping the directory is the one way to accidentally ship state with a release.
 
 ## 2. Building the app
 

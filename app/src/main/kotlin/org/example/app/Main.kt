@@ -9,6 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.Window
@@ -25,11 +26,13 @@ import org.example.app.navigation.DefaultRootComponent
 import org.example.app.ui.RootContent
 import org.example.app.ui.TestTags
 import org.example.app.ui.theme.ShareTheme
-import org.example.shared.model.AppVersion
 import java.nio.file.Files
 import java.nio.file.Path
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
+
+/** Classpath resource used as the window/taskbar icon. */
+private const val APP_ICON_RESOURCE = "drawable/sami_trans.png"
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -80,7 +83,7 @@ fun main() {
     Thread.setDefaultUncaughtExceptionHandler { _, e -> container.errorReporter.report(e) }
 
     application {
-        val version = AppVersion(1, 0, 0)
+        val version = BuildInfo.appVersion
         // Same net for the Compose UI thread: exceptions from composition/render/event handlers
         // are routed to the window exception handler, which by default kills the app.
         CompositionLocalProvider(
@@ -94,6 +97,8 @@ fun main() {
                     exitApplication()
                 },
                 title = "SHARE (v$version)",
+                // Window/taskbar icon: the SAMI logo (also the main screen's bottom-right logo).
+                icon = painterResource(APP_ICON_RESOURCE),
             ) {
                 ShareTheme {
                     RootContent(
@@ -133,7 +138,7 @@ private fun showAlreadyRunningAndExit(container: AppContainer) {
     val message = container.localizedStringProvider.resolveRaw("app.alreadyRunning", "en", null)
     val dismissLabel = container.localizedStringProvider.resolveRaw("error.dialog.dismiss", "en", null)
     application {
-        Window(onCloseRequest = ::exitApplication, title = "SHARE") {
+        Window(onCloseRequest = ::exitApplication, title = "SHARE", icon = painterResource(APP_ICON_RESOURCE)) {
             MaterialTheme {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(message, modifier = Modifier.testTag(TestTags.Blocking.SINGLE_INSTANCE_MESSAGE))

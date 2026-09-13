@@ -99,6 +99,50 @@ val unpackVideoNatives by tasks.registering(Sync::class) {
     }
 }
 
+/**
+ * Generates the one `version.json` (§9) this build ships, from the root `appVersion` property.
+ *
+ * It has two consumers and therefore one source: baked into `app.jar` as a resource (read by
+ * [org.example.app.BuildInfo] for the window title) and copied to `<install_dir>/app/version.json`
+ * by `:packaging` (read by the updater, which must know the installed version without starting a
+ * JVM). Because both come from this single output file they cannot drift — the jar can never
+ * claim a version different from the file sitting beside it.
+ *
+ * The resource is package-relative (`org/example/app/version.json`), not root-level: the uber jar
+ * flattens every dependency jar into one archive, so a `/version.json` would be one careless
+ * transitive dependency away from a silent collision.
+ */
+abstract class GenerateAppVersionJson : DefaultTask() {
+    @get:Input abstract val appVersion: Property<String>
+
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val file = outputDirectory.get().asFile.resolve("org/example/app/version.json")
+        file.parentFile.mkdirs()
+        // Matches AppVersionFile (:shared): `version` is the schema version per §12, `appVersion`
+        // the semantic one.
+        file.writeText("""{"version":1,"appVersion":"${appVersion.get()}"}""" + "\n")
+    }
+}
+
+val generateAppVersionJson = tasks.register<GenerateAppVersionJson>("generateAppVersionJson") {
+    group = "build"
+    description = "Generates app/version.json (§9) from the root appVersion property."
+    appVersion.set(provider { project.version.toString() })
+    outputDirectory.set(layout.buildDirectory.dir("generated/appVersion"))
+}
+
+/** The generated file itself, for `:packaging` to place at `<install_dir>/app/version.json`. */
+val appVersionJsonFile: Provider<RegularFile> =
+    generateAppVersionJson.flatMap { it.outputDirectory.file("org/example/app/version.json") }
+
+// Registering the task's output as a resource directory (rather than a bare path) is what carries
+// the task dependency into processResources, and from there into test, run, the preview harnesses
+// and packageUberJarForCurrentOS — no manual dependsOn anywhere.
+sourceSets["main"].resources.srcDir(generateAppVersionJson.flatMap { it.outputDirectory })
+
 /** Dev runs and tests find ffmpeg through this property; packaging ships `native/ffmpeg/`. */
 fun JavaExec.useVideoNatives() {
     dependsOn(unpackVideoNatives)
@@ -111,6 +155,9 @@ tasks.test {
     // Camera tests drive the real capture pipeline from a synthetic ffmpeg source; without a
     // binary they skip rather than fail, so this stays green on a machine with no natives.
     systemProperty("share.ffmpeg.path", videoNativesDir.get().asFile.absolutePath)
+    // Lets BuildInfoTest assert that the generated version resource actually reached the
+    // classpath, and carries the value the build was invoked with.
+    systemProperty("share.expectedVersion", project.version.toString())
     // §10.3: headless Compose UI tests run under Skia software rendering. CI must
     // also run these with no visible display; on Linux CI runners that additionally
     // means launching under Xvfb (or another virtual framebuffer) since AWT/Skiko
@@ -205,7 +252,50 @@ compose.desktop {
         nativeDistributions {
             targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg, org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi, org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
             packageName = "ClinicalRecordingApp"
-            packageVersion = "1.0.0"
+            // Same source as app/version.json and the window title — see the root `appVersion`
+            // property. Note this also feeds the uber jar's filename, which is why :packaging
+            // resolves that jar through the task's archiveFile provider rather than by name.
+            packageVersion = project.version.toString()
+            // Installer/launcher icons, generated from drawable/sami_trans.png (the window icon in
+            // Main.kt) — see app/icons/README.md for how to regenerate them.
+            windows { iconFile.set(project.file("icons/sami.ico")) }
+            macOS { iconFile.set(project.file("icons/sami.icns")) }
+            linux { iconFile.set(project.file("icons/sami.png")) }
         }
+    }
+}
+
+/**
+ * Artifacts `:packaging` consumes when assembling the §9 install layout.
+ *
+ * Named consumable configurations rather than attribute-matched variants: there is exactly one
+ * consumer and it lives in this build, so `project(path = ":app", configuration = "...")` resolves
+ * them directly with no attribute plumbing. Going through configurations (rather than reaching
+ * across at `project(":app").tasks`) keeps task dependencies explicit and survives Isolated
+ * Projects.
+ *
+ * The uber jar is exposed as the task's `archiveFile` provider on purpose — its filename embeds
+ * `packageVersion`, so it changes with every version bump and must never be hardcoded.
+ */
+configurations.consumable("installAppJar")
+configurations.consumable("installVersionJson")
+configurations.consumable("installVideoNatives")
+
+artifacts {
+    add("installVersionJson", appVersionJsonFile) { builtBy(generateAppVersionJson) }
+    add("installVideoNatives", videoNativesDir) { builtBy(unpackVideoNatives) }
+}
+
+// The Compose plugin registers packageUberJarForCurrentOS from its own afterEvaluate, so it does
+// not exist while this script is being evaluated. Ours is registered later and therefore runs
+// after it.
+afterEvaluate {
+    artifacts {
+        // Typed as the jvm Jar supertype, which is what the Compose plugin actually registers.
+        add(
+            "installAppJar",
+            tasks.named<org.gradle.jvm.tasks.Jar>("packageUberJarForCurrentOS")
+                .flatMap { it.archiveFile },
+        )
     }
 }

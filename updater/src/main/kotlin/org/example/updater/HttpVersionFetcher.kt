@@ -19,6 +19,7 @@ import java.time.Duration
 class HttpVersionFetcher(
     private val endpoint: String,
     private val log: UpdaterLog,
+    private val platform: String = HostPlatform.current,
     private val client: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
         .build(),
@@ -26,9 +27,15 @@ class HttpVersionFetcher(
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** The runtime and native components differ per platform, so the server needs to know which
+     * install is asking. [endpoint] is a whole URL from configuration and may already carry a
+     * query string, so the separator is chosen rather than assumed. */
+    private fun endpointWithPlatform(): String =
+        if (endpoint.contains('?')) "$endpoint&platform=$platform" else "$endpoint?platform=$platform"
+
     override fun fetchLatest(): VersionCheckResult {
         return try {
-            val request = HttpRequest.newBuilder(URI.create(endpoint))
+            val request = HttpRequest.newBuilder(URI.create(endpointWithPlatform()))
                 .timeout(Duration.ofSeconds(15))
                 .GET()
                 .build()
@@ -40,10 +47,10 @@ class HttpVersionFetcher(
             val parsed = json.decodeFromString(VersionCheckResponse.serializer(), response.body())
             VersionCheckResult.Available(parsed)
         } catch (e: IOException) {
-            log.warn("Version check unreachable: ${e.message}")
+            log.warn("Version check unreachable: ${e.describe()}")
             VersionCheckResult.Unreachable
         } catch (e: SerializationException) {
-            log.warn("Version check response did not parse: ${e.message}")
+            log.warn("Version check response did not parse: ${e.describe()}")
             VersionCheckResult.Unreachable
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()

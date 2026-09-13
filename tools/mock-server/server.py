@@ -43,6 +43,25 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+# Artifacts every release has regardless of its manifest. The rest are whatever that release's
+# manifest-<platform>.json declares — see Store.release_asset_names, which is what keeps the
+# download route from reading arbitrary files out of the data directory.
+BASE_RELEASE_ASSETS = ("app.zip", "install-linux-x64.tar.gz")
+MANIFEST_GLOB = "manifest-*.json"
+
+
+def semver_key(version: str) -> tuple[int, int, int] | None:
+    """Mirrors AppVersion.parse (:shared) exactly: plain x.y.z, no leading 'v', no suffixes.
+
+    Returning a tuple of ints (not the string) is the point: 1.0.10 must sort above 1.0.9, which
+    neither string ordering nor a naive max() gets right, and AppVersion.compareTo on the client
+    side compares ints. The two sides have to agree or the app stops seeing updates at .10.
+    """
+    m = SEMVER_RE.match((version or "").strip())
+    return tuple(int(g) for g in m.groups()) if m else None
+
+
 def safe_name(raw: str, fallback: str = "config") -> str:
     """Sanitize a user-supplied name into a filesystem-safe file name."""
     cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", (raw or "").strip()).strip("._-")
@@ -261,11 +280,13 @@ class Store:
         self.root = root
         self.configs = root / "configs"
         self.uploads = root / "uploads"
+        self.releases = root / "releases"
         self.tmp = root / "tmp"
         self.assignments_file = root / "assignments.json"
         self.requests_file = root / "requests.jsonl"
         self.lock = threading.Lock()
-        for d in (self.root, self.configs, self.uploads, self.tmp):
+        self._sha_cache: dict = {}
+        for d in (self.root, self.configs, self.uploads, self.releases, self.tmp):
             d.mkdir(parents=True, exist_ok=True)
         for stale in self.tmp.glob("*.tmp"):
             stale.unlink(missing_ok=True)
@@ -373,6 +394,130 @@ class Store:
                 except ValueError:
                     continue
         out.sort(key=lambda m: m.get("receivedAt", ""), reverse=True)
+        return out
+
+
+    # -- releases ------------------------------------------------------------------
+    # Published app packages, laid out exactly as :packaging builds them so publishing is a
+    # plain `scp -r` of build/release/<version>/ with no renaming:
+    #   releases/<x.y.z>/{app.zip, app.zip.sha256, install-linux-x64.tar.gz, ...sha256}
+    # Every read hits the filesystem, so a publish needs no server restart.
+
+    def release_dir(self, version: str) -> Path:
+        return self.releases / safe_name(version, "0.0.0")
+
+    def release_versions(self) -> list[str]:
+        if not self.releases.exists():
+            return []
+        found = [d.name for d in self.releases.iterdir() if d.is_dir() and semver_key(d.name)]
+        return sorted(found, key=semver_key)
+
+    def latest_release(self) -> str | None:
+        versions = self.release_versions()
+        return versions[-1] if versions else None
+
+    def release_manifest(self, version: str, platform: str) -> list[dict]:
+        """Components :packaging declared for this release and platform, or [] if there are none."""
+        if not platform:
+            return []
+        path = self.release_dir(version) / f"manifest-{safe_name(platform, 'none')}.json"
+        try:
+            return json.loads(path.read_text("utf-8")).get("components", [])
+        except (OSError, ValueError):
+            return []
+
+    def release_asset_names(self, version: str) -> set[str]:
+        """The exact set of downloadable names for this release: the always-present artifacts plus
+        whatever the manifests declare. Membership in this set is the traversal guard."""
+        names = set(BASE_RELEASE_ASSETS)
+        directory = self.release_dir(version)
+        try:
+            manifests = sorted(directory.glob(MANIFEST_GLOB))
+        except OSError:
+            return names
+        for manifest in manifests:
+            names.add(manifest.name)
+            try:
+                declared = json.loads(manifest.read_text("utf-8")).get("components", [])
+            except (OSError, ValueError):
+                continue
+            for component in declared:
+                artifact = component.get("artifact")
+                if isinstance(artifact, str) and artifact:
+                    names.add(artifact)
+        return names
+
+    def release_components(self, version: str, platform: str, base_url: str) -> list[dict]:
+        """The manifest, enriched with the absolute URL and the checksum the updater verifies.
+
+        The build decides *what* a release contains; the server owns the URL (only it knows how it
+        is reached) and the checksum (it already reads the sidecars). An entry whose artifact or
+        sidecar is missing is dropped rather than served with a null checksum.
+        """
+        out = []
+        for component in self.release_manifest(version, platform):
+            artifact = component.get("artifact")
+            checksum = self.release_sha256(version, artifact) if artifact else None
+            if not checksum:
+                print(f"{now_iso()} release {version}: dropping component "
+                      f"{component.get('id')!r} — {artifact!r} or its .sha256 is missing", flush=True)
+                continue
+            out.append({
+                "id": component.get("id"),
+                "target": component.get("target"),
+                "url": f"{base_url}/api/version/download/{quote(version)}/{quote(artifact)}",
+                "checksum": checksum,
+            })
+        return out
+
+    def release_asset(self, version: str, name: str) -> Path | None:
+        if name not in self.release_asset_names(version):
+            return None
+        path = self.release_dir(version) / name
+        return path if path.is_file() else None
+
+    def release_sha256(self, version: str, name: str) -> str | None:
+        """The checksum the updater verifies the download against.
+
+        Prefers the `.sha256` sidecar written by :packaging:releaseChecksums over hashing the
+        file. That is not just a speed optimisation: it makes "advertise a wrong checksum" a
+        one-line edit on the server, which is how the updater's checksum-mismatch path (§11) gets
+        exercised end-to-end without having to build a deliberately corrupt artifact.
+        """
+        path = self.release_asset(version, name)
+        if path is None:
+            return None
+        sidecar = path.with_name(path.name + ".sha256")
+        if sidecar.is_file():
+            try:
+                return sidecar.read_text("utf-8").split()[0].strip().lower()
+            except (OSError, IndexError):
+                pass
+        stat = path.stat()
+        key = (str(path), stat.st_size, stat.st_mtime_ns)
+        with self.lock:
+            cached = self._sha_cache.get(key)
+        if cached:
+            return cached
+        digest = hashlib.sha256()
+        with open(path, "rb") as f:
+            for block in iter(lambda: f.read(1024 * 1024), b""):
+                digest.update(block)
+        value = digest.hexdigest()
+        with self.lock:
+            self._sha_cache = {key: value}   # one entry: only the newest release is ever asked for
+        return value
+
+    def all_releases(self) -> list[dict]:
+        out = []
+        for version in reversed(self.release_versions()):
+            assets = []
+            for name in sorted(self.release_asset_names(version)):
+                path = self.release_asset(version, name)
+                if path:
+                    assets.append({"name": name, "bytes": path.stat().st_size,
+                                   "sha256": self.release_sha256(version, name)})
+            out.append({"version": version, "assets": assets})
         return out
 
 
@@ -488,10 +633,34 @@ def esc(value) -> str:
     return html.escape(str(value), quote=True)
 
 
+PLATFORM_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
+
+
+def build_latest_payload(store: Store, platform: str, base_url: str) -> tuple[dict, int, str]:
+    """Assemble GET /api/version/latest.
+
+    A plain function rather than inline route code so --selftest can exercise it without a socket.
+    Returns (payload, status, log note).
+    """
+    version = store.latest_release()
+    if version is None:
+        return {"error": "no release published"}, HTTPStatus.NOT_FOUND, "no release published"
+    if platform and not PLATFORM_RE.match(platform):
+        return {"error": "invalid platform"}, HTTPStatus.BAD_REQUEST, f"invalid platform {platform!r}"
+
+    components = store.release_components(version, platform, base_url)
+    note = f"{version} {platform or 'no-platform'} -> {len(components)} component(s)"
+    # Matches VersionCheckResponse (:shared). An empty component list is a valid answer — the
+    # updater reads it as "nothing to do" — and is what an unknown platform gets, so a client is
+    # never handed another platform's runtime.
+    return {"release": version, "components": components}, HTTPStatus.OK, note
+
+
 def render_page(store: Store, msg: str, err: str, prefill: str) -> bytes:
     assignments = store.assignments()
     requests_log = store.recent_requests()
     uploads = store.all_uploads()
+    releases = store.all_releases()
     known_ids = set(assignments)
     seen_ids = [r.get("installationId") for r in requests_log if r.get("installationId")]
 
@@ -608,8 +777,32 @@ def render_page(store: Store, msg: str, err: str, prefill: str) -> bytes:
         out.append("</table>")
     out.append("</div>")
 
+    # ---- releases --------------------------------------------------------------------
+    out.append("<div class='card'><h2>Published app releases</h2>")
+    if not releases:
+        out.append("<p class='empty'>Nothing published yet — see tools/release/publish.sh.</p>")
+    else:
+        latest = releases[0]["version"]
+        out.append("<table><tr><th>Version</th><th>Artifact</th><th>Size</th>"
+                   "<th>SHA-256</th><th></th></tr>")
+        for r in releases:
+            tag = " <span class='badge on'>latest</span>" if r["version"] == latest else ""
+            for i, a in enumerate(r["assets"]):
+                cell = f"{esc(r['version'])}{tag}" if i == 0 else ""
+                url = f"/api/version/download/{quote(r['version'])}/{quote(a['name'])}"
+                out.append(
+                    f"<tr><td class='mono'>{cell}</td><td class='mono'>{esc(a['name'])}</td>"
+                    f"<td class='mono'>{a['bytes']:,} B</td>"
+                    f"<td class='mono'>{esc((a['sha256'] or '')[:16])}…</td>"
+                    f"<td><a href='{url}'>download</a></td></tr>")
+        out.append("</table>")
+    out.append("</div>")
+
     out.append("<p class='sub'>Endpoints: <code>GET /api/config/{id}</code> · "
-               "<code>GET /serve/{id}</code> · <code>POST /api/upload</code> · <code>GET /health</code></p>")
+               "<code>GET /serve/{id}</code> · <code>POST /api/upload</code> · "
+               "<code>GET /api/version/latest</code> · "
+               "<code>GET /api/version/download/{version}/{artifact}</code> · "
+               "<code>GET /health</code></p>")
     out.append("</body></html>")
     return "".join(out).encode("utf-8")
 
@@ -643,6 +836,24 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Location", location)
         self.send_header("Content-Length", "0")
         self.end_headers()
+
+    def _public_base_url(self) -> str:
+        """Absolute base for the `downloadUrl` in GET /api/version/latest.
+
+        It has to be the authority the *client* reached us on, which is not the one we bound:
+        this service listens on container port 80 while the updater dials 192.168.122.183:10001.
+        The Host header already carries what the client dialed, so it is right by construction
+        and needs no configuration. --public-base-url overrides it for the day something fronts
+        this server and rewrites Host.
+        """
+        configured = getattr(self.server, "public_base_url", None)
+        if configured:
+            return configured.rstrip("/")
+        host = self.headers.get("X-Forwarded-Host") or self.headers.get("Host")
+        if host:
+            scheme = self.headers.get("X-Forwarded-Proto") or "http"
+            return f"{scheme}://{host}"
+        return f"http://{self.server.server_address[0]}:{self.server.server_address[1]}"
 
     def _log_app_request(self, path: str, installation_id: str | None, status: int, note: str = "") -> None:
         self.store.log_request({
@@ -687,6 +898,45 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(HTTPStatus.NOT_FOUND, {"error": "no such config file"})
             else:
                 self._send(HTTPStatus.OK, body, "application/json; charset=utf-8")
+            return
+
+        # -- updater-facing release routes (§9) --------------------------------------
+        if path == "/api/version/latest":
+            platform = (query.get("platform") or [""])[0].strip()
+            payload, status, note = build_latest_payload(
+                self.store, platform, self._public_base_url())
+            self._log_app_request(path, None, status, note)
+            self._send_json(status, payload)
+            return
+
+        if path == "/api/version/releases":   # convenience for scripts and verification
+            self._send_json(HTTPStatus.OK, {"latest": self.store.latest_release(),
+                                            "releases": self.store.all_releases()})
+            return
+
+        m = re.fullmatch(r"/api/version/download/([^/]+)(?:/([^/]+))?", path)
+        if m:
+            # The artifact segment is optional: /download/1.0.1 is the spec-shaped form and
+            # defaults to the update package; /download/1.0.1/install-linux-x64.tar.gz fetches
+            # the full install bundle.
+            version, name = m.group(1), m.group(2) or "app.zip"
+            asset = self.store.release_asset(version, name)
+            if asset is None:
+                self._log_app_request(path, None, 404, f"{version}/{name}")
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": "no such release artifact"})
+                return
+            self._log_app_request(path, None, 200, f"{version}/{name}")
+            # Streamed rather than sent through _send, which buffers the whole body — same shape
+            # as the /uploads/<sessionId>/session.zip handler below.
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type",
+                             "application/zip" if name.endswith(".zip") else "application/gzip")
+            self.send_header("Content-Length", str(asset.stat().st_size))
+            self.send_header("Content-Disposition", f'attachment; filename="{name}"')
+            self.end_headers()
+            if self.command != "HEAD":
+                with open(asset, "rb") as f:
+                    shutil.copyfileobj(f, self.wfile, 64 * 1024)
             return
 
         # app-facing config fetch, plus the /serve alias
@@ -963,6 +1213,73 @@ def selftest() -> int:
         print("chunked transfer-encoding:")
         check("chunked body decoded", parts.get("sessionId") and parts["sessionId"].text == "sess-chunked")
 
+        # 5. Release selection. deploy.sh runs --selftest before restarting the service, so this
+        #    is the gate that stops a broken version comparison from ever reaching a running
+        #    server — where it would silently stop offering updates rather than fail loudly.
+        releases = tmp_dir / "releases"
+        for name in ("1.0.0", "1.0.9", "1.0.10", "1.2.0", "0.9.9", "v1.3.0", "1.4", "1.5.0-rc1"):
+            (releases / name).mkdir(parents=True)
+        store = Store(tmp_dir / "store")
+        store.releases = releases
+        print("release version selection:")
+        check("rejects directory names AppVersion.parse would reject",
+              sorted(store.release_versions()) == sorted(["0.9.9", "1.0.0", "1.0.9", "1.0.10", "1.2.0"]))
+        check("latest is the numeric max", store.latest_release() == "1.2.0")
+        check("1.0.10 sorts above 1.0.9 (not lexicographically)",
+              semver_key("1.0.10") > semver_key("1.0.9"))
+        check("no releases -> no latest", Store(tmp_dir / "empty").latest_release() is None)
+        check("only the published artifact names are downloadable",
+              store.release_asset("1.2.0", "../../../etc/passwd") is None)
+
+        # 6. Manifest assembly — what the updater actually consumes.
+        rel = tmp_dir / "store2"
+        store2 = Store(rel)
+        d = store2.release_dir("1.0.2")
+        d.mkdir(parents=True)
+        (d / "app.zip").write_bytes(b"app-bytes")
+        (d / "app.zip.sha256").write_text("aaaa  app.zip\n")
+        (d / "runtime-linux-x86_64.zip").write_bytes(b"rt-bytes")
+        (d / "runtime-linux-x86_64.zip.sha256").write_text("bbbb  runtime-linux-x86_64.zip\n")
+        (d / "manifest-linux-x86_64.json").write_text(json.dumps({
+            "version": 1, "release": "1.0.2", "platform": "linux-x86_64",
+            "components": [
+                {"id": "app", "target": "app", "artifact": "app.zip"},
+                {"id": "runtime", "target": "runtime", "artifact": "runtime-linux-x86_64.zip"},
+                {"id": "ghost", "target": "ghost", "artifact": "missing.zip"},
+            ]}))
+        payload, status, _ = build_latest_payload(store2, "linux-x86_64", "http://host:10001")
+        print("release manifest assembly:")
+        check("status is 200", status == HTTPStatus.OK)
+        check("release is the directory name", payload.get("release") == "1.0.2")
+        ids = [c["id"] for c in payload.get("components", [])]
+        check("declared components are served", ids == ["app", "runtime"])
+        check("a component whose artifact is missing is dropped, not served with a null checksum",
+              "ghost" not in ids)
+        first = payload["components"][0]
+        check("checksum comes from the sidecar", first["checksum"] == "aaaa")
+        check("url is absolute and points at the download route",
+              first["url"] == "http://host:10001/api/version/download/1.0.2/app.zip")
+        check("target is carried through", payload["components"][1]["target"] == "runtime")
+
+        empty, status_empty, _ = build_latest_payload(store2, "windows-x86_64", "http://host:10001")
+        check("an unknown platform gets no components rather than another platform's",
+              status_empty == HTTPStatus.OK and empty["components"] == [])
+        no_plat, _, _ = build_latest_payload(store2, "", "http://host:10001")
+        check("no platform parameter yields no components", no_plat["components"] == [])
+        _, bad_status, _ = build_latest_payload(store2, "../etc", "http://host:10001")
+        check("a malformed platform is rejected", bad_status == HTTPStatus.BAD_REQUEST)
+
+        # 7. The download allowlist grows with the manifest but stays exact.
+        names = store2.release_asset_names("1.0.2")
+        check("manifest-declared artifacts are downloadable",
+              "runtime-linux-x86_64.zip" in names and "app.zip" in names)
+        check("undeclared names are not", "missing-other.zip" not in names)
+        check("traversal is still impossible",
+              store2.release_asset("1.0.2", "../../../etc/passwd") is None)
+        (d / "manifest-broken.json").write_text("{not json")
+        check("a malformed manifest does not break assembly",
+              build_latest_payload(store2, "linux-x86_64", "http://h")[1] == HTTPStatus.OK)
+
     print(f"\n{'FAILED: ' + '; '.join(failures) if failures else 'all multipart self-tests passed'}", flush=True)
     return 1 if failures else 0
 
@@ -972,6 +1289,10 @@ def main() -> None:
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--data", default="./data", help="directory holding configs, assignments and uploads")
+    ap.add_argument("--public-base-url", default=None,
+                    help="absolute base URL clients reach this server on, e.g. "
+                         "http://192.168.122.183:10001 — used to build downloadUrl; "
+                         "defaults to the request's Host header")
     ap.add_argument("--selftest", action="store_true",
                     help="parse the multipart shapes real clients send, then exit")
     args = ap.parse_args()
@@ -981,6 +1302,7 @@ def main() -> None:
 
     Handler.store = Store(Path(args.data).resolve())
     httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+    httpd.public_base_url = args.public_base_url
     httpd.daemon_threads = True
     print(f"{now_iso()} share-mock-server listening on http://{args.host}:{args.port} "
           f"(data: {Handler.store.root})", flush=True)

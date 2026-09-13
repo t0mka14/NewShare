@@ -54,4 +54,18 @@ class ProcessAppLauncherTest {
 
         assertEquals(Path.of("/usr/lib/jvm/fallback/bin/java"), resolved)
     }
+
+    @Test
+    fun `falls back to PATH when there is no runtime and no java-home (native image)`(@TempDir tempDir: Path) {
+        val runtimeDir = tempDir.resolve("runtime") // never created
+
+        val resolved = ProcessAppLauncher.resolveJavaExecutable(
+            runtimeDir = runtimeDir,
+            isWindows = false,
+            // A GraalVM native image has no java.home at all — the packaged updater's real case.
+            javaHome = null,
+        )
+
+        assertEquals(Path.of("java"), resolved)
+    }
 }

@@ -32,11 +32,19 @@ class ProcessAppLauncher(private val log: UpdaterLog) : AppLauncher {
 
     companion object {
         /** Pure path-selection logic, factored out so it's unit-testable without spawning a
-         * process. */
-        fun resolveJavaExecutable(runtimeDir: Path, isWindows: Boolean, javaHome: String, log: UpdaterLog? = null): Path {
+         * process. [javaHome] is nullable because in a GraalVM native image — which is how this
+         * updater actually ships (§9) — there is no `java.home` system property at all. */
+        fun resolveJavaExecutable(runtimeDir: Path, isWindows: Boolean, javaHome: String?, log: UpdaterLog? = null): Path {
             val binName = if (isWindows) "java.exe" else "java"
             val bundled = runtimeDir.resolve("bin").resolve(binName)
             if (Files.isRegularFile(bundled)) return bundled
+            if (javaHome == null) {
+                // Native image with no bundled runtime/ — a half-assembled install. Nothing better
+                // to point at than PATH, which ProcessBuilder resolves; if that misses too, the
+                // launch fails loudly rather than NPE-ing here.
+                log?.warn("Bundled runtime not found at $bundled and no java.home (native image); trying PATH")
+                return Path.of(binName)
+            }
             log?.warn("Bundled runtime not found at $bundled; falling back to current JVM's java")
             return Path.of(javaHome, "bin", binName)
         }
