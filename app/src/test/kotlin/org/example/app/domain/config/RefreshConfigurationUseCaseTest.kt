@@ -15,12 +15,12 @@ class RefreshConfigurationUseCaseTest {
     private val sampleConfig = RemoteConfig(schemaVersion = 1, configVersion = "v1", defaultLanguage = "en")
 
     private fun useCase(
-        installationId: String? = "install-42",
+        siteToken: String? = "token-42",
         configApi: FakeConfigApi = FakeConfigApi(),
         configurationRepository: FakeConfigurationRepository = FakeConfigurationRepository(),
     ): Triple<RefreshConfigurationUseCase, FakeConfigApi, FakeConfigurationRepository> {
         val settings = FakeAppSettingsRepository()
-        if (installationId != null) settings.write(AppSettings(installationId = installationId))
+        if (siteToken != null) settings.write(AppSettings(siteToken = siteToken))
         return Triple(
             RefreshConfigurationUseCase(settings, configApi, configurationRepository),
             configApi,
@@ -29,22 +29,22 @@ class RefreshConfigurationUseCaseTest {
     }
 
     @Test
-    fun `no installation id yields InstallationIdMissing without calling the api`() = runTest {
-        val (useCase, api, _) = useCase(installationId = null)
+    fun `no site token yields SiteTokenMissing without calling the api`() = runTest {
+        val (useCase, api, _) = useCase(siteToken = null)
 
         val result = useCase.refresh()
 
-        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.InstallationIdMissing), result)
-        assertEquals(0, api.requestedInstallationIds.size)
+        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.SiteTokenMissing), result)
+        assertEquals(0, api.requestedSiteTokens.size)
     }
 
     @Test
-    fun `blank installation id yields InstallationIdMissing`() = runTest {
-        val (useCase, _, _) = useCase(installationId = "   ")
+    fun `blank site token yields SiteTokenMissing`() = runTest {
+        val (useCase, _, _) = useCase(siteToken = "   ")
 
         val result = useCase.refresh()
 
-        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.InstallationIdMissing), result)
+        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.SiteTokenMissing), result)
     }
 
     @Test
@@ -61,25 +61,53 @@ class RefreshConfigurationUseCaseTest {
     }
 
     @Test
-    fun `uses the installation id from settings, never a literal`() = runTest {
+    fun `uses the site token from settings, never a literal`() = runTest {
         val api = FakeConfigApi()
         api.enqueueNetworkUnavailable()
-        val (useCase, _, _) = useCase(installationId = "the-real-id", configApi = api)
+        val (useCase, _, _) = useCase(siteToken = "the-real-token", configApi = api)
 
         useCase.refresh()
 
-        assertEquals(listOf("the-real-id"), api.requestedInstallationIds)
+        assertEquals(listOf("the-real-token"), api.requestedSiteTokens)
     }
 
     @Test
-    fun `invalid installation id maps to InstallationIdRejected`() = runTest {
+    fun `unknown site token maps to SiteTokenRejected`() = runTest {
         val api = FakeConfigApi()
-        api.enqueueInvalidInstallationId()
+        api.enqueueSiteTokenUnknown()
         val (useCase, _, _) = useCase(configApi = api)
 
         val result = useCase.refresh()
 
-        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.InstallationIdRejected), result)
+        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.SiteTokenRejected), result)
+    }
+
+    @Test
+    fun `deactivated site maps to SiteDeactivated`() = runTest {
+        val api = FakeConfigApi()
+        api.enqueueSiteDeactivated()
+        val (useCase, _, _) = useCase(configApi = api)
+
+        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.SiteDeactivated), useCase.refresh())
+    }
+
+    @Test
+    fun `rate limiting maps to RateLimited`() = runTest {
+        val api = FakeConfigApi()
+        api.enqueueRateLimited()
+        val (useCase, _, _) = useCase(configApi = api)
+
+        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.RateLimited), useCase.refresh())
+    }
+
+    @Test
+    fun `an installation id alone is not enough to fetch`() = runTest {
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(installationId = "pc-1")) }
+        val api = FakeConfigApi()
+        val useCase = RefreshConfigurationUseCase(settings, api, FakeConfigurationRepository())
+
+        assertEquals(RefreshConfigurationUseCase.Result.Failed(ConfigError.SiteTokenMissing), useCase.refresh())
+        assertEquals(0, api.requestedSiteTokens.size)
     }
 
     @Test
@@ -166,10 +194,10 @@ class RefreshConfigurationUseCaseTest {
     }
 
     @Test
-    fun `installation id never appears in the returned error`() = runTest {
+    fun `site token never appears in the returned error`() = runTest {
         val api = FakeConfigApi()
         api.enqueueNetworkUnavailable(detail = "java.net.ConnectException")
-        val (useCase, _, _) = useCase(installationId = "SUPER-SECRET-ID", configApi = api)
+        val (useCase, _, _) = useCase(siteToken = "SUPER-SECRET-ID", configApi = api)
 
         val result = useCase.refresh()
 

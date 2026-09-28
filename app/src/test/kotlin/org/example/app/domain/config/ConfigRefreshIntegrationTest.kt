@@ -25,8 +25,8 @@ import java.nio.file.Path
  */
 class ConfigRefreshIntegrationTest {
 
-    private fun settingsWithInstallationId(id: String = "install-1"): FakeAppSettingsRepository =
-        FakeAppSettingsRepository().apply { write(AppSettings(installationId = id)) }
+    private fun settingsWithSiteToken(token: String = "token-1"): FakeAppSettingsRepository =
+        FakeAppSettingsRepository().apply { write(AppSettings(siteToken = token)) }
 
     @Test
     fun `fetch path persists atomically and activates the config`(@TempDir tempDir: Path) {
@@ -34,7 +34,7 @@ class ConfigRefreshIntegrationTest {
         val cache = RawConfigCache(directories)
         val repository = JsonConfigurationRepository(cache)
         val api = FakeConfigApi().apply { enqueueSuccess(ConfigFixtures.fullProtocol) }
-        val useCase = RefreshConfigurationUseCase(settingsWithInstallationId(), api, repository)
+        val useCase = RefreshConfigurationUseCase(settingsWithSiteToken(), api, repository)
 
         lateinit var result: RefreshConfigurationUseCase.Result
         runTest { result = useCase.refresh() }
@@ -53,7 +53,7 @@ class ConfigRefreshIntegrationTest {
         val firstRunRepository = JsonConfigurationRepository(RawConfigCache(directories))
         val api = FakeConfigApi().apply { enqueueSuccess(ConfigFixtures.fullProtocol) }
         runTest {
-            RefreshConfigurationUseCase(settingsWithInstallationId(), api, firstRunRepository).refresh()
+            RefreshConfigurationUseCase(settingsWithSiteToken(), api, firstRunRepository).refresh()
         }
 
         // "Process 2": fresh repository instance, same directories, no network call — startup path only.
@@ -73,7 +73,7 @@ class ConfigRefreshIntegrationTest {
         repository.loadCached()
 
         val api = FakeConfigApi().apply { enqueueNetworkUnavailable() }
-        val useCase = RefreshConfigurationUseCase(settingsWithInstallationId(), api, repository)
+        val useCase = RefreshConfigurationUseCase(settingsWithSiteToken(), api, repository)
 
         lateinit var result: RefreshConfigurationUseCase.Result
         runTest { result = useCase.refresh() }
@@ -87,7 +87,7 @@ class ConfigRefreshIntegrationTest {
         val directories = TestAppDirectories(tempDir)
         val repository = JsonConfigurationRepository(RawConfigCache(directories))
         val api = FakeConfigApi().apply { enqueueNetworkUnavailable() }
-        val useCase = RefreshConfigurationUseCase(settingsWithInstallationId(), api, repository)
+        val useCase = RefreshConfigurationUseCase(settingsWithSiteToken(), api, repository)
 
         lateinit var result: RefreshConfigurationUseCase.Result
         runTest { result = useCase.refresh() }

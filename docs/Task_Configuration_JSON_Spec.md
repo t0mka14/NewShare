@@ -9,13 +9,13 @@ the configuration JSON pushed from the server to the app.
 ## 1. Purpose and fetch flow
 
 On startup (and on manual refresh in Settings) the app sends a **GET request containing its
-installation ID** and receives a single configuration JSON.
+site token** and receives a single configuration JSON.
 
-- Endpoint path: **to be specified** (placeholder used in this doc:
-  `GET /api/config/{installationId}`).
-- **Validation happens during this request:** the server validates the installation ID and
-  either returns the configuration or an error response (unknown/disabled ID). There is no
-  separate registration step.
+- Endpoint: `GET /site-config/{siteToken}` on the web backend. The token is the site's
+  `access_token`, shared by every computer of the site.
+- **Validation happens during this request:** the server validates the token and either
+  returns the configuration or an error response (404 unknown token, 403 site deactivated,
+  429 too many failed lookups). There is no separate registration step.
 - On success the app validates `schemaVersion`, caches the JSON to `data/config/config.json`,
   and activates it.
 - If the server is unreachable, the last cached config is used. With no cache (first run

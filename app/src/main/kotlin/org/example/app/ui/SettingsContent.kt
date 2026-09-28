@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -28,7 +29,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.navigation.SettingsComponent
 import kotlin.math.roundToInt
 
-/** §3 Settings screen: mic device + level slider (legacy layout, §13/44), installation ID, language, refresh — nothing else. */
+/** §3 Settings screen: mic device + level slider (legacy layout, §13/44), site token + installation ID, language, refresh — nothing else. */
 @Composable
 fun SettingsContent(component: SettingsComponent, localization: UiLocalization, onBack: () -> Unit) {
     val state by component.state.subscribeAsState()
@@ -89,13 +90,22 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
+            Text(localization.resolve("settings.siteToken.label"), style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(
-                value = state.installationId,
-                onValueChange = component::onInstallationIdChanged,
+                value = state.siteToken,
+                onValueChange = component::onSiteTokenChanged,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
+                modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.SITE_TOKEN_FIELD),
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
+            SelectionContainer {
+                Text(
+                    state.installationId,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))

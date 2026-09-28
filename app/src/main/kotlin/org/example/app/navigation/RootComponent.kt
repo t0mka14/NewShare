@@ -205,6 +205,7 @@ class DefaultRootComponent(
             configurationRepository = container.configurationRepository,
             refreshConfigurationUseCase = container.refreshConfigurationUseCase,
             micGainApplier = container.micGainApplier,
+            installationIdProvider = container.installationIdProvider,
             dispatchers = container.dispatchers,
         )
         val subscription = settingsComponent.state.subscribe { state ->
@@ -255,7 +256,7 @@ class DefaultRootComponent(
 
         val sessionComponent = DefaultSessionComponent(
             componentContext = childContext,
-            installationId = savedSettings?.installationId.orEmpty(),
+            installationId = container.installationIdProvider.get(),
             protocol = protocol,
             configVersion = activeConfig.configVersion,
             rawConfigJson = container.rawConfigCache.read() ?: "{}",

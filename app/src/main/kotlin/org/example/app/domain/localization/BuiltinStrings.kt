@@ -22,8 +22,10 @@ object BuiltinStrings {
 
         // Blocking "configuration required" screen (§6.1 pt 4) and its per-reason detail text.
         "error.config.required" to "Configuration required. Connect to the network and refresh, or contact your administrator.",
-        "error.config.installationIdMissing" to "No installation ID is set. Open Settings and enter one.",
-        "error.config.installationIdRejected" to "This installation ID was not accepted by the server. Contact your administrator.",
+        "error.config.siteTokenMissing" to "No site token is set. Open Settings and enter the token from your administrator.",
+        "error.config.siteTokenRejected" to "The server did not recognise this site token. Check it in Settings or contact your administrator.",
+        "error.config.siteDeactivated" to "This site has been deactivated on the server. Contact your administrator.",
+        "error.config.rateLimited" to "Too many failed attempts. Wait a few minutes and try again.",
         "error.config.networkUnavailable" to "Could not reach the configuration server.",
         "error.config.schemaUnsupported" to "The server configuration is not compatible with this app version. Please update the app.",
         "error.config.validationFailed" to "The server configuration is invalid. Contact your administrator.",
@@ -44,6 +46,7 @@ object BuiltinStrings {
         "settings.micGain.reset" to "Use configured default ({value})",
         // Empty by design: a config may supply a hint (the legacy app's "recommended level is 63").
         "settings.micGain.hint" to "",
+        "settings.siteToken.label" to "Site token",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
         "settings.refresh.button" to "Refresh configuration",

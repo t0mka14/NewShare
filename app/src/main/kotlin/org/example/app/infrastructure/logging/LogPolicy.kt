@@ -4,8 +4,8 @@ package org.example.app.infrastructure.logging
  * Anchors the §11 logging rule in code.
  *
  * **§11 (normative):** log lines must never contain participant data (patient code,
- * field values, questionnaire answers) or the installation ID — the installation ID
- * acts as a bearer credential (§6.1). Sessions are referenced by `sessionId` only.
+ * field values, questionnaire answers) or the site token — the site token acts as a
+ * bearer credential (§6.1). Sessions are referenced by `sessionId` only.
  *
  * Sinks are configured in `app/src/main/resources/logback.xml` (console + a rolling
  * file at `data/logs/app.log`, modest size cap). This object does not change that
@@ -17,8 +17,8 @@ object LogPolicy {
     /**
      * Transport/IO exceptions from [org.example.app.infrastructure.network.KtorConfigApi]
      * and future `UploadApi` implementations can embed the request URL in
-     * `Throwable.message` (e.g. `java.net.ConnectException: Connection refused: /api/config/<id>`).
-     * For `ConfigApi` that URL contains the installation ID, so callers must never log
+     * `Throwable.message` (e.g. `java.net.ConnectException: Connection refused: /site-config/<token>`).
+     * For `ConfigApi` that URL contains the site token, so callers must never log
      * `Throwable.message` for those failures.
      *
      * Use this instead: it reduces an exception to its class name, which is safe to log

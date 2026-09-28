@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Blocking "configuration required" screen (§6.1 pt 4): no active config (no cache, or the
- * server rejected the installation ID). Rendered entirely from bundled fallback strings (§7) —
+ * server rejected the site token). Rendered entirely from bundled fallback strings (§7) —
  * `localization.config` is `null` here by construction. The only way out is Settings, to enter/
- * fix the installation ID and refresh.
+ * fix the site token and refresh.
  */
 @Composable
 fun BlockingConfigurationRequiredContent(localization: UiLocalization, onOpenSettings: () -> Unit) {

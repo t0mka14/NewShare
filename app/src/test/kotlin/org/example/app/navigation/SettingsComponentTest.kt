@@ -8,6 +8,7 @@ import org.example.app.domain.config.RefreshConfigurationUseCase
 import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.InstallationIdProvider
 import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioInputGainControl
@@ -55,6 +56,7 @@ class SettingsComponentTest {
             configurationRepository = configurationRepository,
             refreshConfigurationUseCase = RefreshConfigurationUseCase(settingsRepository, configApi, configurationRepository),
             micGainApplier = MicGainApplier(gainControl, settingsRepository, dispatchers),
+            installationIdProvider = InstallationIdProvider(settingsRepository) { "generated-pc-id" },
             dispatchers = dispatchers,
         )
     }
@@ -64,13 +66,14 @@ class SettingsComponentTest {
     @Test
     fun `initial state reflects persisted settings and available devices`() {
         val settingsRepository = FakeAppSettingsRepository().apply {
-            write(AppSettings(micDeviceId = "secondary", installationId = "inst-1", language = "cs"))
+            write(AppSettings(micDeviceId = "secondary", installationId = "inst-1", siteToken = "token-1", language = "cs"))
         }
         val h = Harness(settingsRepository = settingsRepository)
 
         val state = h.component.state.value
         assertEquals("secondary", state.selectedDeviceId)
         assertEquals("inst-1", state.installationId)
+        assertEquals("token-1", state.siteToken)
         assertEquals("cs", state.selectedLanguage)
         assertEquals(2, state.availableDevices.size)
     }
@@ -80,19 +83,19 @@ class SettingsComponentTest {
         val h = Harness()
 
         h.component.onDeviceSelected("secondary")
-        h.component.onInstallationIdChanged("inst-42")
+        h.component.onSiteTokenChanged("  token-42 ")
         h.component.onLanguageSelected("cs")
 
         val saved = h.settingsRepository.read()!!
         assertEquals("secondary", saved.micDeviceId)
-        assertEquals("inst-42", saved.installationId)
+        assertEquals("token-42", saved.siteToken)
         assertEquals("cs", saved.language)
     }
 
     @Test
     fun `refresh success maps to the localized success key`() {
         val h = Harness()
-        h.settingsRepository.write(AppSettings(installationId = "inst-1"))
+        h.settingsRepository.write(AppSettings(siteToken = "token-1"))
         h.configApi.enqueueSuccess("""{"schemaVersion":1}""")
         h.configurationRepository.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig()))
 
@@ -104,32 +107,56 @@ class SettingsComponentTest {
     }
 
     @Test
-    fun `refresh with missing installation id maps to the installationIdMissing key`() {
+    fun `refresh with missing site token maps to the siteTokenMissing key`() {
         val h = Harness()
-        // No installation ID saved.
+        // No site token saved.
 
         h.component.onRefreshClicked()
         h.dispatchers.scheduler.advanceUntilIdle()
 
-        assertEquals("error.config.installationIdMissing", h.component.state.value.lastRefreshResultKey)
+        assertEquals("error.config.siteTokenMissing", h.component.state.value.lastRefreshResultKey)
     }
 
     @Test
-    fun `refresh rejected installation id maps to the installationIdRejected key`() {
+    fun `refresh with an unknown site token maps to the siteTokenRejected key`() {
         val h = Harness()
-        h.settingsRepository.write(AppSettings(installationId = "inst-1"))
-        h.configApi.enqueueInvalidInstallationId()
+        h.settingsRepository.write(AppSettings(siteToken = "token-1"))
+        h.configApi.enqueueSiteTokenUnknown()
 
         h.component.onRefreshClicked()
         h.dispatchers.scheduler.advanceUntilIdle()
 
-        assertEquals("error.config.installationIdRejected", h.component.state.value.lastRefreshResultKey)
+        assertEquals("error.config.siteTokenRejected", h.component.state.value.lastRefreshResultKey)
+    }
+
+    @Test
+    fun `refresh of a deactivated site maps to the siteDeactivated key`() {
+        val h = Harness()
+        h.settingsRepository.write(AppSettings(siteToken = "token-1"))
+        h.configApi.enqueueSiteDeactivated()
+
+        h.component.onRefreshClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals("error.config.siteDeactivated", h.component.state.value.lastRefreshResultKey)
+    }
+
+    @Test
+    fun `a missing installation id is generated, shown and kept across token edits`() {
+        val h = Harness()
+
+        assertEquals("generated-pc-id", h.component.state.value.installationId)
+        h.component.onSiteTokenChanged("token-1")
+
+        val saved = h.settingsRepository.read()!!
+        assertEquals("generated-pc-id", saved.installationId)
+        assertEquals("token-1", saved.siteToken)
     }
 
     @Test
     fun `offline with cached config still active counts as success, not a failure`() {
         val h = Harness(configurationRepository = FakeConfigurationRepository(initialConfig = sampleConfig()))
-        h.settingsRepository.write(AppSettings(installationId = "inst-1"))
+        h.settingsRepository.write(AppSettings(siteToken = "token-1"))
         h.configApi.enqueueNetworkUnavailable()
 
         h.component.onRefreshClicked()
@@ -276,11 +303,11 @@ class SettingsComponentTest {
         }
         val h = Harness(settingsRepository = settingsRepository)
 
-        h.component.onInstallationIdChanged("inst-9")
+        h.component.onSiteTokenChanged("token-9")
 
         val saved = h.settingsRepository.read()!!
         assertEquals("cam-1", saved.cameraDeviceId)
         assertEquals(40, saved.micGain)
-        assertEquals("inst-9", saved.installationId)
+        assertEquals("token-9", saved.siteToken)
     }
 }

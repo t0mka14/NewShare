@@ -1,14 +1,21 @@
 package org.example.app.infrastructure.network
 
 /**
- * Base URL both [KtorConfigApi] and [KtorUploadApi] default to.
+ * Web backend (task_protocoller_web_app) that [KtorConfigApi] defaults to: its reverse proxy
+ * mounts the backend under `/api`, so the config is `GET /api/site-config/{token}` (config
+ * alignment row 1). Without the prefix the proxy answers with the frontend's HTML and a 200.
+ */
+const val WEB_SERVER_BASE_URL: String = "http://192.168.122.183:10001/api"
+
+/**
+ * Base URL [KtorUploadApi] defaults to.
  *
  * Points at the demo mock server in `tools/mock-server` (see its README): plain HTTP, the
- * container's port 80 published on the host as 10001. It serves `GET /api/config/{installationId}`
- * and accepts `POST /api/upload`, i.e. the placeholder contract from §6.1 / §8.9.
+ * container's port 80 published on the host as 10001. It accepts `POST /api/upload`, the
+ * placeholder contract from §8.9, until the web backend gets an upload endpoint (phase B).
  *
- * The real server contract is still open (§13 open question 1) — including HTTPS, which §6.1 pt 7
- * requires in production. When it lands, this constant (or the values `AppContainer` passes to the
- * two API classes) is the only thing that changes.
+ * HTTPS, which §6.1 pt 7 requires in production, is still open for both URLs; when it lands,
+ * these constants (or the values `AppContainer` passes to the two API classes) are the only
+ * things that change.
  */
 const val DEMO_SERVER_BASE_URL: String = "http://192.168.122.183:10001/api"

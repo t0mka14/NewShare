@@ -12,7 +12,7 @@ data/
   app.lock                          single-instance lock (FileChannel.tryLock)
   config/
     config.json                     raw cached remote config (RawConfigCache)
-    settings.json                   AppSettings — mic + camera device ids, installation ID, language
+    settings.json                   AppSettings — mic + camera device ids, generated installation ID, site token, language
   sessions/<yyyy-MM-dd_Patient_SessionId>/
     participant.json                ParticipantRecord
     examination.json                Examination — updated after every task (atomic)
@@ -28,7 +28,7 @@ data/
                                     file per take, remuxed to a container during processing
     archive/<Patient>_<SessionId>.zip  derived; ZIP + manifest (regenerable)
     metadata/upload_status.json     UploadStatus — the single authority for upload state
-  logs/app.log                      rolling, no participant data / installation ID ever
+  logs/app.log                      rolling, no participant data / site token ever
 ```
 
 There is no persisted upload queue (decision 34) — the upload screen computes its list on

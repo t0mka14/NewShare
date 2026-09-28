@@ -41,7 +41,8 @@ private fun previewState(micGain: Int?, controllable: Boolean, override: Int? = 
     SettingsComponent.State(
         availableDevices = previewDevices,
         selectedDeviceId = "usb",
-        installationId = "DEMO-001",
+        installationId = "3f2b8c1e-5d4a-4b6f-9e7d-0a1b2c3d4e5f",
+        siteToken = "paris000000000000000",
         availableLanguages = listOf("cs", "en"),
         selectedLanguage = "en",
         micGain = micGain,
@@ -59,8 +60,8 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
         _state.value = _state.value.copy(selectedDeviceId = deviceId)
     }
 
-    override fun onInstallationIdChanged(value: String) {
-        _state.value = _state.value.copy(installationId = value)
+    override fun onSiteTokenChanged(value: String) {
+        _state.value = _state.value.copy(siteToken = value)
     }
 
     override fun onLanguageSelected(language: String) {

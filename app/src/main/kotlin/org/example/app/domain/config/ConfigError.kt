@@ -2,17 +2,23 @@ package org.example.app.domain.config
 
 /**
  * §11 `ConfigError` taxonomy, produced by [RefreshConfigurationUseCase] for the UI to
- * localize (built-in keys under `error.config.*`, §7). Never carries the installation ID or a
+ * localize (built-in keys under `error.config.*`, §7). Never carries the site token or a
  * raw exception message (§11, §6.1 pt 7) — [ConfigFetchResult.NetworkUnavailable.detail] is
  * already sanitized to an exception class name by `ConfigApi` implementations before it
  * reaches here.
  */
 sealed interface ConfigError {
-    /** No installation ID has been entered in Settings yet (first run). */
-    data object InstallationIdMissing : ConfigError
+    /** No site token has been entered in Settings yet (first run). */
+    data object SiteTokenMissing : ConfigError
 
-    /** Server rejected the installation ID as unknown/disabled (§6.1). */
-    data object InstallationIdRejected : ConfigError
+    /** The server knows no site with this token. */
+    data object SiteTokenRejected : ConfigError
+
+    /** The token's site has been deactivated on the server. */
+    data object SiteDeactivated : ConfigError
+
+    /** The server is throttling this address after too many failed lookups. */
+    data object RateLimited : ConfigError
 
     /** Transport failure and no cached config to fall back to (§6.1 pt 4). */
     data object NetworkUnavailableNoCache : ConfigError

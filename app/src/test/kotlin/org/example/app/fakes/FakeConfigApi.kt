@@ -5,7 +5,7 @@ import org.example.app.domain.config.ConfigFetchResult
 
 /**
  * Programmable result queue standing in for the real Ktor [ConfigApi] (§10.3):
- * enqueue success JSON, [ConfigFetchResult.InvalidInstallationId], or
+ * enqueue success JSON, a site-token rejection, or
  * [ConfigFetchResult.NetworkUnavailable] to drive offline-config and
  * validation-error scenarios without any real network call.
  *
@@ -16,8 +16,8 @@ import org.example.app.domain.config.ConfigFetchResult
 class FakeConfigApi : ConfigApi {
     private val queue = ArrayDeque<ConfigFetchResult>()
 
-    /** Every installation ID passed to [fetchConfig], in call order — for asserting it's never logged/reused unexpectedly. */
-    val requestedInstallationIds = mutableListOf<String>()
+    /** Every site token passed to [fetchConfig], in call order. */
+    val requestedSiteTokens = mutableListOf<String>()
 
     fun enqueue(result: ConfigFetchResult) {
         queue.addLast(result)
@@ -25,15 +25,19 @@ class FakeConfigApi : ConfigApi {
 
     fun enqueueSuccess(json: String) = enqueue(ConfigFetchResult.Success(json))
 
-    fun enqueueInvalidInstallationId() = enqueue(ConfigFetchResult.InvalidInstallationId)
+    fun enqueueSiteTokenUnknown() = enqueue(ConfigFetchResult.SiteTokenUnknown)
+
+    fun enqueueSiteDeactivated() = enqueue(ConfigFetchResult.SiteDeactivated)
+
+    fun enqueueRateLimited() = enqueue(ConfigFetchResult.RateLimited)
 
     fun enqueueNetworkUnavailable(detail: String = "FakeConfigApi: simulated network failure") =
         enqueue(ConfigFetchResult.NetworkUnavailable(detail))
 
     fun enqueueServerError(httpStatus: Int) = enqueue(ConfigFetchResult.ServerError(httpStatus))
 
-    override suspend fun fetchConfig(installationId: String): ConfigFetchResult {
-        requestedInstallationIds += installationId
+    override suspend fun fetchConfig(siteToken: String): ConfigFetchResult {
+        requestedSiteTokens += siteToken
         return if (queue.isNotEmpty()) {
             queue.removeFirst()
         } else {

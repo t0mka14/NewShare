@@ -27,14 +27,15 @@ Caveat: `logback.xml` resolves the log dir independently (`${LOG_PATH:-${user.di
 
 ## 2. Change API endpoints
 
-Both APIs take the endpoint as constructor parameters (single configuration point,
-spec §13 open q1 — the real server contract is still pending):
+Both APIs take the endpoint as constructor parameters (single configuration point). The
+config fetch defaults to the web backend's `GET /site-config/{token}` (`WEB_SERVER_BASE_URL`,
+spec §13 decision 45); the upload contract is still pending:
 
 ```kotlin
 val container = AppContainer(
     configApi = KtorConfigApi(
-        baseUrl = "https://api.clinic.example/v2",
-        configPath = { installationId -> "/config/$installationId" },
+        baseUrl = "https://web.clinic.example",
+        configPath = { siteToken -> "/site-config/${siteToken.encodeURLPathPart()}" },
     ),
     uploadApi = KtorUploadApi(
         baseUrl = "https://api.clinic.example/v2",

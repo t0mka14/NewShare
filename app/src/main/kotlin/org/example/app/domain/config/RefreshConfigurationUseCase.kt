@@ -3,10 +3,10 @@ package org.example.app.domain.config
 import org.example.app.domain.settings.AppSettingsRepository
 
 /**
- * §5.5 `RefreshConfigurationUseCase`: installation ID (from [AppSettingsRepository]) →
+ * §5.5 `RefreshConfigurationUseCase`: site token (from [AppSettingsRepository]) →
  * [ConfigApi.fetchConfig] → on success [ConfigurationRepository.applyFetched]; failures map to
  * the §11 [ConfigError] taxonomy as a sealed [Result] the UI can localize without ever seeing
- * an exception or the installation ID (§6.1 pt 7, §11).
+ * an exception or the token (§6.1 pt 7, §11).
  *
  * Offline fallback (§6.1 pt 4) is not a distinct error case here: when the transport fails and
  * a cached config is already active, that is the *designed* behavior, not a failure to
@@ -26,15 +26,17 @@ class RefreshConfigurationUseCase(
     }
 
     suspend fun refresh(): Result {
-        val installationId = settingsRepository.read()?.installationId
-        if (installationId.isNullOrBlank()) {
-            return Result.Failed(ConfigError.InstallationIdMissing)
+        val siteToken = settingsRepository.read()?.siteToken
+        if (siteToken.isNullOrBlank()) {
+            return Result.Failed(ConfigError.SiteTokenMissing)
         }
 
-        return when (val fetch = configApi.fetchConfig(installationId)) {
+        return when (val fetch = configApi.fetchConfig(siteToken)) {
             is ConfigFetchResult.Success -> applyFetched(fetch.json)
 
-            ConfigFetchResult.InvalidInstallationId -> Result.Failed(ConfigError.InstallationIdRejected)
+            ConfigFetchResult.SiteTokenUnknown -> Result.Failed(ConfigError.SiteTokenRejected)
+            ConfigFetchResult.SiteDeactivated -> Result.Failed(ConfigError.SiteDeactivated)
+            ConfigFetchResult.RateLimited -> Result.Failed(ConfigError.RateLimited)
 
             is ConfigFetchResult.NetworkUnavailable -> {
                 val cached = configurationRepository.activeConfig.value

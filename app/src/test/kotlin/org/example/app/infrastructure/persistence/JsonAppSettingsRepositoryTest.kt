@@ -23,11 +23,26 @@ class JsonAppSettingsRepositoryTest {
         val dirs = TestAppDirectories(tempDir)
         val repository = JsonAppSettingsRepository(dirs)
 
-        val settings = AppSettings(micDeviceId = "mic-1", installationId = "install-abc", language = "en")
+        val settings = AppSettings(micDeviceId = "mic-1", installationId = "install-abc", siteToken = "token-abc", language = "en")
         repository.write(settings)
 
         assertEquals(settings, repository.read())
         assertFalse(Files.exists(dirs.configDir.resolve("settings.json.tmp")))
+    }
+
+    @Test
+    fun `a settings file written before siteToken existed still loads`(@TempDir tempDir: Path) {
+        val dirs = TestAppDirectories(tempDir)
+        Files.createDirectories(dirs.configDir)
+        Files.writeString(
+            dirs.configDir.resolve("settings.json"),
+            """{"version":1,"micDeviceId":"mic-1","installationId":"DEMO-001","language":"cs"}""",
+        )
+
+        val read = JsonAppSettingsRepository(dirs).read()
+
+        assertEquals("DEMO-001", read?.installationId)
+        assertEquals(null, read?.siteToken)
     }
 
     @Test

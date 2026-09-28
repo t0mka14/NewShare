@@ -21,7 +21,7 @@ optionally lets the examiner refine boundaries in a waveform editor, exports per
 from the unmodified master, archives the session as a ZIP, and uploads that ZIP to a REST
 server.
 
-The app is configured **remotely**: at startup it sends its **installation ID** to a server
+The app is configured **remotely**: at startup it sends its **site token** to a server
 and receives a single configuration JSON that defines protocols, tasks, application behavior,
 and all localized strings. There is no local task editing.
 
@@ -77,7 +77,7 @@ but is retired for these reasons:
 1. **It predates the remote-config model.** Its Settings sections (task management UI, local
    `tasks.json` editing, participant field configuration screens) conflict with server-pushed
    configuration. In the rewrite, Settings contains only: audio input device selection, the
-   microphone level slider (§13 decision 44), installation ID, language, and a "refresh
+   microphone level slider (§13 decision 44), site token (plus the read-only installation ID), language, and a "refresh
    configuration" action.
 2. **Localization mismatch.** It specifies bundled `strings_*.xml` files; the new model ships
    all strings inside the configuration JSON (§7).
@@ -195,7 +195,7 @@ IdGenerator               session IDs: opaque, unique, filesystem-safe (e.g. UUI
 ContinuousSessionRecorder see §5.3.1
 AudioInputDeviceProvider  enumerate/select input devices
 AudioPlaybackService      example-audio and editor playback
-ConfigApi                 fetch configuration JSON by installation ID (Ktor)
+ConfigApi                 fetch configuration JSON by site token (Ktor)
 UploadApi                 multipart session upload (Ktor)
 ```
 
@@ -240,7 +240,7 @@ The recorder is the **single source of truth for audio time**. Requirements:
 
 ```
 ConfigurationRepository     cached remote config: load/save/activeConfig Flow
-AppSettingsRepository       local-only settings: mic device, installation ID, language
+AppSettingsRepository       local-only settings: mic device, site token, installation ID, language
 SessionRepository           session metadata, participant.json, examination.json
 TimelineRepository          event log + timeline_original.json / timeline_edited.json
 WaveformCacheRepository     downsampled min/max peaks per session
@@ -258,7 +258,7 @@ manual retry.
 ### 5.5 Use cases (only where real logic exists)
 
 ```
-RefreshConfigurationUseCase   fetch by installationId → validate → cache → activate
+RefreshConfigurationUseCase   fetch by siteToken → validate → cache → activate
 StartSessionUseCase           preflight checks, create session dir, snapshot config, start recorder
 ProcessSessionUseCase         pick timeline (edited > original), cut clips, zip
 UploadSessionUseCase          upload session ZIP, update statuses, queue retries
@@ -272,13 +272,17 @@ RecoverSessionsUseCase        startup crash recovery (§8.4)
 
 ### 6.1 Flow
 
-1. Settings stores an **installation ID** (entered once at deployment; replaces the old
-   `clinicId` preference).
-2. On startup (and on manual "refresh" in Settings) the app sends a GET request containing
-   the installation ID (endpoint path to be specified; placeholder
-   `GET /api/config/{installationId}`). **The server validates the installation ID during
-   this request** — there is no separate registration step; an unknown/disabled ID yields an
-   error response, which the app surfaces on the configuration-required screen.
+1. Settings stores the **site token** — the site's `access_token` from the web admin, entered
+   once at deployment and shared by every computer of the site (§13 decision 45). Separately,
+   each computer has an **installation ID**, a UUID generated on first use; it is not a
+   credential (it traces uploads to a device and is the `${installationId}` filename variable).
+2. On startup (and on manual "refresh" in Settings) the app sends
+   `GET {WEB_SERVER_BASE_URL}/site-config/{siteToken}`. **The server validates the token during
+   this request** — there is no separate registration step. Errors, surfaced on the Settings
+   screen / configuration-required screen: 404 unknown token → `SiteTokenRejected`, 403 site
+   deactivated → `SiteDeactivated`, 429 too many failed lookups → `RateLimited`, anything else
+   → `ServerError`. Only the status code is interpreted (bodies are `{"error": "…"}`). The app
+   sends nothing back after a fetch.
 3. The response JSON is validated against `schemaVersion`, persisted **atomically** (write to
    `config.json.tmp`, fsync, rename over `data/config/config.json`), and becomes the active
    configuration.
@@ -294,8 +298,8 @@ RecoverSessionsUseCase        startup crash recovery (§8.4)
    app behaves as "no cache". The server response always replaces the cache regardless of
    `configVersion` ordering — the server is authoritative.
 7. **Transport:** HTTPS with certificate validation for all `ConfigApi` and `UploadApi`
-   calls. The installation ID acts as a bearer credential and must never appear in log
-   files (§11).
+   calls. The site token acts as a bearer credential and must never appear in log files
+   (§11).
 
 ### 6.2 Schema — normative corrections to the draft
 
@@ -1221,12 +1225,23 @@ Error taxonomy (normative, inlined from the old plan):
       its name length (31 = truncated) and each port's controls; `-Pset="<device>:<percent>"`
       applies a level so the mechanism can be checked against the Windows sound panel.
 
+45. **Config fetch by site token; installation ID is a generated device ID (2026-09-27,
+    config alignment row 1).** `ConfigApi` calls the web backend's `GET /site-config/{token}`
+    (`WEB_SERVER_BASE_URL`, token in the URL path, URL-encoded) with the site's `access_token`,
+    stored as `AppSettings.siteToken` and edited in Settings. `AppSettings.installationId` is no
+    longer typed: `InstallationIdProvider` generates a UUID on first use (an ID saved by an
+    older version is kept) and Settings shows it read-only. Session start reads it through the
+    provider, so it lands in `examination.json`, the upload form and filenames. Uploads still go
+    to the mock server (`DEMO_SERVER_BASE_URL`) keyed by `installationId` until the web has an
+    upload endpoint (phase B, which will also send the site token). `ConfigError`
+    `InstallationIdMissing/Rejected` became `SiteTokenMissing/Rejected`, plus `SiteDeactivated`
+    and `RateLimited`. Closes the config half of open question 1.
+
 **Still open:**
 
-1. Concrete server API contracts: config endpoint path, upload endpoint shape, and transport
-   hardening (non-enumerable installation IDs, config authenticity/signing; whether the
-   installation ID travels in the URL path — where reverse proxies log it — or in an
-   `Authorization` header). The old Mars
+1. Concrete server API contracts: upload endpoint shape, and transport hardening (config
+   authenticity/signing, HTTPS). The config endpoint is settled by decision 45 (token in the URL
+   path; the web rate-limits failed lookups). The old Mars
    endpoints (`/recordings/`, `/task/`, `/log/` on `speech.fel.cvut.cz`) used secret+userid
    form fields; the new contract is pending.
 2. Data retention / erasure: local data is never auto-deleted — is a manual
