@@ -23,7 +23,6 @@ import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
-import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.VocalTask
@@ -88,10 +87,10 @@ interface SessionComponent {
  * to every child [TaskComponent] once writing has started. Questionnaire/info-only protocols
  * never create a recorder and skip straight to the first task instance (§6.2).
  *
- * Navigation is by index into the expanded, calibration-filtered task-instance list (§8.6) —
- * never object identity. `taskIndex`/`repetition` used in logged events come from
- * [TaskInstance], which still reflects calibration's own slot in the original expansion
- * (decision 22) even though calibration is not part of the navigable task list here.
+ * Navigation is by index into the expanded task-instance list (§8.6) — never object identity.
+ * Calibration is not a task (config alignment row 5): with [useCalibration] a VOCAL protocol
+ * opens on the calibration screen, whose confirm starts the master recording; without it the
+ * recording starts right after bootstrap.
  */
 class DefaultSessionComponent(
     componentContext: ComponentContext,
@@ -128,6 +127,10 @@ class DefaultSessionComponent(
      * config-adjacent assets are deployed alongside the fetched config JSON. */
     private val directories: AppDirectories,
     private val audioPlaybackService: AudioPlaybackService,
+    /** `RemoteConfig.useCalibration`: show calibration before the first task of a VOCAL protocol. */
+    private val useCalibration: Boolean,
+    /** Calibration target band, `AppSettings.loudnessRange()`. */
+    private val calibrationLoudness: ClosedFloatingPointRange<Double>,
     /** Carries the finished session's folder name, so the caller (RootComponent) can route
      * into the editor (if `enableEditor`) or straight to processing (§8.8) without
      * re-deriving it. */
@@ -165,7 +168,6 @@ class DefaultSessionComponent(
     private var folderName: String? = null
     private var examination: Examination? = null
     private var navigableInstances: List<TaskInstance> = emptyList()
-    private var calibrationInstance: TaskInstance? = null
     private var currentDeviceId: String? = initialDevice.id
     private var pendingInterruption: PendingInterruption? = null
     private var interruptionPartCounter = 1
@@ -237,13 +239,12 @@ class DefaultSessionComponent(
                 val result = outcome.result
                 folderName = result.folderName
                 examination = result.examination
-                calibrationInstance = result.expansion.instances.firstOrNull { it.task is CalibrationTask }
-                navigableInstances = result.expansion.instances.filterNot { it.task is CalibrationTask }
+                navigableInstances = result.expansion.instances
 
-                if (hasVocal && calibrationInstance != null) {
-                    navigation.replaceAll(Config.Calibration)
-                } else {
-                    navigation.replaceAll(Config.TaskScreen(0))
+                when {
+                    hasVocal && useCalibration -> navigation.replaceAll(Config.Calibration)
+                    hasVocal -> startRecording()
+                    else -> navigation.replaceAll(Config.TaskScreen(0))
                 }
             }
 
@@ -264,7 +265,7 @@ class DefaultSessionComponent(
                     componentContext = childContext,
                     recorder = requireNotNull(recorder),
                     dispatchers = dispatchers,
-                    calibrationTask = calibrationInstance!!.task as CalibrationTask,
+                    loudness = calibrationLoudness,
                     initialDevice = initialDevice,
                     availableDevices = availableDevices,
                     onConfirmed = ::onCalibrationConfirmed,
@@ -424,13 +425,16 @@ class DefaultSessionComponent(
         "task%02d_rep%02d_take%02d.mjpeg".format(instance.taskIndex, instance.repetition, take)
 
     private fun onCalibrationConfirmed() {
-        scope.launch(dispatchers.main) {
-            val r = recorder ?: return@launch
-            val master = sessionRepository.defaultMasterFile(requireNotNull(folderName))
-            r.startWriting(master)
-            logEvent(TimelineEventType.SESSION_RECORDING_STARTED, null, null, null)
-            navigation.replaceAll(Config.TaskScreen(0))
-        }
+        scope.launch(dispatchers.main) { startRecording() }
+    }
+
+    /** The master recording starts here: on calibration confirm, or straight after bootstrap without it. */
+    private suspend fun startRecording() {
+        val r = recorder ?: return
+        val master = sessionRepository.defaultMasterFile(requireNotNull(folderName))
+        r.startWriting(master)
+        logEvent(TimelineEventType.SESSION_RECORDING_STARTED, null, null, null)
+        navigation.replaceAll(Config.TaskScreen(0))
     }
 
     private fun onTaskInstanceFinished(listIndex: Int, record: TaskRecord) {

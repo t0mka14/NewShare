@@ -42,6 +42,7 @@ The configuration fully describes:
   "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
+  "useCalibration": true,
   "patientFields": [ /* PatientField objects, §5 */ ],
   "protocols": [ /* Protocol objects, §3 */ ],
   "strings": { /* localization, §6 */ }
@@ -58,6 +59,7 @@ The configuration fully describes:
 | `defaultMicGain` | int | 0..100 input level (the Windows sound panel's units) set on the device matching `defaultMicName` right before it is opened for a session. Validated (a value outside 0..100 rejects the config). A level set on the Settings slider wins over this value. Omit to leave the OS level alone (§13 decision 44 of the project specification) |
 | `enableEditor` | boolean | Show waveform boundary editor after the protocol |
 | `indicatorType` | enum | `CIRCLE` (pulsating circle following RMS level) \| `WAVEFORM` (rolling ~3 s amplitude envelope) — live feedback on VOCAL task screens |
+| `useCalibration` | boolean | Show the calibration screen before the first task of every protocol that contains a `VOCAL` task (§4.3). Absent = `false` |
 
 All flags are real JSON booleans (`true`/`false`), never `0`/`1`.
 
@@ -92,28 +94,27 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
   still sending `manualFilePath` decodes without error but leaves the button disabled — servers
   must emit the new key (and a real URL) for the button to appear.
 - `recordingsFileName` — clip filename template, the authoritative source of clip names.
-  Supported variables: `${installationId}`, `${patientCode}`, `${taskIndex}` (position in
-  the expanded task list), `${task.subtype}`, `${repetition}`. The template **must include
+  Supported variables: `${installationId}`, `${patientCode}`, `${taskIndex}` (0-based
+  position in the expanded task list; the first task is 0, calibration is not a task), `${task.subtype}`, `${repetition}`. The template **must include
   `${taskIndex}`** so that two tasks with the same subtype cannot produce colliding
   filenames; config validation rejects templates without it.
 - Recordings are always stored under the app data directory
   (`data/sessions/<session>/…`); the config never contains filesystem paths for output
   (machine independence).
-- If the protocol contains at least one `VOCAL` task, a `CALIBRATION` task must precede the
-  first `VOCAL` task (validated at config load). Protocols with no `VOCAL` tasks
-  (questionnaire/info-only) contain no calibration and produce no master recording.
+- Calibration is not a task: with `useCalibration` the app shows its calibration screen before
+  the first task of a protocol that contains a `VOCAL` task (§4.3). Protocols with no `VOCAL`
+  tasks (questionnaire/info-only) never calibrate and produce no master recording.
 
 ## 4. Task
 
 Tasks are polymorphic on the `type` discriminator:
 
-`VOCAL` · `QUESTIONNAIRE` · `CALIBRATION` · `INFO` · `VIDEO`
+`VOCAL` · `QUESTIONNAIRE` · `INFO` · `VIDEO`
 
 - `VOCAL` — audio recording tasks (phonation, DDK/PATAKA, reading, monologue, …), refined by
   `subtype`.
 - `QUESTIONNAIRE` — form screens (spelling normalized; the parser accepts the legacy alias
   `QUESTIONAIRE` with a logged warning during server migration).
-- `CALIBRATION` — mandatory microphone level check, normally the first task.
 - `INFO` — display-only screen (e.g., final screen).
 - `VIDEO` — camera recording (e.g. emotions). Shares VOCAL's Start/Stop/Repeat flow; one file
   per take.
@@ -191,21 +192,18 @@ separate answers file or endpoint).
 - `questionRegex` — validation for `OPEN` answers only.
 - `questionOptions` — localization keys, required for choice types, absent for `OPEN`.
 
-### 4.3 CALIBRATION
+### 4.3 Calibration (not a task)
 
-```json
-{
-  "type": "CALIBRATION",
-  "titleKey": "calibration_title",
-  "instructionKeys": ["calibration_instructions"],
-  "optimalLoudness": [0.2, 0.5]
-}
-```
+There is no `CALIBRATION` task type (removed 2026-09-27, config alignment row 5; a config that
+contains one fails to decode). When the top-level `useCalibration` is `true` and the protocol
+contains at least one `VOCAL` task, the app shows its calibration screen before the first task:
+the examiner confirms the observed level lies within the target band, and only then does the
+master recording begin. With `useCalibration: false` the recording starts right away.
 
-Mandatory whenever the protocol contains `VOCAL` tasks (must precede the first one); the
-examiner must confirm the observed level within `optimalLoudness` `[min, max]` before the
-master recording begins. Units: linear RMS normalized to full scale (0.0–1.0), smoothed over
-a ~300 ms window.
+The target band `[min, max]` is **not** part of the config: it is the local app setting
+`optimalLoudness` in `settings.json`, default `[0.2, 0.5]`. Units: linear RMS normalized to
+full scale (0.0–1.0), smoothed over a ~300 ms window. The screen's text uses the built-in keys
+`calibration.title` and `calibration.instructions`, which a config's `strings` may override.
 
 ### 4.4 INFO
 
@@ -304,6 +302,7 @@ One map per language: `strings.<lang>.<key> → value`.
   "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
+  "useCalibration": true,
   "patientFields": [
     {
       "name": "code",
@@ -321,12 +320,6 @@ One map per language: `strings.<lang>.<key> → value`.
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
       "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "tasks": [
-        {
-          "type": "CALIBRATION",
-          "titleKey": "calibration_title",
-          "instructionKeys": ["calibration_instructions"],
-          "optimalLoudness": [0.2, 0.5]
-        },
         {
           "type": "VOCAL",
           "subtype": "PHONATION",
@@ -349,8 +342,6 @@ One map per language: `strings.<lang>.<key> → value`.
   ],
   "strings": {
     "cs": {
-      "calibration_title": "Kalibrace",
-      "calibration_instructions": "Mluvte běžnou hlasitostí a sledujte ukazatel úrovně.",
       "patient_code_label": "Kód pacienta",
       "patient_code_help": "Např. HC001",
       "phonation_title": "Prodloužená fonace",

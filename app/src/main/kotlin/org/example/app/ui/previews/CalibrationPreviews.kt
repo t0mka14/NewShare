@@ -61,7 +61,7 @@ private fun previewState(
     level: Float = 0.35f,
     deviceLost: Boolean = false,
 ) = CalibrationComponent.State(
-    titleKey = "calibration_title",
+    titleKey = "calibration.title",
     instructionKeys = listOf("calibration_instructions"),
     level = level,
     minLoudness = 0.2,
@@ -89,7 +89,7 @@ private fun CalibrationPreview(state: CalibrationComponent.State) {
     }
 }
 
-/** Level inside the configured `optimalLoudness` band. */
+/** Level inside the local `optimalLoudness` band. */
 @Preview
 @Composable
 fun CalibrationInRangePreview() = CalibrationPreview(previewState())

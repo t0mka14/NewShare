@@ -12,7 +12,6 @@ import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
-import org.example.app.domain.config.CalibrationTask
 
 interface CalibrationComponent {
     val state: Value<State>
@@ -43,7 +42,8 @@ class DefaultCalibrationComponent(
     componentContext: ComponentContext,
     private val recorder: ContinuousSessionRecorder,
     private val dispatchers: CoroutineDispatchers,
-    private val calibrationTask: CalibrationTask,
+    /** Target band, from `AppSettings.loudnessRange()`. */
+    private val loudness: ClosedFloatingPointRange<Double>,
     initialDevice: AudioInputDevice,
     availableDevices: List<AudioInputDevice>,
     private val onConfirmed: () -> Unit,
@@ -53,10 +53,11 @@ class DefaultCalibrationComponent(
 
     private val _state = MutableValue(
         CalibrationComponent.State(
-            titleKey = calibrationTask.titleKey,
-            instructionKeys = calibrationTask.instructionKeys,
-            minLoudness = calibrationTask.minLoudness,
-            maxLoudness = calibrationTask.maxLoudness,
+            // Built-in keys; a config's `strings` may override the wording like any other key.
+            titleKey = "calibration.title",
+            instructionKeys = listOf("calibration.instructions"),
+            minLoudness = loudness.start,
+            maxLoudness = loudness.endInclusive,
             availableDevices = availableDevices,
             selectedDevice = initialDevice,
         ),
@@ -68,7 +69,7 @@ class DefaultCalibrationComponent(
 
         scope.launch(dispatchers.main) {
             recorder.levels.collect { level ->
-                val inRange = level >= calibrationTask.minLoudness && level <= calibrationTask.maxLoudness
+                val inRange = level.toDouble() in loudness
                 _state.value = _state.value.copy(level = level, inRange = inRange)
             }
         }

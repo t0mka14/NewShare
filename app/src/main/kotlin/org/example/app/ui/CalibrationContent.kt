@@ -44,8 +44,8 @@ import org.example.app.ui.theme.ShareAccentOrangeContainer
  * mic-position photo next to the vertical [SoundLevelBar], and the pill Back / Continue
  * buttons. Legacy bugs fixed: the image is classpath-loaded (`painterResource`) instead of a
  * working-directory `File`, the between-section `Spacer`s use height (the legacy used width
- * inside a Column), and the level bar's green target band comes from the configured
- * `optimalLoudness` range instead of the legacy hardcoded zone. The device dropdown has no
+ * inside a Column), and the level bar's green target band comes from the local
+ * `optimalLoudness` setting instead of the legacy hardcoded zone. The device dropdown has no
  * legacy counterpart (the legacy picked the mic in settings) and is kept discreetly below the
  * bar row — device selection must stay available here (§8.5).
  */

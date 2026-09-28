@@ -59,6 +59,12 @@ data class RemoteConfig(
      */
     val defaultMicGain: Int? = null,
     val enableEditor: Boolean = false,
+    /**
+     * Show the calibration screen before the first task of every protocol that has a VOCAL task
+     * (config alignment row 5). Calibration is not a task in the config; its target band is the
+     * local `AppSettings.optimalLoudness`.
+     */
+    val useCalibration: Boolean = false,
     val indicatorType: IndicatorType = IndicatorType.CIRCLE,
     val patientFields: List<PatientField> = emptyList(),
     val protocols: List<Protocol> = emptyList(),

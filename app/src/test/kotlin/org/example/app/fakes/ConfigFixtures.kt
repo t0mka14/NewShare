@@ -6,15 +6,16 @@ package org.example.app.fakes
  * models are built concurrently, so fixtures here don't depend on them.
  *
  * - [fullProtocol]: two protocols exercising the spec end to end — "Share" (
- *   CALIBRATION + VOCAL with `nrepetition: 2` + QUESTIONNAIRE + INFO) and
+ *   VOCAL with `nrepetition: 2` + QUESTIONNAIRE + INFO) and
  *   "QuestionnaireOnly"; 2 languages (`cs`/`en`); `patientFields` with a regex
  *   field and a `useInFilename` mix; a `recordingsFileName` template containing
  *   `${taskIndex}`; strings exercising `<bold>` markup (`bold_notice` — the only
- *   supported markup, §6.2/§13 decision 26). `enableEditor: true`.
+ *   supported markup, §6.2/§13 decision 26). `enableEditor: true`,
+ *   `useCalibration: true` (so "Share" opens on the calibration screen).
  * - [editorDisabled]: identical to [fullProtocol] except `enableEditor: false`,
  *   for scenarios that must not show the waveform editor.
  * - [questionnaireOnly]: single-protocol config containing *only* the
- *   questionnaire-only protocol — no CALIBRATION/VOCAL task anywhere — for §10.3
+ *   questionnaire-only protocol — no VOCAL task anywhere — for §10.3
  *   workflow 7 (no calibration screen, no master WAV, JSON-only archive).
  */
 object ConfigFixtures {

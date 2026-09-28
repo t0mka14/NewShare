@@ -4,7 +4,6 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.InterruptionReason
-import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.InfoTask
 import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
@@ -48,7 +47,6 @@ class SessionComponentTest {
         name = "Share",
         recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
-            CalibrationTask(titleKey = "calib", optimalLoudness = listOf(0.2, 0.8)),
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION, nrepetition = 2, canRepeat = true),
         ),
     )
@@ -57,7 +55,6 @@ class SessionComponentTest {
         name = "Mixed",
         recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
-            CalibrationTask(titleKey = "calib", optimalLoudness = listOf(0.2, 0.8)),
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
             QuestionnaireTask(titleKey = "q"),
             InfoTask(titleKey = "info"),
@@ -75,7 +72,6 @@ class SessionComponentTest {
         name = "VocalThenVideo",
         recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
         tasks = listOf(
-            CalibrationTask(titleKey = "calib", optimalLoudness = listOf(0.2, 0.8)),
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
             VideoTask(titleKey = "video"),
             InfoTask(titleKey = "info"),
@@ -133,7 +129,7 @@ class SessionComponentTest {
         var ended = 0
         var endedFolderName: String? = null
 
-        fun build(protocol: Protocol): SessionComponent = DefaultSessionComponent(
+        fun build(protocol: Protocol, useCalibration: Boolean = true): SessionComponent = DefaultSessionComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             installationId = "install-1",
             protocol = protocol,
@@ -159,6 +155,8 @@ class SessionComponentTest {
             dispatchers = dispatchers,
             directories = directories,
             audioPlaybackService = audioPlaybackService,
+            useCalibration = useCalibration,
+            calibrationLoudness = 0.2..0.8,
             onSessionEnded = { folderName -> ended++; endedFolderName = folderName },
         )
     }
@@ -193,6 +191,29 @@ class SessionComponentTest {
         assertTrue(events.any { it.type == TimelineEventType.SESSION_RECORDING_STARTED })
 
         assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+    }
+
+    @Test
+    fun `without useCalibration a VOCAL protocol starts recording and opens the first task directly`() {
+        val h = Harness()
+        val component = h.build(vocalProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+        assertEquals(1, h.recorder!!.writingStarts.size)
+        val folderName = h.sessionRepository.listSessionFolderNames().single()
+        val events = h.timelineRepository.readEventLog(folderName).events
+        assertTrue(events.any { it.type == TimelineEventType.SESSION_RECORDING_STARTED })
+    }
+
+    @Test
+    fun `a no-VOCAL protocol never calibrates, even with useCalibration`() {
+        val h = Harness()
+        val component = h.build(questionnaireOnlyProtocol, useCalibration = true)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+        assertEquals(null, h.recorder)
     }
 
     @Test

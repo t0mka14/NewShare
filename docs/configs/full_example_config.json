@@ -10,6 +10,7 @@
   "defaultMicGain": 63,
   "enableEditor": true,
   "indicatorType": "CIRCLE",
+  "useCalibration": true,
   "patientFields": [
     {
       "name": "code",
@@ -63,17 +64,6 @@
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
       "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "tasks": [
-        {
-          "type": "CALIBRATION",
-          "titleKey": "calibration_screen_title",
-          "instructionKeys": [
-            "calibration_screen_instructions"
-          ],
-          "optimalLoudness": [
-            0.2,
-            0.5
-          ]
-        },
         {
           "type": "VOCAL",
           "subtype": "PHONATION",
@@ -268,8 +258,6 @@
       "patient_info_help_project_name": "Napiště jméno projektu, kterého je účastník součástí (například STIMPULSE).",
       "patient_info_help_visit_number": "V0 - baseline, V3 - follow-up po 3 měsících, V6 - follow-up po 6 měsísích, ...",
       "patient_info_help_medication_state": "Pokud nevíte, vynechte.",
-      "calibration_screen_title": "Kalibrační obrazovka",
-      "calibration_screen_instructions": "Tato obrazovka slouží ke kalibraci pozice mikrofonu. Přesvědčte se, že mikrofon je umístěn stejně jako na obrázku níže. Poté požádejte pacienta ať provede fonaci hlásky /a/ v pro něj přirozené hlasitosti. Pokud je signál moc slabý dejte mikrofon blíže k puse a naopak. Poté pokračujte k první úloze.",
       "phonation_title": "Prodloužená fonace",
       "phonation_description": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /XX/. Měl/a byste vydržet alespoň xx sekund.\nNyní Vám přehraji ukázku.</bold>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.",
       "phonation_instructions": "<bold>Začněte teď.</bold>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než xx sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.",
@@ -320,8 +308,6 @@
       "patient_info_help_project_name": "Fill the project name the participant is involved in (e.g. STIMPULSE).",
       "patient_info_help_visit_number": "V0 - baseline, V3 - 3 month follow-up, V6 - 6 month follow-up, ...",
       "patient_info_help_medication_state": "If unknown, leave blank.",
-      "calibration_screen_title": "Calibration screen",
-      "calibration_screen_instructions": "Please calibrate the microphone position. Make sure that the microphone is placed according to the picture below. Then ask the participant to perform a phonation of the vowel /a/ in a natural voice. If the signal is outside the bounds of the green area move the microphone closer to mouth or otherwise. Then, continue to the first task.",
       "phonation_title": "Prolonged phonation",
       "phonation_description": "<bold>Take a deep breath and perform prolonged phonation of vowel /XX/ as long and steadily as possible. Phonation should last at least 10 seconds.\nI will now play an example.</bold>Press PLAY EXAMPLE to play an example.",
       "phonation_instructions": "<bold>Start now.</bold>Press the START button to begin recording. Please wait until respondent runs out of breath and then press STOP",

@@ -3,6 +3,7 @@ package org.example.app.domain.config
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -18,6 +19,7 @@ class ConfigDecoderTest {
           "defaultMicGain": 63,
           "enableEditor": false,
           "indicatorType": "CIRCLE",
+          "useCalibration": true,
           "patientFields": [
             { "name": "code", "labelKey": "patient_code_label", "regex": "[a-zA-Z0-9_-]+", "required": true, "useInFilename": true }
           ],
@@ -26,7 +28,6 @@ class ConfigDecoderTest {
               "name": "Share",
               "recordingsFileName": "${'$'}{installationId}_${'$'}{patientCode}_${'$'}{taskIndex}_${'$'}{task.subtype}_Rep${'$'}{repetition}",
               "tasks": [
-                { "type": "CALIBRATION", "titleKey": "calibration_title", "instructionKeys": ["c1"], "optimalLoudness": [0.2, 0.5] },
                 { "type": "VOCAL", "subtype": "PHONATION", "titleKey": "phonation_title", "instructionKeys": ["p1"], "length": 10,
                   "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1 },
                 { "type": "INFO", "titleKey": "info_title", "instructionKeys": ["info_done"] }
@@ -44,7 +45,8 @@ class ConfigDecoderTest {
         assertEquals(1, result.config.schemaVersion)
         assertEquals("2026-07-01.1", result.config.configVersion)
         assertEquals(1, result.config.protocols.size)
-        assertEquals(3, result.config.protocols[0].tasks.size)
+        assertEquals(2, result.config.protocols[0].tasks.size)
+        assertTrue(result.config.useCalibration)
         assertEquals("USBAudioDevice", result.config.defaultMicName)
         assertEquals(63, result.config.defaultMicGain)
         assertTrue(result.warnings.isEmpty())
@@ -74,6 +76,21 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `useCalibration defaults to false when absent`() {
+        val json = minimalConfigJson.replace("\"useCalibration\": true,", "")
+        assertFalse(ConfigDecoder.decode(json).config.useCalibration)
+    }
+
+    @Test
+    fun `CALIBRATION is no longer a task type`() {
+        val json = minimalConfigJson.replace(
+            "\"tasks\": [",
+            "\"tasks\": [ { \"type\": \"CALIBRATION\", \"titleKey\": \"c\", \"optimalLoudness\": [0.2, 0.5] },",
+        )
+        assertThrows(Exception::class.java) { ConfigDecoder.decode(json) }
+    }
+
+    @Test
     fun `defaultMicGain is optional and decodes to null when absent`() {
         val json = minimalConfigJson.replace("\"defaultMicGain\": 63,", "")
         assertEquals(null, ConfigDecoder.decode(json).config.defaultMicGain)
@@ -82,7 +99,7 @@ class ConfigDecoderTest {
     @Test
     fun `decodes real JSON booleans strictly, not 0-1 ints`() {
         val result = ConfigDecoder.decode(minimalConfigJson)
-        val vocal = result.config.protocols[0].tasks[1] as VocalTask
+        val vocal = result.config.protocols[0].tasks[0] as VocalTask
         assertEquals(true, vocal.canRepeat)
         assertEquals(false, vocal.canSkip)
         assertEquals(true, vocal.showIndicator)
@@ -100,9 +117,8 @@ class ConfigDecoderTest {
     fun `decodes each task type discriminator to the right subtype`() {
         val result = ConfigDecoder.decode(minimalConfigJson)
         val tasks = result.config.protocols[0].tasks
-        assertInstanceOf(CalibrationTask::class.java, tasks[0])
-        assertInstanceOf(VocalTask::class.java, tasks[1])
-        assertInstanceOf(InfoTask::class.java, tasks[2])
+        assertInstanceOf(VocalTask::class.java, tasks[0])
+        assertInstanceOf(InfoTask::class.java, tasks[1])
     }
 
     @Test

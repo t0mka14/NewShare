@@ -31,4 +31,20 @@ data class AppSettings(
      * config's `defaultMicGain` for whichever device the session opens; null follows the config.
      */
     val micGain: Int? = null,
+    /**
+     * Calibration target band `[min, max]`, linear RMS normalized to full scale (0.0–1.0). A
+     * technician override edited in `settings.json` only — no UI; null (or malformed) uses
+     * [DEFAULT_OPTIMAL_LOUDNESS]. See [loudnessRange].
+     */
+    val optimalLoudness: List<Double>? = null,
 )
+
+val DEFAULT_OPTIMAL_LOUDNESS: ClosedFloatingPointRange<Double> = 0.2..0.5
+
+/** [AppSettings.optimalLoudness] when well-formed (two values, 0 ≤ min < max ≤ 1), else the default. */
+fun AppSettings?.loudnessRange(): ClosedFloatingPointRange<Double> {
+    val band = this?.optimalLoudness ?: return DEFAULT_OPTIMAL_LOUDNESS
+    if (band.size != 2) return DEFAULT_OPTIMAL_LOUDNESS
+    val (min, max) = band
+    return if (min >= 0.0 && min < max && max <= 1.0) min..max else DEFAULT_OPTIMAL_LOUDNESS
+}

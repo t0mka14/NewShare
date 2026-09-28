@@ -318,13 +318,13 @@ traceability against the original draft:
 | `manualFilePath` (install-relative path) | `protocolInstructionsPdfUrl` (URL), 2026-08-22 | Nothing resolved the path; a URL keeps the config machine-independent and drives the main screen's "Get protocol PDF" button |
 | `clinicID` | `installationId` everywhere | One name for one concept |
 
-Task types in scope: `VOCAL`, `QUESTIONNAIRE`, `CALIBRATION`, `INFO`, `VIDEO`.
+Task types in scope: `VOCAL`, `QUESTIONNAIRE`, `INFO`, `VIDEO`.
 
-`CALIBRATION` behavior: mandatory **when the protocol contains at least one VOCAL task** and
-must precede the first VOCAL task (config validation rejects protocols where a VOCAL task
-comes before calibration). It shows live input level against the configured `optimalLoudness`
-range (linear RMS, 0.0–1.0 full scale) and must be confirmed before the master recording
-starts. **Protocols with no VOCAL tasks (questionnaire/info-only) skip calibration and do not
+Calibration (not a task, §13 decision 47): when the config's `useCalibration` is true and the
+protocol contains at least one VOCAL task, the calibration screen precedes the first task. It
+shows live input level against the local `optimalLoudness` setting (linear RMS, 0.0–1.0 full
+scale, default `[0.2, 0.5]`) and must be confirmed before the master recording starts; without
+`useCalibration` the recording starts as soon as the session is set up. **Protocols with no VOCAL tasks (questionnaire/info-only) skip calibration and do not
 record a master WAV at all.**
 
 `indicatorType` selects the live recording feedback on VOCAL task screens: `CIRCLE` — a
@@ -334,7 +334,7 @@ amplitude envelope drawn on a canvas. Both consume `ContinuousSessionRecorder.le
 Config-level fields: `schemaVersion`, `configVersion`, `defaultLanguage`, `languages`,
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
 wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
-the Settings slider; decision 44), `enableEditor`, `indicatorType`,
+the Settings slider; decision 44), `enableEditor`, `indicatorType`, `useCalibration`,
 `protocols[]`, `strings{lang → {key → value}}`, and `patientFields[]` (participant-input
 field definitions — name, label key, regex, required, useInFilename). The `${patientCode}`
 template variable is **composed from the `useInFilename` fields**: their values, sanitized
@@ -375,7 +375,8 @@ to `[A-Za-z0-9_-]` (Windows/macOS-safe), joined with `_` in config order.
 
 - One continuous master WAV per session (only for protocols containing VOCAL tasks):
   preferred format PCM signed, 48 kHz, 16-bit, mono (negotiation per §5.3.1). Recording
-  starts when calibration is confirmed and stops when the protocol ends.
+  starts when calibration is confirmed (or at session start without `useCalibration`) and
+  stops when the protocol ends.
 - Start/Stop buttons on task screens create **timeline events**; they never touch the mic.
 - The master recording and `timeline_original.json` are never modified after creation.
 - **Expected session length: up to 30 minutes** (~165 MiB of audio at target format) — a
@@ -715,7 +716,7 @@ channels, UI) is out of scope.
 ### 10.1 Unit tests (pure JVM, no hardware/fs/network)
 
 Config JSON parsing + validation (booleans, discriminators, `${taskIndex}` template check,
-lenient enum aliases, calibration-ordering rule), **config
+lenient enum aliases, `defaultMicGain` range), **config
 schema-migration functions**, RichText parsing, participant regex validation, filename
 template rendering, task-instance expansion (`nrepetition`), take accept/reject logic,
 timeline event compaction, sample-offset arithmetic, edited-boundary validation (inversion,
@@ -802,8 +803,8 @@ Error taxonomy (normative, inlined from the old plan):
   missing or corrupt session metadata, waveform generation failure, clip export failure,
   ZIP creation failure, lock acquisition failure (second instance).
 - **ConfigError:** installation ID rejected by server, network unreachable with no cache,
-  schema version unsupported, config validation failure (bad discriminator, VOCAL before
-  CALIBRATION, non-unique filename template).
+  schema version unsupported, config validation failure (bad discriminator, non-unique
+  filename template).
 - **UploadError:** network unavailable, server rejected submission, checksum mismatch,
   retry limit reached.
 - **Updater:** version check unreachable (proceed without updating), download
@@ -1244,6 +1245,19 @@ Error taxonomy (normative, inlined from the old plan):
     protocol with `RemoteConfig.findProtocol(name, project)` (null project = name only, for older
     sessions). The "Get protocol PDF" list shows one entry per name + URL, labelled with the
     project when the entry belongs to exactly one.
+
+47. **Settings keys and calibration outside protocols (2026-09-27, config alignment rows 4/5).**
+    The top level carries `defaultLanguage`, `languages`, `defaultMicName`, `defaultMicGain`,
+    `enableEditor`, `indicatorType` and the new `useCalibration`, applied as sent (the existing
+    local overrides — Settings language and mic level — are unchanged; `useCalibration` has no
+    local switch). `CalibrationTask` and the "CALIBRATION before first VOCAL" validation rule
+    are removed (no compatibility kept — the app had not shipped): `SessionComponent` shows
+    calibration when `useCalibration` and the protocol has a VOCAL task, otherwise starts the
+    master recording straight after bootstrap. The target band moved to the local
+    `AppSettings.optimalLoudness` (settings.json only, default `[0.2, 0.5]`); title and
+    instructions are the built-in `calibration.title`/`calibration.instructions` (overridable by
+    config strings). `taskIndex` now starts at 0 for the first real task. `defaultMicGain` stays
+    an integer 0..100 — the web emitted a 0..1 decimal and must switch to the integer scale.
 
 **Still open:**
 

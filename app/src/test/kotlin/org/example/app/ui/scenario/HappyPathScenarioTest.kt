@@ -23,8 +23,8 @@ import java.nio.file.Path
  * real Compose screens via [ScenarioApp] (see [ScenarioHarness] for why this isn't
  * `RootContent`/`DefaultRootComponent` directly).
  *
- * Both scenarios use [ConfigFixtures.fullProtocol]'s "Share" protocol: CALIBRATION, VOCAL
- * (`nrepetition: 2`, `canRepeat: true`), QUESTIONNAIRE, INFO — matching the §8.3 worked example.
+ * Both scenarios use [ConfigFixtures.fullProtocol]'s "Share" protocol: VOCAL (`nrepetition: 2`,
+ * `canRepeat: true`), QUESTIONNAIRE, INFO, preceded by the calibration screen (`useCalibration`).
  */
 class HappyPathScenarioTest {
 

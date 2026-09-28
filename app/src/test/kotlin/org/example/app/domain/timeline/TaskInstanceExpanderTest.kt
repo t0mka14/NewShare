@@ -1,6 +1,5 @@
 package org.example.app.domain.timeline
 
-import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.InfoTask
 import org.example.app.domain.config.VideoTask
 import org.example.app.domain.config.VocalSubtype
@@ -33,14 +32,14 @@ class TaskInstanceExpanderTest {
     @Test
     fun `taskIndex is a continuous position across multiple tasks and their repetitions`() {
         val tasks = listOf(
-            CalibrationTask(titleKey = "cal", optimalLoudness = listOf(0.2, 0.5)),
+            InfoTask(titleKey = "intro"),
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION, nrepetition = 2),
             InfoTask(titleKey = "info"),
         )
         val result = TaskInstanceExpander.expand(tasks)
 
         assertEquals(listOf(0, 1, 2, 3), result.instances.map { it.taskIndex })
-        // calibration instance, two vocal repetitions, info instance
+        // intro instance, two vocal repetitions, info instance
         assertEquals(listOf(1, 1, 2, 1), result.instances.map { it.repetition })
     }
 

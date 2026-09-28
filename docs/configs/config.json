@@ -7,6 +7,7 @@
   "defaultMicGain": 63,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
+  "useCalibration": true,
   "patientFields": [
     {
       "name": "code",
@@ -24,12 +25,6 @@
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
       "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "tasks": [
-        {
-          "type": "CALIBRATION",
-          "titleKey": "calibration_title",
-          "instructionKeys": ["calibration_instructions"],
-          "optimalLoudness": [0.2, 0.5]
-        },
         {
           "type": "VOCAL",
           "subtype": "PHONATION",
@@ -52,8 +47,6 @@
   ],
   "strings": {
     "cs": {
-      "calibration_title": "Kalibrace",
-      "calibration_instructions": "Mluvte běžnou hlasitostí a sledujte ukazatel úrovně.",
       "patient_code_label": "Kód pacienta",
       "patient_code_help": "Např. HC001",
       "phonation_title": "Prodloužená fonace",

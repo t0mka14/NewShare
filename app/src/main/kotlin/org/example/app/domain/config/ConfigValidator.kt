@@ -7,9 +7,6 @@ sealed interface ConfigValidationError {
     /** §3/§6.2: `recordingsFileName` must contain `${taskIndex}` for name uniqueness. */
     data class MissingTaskIndexPlaceholder(val protocolName: String) : ConfigValidationError
 
-    /** §3/§6.2: a VOCAL task exists without a preceding CALIBRATION task in the same protocol. */
-    data class MissingCalibrationBeforeVocal(val protocolName: String) : ConfigValidationError
-
     /** §6.2/§13 decision 44: `defaultMicGain` is a percentage, 0..100. */
     data class InvalidDefaultMicGain(val value: Int) : ConfigValidationError
 }
@@ -45,14 +42,6 @@ object ConfigValidator {
         for (protocol in config.protocols) {
             if (!protocol.recordingsFileName.contains(TASK_INDEX_PLACEHOLDER)) {
                 errors += ConfigValidationError.MissingTaskIndexPlaceholder(protocol.name)
-            }
-
-            val firstVocalIndex = protocol.tasks.indexOfFirst { it is VocalTask }
-            if (firstVocalIndex >= 0) {
-                val firstCalibrationIndex = protocol.tasks.indexOfFirst { it is CalibrationTask }
-                if (firstCalibrationIndex < 0 || firstCalibrationIndex > firstVocalIndex) {
-                    errors += ConfigValidationError.MissingCalibrationBeforeVocal(protocol.name)
-                }
             }
         }
 

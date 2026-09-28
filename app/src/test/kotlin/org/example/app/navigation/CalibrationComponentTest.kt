@@ -4,7 +4,6 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.InterruptionReason
-import org.example.app.domain.config.CalibrationTask
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeContinuousSessionRecorder
@@ -17,10 +16,6 @@ import org.junit.jupiter.api.Test
 class CalibrationComponentTest {
 
     private class Harness {
-        val calibrationTask = CalibrationTask(
-            titleKey = "calibration.title",
-            optimalLoudness = listOf(0.2, 0.6),
-        )
         val clock = FakeClock()
         val dispatchers = TestCoroutineDispatchers()
         val recorder = FakeContinuousSessionRecorder(clock)
@@ -39,7 +34,7 @@ class CalibrationComponentTest {
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             recorder = recorder,
             dispatchers = dispatchers,
-            calibrationTask = calibrationTask,
+            loudness = 0.2..0.6,
             initialDevice = device,
             availableDevices = listOf(device, secondary),
             onConfirmed = { confirmed++ },

@@ -52,7 +52,6 @@ class ExampleConfigsTest {
                                 is VocalTask -> addAll(task.instructionKeys)
                                 is InfoTask -> addAll(task.instructionKeys)
                                 is VideoTask -> addAll(task.instructionKeys)
-                                is CalibrationTask -> addAll(task.instructionKeys)
                                 is QuestionnaireTask -> task.questions.forEach {
                                     add(it.questionTextKey)
                                     addAll(it.questionOptions.orEmpty())

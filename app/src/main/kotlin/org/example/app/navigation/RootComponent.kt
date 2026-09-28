@@ -18,10 +18,10 @@ import kotlinx.serialization.Serializable
 import org.example.app.AppContainer
 import org.example.app.domain.audio.MicGainReapplyingRecorder
 import org.example.app.domain.audio.MicNames
-import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.loudnessRange
 import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
 
@@ -287,6 +287,8 @@ class DefaultRootComponent(
             dispatchers = container.dispatchers,
             directories = container.directories,
             audioPlaybackService = container.audioPlaybackService,
+            useCalibration = activeConfig.useCalibration,
+            calibrationLoudness = savedSettings.loudnessRange(),
             onSessionEnded = { folderName ->
                 val enableEditor = container.configurationRepository.activeConfig.value?.enableEditor ?: false
                 if (enableEditor) {

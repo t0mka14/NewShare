@@ -38,6 +38,10 @@ object BuiltinStrings {
         "error.generic.message" to "Something went wrong. Please try again.",
 
         // Settings screen (§3, local-only settings — never config-driven).
+        // Calibration screen (config alignment row 5: not a config task, so its text is built in;
+        // a config's `strings` may override these keys). Text from the legacy strings_eng.xml.
+        "calibration.title" to "Calibration screen",
+        "calibration.instructions" to "Please calibrate the microphone position. Make sure that the microphone is placed according to the picture below. Then ask the participant to perform a phonation of the vowel /a/ in a natural voice. If the signal is outside the bounds of the green area move the microphone closer to mouth or otherwise. Then, continue to the first task.",
         "calibration.continueButton" to "Continue",
 
         "settings.title" to "Settings",

@@ -17,7 +17,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * §10.3 workflow scenario 7: a questionnaire-only protocol (no CALIBRATION/VOCAL task anywhere,
+ * §10.3 workflow scenario 7: a questionnaire-only protocol (no VOCAL task anywhere,
  * [ConfigFixtures.questionnaireOnly]) skips calibration entirely, never creates a recorder, and
  * produces a JSON-only session (§8.8 "no-master sessions").
  */

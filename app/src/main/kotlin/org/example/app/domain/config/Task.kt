@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
  * Sealed task hierarchy, polymorphic on the `type` discriminator (§4 of
  * Task_Configuration_JSON_Spec.md, §6.2 of the project spec).
  *
- * Task types in scope: VOCAL, QUESTIONNAIRE, CALIBRATION, INFO, VIDEO.
+ * Task types in scope: VOCAL, QUESTIONNAIRE, INFO, VIDEO. Calibration is not a task: the app shows
+ * its calibration screen itself when `RemoteConfig.useCalibration` is set (config alignment row 5).
  *
  * The legacy `QUESTIONAIRE` (misspelled) discriminator value is accepted as an alias for
  * `QUESTIONNAIRE`; see [ConfigDecoder] which normalizes it before polymorphic decoding
@@ -15,7 +16,7 @@ import kotlinx.serialization.Serializable
  * values, so the alias is handled as a JSON-tree preprocessing step, not here).
  *
  * Fields common to all task types (§4): `type`, `titleKey`, `canRepeat`, `canSkip`,
- * `nrepetition`. CALIBRATION and INFO examples in the spec omit `canRepeat`/`canSkip`/
+ * `nrepetition`. INFO examples in the spec omit `canRepeat`/`canSkip`/
  * `nrepetition`, so they default to `false`/`false`/`1` respectively.
  */
 @Serializable
@@ -60,21 +61,6 @@ data class QuestionnaireTask(
     override val canSkip: Boolean = false,
     override val nrepetition: Int = 1,
 ) : Task
-
-@Serializable
-@SerialName("CALIBRATION")
-data class CalibrationTask(
-    override val titleKey: String,
-    val instructionKeys: List<String> = emptyList(),
-    /** `[min, max]` linear RMS normalized to full scale (0.0-1.0), §4.3. */
-    val optimalLoudness: List<Double>,
-    override val canRepeat: Boolean = false,
-    override val canSkip: Boolean = false,
-    override val nrepetition: Int = 1,
-) : Task {
-    val minLoudness: Double get() = optimalLoudness.getOrElse(0) { 0.0 }
-    val maxLoudness: Double get() = optimalLoudness.getOrElse(1) { 1.0 }
-}
 
 @Serializable
 @SerialName("INFO")

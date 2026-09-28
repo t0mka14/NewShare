@@ -1,7 +1,6 @@
 package org.example.app.domain.session
 
 import org.example.app.domain.audio.CaptureFormat
-import org.example.app.domain.config.CalibrationTask
 import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.QuestionnaireTask
@@ -34,7 +33,6 @@ class StartSessionUseCaseTest {
         project = "PD study",
         recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
-            CalibrationTask(titleKey = "calib", optimalLoudness = listOf(0.2, 0.8)),
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION, nrepetition = 2),
         ),
     )
@@ -90,8 +88,8 @@ class StartSessionUseCaseTest {
         assertEquals("2026-07-03T09:00:00Z", examination.startedAt)
         assertFalse(examination.recovered)
 
-        // Calibration (1 instance) + VocalTask expanded into 2 repetitions = 3 task instances.
-        assertEquals(3, result.expansion.instances.size)
+        // VocalTask expanded into 2 repetitions = 2 task instances (calibration is not a task).
+        assertEquals(2, result.expansion.instances.size)
     }
 
     @Test

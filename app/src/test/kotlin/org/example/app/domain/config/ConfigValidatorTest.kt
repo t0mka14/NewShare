@@ -26,7 +26,6 @@ class ConfigValidatorTest {
             name = "Share",
             recordingsFileName = recordingsFileName,
             tasks = listOf(
-                CalibrationTask(titleKey = "cal", optimalLoudness = listOf(0.2, 0.5)),
                 VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
             ),
         )
@@ -60,34 +59,7 @@ class ConfigValidatorTest {
     }
 
     @Test
-    fun `rejects VOCAL task with no CALIBRATION task at all`() {
-        val protocol = Protocol(
-            name = "NoCalibration",
-            recordingsFileName = "\${taskIndex}",
-            tasks = listOf(VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION)),
-        )
-        val result = ConfigValidator.validate(baseConfig(protocols = listOf(protocol)))
-        assertFalse(result.isValid)
-        assertTrue(result.errors.any { it is ConfigValidationError.MissingCalibrationBeforeVocal })
-    }
-
-    @Test
-    fun `rejects VOCAL task before CALIBRATION`() {
-        val protocol = Protocol(
-            name = "WrongOrder",
-            recordingsFileName = "\${taskIndex}",
-            tasks = listOf(
-                VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
-                CalibrationTask(titleKey = "cal", optimalLoudness = listOf(0.2, 0.5)),
-            ),
-        )
-        val result = ConfigValidator.validate(baseConfig(protocols = listOf(protocol)))
-        assertFalse(result.isValid)
-        assertTrue(result.errors.any { it is ConfigValidationError.MissingCalibrationBeforeVocal })
-    }
-
-    @Test
-    fun `protocols with no VOCAL tasks do not require CALIBRATION`() {
+    fun `a questionnaire-only protocol is valid`() {
         val protocol = Protocol(
             name = "QuestionnaireOnly",
             recordingsFileName = "\${taskIndex}",
@@ -104,7 +76,7 @@ class ConfigValidatorTest {
             recordingsFileName = "no-placeholder-here",
             tasks = listOf(VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION)),
         )
-        val result = ConfigValidator.validate(baseConfig(protocols = listOf(badProtocol)))
+        val result = ConfigValidator.validate(baseConfig(protocols = listOf(badProtocol, badProtocol.copy(name = "Bad2"))))
         assertEquals(2, result.errors.size)
     }
 
