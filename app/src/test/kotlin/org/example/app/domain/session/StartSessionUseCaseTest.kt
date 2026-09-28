@@ -31,6 +31,7 @@ class StartSessionUseCaseTest {
 
     private val vocalProtocol = Protocol(
         name = "Share",
+        project = "PD study",
         recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
             CalibrationTask(titleKey = "calib", optimalLoudness = listOf(0.2, 0.8)),
@@ -85,6 +86,7 @@ class StartSessionUseCaseTest {
 
         val examination = sessionRepository.readExamination(result.folderName)!!
         assertEquals(format, examination.captureFormat)
+        assertEquals(vocalProtocol.project, examination.protocolProject)
         assertEquals("2026-07-03T09:00:00Z", examination.startedAt)
         assertFalse(examination.recovered)
 

@@ -98,6 +98,31 @@ class MainMenuComponentTest {
     }
 
     @Test
+    fun `a protocol listed under several projects gives one PDF entry, a single-project one keeps its project`() {
+        val repo = FakeConfigurationRepository(initialConfig = null)
+        val h = Harness(repo)
+
+        repo.setActiveConfig(
+            sampleConfig().copy(
+                protocols = listOf(
+                    protocol("Shared", "https://example.org/shared.pdf").copy(project = "A"),
+                    protocol("Shared", "https://example.org/shared.pdf").copy(project = "B"),
+                    protocol("Own", "https://example.org/own.pdf").copy(project = "A"),
+                ),
+            ),
+        )
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(
+            listOf(
+                MainMenuComponent.ProtocolPdf("Shared", "https://example.org/shared.pdf", project = null),
+                MainMenuComponent.ProtocolPdf("Own", "https://example.org/own.pdf", project = "A"),
+            ),
+            h.component.state.value.protocolPdfs,
+        )
+    }
+
+    @Test
     fun `selecting a language forwards it to the root`() {
         val h = Harness(FakeConfigurationRepository(sampleConfig()))
         h.component.onLanguageSelected("cs")

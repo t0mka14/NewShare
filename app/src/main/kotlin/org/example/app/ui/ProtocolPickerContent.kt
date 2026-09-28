@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,12 +33,30 @@ fun ProtocolPickerContent(component: ProtocolPickerComponent, localization: UiLo
             Text(localization.resolve("protocolPicker.instructions"), style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(16.dp))
 
-            component.protocols.forEach { protocol ->
-                Button(
-                    onClick = { component.onProtocolSelected(protocol) },
-                    modifier = Modifier.fillMaxWidth(0.6f).testTag(TestTags.ProtocolPicker.protocolButton(protocol.name)),
-                ) {
-                    Text(protocol.name)
+            // Grouped by project (config alignment row 3), projects in first-appearance order;
+            // protocols without a project (older configs) get no heading.
+            Column(
+                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                component.protocols.groupBy { it.project }.forEach { (project, protocols) ->
+                    if (project != null) {
+                        Text(
+                            project,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 8.dp).testTag(TestTags.ProtocolPicker.projectHeader(project)),
+                        )
+                    }
+                    protocols.forEach { protocol ->
+                        Button(
+                            onClick = { component.onProtocolSelected(protocol) },
+                            modifier = Modifier.fillMaxWidth(0.6f)
+                                .testTag(TestTags.ProtocolPicker.protocolButton(protocol.name, protocol.project)),
+                        ) {
+                            Text(protocol.name)
+                        }
+                    }
                 }
             }
 

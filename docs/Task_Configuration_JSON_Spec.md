@@ -69,12 +69,18 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
 ```json
 {
   "name": "Share",
+  "project": "PD study",
   "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
   "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
   "tasks": [ /* Task objects, §4 */ ]
 }
 ```
 
+- `project` — optional name of the web project the protocol belongs to. The protocol picker
+  groups protocols under a heading per project. A protocol linked to several of the site's
+  projects is listed once per project (same `name`, different `project`), so a protocol is
+  identified by `name` + `project`; sessions record both (`examination.json`
+  `protocolName`/`protocolProject`).
 - `protocolInstructionsPdfUrl` — optional URL of the protocol's instruction manual
   (PDF). When at least one protocol defines it the main menu's "Get protocol PDF"
   button is enabled and opens the URL with the system browser; when several protocols

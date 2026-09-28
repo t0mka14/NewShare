@@ -17,10 +17,16 @@ enum class IndicatorType { CIRCLE, WAVEFORM }
  * `protocolInstructionsPdfUrl` is the URL of this protocol's instruction manual, opened by the
  * main menu's "Get protocol PDF" button — a URL, never a filesystem path, so the config stays
  * machine-independent. Blank or absent disables the button for this protocol.
+ *
+ * `project` is the name of the web project the protocol belongs to (config alignment row 3), a
+ * label the protocol picker groups by. A protocol linked to several of the site's projects is
+ * listed once per project — same [name], different [project] — so identity is name + project.
+ * Absent in configs from before the web emitted it.
  */
 @Serializable
 data class Protocol(
     val name: String,
+    val project: String? = null,
     val protocolInstructionsPdfUrl: String? = null,
     val recordingsFileName: String,
     val tasks: List<Task> = emptyList(),
@@ -59,3 +65,11 @@ data class RemoteConfig(
     /** `strings.<lang>.<key> -> value` (§6). */
     val strings: Map<String, Map<String, String>> = emptyMap(),
 )
+
+/**
+ * The protocol a session ran: [name] plus [project] identify it, since one name can be listed
+ * under several projects (config alignment row 3). A null [project] (sessions recorded before
+ * projects existed) matches by name alone.
+ */
+fun RemoteConfig.findProtocol(name: String, project: String?): Protocol? =
+    protocols.firstOrNull { it.name == name && (project == null || it.project == project) }

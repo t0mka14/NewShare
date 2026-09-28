@@ -39,6 +39,7 @@ import org.example.app.navigation.DefaultUploadComponent
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
@@ -121,7 +122,7 @@ class NewScreensSmokeTest {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun `protocol picker and session browser render without crashing`() = runComposeUiTest {
+    fun `protocol picker renders without crashing`() = runComposeUiTest {
         val protocol = Protocol(name = "Share", recordingsFileName = "\${taskIndex}.wav")
         val pickerComponent = DefaultProtocolPickerComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -132,7 +133,33 @@ class NewScreensSmokeTest {
         setContent { ProtocolPickerContent(pickerComponent, localization()) }
         waitForIdle()
         onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share")).assertExists().performClick()
+    }
 
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `protocol picker groups by project and selects the clicked project's protocol`() = runComposeUiTest {
+        val inA = Protocol(name = "Standard", project = "Study A", recordingsFileName = "a\${taskIndex}")
+        val inB = Protocol(name = "Standard", project = "Study B", recordingsFileName = "b\${taskIndex}")
+        var selected: Protocol? = null
+        val pickerComponent = DefaultProtocolPickerComponent(
+            componentContext = DefaultComponentContext(LifecycleRegistry()),
+            protocols = listOf(inA, inB),
+            onProtocolSelectedClicked = { selected = it },
+            onBackClicked = {},
+        )
+        setContent { ProtocolPickerContent(pickerComponent, localization()) }
+        waitForIdle()
+
+        onNodeWithTag(TestTags.ProtocolPicker.projectHeader("Study A")).assertExists()
+        onNodeWithTag(TestTags.ProtocolPicker.projectHeader("Study B")).assertExists()
+        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Standard", "Study B")).performClick()
+
+        assertEquals(inB, selected)
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `session browser renders without crashing`() = runComposeUiTest {
         val browserComponent = DefaultSessionBrowserComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             sessionRepository = FakeSessionRepository(),

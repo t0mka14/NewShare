@@ -51,6 +51,29 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `protocol project decodes, and is null when absent`() {
+        assertEquals(null, ConfigDecoder.decode(minimalConfigJson).config.protocols[0].project)
+
+        val json = minimalConfigJson.replace("\"name\": \"Share\",", "\"name\": \"Share\", \"project\": \"PD study\",")
+        assertEquals("PD study", ConfigDecoder.decode(json).config.protocols[0].project)
+    }
+
+    @Test
+    fun `findProtocol matches name and project, or name alone without a project`() {
+        val config = RemoteConfig(
+            schemaVersion = 1, configVersion = "v", defaultLanguage = "en",
+            protocols = listOf(
+                Protocol(name = "Standard", project = "A", recordingsFileName = "a"),
+                Protocol(name = "Standard", project = "B", recordingsFileName = "b"),
+            ),
+        )
+
+        assertEquals("b", config.findProtocol("Standard", "B")?.recordingsFileName)
+        assertEquals("a", config.findProtocol("Standard", null)?.recordingsFileName)
+        assertEquals(null, config.findProtocol("Standard", "C"))
+    }
+
+    @Test
     fun `defaultMicGain is optional and decodes to null when absent`() {
         val json = minimalConfigJson.replace("\"defaultMicGain\": 63,", "")
         assertEquals(null, ConfigDecoder.decode(json).config.defaultMicGain)

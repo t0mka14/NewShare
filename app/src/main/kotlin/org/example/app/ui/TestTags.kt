@@ -32,7 +32,8 @@ object TestTags {
         const val LANGUAGE_SELECTOR = "mainMenu.languageSelector"
 
         /** One entry of the protocol-PDF picker, shown only when several protocols declare one. */
-        fun protocolPdfOption(protocolName: String) = "mainMenu.protocolPdfOption.$protocolName"
+        fun protocolPdfOption(protocolName: String, project: String? = null) =
+            "mainMenu.protocolPdfOption." + (project?.let { "$it/" } ?: "") + protocolName
 
         /** One language of the top-right flag dropdown, e.g. `mainMenu.languageOption.cs`. */
         fun languageOption(language: String) = "mainMenu.languageOption.$language"
@@ -144,7 +145,10 @@ object TestTags {
     /** Protocol picker (§3 follow-up) — shown on the main menu only when the config has more
      * than one protocol; a single-protocol config skips straight to patient info. */
     object ProtocolPicker {
-        fun protocolButton(protocolName: String) = "protocolPicker.protocolButton.$protocolName"
+        /** Project-qualified: the same protocol name can be listed under several projects. */
+        fun protocolButton(protocolName: String, project: String? = null) =
+            "protocolPicker.protocolButton." + (project?.let { "$it/" } ?: "") + protocolName
+        fun projectHeader(project: String) = "protocolPicker.projectHeader.$project"
         const val BACK_BUTTON = "protocolPicker.backButton"
     }
 

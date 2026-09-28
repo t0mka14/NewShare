@@ -118,6 +118,12 @@ data class Examination(
     val sessionId: String,
     val installationId: String,
     val protocolName: String,
+    /**
+     * The protocol's `project` (config alignment row 3): with [protocolName] it identifies the
+     * protocol in the snapshot, since one name can exist under several projects. Null for
+     * sessions recorded before it existed or from configs without projects.
+     */
+    val protocolProject: String? = null,
     val configVersion: String,
     val startedAt: String,
     val endedAt: String? = null,

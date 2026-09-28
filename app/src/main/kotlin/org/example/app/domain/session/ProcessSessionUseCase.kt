@@ -9,6 +9,7 @@ import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioClipService
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.config.ConfigDecoder
+import org.example.app.domain.config.findProtocol
 import org.example.app.domain.timeline.TimelineRepository
 import org.example.app.domain.upload.UploadStatus
 import org.example.app.domain.upload.UploadStatusRepository
@@ -132,7 +133,7 @@ class ProcessSessionUseCase(
                 } catch (e: Exception) {
                     return fail(examination, ProcessingError.MissingConfigSnapshot(e.message ?: "malformed config snapshot"))
                 }
-                val protocol = decoded.config.protocols.firstOrNull { it.name == examination.protocolName }
+                val protocol = decoded.config.findProtocol(examination.protocolName, examination.protocolProject)
                     ?: return fail(examination, ProcessingError.ProtocolNotFound(examination.protocolName))
 
                 val patientCode = SessionFolderNaming.extractPatientCode(folderName, examination.sessionId)

@@ -31,8 +31,12 @@ interface MainMenuComponent {
     /** Language switch from the top-right flag; persists and re-resolves every screen's text. */
     fun onLanguageSelected(language: String)
 
-    /** One protocol that declares a `protocolInstructionsPdfUrl`. */
-    data class ProtocolPdf(val protocolName: String, val url: String)
+    /**
+     * One protocol that declares a `protocolInstructionsPdfUrl`. [project] is set when the entry
+     * belongs to exactly one project; the same protocol listed under several projects shares one
+     * entry (same name and URL) with no project.
+     */
+    data class ProtocolPdf(val protocolName: String, val url: String, val project: String? = null)
 
     /**
      * `startEnabled` mirrors `ConfigurationRepository.activeConfig != null` (§8.6/§12: start
@@ -71,11 +75,16 @@ class DefaultMainMenuComponent(
 
     private fun stateOf(config: RemoteConfig?) = MainMenuComponent.State(
         startEnabled = config != null,
-        protocolPdfs = config?.protocols.orEmpty().mapNotNull { protocol ->
-            protocol.protocolInstructionsPdfUrl
-                ?.takeIf { it.isNotBlank() }
-                ?.let { MainMenuComponent.ProtocolPdf(protocol.name, it) }
-        },
+        protocolPdfs = config?.protocols.orEmpty()
+            .filter { !it.protocolInstructionsPdfUrl.isNullOrBlank() }
+            .groupBy { it.name to it.protocolInstructionsPdfUrl!! }
+            .map { (key, protocols) ->
+                MainMenuComponent.ProtocolPdf(
+                    protocolName = key.first,
+                    url = key.second,
+                    project = protocols.mapTo(mutableSetOf()) { it.project }.singleOrNull(),
+                )
+            },
     )
 
     override fun onStartProtocol() {

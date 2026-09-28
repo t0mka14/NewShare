@@ -96,6 +96,7 @@ class StartSessionUseCase(
             sessionId = sessionId,
             installationId = params.installationId,
             protocolName = params.protocol.name,
+            protocolProject = params.protocol.project,
             configVersion = params.configVersion,
             startedAt = nowIso,
             captureFormat = params.negotiatedFormat,

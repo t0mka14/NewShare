@@ -1236,6 +1236,14 @@ Error taxonomy (normative, inlined from the old plan):
     upload endpoint (phase B, which will also send the site token). `ConfigError`
     `InstallationIdMissing/Rejected` became `SiteTokenMissing/Rejected`, plus `SiteDeactivated`
     and `RateLimited`. Closes the config half of open question 1.
+46. **Protocols carry their `project` (2026-09-27, config alignment row 3).** The web lists
+    `protocols[]` flat, each with its parent project's name in `project`; one protocol linked to
+    several projects appears once per project. `Protocol.project` (optional) drives the picker,
+    which groups buttons under a heading per project (no heading when absent). Identity is name +
+    project: `Examination.protocolProject` records it and processing resolves the snapshot's
+    protocol with `RemoteConfig.findProtocol(name, project)` (null project = name only, for older
+    sessions). The "Get protocol PDF" list shows one entry per name + URL, labelled with the
+    project when the entry belongs to exactly one.
 
 **Still open:**
 

@@ -39,7 +39,7 @@ class HappyPathScenarioTest {
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
         // fullProtocol defines two protocols ("Share"/"QuestionnaireOnly", §3 follow-up), so
         // Start opens the protocol picker before patient info.
-        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share")).performClick()
+        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
 
         onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC001")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
@@ -124,7 +124,7 @@ class HappyPathScenarioTest {
         setContent { ScenarioApp(harness) }
 
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
-        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share")).performClick()
+        onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
         onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC002")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()

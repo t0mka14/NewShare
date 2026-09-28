@@ -171,12 +171,12 @@ private fun ProtocolPdfButton(
         DropdownMenu(expanded = pickerExpanded, onDismissRequest = { pickerExpanded = false }) {
             pdfs.forEach { pdf ->
                 DropdownMenuItem(
-                    text = { Text(pdf.protocolName) },
+                    text = { Text(pdf.project?.let { "${pdf.protocolName} ($it)" } ?: pdf.protocolName) },
                     onClick = {
                         pickerExpanded = false
                         component.onOpenProtocolPdf(pdf.url)
                     },
-                    modifier = Modifier.testTag(TestTags.MainMenu.protocolPdfOption(pdf.protocolName)),
+                    modifier = Modifier.testTag(TestTags.MainMenu.protocolPdfOption(pdf.protocolName, pdf.project)),
                 )
             }
         }
