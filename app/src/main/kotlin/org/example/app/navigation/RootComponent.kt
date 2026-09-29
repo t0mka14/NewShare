@@ -24,7 +24,6 @@ import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.loudnessRange
-import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
 import java.time.LocalDate
 import java.time.ZoneId
