@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -226,6 +227,20 @@ private fun InstructionsField(
         if (showSecond) {
             UtilitiesRowBelowInstructions(component, state, localization)
             if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
+        }
+        // READING's passage is what the participant reads aloud, so unlike the second card it
+        // stays on every repetition; upright and larger than the italic instructions.
+        state.readingPassageKey?.let { key ->
+            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag(TestTags.Task.READING_PASSAGE)) {
+                Text(
+                    localization.resolve(key, placeholders),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                )
+            }
         }
     }
 }

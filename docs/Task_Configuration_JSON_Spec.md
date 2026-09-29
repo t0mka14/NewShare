@@ -157,10 +157,15 @@ two exported clips.
 ```
 
 - `subtype`: `PHONATION` | `PATAKA` | `SYLLABLES` | `READING` | `MONOLOGUE` | `RETELLING` |
-  `COUNTING` | `CUSTOM`.
+  `COUNTING` | `CUSTOM`. The subtype is a label (it feeds `${task.subtype}` and
+  `examination.json`); every subtype uses the same Start/Stop/Repeat screen. `CUSTOM` is the
+  generic one the web emits for any voice task without a dedicated subtype.
 - `length` — target duration in seconds.
 - `instructionKeys` — one key per instruction paragraph (replaces the draft's `nTextFields`;
-  the count is the array length).
+  the count is the array length). The first paragraph is always shown; the rest are shown on
+  the first repetition only. **`READING`:** the *last* paragraph is the passage to read aloud,
+  shown in its own scrollable panel on every repetition (with a single paragraph, that
+  paragraph is the passage).
 - `audioExamplePath` — optional example audio, played on demand, never recorded.
 
 ### 4.2 QUESTIONNAIRE
@@ -170,7 +175,6 @@ two exported clips.
   "type": "QUESTIONNAIRE",
   "titleKey": "questionnaire_title",
   "questions": [ /* Question objects, §4.2.1 */ ],
-  "length": 200,
   "canRepeat": true,
   "canSkip": false,
   "nrepetition": 1
@@ -178,7 +182,8 @@ two exported clips.
 ```
 
 Answers are stored inside the session's **`examination.json`** and uploaded with it (no
-separate answers file or endpoint).
+separate answers file or endpoint). A questionnaire has no timer: a `length` key is ignored, as
+is `canRepeat` (nothing is recorded, so there is nothing to repeat).
 
 #### 4.2.1 Question
 
@@ -193,7 +198,9 @@ separate answers file or endpoint).
 ```
 
 - `questionType`: `OPEN` | `SINGLE_CHOICE` | `MULTIPLE_CHOICE`.
-- `questionRegex` — validation for `OPEN` answers only.
+- `questionRegex` — validation for `OPEN` answers only. An unanswered question counts as the
+  empty string, so `.*` makes it optional and `.+` required; no regex means free, optional text.
+  `SINGLE_CHOICE` needs exactly one option, `MULTIPLE_CHOICE` accepts none.
 - `questionOptions` — localization keys, required for choice types, absent for `OPEN`.
 
 ### 4.3 Calibration (not a task)

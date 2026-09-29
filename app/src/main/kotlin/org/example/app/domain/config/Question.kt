@@ -18,4 +18,12 @@ data class Question(
     val questionTextKey: String,
     val questionRegex: String? = null,
     val questionOptions: List<String>? = null,
-)
+) {
+    /**
+     * Whether [value] is a valid `OPEN` answer: no regex means free text, otherwise it must match.
+     * An untouched answer is `""`, so `.*` makes the question optional and `.+` required (the web
+     * emits exactly these for optional/required open questions).
+     */
+    fun acceptsOpenAnswer(value: String): Boolean =
+        questionRegex.isNullOrEmpty() || Regex(questionRegex).matches(value)
+}

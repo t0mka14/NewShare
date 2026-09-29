@@ -3,7 +3,9 @@ package org.example.app.domain.config
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 
 /**
  * Golden-shape check against real web output: `fixtures/config/web_*.json` are verbatim copies of
@@ -65,5 +67,38 @@ class WebSampleConfigsTest {
         // The first patient_code wins (the web's own, not the one mapped from a legacy id).
         assertEquals("PD001", fields.single { it.name == "patient_code" }.placeholder)
         assertTrue(fields.all { it.helpKey.isNotEmpty() })
+    }
+
+    private val samples = listOf(
+        "single_en", "multi_project", "variants_en_cs", "identifiers_full", "questionnaires",
+        "skipped_vision", "empty_settings", "restricted_languages", "legacy_protocol",
+    ).map { "web_$it.json" }
+
+    @TestFactory
+    fun `every web sample decodes and validates`(): List<DynamicTest> =
+        samples.map { name -> DynamicTest.dynamicTest(name) { load(name) } }
+
+    @Test
+    fun `the samples use the web's VOCAL subtypes`() {
+        val subtypes = samples.flatMap { load(it).protocols }.flatMap { it.tasks }
+            .filterIsInstance<VocalTask>().mapTo(mutableSetOf()) { it.subtype }
+        assertEquals(
+            setOf(
+                VocalSubtype.PHONATION, VocalSubtype.PATAKA, VocalSubtype.SYLLABLES,
+                VocalSubtype.READING, VocalSubtype.MONOLOGUE, VocalSubtype.RETELLING,
+            ),
+            subtypes,
+        )
+    }
+
+    @Test
+    fun `questionnaire sample carries every question shape the web emits`() {
+        val questions = load("web_questionnaires.json").protocols.flatMap { it.tasks }
+            .filterIsInstance<QuestionnaireTask>().flatMap { it.questions }
+
+        val openRegexes = questions.filter { it.questionType == QuestionType.OPEN }.mapTo(mutableSetOf()) { it.questionRegex }
+        assertEquals(setOf(".*", ".+"), openRegexes)
+        assertTrue(questions.any { it.questionType == QuestionType.MULTIPLE_CHOICE })
+        assertTrue(questions.any { it.questionOptions == (1..5).map { n -> "rating_$n" } })
     }
 }

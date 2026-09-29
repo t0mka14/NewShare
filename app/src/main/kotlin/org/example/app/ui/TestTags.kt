@@ -72,6 +72,8 @@ object TestTags {
         const val NEXT_BUTTON = "task.nextButton"
         const val SKIP_BUTTON = "task.skipButton"
         const val LEVEL_INDICATOR = "task.levelIndicator"
+        /** READING only: the passage panel, shown on every repetition. */
+        const val READING_PASSAGE = "task.readingPassage"
         const val ERROR_DIALOG = "task.errorDialog"
         const val ERROR_DIALOG_DISMISS_BUTTON = "task.errorDialogDismissButton"
         const val DEVICE_LOST_ERROR = "task.errorDialog.deviceLost"

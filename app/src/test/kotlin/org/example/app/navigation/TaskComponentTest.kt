@@ -305,6 +305,44 @@ class TaskComponentTest {
     }
 
     @Test
+    fun `an untouched optional open question does not block next, a required one does`() {
+        fun openTask(regex: String) = QuestionnaireTask(
+            titleKey = "q",
+            questions = listOf(Question(QuestionType.OPEN, "note", "note_text", questionRegex = regex)),
+        )
+
+        // The web sends `.*` for an optional open question and `.+` for a required one.
+        assertTrue(Harness(openTask(".*"), withRecorder = false).component.state.value.buttons.nextEnabled)
+
+        val required = Harness(openTask(".+"), withRecorder = false)
+        assertFalse(required.component.state.value.buttons.nextEnabled)
+        required.component.onOpenAnswerChanged("note", "x")
+        assertTrue(required.component.state.value.buttons.nextEnabled)
+    }
+
+    @Test
+    fun `a READING task's last instruction paragraph is the passage, on every repetition`() {
+        val reading = VocalTask(titleKey = "r", subtype = VocalSubtype.READING, instructionKeys = listOf("a", "b", "passage"))
+
+        listOf(1, 2).forEach { repetition ->
+            val state = Harness(reading, repetition = repetition).component.state.value
+            assertEquals("passage", state.readingPassageKey)
+            assertEquals(listOf("a", "b"), state.instructionKeys)
+        }
+
+        val single = Harness(reading.copy(instructionKeys = listOf("passage"))).component.state.value
+        assertEquals("passage", single.readingPassageKey)
+        assertEquals(emptyList<String>(), single.instructionKeys)
+    }
+
+    @Test
+    fun `other tasks have no reading passage`() {
+        val state = Harness(vocalTask.copy(instructionKeys = listOf("a", "b"))).component.state.value
+        assertEquals(null, state.readingPassageKey)
+        assertEquals(listOf("a", "b"), state.instructionKeys)
+    }
+
+    @Test
     fun `multiple choice toggles accumulate and can be deselected`() {
         val h = Harness(questionnaireTask, withRecorder = false)
 

@@ -20,6 +20,7 @@ import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
 import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.Task
+import org.example.app.domain.config.VocalSubtype
 import org.example.app.domain.config.VocalTask
 import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.timeline.TaskInstance
@@ -192,7 +193,14 @@ interface TaskComponent {
         val positionInProtocol: Int,
         val totalInstanceCount: Int,
         val titleKey: String,
+        /** Instruction paragraphs, minus the reading passage for a READING task. */
         val instructionKeys: List<String>,
+        /**
+         * READING only: the passage to read aloud — the task's *last* instruction paragraph, as the
+         * web emits it (config alignment row 12). Shown in its own panel on every repetition,
+         * unlike the second instructions card. `null` for every other task.
+         */
+        val readingPassageKey: String? = null,
         /** `VocalTask.length` (target seconds, 0 = none) — drives the legacy timer's green
          * "task can be finished" highlight (§13 decision 36); carried directly like the other
          * task-definition fields. */
@@ -471,9 +479,7 @@ class DefaultTaskComponent(
     override fun onOpenAnswerChanged(questionKey: String, value: String) {
         val questionnaire = task as? QuestionnaireTask ?: return
         val question = questionnaire.questions.firstOrNull { it.questionKey == questionKey } ?: return
-        val regex = question.questionRegex
-        val valid = regex.isNullOrEmpty() || Regex(regex).matches(value)
-        answers = answers + (questionKey to AnswerState(selected = listOf(value), valid = valid))
+        answers = answers + (questionKey to AnswerState(selected = listOf(value), valid = question.acceptsOpenAnswer(value)))
         publish()
     }
 
@@ -537,17 +543,20 @@ class DefaultTaskComponent(
 
     private fun allAnswersValid(): Boolean {
         val questionnaire = task as? QuestionnaireTask ?: return true
-        return questionnaire.questions.all { q -> answers[q.questionKey]?.valid ?: (q.questionRegex.isNullOrEmpty()) }
+        return questionnaire.questions.all { q -> answers[q.questionKey]?.valid ?: q.validWhenUnanswered() }
     }
 
     private fun initialAnswers(): Map<String, AnswerState> {
         val questionnaire = task as? QuestionnaireTask ?: return emptyMap()
         return questionnaire.questions.associate { q ->
-            val valid = q.questionType == QuestionType.MULTIPLE_CHOICE ||
-                q.questionType == QuestionType.OPEN && q.questionRegex.isNullOrEmpty()
-            q.questionKey to AnswerState(selected = emptyList(), valid = valid)
+            q.questionKey to AnswerState(selected = emptyList(), valid = q.validWhenUnanswered())
         }
     }
+
+    /** No selection is a valid MULTIPLE_CHOICE answer; an OPEN one is valid if its regex accepts `""`. */
+    private fun Question.validWhenUnanswered(): Boolean =
+        questionType == QuestionType.MULTIPLE_CHOICE ||
+            questionType == QuestionType.OPEN && acceptsOpenAnswer("")
 
     private fun taskTypeName(): String = when (task) {
         is VocalTask -> "VOCAL"
@@ -615,16 +624,20 @@ class DefaultTaskComponent(
             )
         }
 
+        val allInstructionKeys = (task as? VocalTask)?.instructionKeys
+            ?: (task as? InfoTask)?.instructionKeys
+            ?: (task as? VideoTask)?.instructionKeys
+            ?: emptyList()
+        val readingPassageKey = allInstructionKeys.lastOrNull()
+            ?.takeIf { (task as? VocalTask)?.subtype == VocalSubtype.READING }
         return TaskComponent.State(
             taskIndex = taskInstance.taskIndex,
             repetition = taskInstance.repetition,
             positionInProtocol = positionInProtocol,
             totalInstanceCount = totalInstanceCount,
             titleKey = task.titleKey,
-            instructionKeys = (task as? VocalTask)?.instructionKeys
-                ?: (task as? InfoTask)?.instructionKeys
-                ?: (task as? VideoTask)?.instructionKeys
-                ?: emptyList(),
+            instructionKeys = if (readingPassageKey != null) allInstructionKeys.dropLast(1) else allInstructionKeys,
+            readingPassageKey = readingPassageKey,
             taskLengthSeconds = (task as? VocalTask)?.length ?: (task as? VideoTask)?.length ?: 0,
             nextTaskTitleKey = nextTaskTitleKey,
             canSkip = task.canSkip,
