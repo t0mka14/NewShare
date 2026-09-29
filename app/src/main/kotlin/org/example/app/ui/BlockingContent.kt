@@ -14,21 +14,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import org.example.app.domain.config.ConfigError
 
 /**
  * Blocking "configuration required" screen (§6.1 pt 4): no active config (no cache, or the
  * server rejected the site token). Rendered entirely from bundled fallback strings (§7) —
  * `localization.config` is `null` here by construction. The only way out is Settings, to enter/
- * fix the site token and refresh.
+ * fix the site token and refresh. Shows why the last refresh failed ([error]) when known,
+ * else the generic "configuration required" text.
  */
 @Composable
-fun BlockingConfigurationRequiredContent(localization: UiLocalization, onOpenSettings: () -> Unit) {
+fun BlockingConfigurationRequiredContent(
+    localization: UiLocalization,
+    error: ConfigError?,
+    onOpenSettings: () -> Unit,
+) {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(localization.resolve("app.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                localization.resolve("error.config.required"),
+                localization.resolve(error?.messageKey() ?: "error.config.required"),
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.contentWidth(1300.dp).testTag(TestTags.Blocking.CONFIGURATION_REQUIRED_MESSAGE),
             )

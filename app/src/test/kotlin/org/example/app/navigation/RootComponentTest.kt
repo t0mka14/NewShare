@@ -4,7 +4,10 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.AppContainer
 import org.example.app.domain.audio.AudioInputDevice
+import kotlinx.coroutines.runBlocking
+import org.example.app.domain.config.ConfigError
 import org.example.app.fakes.ConfigFixtures
+import org.example.app.fakes.FakeConfigApi
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioInputGainControl
 import org.example.app.fakes.FakeContinuousSessionRecorder
@@ -15,6 +18,7 @@ import org.example.app.domain.config.ConfigDecoder
 import org.example.app.domain.settings.AppSettings
 import org.example.app.fakes.TestCoroutineDispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -37,6 +41,7 @@ class RootComponentTest {
         gainControl: FakeAudioInputGainControl = FakeAudioInputGainControl(),
         deviceProvider: FakeAudioInputDeviceProvider = FakeAudioInputDeviceProvider(),
         recorder: FakeContinuousSessionRecorder = FakeContinuousSessionRecorder(clock),
+        configApi: FakeConfigApi = FakeConfigApi(),
     ): AppContainer =
         AppContainer(
             directories = TestAppDirectories(tempDir),
@@ -48,6 +53,7 @@ class RootComponentTest {
             audioInputGainControl = gainControl,
             audioInputDeviceProvider = deviceProvider,
             sessionRecorderFactory = { recorder },
+            configApi = configApi,
         )
 
     private fun buildRoot(container: AppContainer): RootComponent =
@@ -222,6 +228,63 @@ class RootComponentTest {
         root.onOpenSettingsFromBlocking()
 
         assertTrue(root.stack.value.active.instance is RootComponent.Child.Settings)
+    }
+
+    // ---- blocking screen reason and leaving Settings back to it
+
+    @Test
+    fun `a failed refresh gives the blocking screen its reason`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val container = buildContainer(tempDir, dispatchers)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+        assertNull(root.configError.value)
+
+        runBlocking { container.refreshConfigurationUseCase.refresh() } // the startup refresh, no token
+        dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(ConfigError.SiteTokenMissing, root.configError.value)
+    }
+
+    @Test
+    fun `a refresh that succeeded in settings lands on the main menu on back, not the blocking screen`(
+        @TempDir tempDir: Path,
+    ) {
+        val dispatchers = TestCoroutineDispatchers()
+        val container = buildContainer(tempDir, dispatchers)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+        root.onOpenSettingsFromBlocking()
+
+        container.configurationRepository.applyFetched(ConfigFixtures.questionnaireOnly)
+        dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.Settings)
+
+        root.onSettingsBack()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
+        assertEquals(1, root.stack.value.items.size)
+    }
+
+    @Test
+    fun `back to the blocking screen re-checks an edited token`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val api = FakeConfigApi().apply { enqueueSiteTokenUnknown() }
+        val container = buildContainer(tempDir, dispatchers, configApi = api)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+        runBlocking { container.refreshConfigurationUseCase.refresh() }
+        dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(ConfigError.SiteTokenMissing, root.configError.value)
+
+        root.onOpenSettingsFromBlocking()
+        (root.stack.value.active.instance as RootComponent.Child.Settings).component.onSiteTokenChanged("typo")
+        root.onSettingsBack() // no Refresh pressed
+        dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.Blocking)
+        assertEquals(listOf("typo"), api.requestedSiteTokens)
+        assertEquals(ConfigError.SiteTokenRejected, root.configError.value)
     }
 
     // ---- microphone selection and level at session start (§6.2, §13 decision 44)

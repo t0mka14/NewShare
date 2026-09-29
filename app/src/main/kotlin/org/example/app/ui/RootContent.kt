@@ -1,6 +1,7 @@
 package org.example.app.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
@@ -15,6 +16,7 @@ fun RootContent(
     onExitApp: () -> Unit = {},
 ) {
     val localization by component.localization.subscribeAsState()
+    val configError by component.configError.collectAsState()
 
     if (errorReporter != null) {
         UnexpectedErrorDialog(errorReporter, localization, onExitApp)
@@ -24,6 +26,7 @@ fun RootContent(
         when (val instance = child.instance) {
             is RootComponent.Child.Blocking -> BlockingConfigurationRequiredContent(
                 localization = localization,
+                error = configError,
                 onOpenSettings = component::onOpenSettingsFromBlocking,
             )
 

@@ -13,11 +13,13 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.example.app.AppContainer
 import org.example.app.domain.audio.MicGainReapplyingRecorder
 import org.example.app.domain.audio.MicNames
+import org.example.app.domain.config.ConfigError
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
@@ -34,6 +36,9 @@ interface RootComponent {
      * combines `AppSettingsRepository`'s language selection with `ConfigurationRepository`'s
      * `activeConfig`; screens take it as a plain parameter (§5.2, no `CompositionLocal`). */
     val localization: Value<UiLocalization>
+
+    /** Why the last config refresh failed — the blocking screen's reason, `null` when unknown. */
+    val configError: StateFlow<ConfigError?>
 
     // Root-level navigation events not owned by any frozen chunk-1 component (they have no
     // `onBack`/equivalent of their own) — RootContent wires these directly from screen chrome.
@@ -99,6 +104,8 @@ class DefaultRootComponent(
 
     private val _localization = MutableValue(buildLocalization())
     override val localization: Value<UiLocalization> = _localization
+
+    override val configError: StateFlow<ConfigError?> = container.refreshConfigurationUseCase.lastError
 
     override val stack: Value<ChildStack<*, RootComponent.Child>> =
         childStack(
@@ -364,7 +371,19 @@ class DefaultRootComponent(
             ),
         )
 
-    override fun onSettingsBack() = navigation.pop()
+    override fun onSettingsBack() {
+        if (stack.value.backStack.lastOrNull()?.instance !is RootComponent.Child.Blocking) return navigation.pop()
+        if (container.configurationRepository.activeConfig.value != null) {
+            // A refresh succeeded while in Settings; the activeConfig collector only leaves
+            // Blocking while it is on top, so returning to it would strand the examiner there.
+            navigation.replaceAll(Config.MainMenu)
+        } else {
+            // The token may have been edited without pressing Refresh — re-check so the blocking
+            // reason is not stale (success lands on the main menu via the activeConfig collector).
+            navigation.pop()
+            scope.launch(container.dispatchers.main) { container.refreshConfigurationUseCase.refresh() }
+        }
+    }
     override fun onPatientInfoBack() = navigation.pop()
     override fun onOpenSettingsFromBlocking() = navigation.pushNew(Config.Settings)
     override fun onSessionFailedBackToMenu() = navigation.replaceAll(Config.MainMenu)

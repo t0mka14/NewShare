@@ -1,5 +1,7 @@
 package org.example.app.domain.config
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.settings.AppSettingsRepository
 
 /**
@@ -25,7 +27,16 @@ class RefreshConfigurationUseCase(
         data class Failed(val error: ConfigError) : Result
     }
 
-    suspend fun refresh(): Result {
+    private val _lastError = MutableStateFlow<ConfigError?>(null)
+
+    /** Why the last refresh failed (startup or Settings), `null` after a success/offline
+     * fallback or before any refresh — the blocking screen shows it instead of the generic text. */
+    val lastError: StateFlow<ConfigError?> = _lastError
+
+    suspend fun refresh(): Result =
+        fetchAndApply().also { _lastError.value = (it as? Result.Failed)?.error }
+
+    private suspend fun fetchAndApply(): Result {
         val siteToken = settingsRepository.read()?.siteToken
         if (siteToken.isNullOrBlank()) {
             return Result.Failed(ConfigError.SiteTokenMissing)

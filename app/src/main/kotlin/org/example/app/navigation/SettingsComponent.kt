@@ -15,13 +15,13 @@ import org.example.app.domain.audio.GainApplyResult
 import org.example.app.domain.audio.MIC_GAIN_RANGE
 import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.audio.MicNames
-import org.example.app.domain.config.ConfigError
 import org.example.app.domain.config.ConfigurationRepository
 import org.example.app.domain.config.RefreshConfigurationUseCase
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.InstallationIdProvider
+import org.example.app.ui.messageKey
 
 interface SettingsComponent {
     val state: Value<State>
@@ -50,7 +50,7 @@ interface SettingsComponent {
         val selectedLanguage: String? = null,
         val refreshInProgress: Boolean = false,
         /** Localized-string key for the last refresh outcome (`settings.refresh.*` /
-         * `error.config.*`), `null` before any refresh has been attempted. */
+         * `error.config.*`); starts as the last failed refresh's key, else `null`. */
         val lastRefreshResultKey: String? = null,
         /**
          * Slider position (§13 decision 44): the level read from the selected device every time
@@ -125,6 +125,8 @@ class DefaultSettingsComponent(
             siteToken = saved?.siteToken.orEmpty(),
             availableLanguages = config?.languages.orEmpty(),
             selectedLanguage = saved?.language,
+            // A failure from an earlier refresh (e.g. the startup one) is shown on arrival.
+            lastRefreshResultKey = refreshConfigurationUseCase.lastError.value?.messageKey(),
             micGainOverride = saved?.micGain?.coerceIn(MIC_GAIN_RANGE),
             configMicGain = configGainFor(config, selected),
         ).withSliderPosition()
@@ -156,7 +158,7 @@ class DefaultSettingsComponent(
             val resultKey = when (val result = refreshConfigurationUseCase.refresh()) {
                 is RefreshConfigurationUseCase.Result.Success -> "settings.refresh.success"
                 is RefreshConfigurationUseCase.Result.OfflineUsingCache -> "settings.refresh.success"
-                is RefreshConfigurationUseCase.Result.Failed -> configErrorKey(result.error)
+                is RefreshConfigurationUseCase.Result.Failed -> result.error.messageKey()
             }
             _state.value = _state.value.copy(refreshInProgress = false, lastRefreshResultKey = resultKey)
         }
@@ -228,17 +230,5 @@ class DefaultSettingsComponent(
                 micGain = current.micGainOverride,
             ),
         )
-    }
-
-    private fun configErrorKey(error: ConfigError): String = when (error) {
-        ConfigError.SiteTokenMissing -> "error.config.siteTokenMissing"
-        ConfigError.SiteTokenRejected -> "error.config.siteTokenRejected"
-        ConfigError.SiteDeactivated -> "error.config.siteDeactivated"
-        ConfigError.RateLimited -> "error.config.rateLimited"
-        ConfigError.NetworkUnavailableNoCache -> "error.config.networkUnavailable"
-        is ConfigError.SchemaUnsupported -> "error.config.schemaUnsupported"
-        is ConfigError.ValidationFailed -> "error.config.validationFailed"
-        is ConfigError.Malformed -> "error.config.malformed"
-        is ConfigError.ServerError -> "settings.refresh.failed"
     }
 }

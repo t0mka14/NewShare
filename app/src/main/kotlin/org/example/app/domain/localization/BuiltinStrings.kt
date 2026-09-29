@@ -53,9 +53,10 @@ object BuiltinStrings {
         "settings.siteToken.label" to "Site token",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
-        "settings.refresh.button" to "Refresh configuration",
-        "settings.refresh.success" to "Configuration refreshed.",
+        "settings.refresh.button" to "Test configuration",
+        "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
+        "settings.backButton" to "Save and go back",
 
         // Main menu.
         "mainMenu.title" to "Speech examination",

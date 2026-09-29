@@ -194,6 +194,23 @@ class RefreshConfigurationUseCaseTest {
     }
 
     @Test
+    fun `lastError tracks the latest refresh and clears on success`() = runTest {
+        val repo = FakeConfigurationRepository()
+        repo.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig))
+        val api = FakeConfigApi()
+        api.enqueueSiteTokenUnknown()
+        api.enqueueSuccess("""{"schemaVersion":1}""")
+        val (useCase, _, _) = useCase(configApi = api, configurationRepository = repo)
+        assertNull(useCase.lastError.value)
+
+        useCase.refresh()
+        assertEquals(ConfigError.SiteTokenRejected, useCase.lastError.value)
+
+        useCase.refresh()
+        assertNull(useCase.lastError.value)
+    }
+
+    @Test
     fun `site token never appears in the returned error`() = runTest {
         val api = FakeConfigApi()
         api.enqueueNetworkUnavailable(detail = "java.net.ConnectException")
