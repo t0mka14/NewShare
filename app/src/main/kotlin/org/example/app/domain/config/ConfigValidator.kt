@@ -7,6 +7,9 @@ sealed interface ConfigValidationError {
     /** §3/§6.2: `recordingsFileName` must contain `${taskIndex}` for name uniqueness. */
     data class MissingTaskIndexPlaceholder(val protocolName: String) : ConfigValidationError
 
+    /** Row 8: `recordingsFileName` references `${field.<name>}` but the protocol has no such field. */
+    data class UnknownTemplateField(val protocolName: String, val fieldName: String) : ConfigValidationError
+
     /** §6.2/§13 decision 44: `defaultMicGain` is a percentage, 0..100. */
     data class InvalidDefaultMicGain(val value: Int) : ConfigValidationError
 }
@@ -43,6 +46,12 @@ object ConfigValidator {
             if (!protocol.recordingsFileName.contains(TASK_INDEX_PLACEHOLDER)) {
                 errors += ConfigValidationError.MissingTaskIndexPlaceholder(protocol.name)
             }
+            val fieldNames = protocol.patientFields.mapTo(mutableSetOf()) { it.name }
+            RecordingsFileNameRenderer.FIELD_VARIABLE.findAll(protocol.recordingsFileName)
+                .map { it.groupValues[1] }
+                .filterNot { it in fieldNames }
+                .distinct()
+                .forEach { errors += ConfigValidationError.UnknownTemplateField(protocol.name, it) }
         }
 
         return ConfigValidationResult(errors)

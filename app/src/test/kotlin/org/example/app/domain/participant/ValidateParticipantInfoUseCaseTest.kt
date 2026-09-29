@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 class ValidateParticipantInfoUseCaseTest {
 
     private val fields = listOf(
-        PatientField(name = "code", labelKey = "field.code", regex = "^HC\\d{3}$", required = true, useInFilename = true),
+        PatientField(name = "code", labelKey = "field.code", regex = "^HC\\d{3}$", required = true),
         PatientField(name = "notes", labelKey = "field.notes"),
     )
 

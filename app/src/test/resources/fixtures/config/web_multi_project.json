@@ -6,7 +6,6 @@
     "en"
   ],
   "defaultMicName": "",
-  "defaultMicGain": 100,
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,

@@ -15,7 +15,7 @@ class ClipExportPlannerTest {
     private val sessionDir = Path.of("fake-session-dir")
     private val masterFile = sessionDir.resolve("master/session_master.wav")
     private val singlePart = listOf(MasterPart(masterFile, format, 0L, null))
-    private val template = "\${installationId}_\${patientCode}_\${taskIndex}_\${task.subtype}_\${repetition}"
+    private val template = "\${installationId}_\${field.patient_code}_\${taskIndex}_\${task.subtype}_\${repetition}"
 
     private fun start(taskIndex: Int, repetition: Int, take: Int, sample: Long) = TimelineEvent(
         type = TimelineEventType.START_BUTTON_PRESSED, sampleOffset = sample, wallClock = "2026-07-01T09:00:00Z",
@@ -63,7 +63,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
-            patientCode = "HC001",
+            fieldValues = mapOf("patient_code" to "HC001"),
         )
 
         assertTrue(result.errors.isEmpty())
@@ -84,7 +84,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
-            patientCode = "HC001",
+            fieldValues = mapOf("patient_code" to "HC001"),
         )
 
         assertTrue(result.errors.isEmpty())
@@ -102,7 +102,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
-            patientCode = "HC001",
+            fieldValues = mapOf("patient_code" to "HC001"),
         )
 
         assertTrue(result.plans.isEmpty())
@@ -119,7 +119,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
-            patientCode = "HC001",
+            fieldValues = mapOf("patient_code" to "HC001"),
         )
 
         assertTrue(result.plans.isEmpty())
@@ -140,7 +140,7 @@ class ClipExportPlannerTest {
             masterParts = parts,
             recordingsFileNameTemplate = template,
             installationId = "install1",
-            patientCode = "HC001",
+            fieldValues = mapOf("patient_code" to "HC001"),
         )
 
         assertTrue(result.plans.isEmpty())
@@ -158,7 +158,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
-            patientCode = "HC001",
+            fieldValues = mapOf("patient_code" to "HC001"),
         )
 
         assertEquals("install1_HC001_3_PATAKA_1.wav", result.plans[0].clipFileName)

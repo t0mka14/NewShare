@@ -20,13 +20,13 @@ class ConfigDecoderTest {
           "enableEditor": false,
           "indicatorType": "CIRCLE",
           "useCalibration": true,
-          "patientFields": [
-            { "name": "code", "labelKey": "patient_code_label", "regex": "[a-zA-Z0-9_-]+", "required": true, "useInFilename": true }
-          ],
           "protocols": [
             {
               "name": "Share",
-              "recordingsFileName": "${'$'}{installationId}_${'$'}{patientCode}_${'$'}{taskIndex}_${'$'}{task.subtype}_Rep${'$'}{repetition}",
+              "recordingsFileName": "${'$'}{installationId}_${'$'}{field.patient_code}_${'$'}{taskIndex}_${'$'}{task.subtype}_Rep${'$'}{repetition}",
+              "patientFields": [
+                { "name": "patient_code", "labelKey": "patient_code_label", "helpKey": "patient_code_help", "placeholder": "HC001", "regex": "[a-zA-Z0-9_-]+", "required": true }
+              ],
               "tasks": [
                 { "type": "VOCAL", "subtype": "PHONATION", "titleKey": "phonation_title", "instructionKeys": ["p1"], "length": 10,
                   "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1 },
@@ -73,6 +73,28 @@ class ConfigDecoderTest {
         assertEquals("b", config.findProtocol("Standard", "B")?.recordingsFileName)
         assertEquals("a", config.findProtocol("Standard", null)?.recordingsFileName)
         assertEquals(null, config.findProtocol("Standard", "C"))
+    }
+
+    @Test
+    fun `patientFields decode inside the protocol`() {
+        val field = ConfigDecoder.decode(minimalConfigJson).config.protocols.single().patientFields.single()
+        assertEquals(
+            PatientField("patient_code", "patient_code_label", "patient_code_help", "HC001", "[a-zA-Z0-9_-]+", required = true),
+            field,
+        )
+    }
+
+    @Test
+    fun `a field name listed twice in one protocol keeps the first and warns`() {
+        val json = minimalConfigJson.replace(
+            "\"required\": true }",
+            "\"required\": true },\n{ \"name\": \"patient_code\", \"labelKey\": \"dup\", \"required\": false }",
+        )
+        val result = ConfigDecoder.decode(json)
+
+        val fields = result.config.protocols.single().patientFields
+        assertEquals(listOf("patient_code_label"), fields.map { it.labelKey })
+        assertTrue(result.warnings.any { it.contains("patient_code") })
     }
 
     @Test

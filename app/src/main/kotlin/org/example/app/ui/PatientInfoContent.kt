@@ -21,9 +21,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.domain.participant.FieldValidationError
+import org.example.app.domain.participant.PatientFieldCatalogue
+import org.example.app.domain.participant.PatientFieldCatalogue.FieldKind
 import org.example.app.navigation.PatientInfoComponent
 
-/** §8.10 participant-info screen — fields are entirely config-driven (§6.2 `patientFields`). */
+/**
+ * §8.10 participant-info screen — the chosen protocol's `patientFields` (config alignment row 6).
+ * Catalogue fields render per [PatientFieldCatalogue]: `current_date` as read-only text, `sex`
+ * and `education` as a dropdown of fixed options, everything else as a text field.
+ */
 @Composable
 fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocalization, onBack: () -> Unit) {
     val state by component.state.subscribeAsState()
@@ -35,17 +41,36 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
 
             state.fields.forEach { field ->
                 Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    OutlinedTextField(
-                        value = state.values[field.name].orEmpty(),
-                        onValueChange = { component.onFieldChanged(field.name, it) },
-                        label = { Text(localization.resolve(field.labelKey)) },
-                        placeholder = field.placeholder?.let { { Text(it) } },
-                        isError = state.errors[field.name].orEmpty().isNotEmpty(),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag(TestTags.PatientInfo.field(field.name)),
-                    )
-                    field.helpKey?.let { helpKey ->
-                        Text(localization.resolve(helpKey), style = MaterialTheme.typography.bodySmall)
+                    val value = state.values[field.name].orEmpty()
+                    when (val kind = PatientFieldCatalogue.kindOf(field.name)) {
+                        FieldKind.AutoDate -> {
+                            Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
+                            Text(value, modifier = Modifier.testTag(TestTags.PatientInfo.field(field.name)))
+                        }
+                        is FieldKind.Choice -> {
+                            Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
+                            DropdownSelector(
+                                triggerTag = TestTags.PatientInfo.field(field.name),
+                                selectedLabel = if (value.isEmpty()) "" else
+                                    localization.resolvePlain(PatientFieldCatalogue.optionLabelKey(field.name, value)),
+                                items = kind.options,
+                                itemLabel = { localization.resolvePlain(PatientFieldCatalogue.optionLabelKey(field.name, it)) },
+                                itemTag = { TestTags.PatientInfo.fieldOption(field.name, it) },
+                                onSelected = { component.onFieldChanged(field.name, it) },
+                            )
+                        }
+                        FieldKind.Text -> OutlinedTextField(
+                            value = value,
+                            onValueChange = { component.onFieldChanged(field.name, it) },
+                            label = { Text(localization.resolve(field.labelKey)) },
+                            placeholder = field.placeholder.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
+                            isError = state.errors[field.name].orEmpty().isNotEmpty(),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().testTag(TestTags.PatientInfo.field(field.name)),
+                        )
+                    }
+                    if (field.helpKey.isNotEmpty() && localization.resolvePlain(field.helpKey).isNotBlank()) {
+                        Text(localization.resolve(field.helpKey), style = MaterialTheme.typography.bodySmall)
                     }
                     state.errors[field.name].orEmpty().forEach { error ->
                         Text(
@@ -82,4 +107,5 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
 private fun FieldValidationError.messageKey(): String = when (this) {
     is FieldValidationError.Required -> "patientInfo.error.required"
     is FieldValidationError.PatternMismatch -> "patientInfo.error.pattern"
+    is FieldValidationError.NotAnOption -> "patientInfo.error.option"
 }

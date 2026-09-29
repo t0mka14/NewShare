@@ -7,7 +7,7 @@ import org.example.app.domain.IdGenerator
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
-import org.example.app.domain.participant.PatientCodeComposer
+import org.example.app.domain.participant.PatientFieldCatalogue
 import org.example.app.domain.timeline.ProtocolExpansion
 import org.example.app.domain.timeline.TaskInstanceExpander
 import java.nio.file.Path
@@ -40,7 +40,6 @@ class StartSessionUseCase(
         /** Raw config JSON, persisted verbatim as `task_configuration_snapshot.json`
          * (§6.1 pt. 5) — never re-encoded from the parsed model. */
         val rawConfigJson: String,
-        val patientFields: List<PatientField>,
         val participantFieldValues: Map<String, String>,
         /** `null` for a protocol with no VOCAL tasks (no-master session, §6.2). */
         val negotiatedFormat: CaptureFormat?,
@@ -77,7 +76,7 @@ class StartSessionUseCase(
 
     private fun createSession(params: Params): Result {
         val sessionId = idGenerator.newSessionId()
-        val patientCode = PatientCodeComposer.compose(params.patientFields, params.participantFieldValues)
+        val patientCode = PatientFieldCatalogue.patientCode(params.participantFieldValues)
         val clinicLocalDate = LocalDate.ofInstant(clock.now(), clinicZone)
         val folderName = SessionFolderNaming.build(clinicLocalDate, patientCode, sessionId)
         val nowIso = clock.now().toString()

@@ -39,7 +39,7 @@ class ProcessSessionUseCaseTest {
     private val format48k = CaptureFormat(48_000, 16, 1)
     private val format44k = CaptureFormat(44_100, 16, 1)
     private val configVersion = "2026-07-01.1"
-    private val template = "\${installationId}_\${patientCode}_\${taskIndex}_\${task.subtype}_\${repetition}"
+    private val template = "\${installationId}_\${field.patient_code}_\${taskIndex}_\${task.subtype}_\${repetition}"
 
     private fun rawConfigJson(protocolName: String) = """
         {"schemaVersion":1,"configVersion":"$configVersion","defaultLanguage":"en",
@@ -80,7 +80,7 @@ class ProcessSessionUseCaseTest {
             protocolName: String = "Share",
         ): Examination {
             sessionRepository.createSessionDirectory(folderName)
-            sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
+            sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
             sessionRepository.writeConfigSnapshot(folderName, rawConfigJson(protocolName))
             val examination = Examination(
                 sessionId = sessionId,

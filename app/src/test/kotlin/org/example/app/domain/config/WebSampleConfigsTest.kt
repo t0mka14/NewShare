@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
- * Golden-shape check against real web output: `fixtures/config/web_*.json` are copies of
- * task_protocoller_web_app's `docs/ext_app_samples/` JSONs, with `defaultMicGain` converted to the
- * agreed 0..100 integer (the web still emitted a 0..1 fraction when these were copied).
+ * Golden-shape check against real web output: `fixtures/config/web_*.json` are verbatim copies of
+ * task_protocoller_web_app's `docs/ext_app_samples/` JSONs (web commit 7170959 or later, where
+ * `defaultMicGain` is the agreed 0..100 integer).
  */
 class WebSampleConfigsTest {
 
@@ -26,8 +26,11 @@ class WebSampleConfigsTest {
 
         assertTrue(config.useCalibration)
         assertTrue(config.enableEditor)
-        assertEquals(80, config.defaultMicGain)
-        assertTrue(config.protocols.single().tasks.any { it is VocalTask })
+        assertEquals(63, config.defaultMicGain)
+        val protocol = config.protocols.single()
+        assertTrue(protocol.tasks.any { it is VocalTask })
+        assertEquals(listOf("patient_code"), protocol.patientFields.map { it.name })
+        assertTrue(protocol.recordingsFileName.contains("\${field.patient_code}"))
     }
 
     @Test
@@ -36,6 +39,7 @@ class WebSampleConfigsTest {
 
         assertTrue(config.protocols.size > 1)
         assertTrue(config.protocols.all { !it.project.isNullOrBlank() })
+        assertTrue(config.protocols.all { it.patientFields.isNotEmpty() })
     }
 
     @Test
@@ -44,5 +48,22 @@ class WebSampleConfigsTest {
 
         assertFalse(config.useCalibration)
         assertEquals(listOf("cs", "en"), config.languages)
+    }
+
+    @Test
+    fun `full identifier sample decodes the catalogue and custom fields, with the duplicate dropped`() {
+        val json = requireNotNull(javaClass.getResource("/fixtures/config/web_identifiers_full.json")).readText()
+        val decoded = ConfigDecoder.decode(json)
+        assertTrue(decoded.warnings.any { it.contains("patient_code") }, "${decoded.warnings}")
+        val config = load("web_identifiers_full.json")
+
+        val fields = config.protocols.single().patientFields
+        assertEquals(
+            listOf("current_date", "sex", "education", "patient_code", "surname", "year_of_birth", "visit_number", "medication_state"),
+            fields.map { it.name },
+        )
+        // The first patient_code wins (the web's own, not the one mapped from a legacy id).
+        assertEquals("PD001", fields.single { it.name == "patient_code" }.placeholder)
+        assertTrue(fields.all { it.helpKey.isNotEmpty() })
     }
 }

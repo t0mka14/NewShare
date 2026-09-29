@@ -39,7 +39,7 @@ class DeviceLossScenarioTest {
 
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
         onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
-        onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC003")
+        onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput("HC003")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()

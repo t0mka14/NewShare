@@ -136,7 +136,8 @@ class ProcessSessionUseCase(
                 val protocol = decoded.config.findProtocol(examination.protocolName, examination.protocolProject)
                     ?: return fail(examination, ProcessingError.ProtocolNotFound(examination.protocolName))
 
-                val patientCode = SessionFolderNaming.extractPatientCode(folderName, examination.sessionId)
+                val participant = sessionRepository.readParticipant(folderName)
+                    ?: return fail(examination, ProcessingError.MissingParticipant(folderName))
 
                 val planningResult = ClipExportPlanner.plan(
                     vocalTaskRecords = vocalRecords,
@@ -145,7 +146,7 @@ class ProcessSessionUseCase(
                     masterParts = masterParts,
                     recordingsFileNameTemplate = protocol.recordingsFileName,
                     installationId = examination.installationId,
-                    patientCode = patientCode,
+                    fieldValues = participant.fields,
                 )
                 if (planningResult.errors.isNotEmpty()) {
                     return fail(examination, ProcessingError.ClipPlanning(planningResult.errors))

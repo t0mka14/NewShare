@@ -63,7 +63,8 @@ object ClipExportPlanner {
         masterParts: List<MasterPart>,
         recordingsFileNameTemplate: String,
         installationId: String,
-        patientCode: String,
+        /** `participant.json` values, keyed by field name, for `${field.<name>}`. */
+        fieldValues: Map<String, String>,
     ): ClipPlanningResult {
         val plans = mutableListOf<ClipExportPlan>()
         val errors = mutableListOf<ClipPlanningError>()
@@ -106,7 +107,7 @@ object ClipExportPlanner {
             val clipBaseName = RecordingsFileNameRenderer.render(
                 template = recordingsFileNameTemplate,
                 installationId = installationId,
-                patientCode = patientCode,
+                fieldValues = fieldValues,
                 taskIndex = record.taskIndex,
                 subtype = subtype,
                 repetition = record.repetition,

@@ -29,6 +29,8 @@ data class Protocol(
     val project: String? = null,
     val protocolInstructionsPdfUrl: String? = null,
     val recordingsFileName: String,
+    /** Shown after this protocol is picked (config alignment row 6); names are unique per protocol. */
+    val patientFields: List<PatientField> = emptyList(),
     val tasks: List<Task> = emptyList(),
 )
 
@@ -66,7 +68,6 @@ data class RemoteConfig(
      */
     val useCalibration: Boolean = false,
     val indicatorType: IndicatorType = IndicatorType.CIRCLE,
-    val patientFields: List<PatientField> = emptyList(),
     val protocols: List<Protocol> = emptyList(),
     /** `strings.<lang>.<key> -> value` (§6). */
     val strings: Map<String, Map<String, String>> = emptyMap(),

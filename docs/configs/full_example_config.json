@@ -11,58 +11,53 @@
   "enableEditor": true,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "patientFields": [
-    {
-      "name": "code",
-      "labelKey": "patient_code_label",
-      "helpKey": "patient_info_help_code",
-      "placeholder": "HC001",
-      "regex": "[a-zA-Z0-9_-]+",
-      "required": true,
-      "useInFilename": true
-    },
-    {
-      "name": "initials",
-      "labelKey": "patient_initials_label",
-      "helpKey": "patient_info_help_initials",
-      "placeholder": "AB",
-      "regex": "[A-Za-z]{2,4}",
-      "required": true,
-      "useInFilename": true
-    },
-    {
-      "name": "projectName",
-      "labelKey": "patient_info_label_project_name",
-      "helpKey": "patient_info_help_project_name",
-      "placeholder": "STIMPULSE",
-      "regex": "",
-      "required": false,
-      "useInFilename": false
-    },
-    {
-      "name": "visitNumber",
-      "labelKey": "patient_visit_number_label",
-      "helpKey": "patient_info_help_visit_number",
-      "placeholder": "V0",
-      "regex": "V\\d+",
-      "required": true,
-      "useInFilename": true
-    },
-    {
-      "name": "medicationState",
-      "labelKey": "patient_medication_state_label",
-      "helpKey": "patient_info_help_medication_state",
-      "placeholder": "",
-      "regex": "",
-      "required": false,
-      "useInFilename": false
-    }
-  ],
   "protocols": [
     {
       "name": "Share",
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
-      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "recordingsFileName": "${installationId}_${field.patient_code}_${field.initials}_${field.visitNumber}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
+        {
+          "name": "patient_code",
+          "labelKey": "patient_code_label",
+          "helpKey": "patient_info_help_code",
+          "placeholder": "HC001",
+          "regex": "[a-zA-Z0-9_-]+",
+          "required": true
+        },
+        {
+          "name": "initials",
+          "labelKey": "patient_initials_label",
+          "helpKey": "patient_info_help_initials",
+          "placeholder": "AB",
+          "regex": "[A-Za-z]{2,4}",
+          "required": true
+        },
+        {
+          "name": "projectName",
+          "labelKey": "patient_info_label_project_name",
+          "helpKey": "patient_info_help_project_name",
+          "placeholder": "STIMPULSE",
+          "regex": "",
+          "required": false
+        },
+        {
+          "name": "visitNumber",
+          "labelKey": "patient_visit_number_label",
+          "helpKey": "patient_info_help_visit_number",
+          "placeholder": "V0",
+          "regex": "V\\d+",
+          "required": true
+        },
+        {
+          "name": "medicationState",
+          "labelKey": "patient_medication_state_label",
+          "helpKey": "patient_info_help_medication_state",
+          "placeholder": "",
+          "regex": "",
+          "required": false
+        }
+      ],
       "tasks": [
         {
           "type": "VOCAL",

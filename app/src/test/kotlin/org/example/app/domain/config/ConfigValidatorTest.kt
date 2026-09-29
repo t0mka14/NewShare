@@ -96,4 +96,16 @@ class ConfigValidatorTest {
             assertEquals(listOf(ConfigValidationError.InvalidDefaultMicGain(bad)), result.errors)
         }
     }
+
+    @Test
+    fun `a field variable must name one of the protocol's patient fields`() {
+        val protocol = Protocol(
+            name = "Fields",
+            recordingsFileName = "\${field.patient_code}_\${field.visit}_\${field.visit}_\${taskIndex}",
+            patientFields = listOf(PatientField(name = "patient_code", labelKey = "code")),
+        )
+        val result = ConfigValidator.validate(baseConfig(protocols = listOf(protocol)))
+
+        assertEquals(listOf(ConfigValidationError.UnknownTemplateField("Fields", "visit")), result.errors)
+    }
 }

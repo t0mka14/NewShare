@@ -35,7 +35,7 @@ class ValidationAndOfflineConfigScenarioTest {
             // so Start now opens the protocol picker first (skipped entirely for single-protocol
             // configs) before patient info.
             onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
-            onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC005")
+            onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput("HC005")
             // visitNumber's configured regex is `V\d+` (§ fixture) — "not-a-visit-number" fails it.
             onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("not-a-visit-number")
             onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()

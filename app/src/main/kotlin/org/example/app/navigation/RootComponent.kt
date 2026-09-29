@@ -24,6 +24,8 @@ import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.loudnessRange
 import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.ui.UiLocalization
+import java.time.LocalDate
+import java.time.ZoneId
 
 interface RootComponent {
     val stack: Value<ChildStack<*, Child>>
@@ -165,7 +167,8 @@ class DefaultRootComponent(
             Config.PatientInfo -> RootComponent.Child.PatientInfo(
                 DefaultPatientInfoComponent(
                     componentContext = childContext,
-                    fields = container.configurationRepository.activeConfig.value?.patientFields.orEmpty(),
+                    fields = pendingProtocol?.patientFields.orEmpty(),
+                    examinationDate = LocalDate.ofInstant(container.clock.now(), ZoneId.systemDefault()),
                     validateParticipantInfoUseCase = container.validateParticipantInfoUseCase,
                     onValidated = ::startSession,
                 ),
@@ -260,7 +263,6 @@ class DefaultRootComponent(
             protocol = protocol,
             configVersion = activeConfig.configVersion,
             rawConfigJson = container.rawConfigCache.read() ?: "{}",
-            patientFields = activeConfig.patientFields,
             participantFieldValues = pendingParticipantValues,
             // DefaultSessionComponent requires a non-null device even for no-master
             // (questionnaire/info-only) protocols, where it is never actually opened; a zero-device

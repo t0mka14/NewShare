@@ -153,7 +153,16 @@ object BuiltinStrings {
         // the message text does not).
         "patientInfo.error.required" to "This field is required.",
         "patientInfo.error.pattern" to "Please check the format of this field.",
+        "patientInfo.error.option" to "Please choose one of the options.",
         "patientInfo.error.summary" to "Please check the highlighted fields.",
+
+        // Option labels of the identifier catalogue's choice fields (config alignment row 7a; the
+        // web sends no options). Stored values are the raw options; see PatientFieldCatalogue.
+        "patientField.sex.male" to "Male",
+        "patientField.sex.female" to "Female",
+        "patientField.education.less_than_upper_secondary" to "Less than upper secondary",
+        "patientField.education.upper_secondary_and_vocational" to "Upper secondary and vocational",
+        "patientField.education.tertiary_education" to "Tertiary education",
 
         // Task screen chrome (§8.6). Titles/instructions themselves are config-driven
         // (`titleKey`/`instructionKeys`); these are the surrounding numbering/labels only.

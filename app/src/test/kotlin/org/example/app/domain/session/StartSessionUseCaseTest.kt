@@ -1,7 +1,6 @@
 package org.example.app.domain.session
 
 import org.example.app.domain.audio.CaptureFormat
-import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.VocalSubtype
@@ -23,15 +22,11 @@ class StartSessionUseCaseTest {
 
     private val format = CaptureFormat.PREFERRED
 
-    private val patientFields = listOf(
-        PatientField(name = "code", labelKey = "field.code", required = true, useInFilename = true),
-        PatientField(name = "sex", labelKey = "field.sex", useInFilename = true),
-    )
 
     private val vocalProtocol = Protocol(
         name = "Share",
         project = "PD study",
-        recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION, nrepetition = 2),
         ),
@@ -39,7 +34,7 @@ class StartSessionUseCaseTest {
 
     private val questionnaireOnlyProtocol = Protocol(
         name = "QOnly",
-        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
         tasks = listOf(QuestionnaireTask(titleKey = "q1")),
     )
 
@@ -62,8 +57,7 @@ class StartSessionUseCaseTest {
         protocol = protocol,
         configVersion = "2026-07-01.1",
         rawConfigJson = """{"schemaVersion":1}""",
-        patientFields = patientFields,
-        participantFieldValues = mapOf("code" to "HC001", "sex" to "F"),
+        participantFieldValues = mapOf("patient_code" to "HC/001", "sex" to "female"),
         negotiatedFormat = format,
     )
 
@@ -77,9 +71,10 @@ class StartSessionUseCaseTest {
         assertTrue(outcome is StartSessionUseCase.Outcome.Started)
         val result = (outcome as StartSessionUseCase.Outcome.Started).result
 
-        assertEquals("2026-07-03_HC001_F_session-0001", result.folderName)
+        // The folder carries only the sanitized patient_code; other fields never reach names.
+        assertEquals("2026-07-03_HC001_session-0001", result.folderName)
         assertNotNull(result.masterFile)
-        assertEquals(sessionRepository.readParticipant(result.folderName)?.fields?.get("code"), "HC001")
+        assertEquals(sessionRepository.readParticipant(result.folderName)?.fields?.get("patient_code"), "HC/001")
         assertEquals("""{"schemaVersion":1}""", sessionRepository.readConfigSnapshot(result.folderName))
 
         val examination = sessionRepository.readExamination(result.folderName)!!

@@ -36,7 +36,20 @@ object ConfigDecoder {
         val warnings = mutableListOf<String>()
         val normalizedRoot = normalizeTaskTypeAliases(root, warnings)
         val config = json.decodeFromJsonElement<RemoteConfig>(normalizedRoot)
-        return DecodeResult(config, warnings)
+        return DecodeResult(config.copy(protocols = config.protocols.map { dedupeFields(it, warnings) }), warnings)
+    }
+
+    /**
+     * Field names key `participant.json` and `${field.<name>}`, so they must be unique per
+     * protocol. The web can emit a name twice (a legacy identifier mapped onto a catalogue one
+     * that is also listed); the first occurrence wins.
+     */
+    private fun dedupeFields(protocol: Protocol, warnings: MutableList<String>): Protocol {
+        val unique = protocol.patientFields.distinctBy { it.name }
+        if (unique.size == protocol.patientFields.size) return protocol
+        val dropped = protocol.patientFields.groupBy { it.name }.filterValues { it.size > 1 }.keys
+        warnings += "Protocol '${protocol.name}' lists patient field(s) ${dropped.joinToString()} more than once; kept the first."
+        return protocol.copy(patientFields = unique)
     }
 
     private fun normalizeTaskTypeAliases(root: JsonObject, warnings: MutableList<String>): JsonObject {

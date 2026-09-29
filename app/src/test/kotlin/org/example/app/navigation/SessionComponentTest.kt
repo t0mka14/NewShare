@@ -5,7 +5,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.InterruptionReason
 import org.example.app.domain.config.InfoTask
-import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.VocalSubtype
@@ -39,13 +38,10 @@ import java.time.ZoneOffset
 
 class SessionComponentTest {
 
-    private val patientFields = listOf(
-        PatientField(name = "code", labelKey = "field.code", required = true, useInFilename = true),
-    )
 
     private val vocalProtocol = Protocol(
         name = "Share",
-        recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION, nrepetition = 2, canRepeat = true),
         ),
@@ -53,7 +49,7 @@ class SessionComponentTest {
 
     private val mixedProtocol = Protocol(
         name = "Mixed",
-        recordingsFileName = "\${patientCode}_\${taskIndex}_\${task.subtype}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}_\${task.subtype}.wav",
         tasks = listOf(
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
             QuestionnaireTask(titleKey = "q"),
@@ -63,14 +59,14 @@ class SessionComponentTest {
 
     private val questionnaireOnlyProtocol = Protocol(
         name = "QOnly",
-        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
         tasks = listOf(QuestionnaireTask(titleKey = "q1")),
     )
 
     /** A VOCAL screen precedes the VIDEO one, so "camera off until entered" is observable. */
     private val vocalThenVideoProtocol = Protocol(
         name = "VocalThenVideo",
-        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
         tasks = listOf(
             VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
             VideoTask(titleKey = "video"),
@@ -81,14 +77,14 @@ class SessionComponentTest {
     /** `nrepetition = 2` gives two consecutive VIDEO screens — the counter's reason to exist. */
     private val repeatedVideoProtocol = Protocol(
         name = "RepeatedVideo",
-        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
         tasks = listOf(VideoTask(titleKey = "video", nrepetition = 2), InfoTask(titleKey = "info")),
     )
 
     /** `canRepeat`, so a take can be rejected and re-taken — which is what produces a take02 file. */
     private val repeatableVideoProtocol = Protocol(
         name = "RepeatableVideo",
-        recordingsFileName = "\${patientCode}_\${taskIndex}.wav",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
         tasks = listOf(VideoTask(titleKey = "video", canRepeat = true), InfoTask(titleKey = "info")),
     )
 
@@ -135,8 +131,7 @@ class SessionComponentTest {
             protocol = protocol,
             configVersion = "v1",
             rawConfigJson = """{"schemaVersion":1}""",
-            patientFields = patientFields,
-            participantFieldValues = mapOf("code" to "HC001"),
+            participantFieldValues = mapOf("patient_code" to "HC001"),
             initialDevice = FakeAudioInputDeviceProvider.DEFAULT_DEVICE,
             availableDevices = listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
             videoInputDeviceProvider = videoDeviceProvider,

@@ -42,7 +42,7 @@ class EditorScenarioTest {
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
         // fullProtocol defines two protocols ("Share"/"QuestionnaireOnly", §3 follow-up).
         onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
-        onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput(patientCode)
+        onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput(patientCode)
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()

@@ -45,8 +45,12 @@ object TestTags {
         const val BACK_BUTTON = "patientInfo.backButton"
         const val ERROR_TEXT = "patientInfo.errorText"
 
-        /** One text field per configured `PatientField.name`, e.g. `patientInfo.field.code`. */
+        /** One control per configured `PatientField.name` (text field, dropdown trigger or the
+         *  read-only date), e.g. `patientInfo.field.patient_code`. */
         fun field(fieldName: String) = "patientInfo.field.$fieldName"
+
+        /** One option of a catalogue choice field's dropdown, e.g. `patientInfo.fieldOption.sex.male`. */
+        fun fieldOption(fieldName: String, option: String) = "patientInfo.fieldOption.$fieldName.$option"
 
         /** Validation error text for one configured field, child of [field]. */
         fun fieldError(fieldName: String) = "patientInfo.fieldError.$fieldName"

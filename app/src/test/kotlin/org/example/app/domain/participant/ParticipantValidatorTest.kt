@@ -12,7 +12,6 @@ class ParticipantValidatorTest {
         labelKey = "patient_visit_number_label",
         regex = "V\\d+",
         required = true,
-        useInFilename = true,
     )
 
     private val optionalNotesField = PatientField(
@@ -20,7 +19,6 @@ class ParticipantValidatorTest {
         labelKey = "patient_notes_label",
         regex = "",
         required = false,
-        useInFilename = false,
     )
 
     @Test
@@ -72,5 +70,23 @@ class ParticipantValidatorTest {
             mapOf("visitNumber" to "V1", "notes" to ""),
         )
         assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `a choice field accepts only its options, and a blank optional one is fine`() {
+        val education = PatientField(name = "education", labelKey = "edu")
+
+        assertTrue(ParticipantValidator.validateField(education, "tertiary education").isEmpty())
+        assertTrue(ParticipantValidator.validateField(education, "").isEmpty())
+        assertEquals(
+            listOf(FieldValidationError.NotAnOption("education")),
+            ParticipantValidator.validateField(education, "PhD"),
+        )
+    }
+
+    @Test
+    fun `current_date is never an error, even when required`() {
+        val date = PatientField(name = "current_date", labelKey = "date", required = true)
+        assertTrue(ParticipantValidator.validateField(date, "").isEmpty())
     }
 }

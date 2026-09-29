@@ -1,13 +1,13 @@
 package org.example.app.domain.session
 
-import org.example.app.domain.participant.PatientCodeComposer
+import org.example.app.domain.participant.PatientFieldCatalogue
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
  * Builds and parses the session directory name `yyyy-MM-dd_PatientCode_SessionId` (§8.2). The
- * date is clinic-local (JSON timestamps inside the session remain UTC); `PatientCode` is
- * sanitized to `[A-Za-z0-9_-]`; `SessionId` comes from [org.example.app.domain.IdGenerator]
+ * date is clinic-local (JSON timestamps inside the session remain UTC); `PatientCode` is the
+ * sanitized `patient_code` field value ([PatientFieldCatalogue.patientCode], empty without one); `SessionId` comes from [org.example.app.domain.IdGenerator]
  * and is assumed underscore-free and fixed-content (it is treated as an opaque suffix by
  * [extractPatientCode], not re-derived from the folder name).
  */
@@ -15,7 +15,7 @@ object SessionFolderNaming {
     private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
     fun build(clinicLocalDate: LocalDate, patientCode: String, sessionId: String): String =
-        "${clinicLocalDate.format(DATE_FORMAT)}_${PatientCodeComposer.sanitize(patientCode)}_$sessionId"
+        "${clinicLocalDate.format(DATE_FORMAT)}_${PatientFieldCatalogue.sanitize(patientCode)}_$sessionId"
 
     /**
      * Recovers the `PatientCode` segment of [folderName] given the [sessionId] already known

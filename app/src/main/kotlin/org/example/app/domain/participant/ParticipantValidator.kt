@@ -6,6 +6,9 @@ import org.example.app.domain.config.PatientField
 sealed interface FieldValidationError {
     data class Required(val fieldName: String) : FieldValidationError
     data class PatternMismatch(val fieldName: String, val regex: String) : FieldValidationError
+
+    /** A catalogue choice field (`sex`, `education`) holds a value that is not one of its options. */
+    data class NotAnOption(val fieldName: String) : FieldValidationError
 }
 
 /**
@@ -17,14 +20,25 @@ object ParticipantValidator {
     /** Empty `regex` means free text (no pattern check); blank values on a non-required
      * field are valid and skip the regex check entirely. */
     fun validateField(field: PatientField, value: String): List<FieldValidationError> {
+        val kind = PatientFieldCatalogue.kindOf(field.name)
+        // Filled by the app itself, never by the examiner.
+        if (kind is PatientFieldCatalogue.FieldKind.AutoDate) return emptyList()
+
         val errors = mutableListOf<FieldValidationError>()
 
         if (field.required && value.isBlank()) {
             errors += FieldValidationError.Required(field.name)
         }
 
-        if (value.isNotEmpty() && field.regex.isNotEmpty() && !Regex(field.regex).matches(value)) {
-            errors += FieldValidationError.PatternMismatch(field.name, field.regex)
+        if (value.isNotEmpty()) {
+            when (kind) {
+                is PatientFieldCatalogue.FieldKind.Choice ->
+                    if (value !in kind.options) errors += FieldValidationError.NotAnOption(field.name)
+                else ->
+                    if (field.regex.isNotEmpty() && !Regex(field.regex).matches(value)) {
+                        errors += FieldValidationError.PatternMismatch(field.name, field.regex)
+                    }
+            }
         }
 
         return errors

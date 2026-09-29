@@ -11,6 +11,7 @@ import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeIdGenerator
 import org.example.app.fakes.TestAppDirectories
+import org.example.app.domain.config.ConfigDecoder
 import org.example.app.domain.settings.AppSettings
 import org.example.app.fakes.TestCoroutineDispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -129,7 +130,7 @@ class RootComponentTest {
         val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
         menu.onStartProtocol()
         val patientInfo = (root.stack.value.active.instance as RootComponent.Child.PatientInfo).component
-        patientInfo.onFieldChanged("code", "HC001")
+        patientInfo.onFieldChanged("patient_code", "HC001")
         patientInfo.onFieldChanged("visitNumber", "V1")
         patientInfo.onContinue()
         dispatchers.scheduler.advanceUntilIdle()
@@ -138,6 +139,23 @@ class RootComponentTest {
             root.stack.value.active.instance is RootComponent.Child.Session,
             "expected a session, got ${root.stack.value.active.instance}",
         )
+    }
+
+    @Test
+    fun `patient info shows the fields of the protocol that was picked`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        val base = ConfigDecoder.decode(ConfigFixtures.fullProtocol).config
+        val onlyCode = base.protocols[0].copy(name = "CodeOnly", patientFields = base.protocols[0].patientFields.take(1))
+        container.rawConfigCache.write(ConfigFixtures.fullProtocol)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+
+        (root.stack.value.active.instance as RootComponent.Child.MainMenu).component.onStartProtocol()
+        val picker = (root.stack.value.active.instance as RootComponent.Child.ProtocolPicker).component
+        picker.onProtocolSelected(onlyCode)
+
+        val patientInfo = (root.stack.value.active.instance as RootComponent.Child.PatientInfo).component
+        assertEquals(listOf("patient_code"), patientInfo.state.value.fields.map { it.name })
     }
 
     @Test
@@ -218,7 +236,7 @@ class RootComponentTest {
         val picker = (root.stack.value.active.instance as RootComponent.Child.ProtocolPicker).component
         picker.onProtocolSelected(picker.protocols.first { it.name == "Share" })
         val patientInfo = (root.stack.value.active.instance as RootComponent.Child.PatientInfo).component
-        patientInfo.onFieldChanged("code", "HC001")
+        patientInfo.onFieldChanged("patient_code", "HC001")
         patientInfo.onFieldChanged("visitNumber", "V1")
         patientInfo.onContinue()
         dispatchers.scheduler.advanceUntilIdle()

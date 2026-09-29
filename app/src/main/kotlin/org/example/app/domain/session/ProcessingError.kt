@@ -8,6 +8,8 @@ sealed interface ProcessingError {
     object MissingTimeline : ProcessingError
     data class MissingConfigSnapshot(val detail: String) : ProcessingError
     data class ProtocolNotFound(val protocolName: String) : ProcessingError
+    /** `participant.json` is missing or unreadable — its values feed `${field.<name>}`. */
+    data class MissingParticipant(val folderName: String) : ProcessingError
     data class ClipPlanning(val errors: List<ClipPlanningError>) : ProcessingError
     data class IoFailure(val detail: String) : ProcessingError
 }

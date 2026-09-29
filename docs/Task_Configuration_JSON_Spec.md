@@ -43,7 +43,6 @@ The configuration fully describes:
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "patientFields": [ /* PatientField objects, §5 */ ],
   "protocols": [ /* Protocol objects, §3 */ ],
   "strings": { /* localization, §6 */ }
 }
@@ -73,7 +72,8 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
   "name": "Share",
   "project": "PD study",
   "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
-  "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+  "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+  "patientFields": [ /* PatientField objects, §5 */ ],
   "tasks": [ /* Task objects, §4 */ ]
 }
 ```
@@ -94,10 +94,14 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
   still sending `manualFilePath` decodes without error but leaves the button disabled — servers
   must emit the new key (and a real URL) for the button to appear.
 - `recordingsFileName` — clip filename template, the authoritative source of clip names.
-  Supported variables: `${installationId}`, `${patientCode}`, `${taskIndex}` (0-based
-  position in the expanded task list; the first task is 0, calibration is not a task), `${task.subtype}`, `${repetition}`. The template **must include
-  `${taskIndex}`** so that two tasks with the same subtype cannot produce colliding
-  filenames; config validation rejects templates without it.
+  Supported variables: `${installationId}`, `${taskIndex}` (0-based position in the expanded
+  task list; the first task is 0, calibration is not a task), `${task.subtype}`,
+  `${repetition}`, and `${field.<name>}` — the value entered for this protocol's patient field
+  `<name>`, sanitized to `[A-Za-z0-9_-]` (empty when not filled in). The template **must include
+  `${taskIndex}`** so that two tasks with the same subtype cannot produce colliding filenames,
+  and every `${field.<name>}` must name one of the protocol's `patientFields`; config
+  validation rejects templates that break either rule. (`${patientCode}` no longer exists.)
+- `patientFields` — the participant fields shown after this protocol is picked (§5).
 - Recordings are always stored under the app data directory
   (`data/sessions/<session>/…`); the config never contains filesystem paths for output
   (machine independence).
@@ -250,25 +254,42 @@ and are included in the upload ZIP.
 
 ## 5. PatientField
 
-Participant-input configuration comes from the server (replaces the local patient
-configuration screens of the original app).
+Participant-input configuration comes from the server, per protocol (`Protocol.patientFields`,
+§3), and replaces the local patient configuration screens of the original app. The form is
+shown after the protocol is picked.
 
 ```json
 {
-  "name": "visitNumber",
-  "labelKey": "patient_visit_number_label",
-  "helpKey": "patient_visit_number_help",
+  "name": "visit_number",
+  "labelKey": "p70_f_visit_number_label",
+  "helpKey": "p70_f_visit_number_help",
   "placeholder": "V0",
   "regex": "V\\d+",
-  "required": true,
-  "useInFilename": true
+  "required": true
 }
 ```
 
-- `name` — stable identifier used in `participant.json`.
-- `regex` — validation pattern; empty means free text.
-- `useInFilename` — value (sanitized to `[a-zA-Z0-9_-]`) participates in
-  `${patientCode}`-style filename composition.
+- `name` — stable identifier: the key in `participant.json` and the `<name>` of the
+  `${field.<name>}` filename variable. Unique within a protocol (a repeated name keeps the first
+  occurrence and logs a warning).
+- `labelKey` / `helpKey` — localization keys; `helpKey` is always present, its string may be
+  empty (then no help line is shown).
+- `placeholder` — hint text inside an empty text field.
+- `regex` — validation pattern for free-text fields; empty means no pattern check.
+- `required` — the form cannot continue while the field is blank.
+
+**Identifier catalogue.** Some names have app-side behaviour; the server sends no options:
+
+| `name` | App behaviour | Stored value |
+|---|---|---|
+| `current_date` | auto-filled with the examination date, read-only | `yyyy-MM-dd` |
+| `sex` | dropdown: `male`, `female` | the option string |
+| `education` | dropdown: `less than upper secondary`, `upper secondary and vocational`, `tertiary education` | the option string |
+| `patient_code` | free text; also names the session folder (`yyyy-MM-dd_<code>_<sessionId>`) and ZIP (`<code>_<sessionId>.zip`) | as entered |
+| anything else (incl. `surname`, `year_of_birth`) | free text validated by `regex` | as entered |
+
+Option labels are the built-in keys `patientField.<name>.<option, spaces as _>` (for example
+`patientField.education.tertiary_education`), which a config's `strings` may override.
 
 ## 6. Strings / localization
 
@@ -303,22 +324,21 @@ One map per language: `strings.<lang>.<key> → value`.
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "patientFields": [
-    {
-      "name": "code",
-      "labelKey": "patient_code_label",
-      "helpKey": "patient_code_help",
-      "placeholder": "HC001",
-      "regex": "[a-zA-Z0-9_-]+",
-      "required": true,
-      "useInFilename": true
-    }
-  ],
   "protocols": [
     {
       "name": "Share",
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
-      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
+        {
+          "name": "patient_code",
+          "labelKey": "patient_code_label",
+          "helpKey": "patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[a-zA-Z0-9_-]+",
+          "required": true
+        }
+      ],
       "tasks": [
         {
           "type": "VOCAL",

@@ -335,10 +335,12 @@ Config-level fields: `schemaVersion`, `configVersion`, `defaultLanguage`, `langu
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
 wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
 the Settings slider; decision 44), `enableEditor`, `indicatorType`, `useCalibration`,
-`protocols[]`, `strings{lang → {key → value}}`, and `patientFields[]` (participant-input
-field definitions — name, label key, regex, required, useInFilename). The `${patientCode}`
-template variable is **composed from the `useInFilename` fields**: their values, sanitized
-to `[A-Za-z0-9_-]` (Windows/macOS-safe), joined with `_` in config order.
+`protocols[]` and `strings{lang → {key → value}}`. Each protocol carries its own
+`patientFields[]` (participant-input field definitions — name, label key, help key,
+placeholder, regex, required), shown after the protocol is picked; catalogue names
+(`current_date`, `sex`, `education`) get app-side rendering (§13 decision 48). Clip names use
+`${field.<name>}` for entered values, sanitized to `[A-Za-z0-9_-]` (Windows/macOS-safe); the
+session folder and ZIP are labelled with the sanitized `patient_code` value.
 
 ---
 
@@ -558,8 +560,8 @@ VOCAL task instance; the editor shows one segment at a time.
 2. Cut the **last take** of each VOCAL task instance from the master (sample-accurate,
    resampling to target format if the capture format differs).
 3. Write clips to `clips/` named by the protocol's `recordingsFileName` template
-   (variables: `${installationId}`, `${patientCode}`, `${taskIndex}`, `${task.subtype}`,
-   `${repetition}`).
+   (variables: `${installationId}`, `${taskIndex}`, `${task.subtype}`, `${repetition}`,
+   `${field.<name>}` with values read from `participant.json`).
 4. Build `archive/<PatientCode>_<SessionId>.zip` containing: `participant.json`,
    `examination.json`, `task_configuration_snapshot.json`, `timeline_original.json`,
    `timeline_edited.json` (if present), `master/session_master.wav`, `clips/*`, and
@@ -1259,6 +1261,24 @@ Error taxonomy (normative, inlined from the old plan):
     config strings). `taskIndex` now starts at 0 for the first real task. `defaultMicGain` stays
     an integer 0..100 — the web emitted a 0..1 decimal and must switch to the integer scale.
 
+48. **Per-protocol patient fields, identifier catalogue, `${field.<name>}` (2026-09-28, config
+    alignment rows 6/7/7a/8).** `patientFields` moved from the config's top level into each
+    `Protocol`; the patient info screen shows the picked protocol's fields (navigation was
+    already picker → patient info). `PatientField` is `{name, labelKey, helpKey, placeholder,
+    regex, required}` — `useInFilename` is gone; a name repeated within one protocol keeps the
+    first occurrence with a decode warning (the web can emit one, a legacy id mapped onto the
+    catalogue). `PatientFieldCatalogue` owns the agreed names: `current_date` is pre-filled with
+    the clinic-local examination date and read-only, `sex`/`education` are dropdowns of the fixed
+    options (stored as the raw option; labels are built-in `patientField.*` keys, overridable),
+    everything else is free text validated by `regex`. `RecordingsFileNameRenderer` substitutes
+    `${field.<name>}` with the sanitized value (empty if unfilled) and no longer knows
+    `${patientCode}`; `ConfigValidator` rejects a `${field.x}` that names no field of that
+    protocol (`UnknownTemplateField`). Processing reads the values from `participant.json`
+    (`ProcessingError.MissingParticipant` if absent). The session folder/ZIP/list label is the
+    sanitized `patient_code` value, empty without such a field — no fallback for protocols
+    lacking it, since none exist. The web server expects nothing about ZIP, folder or clip
+    names (checked 2026-09-28); its only rule is `${taskIndex}` in the template.
+
 **Still open:**
 
 1. Concrete server API contracts: upload endpoint shape, and transport hardening (config
@@ -1269,5 +1289,6 @@ Error taxonomy (normative, inlined from the old plan):
 2. Data retention / erasure: local data is never auto-deleted — is a manual
    retention/erasure procedure (GDPR requests, device decommissioning) or encryption at rest
    required? Currently out of scope (§2).
-3. Is `patientCode` guaranteed pseudonymous? It appears in folder names, clip filenames, and
-   the ZIP name.
+3. Is `patient_code` guaranteed pseudonymous? It appears in folder names, the ZIP name and
+   (through `${field.patient_code}`) usually in clip filenames; any other field a template
+   references appears in clip filenames too.

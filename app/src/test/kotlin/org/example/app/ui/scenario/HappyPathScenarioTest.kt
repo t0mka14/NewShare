@@ -41,9 +41,13 @@ class HappyPathScenarioTest {
         // Start opens the protocol picker before patient info.
         onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
 
-        onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC001")
+        onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput("HC001")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
-        onNodeWithTag(TestTags.PatientInfo.field("sex")).performTextInput("F")
+        // `sex` is a catalogue choice field: a dropdown of fixed options, not a text field.
+        onNodeWithTag(TestTags.PatientInfo.field("sex")).performClick()
+        waitForIdle()
+        onNodeWithTag(TestTags.PatientInfo.fieldOption("sex", "female")).performClick()
+        waitForIdle()
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()
         waitForIdle()
@@ -94,8 +98,9 @@ class HappyPathScenarioTest {
         assertTrue(Files.isDirectory(sessionDir.resolve("master")), "master dir")
 
         val participant = harness.container.sessionRepository.readParticipant(folderName)
-        assertEquals("HC001", participant?.fields?.get("code"))
+        assertEquals("HC001", participant?.fields?.get("patient_code"))
         assertEquals("V1", participant?.fields?.get("visitNumber"))
+        assertEquals("female", participant?.fields?.get("sex"))
 
         val examination = harness.container.sessionRepository.readExamination(folderName)
         assertNotNull(examination)
@@ -125,7 +130,7 @@ class HappyPathScenarioTest {
 
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
         onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
-        onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput("HC002")
+        onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput("HC002")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()

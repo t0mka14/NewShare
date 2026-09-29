@@ -37,7 +37,7 @@ import java.util.zip.ZipFile
 class ProcessSessionUseCaseIntegrationTest {
 
     private val preferred = CaptureFormat.PREFERRED
-    private val template = "\${installationId}_\${patientCode}_\${taskIndex}_\${task.subtype}_\${repetition}"
+    private val template = "\${installationId}_\${field.patient_code}_\${taskIndex}_\${task.subtype}_\${repetition}"
     private val configJson = """
         {"schemaVersion":1,"configVersion":"2026-07-01.1","defaultLanguage":"en",
          "protocols":[{"name":"Share","recordingsFileName":"$template","tasks":[]}]}
@@ -69,7 +69,7 @@ class ProcessSessionUseCaseIntegrationTest {
 
         val folderName = SessionFolderNaming.build(LocalDate.of(2026, 7, 1), "HC001", "s1")
         sessionRepository.createSessionDirectory(folderName)
-        sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
+        sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
         sessionRepository.writeConfigSnapshot(folderName, configJson)
 
         val masterSamples = monoRamp(5000)
@@ -170,7 +170,7 @@ class ProcessSessionUseCaseIntegrationTest {
 
         val folderName = SessionFolderNaming.build(LocalDate.of(2026, 7, 1), "HC003", "s3")
         sessionRepository.createSessionDirectory(folderName)
-        sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("code" to "HC003"), createdAt = "2026-07-01T09:00:00Z"))
+        sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC003"), createdAt = "2026-07-01T09:00:00Z"))
         sessionRepository.writeConfigSnapshot(folderName, configJson)
 
         val part1Samples = monoRamp(2000, step = 11)
@@ -251,7 +251,7 @@ class ProcessSessionUseCaseIntegrationTest {
 
         val folderName = SessionFolderNaming.build(LocalDate.of(2026, 7, 1), "HC002", "s2")
         sessionRepository.createSessionDirectory(folderName)
-        sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("code" to "HC002"), createdAt = "2026-07-01T09:00:00Z"))
+        sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC002"), createdAt = "2026-07-01T09:00:00Z"))
         sessionRepository.writeConfigSnapshot(folderName, configJson)
         sessionRepository.writeExamination(
             folderName,

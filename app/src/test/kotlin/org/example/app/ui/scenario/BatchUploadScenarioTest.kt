@@ -38,7 +38,7 @@ class BatchUploadScenarioTest {
     @OptIn(ExperimentalTestApi::class)
     private fun ComposeUiTest.runQuestionnaireOnlySession(harness: ScenarioHarness, patientCode: String) {
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
-        onNodeWithTag(TestTags.PatientInfo.field("code")).performTextInput(patientCode)
+        onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput(patientCode)
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()

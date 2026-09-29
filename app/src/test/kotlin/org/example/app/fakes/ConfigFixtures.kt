@@ -7,8 +7,9 @@ package org.example.app.fakes
  *
  * - [fullProtocol]: two protocols exercising the spec end to end — "Share" (
  *   VOCAL with `nrepetition: 2` + QUESTIONNAIRE + INFO) and
- *   "QuestionnaireOnly"; 2 languages (`cs`/`en`); `patientFields` with a regex
- *   field and a `useInFilename` mix; a `recordingsFileName` template containing
+ *   "QuestionnaireOnly"; 2 languages (`cs`/`en`); per-protocol `patientFields`
+ *   (`patient_code`, a regex-validated `visitNumber`, the `sex` catalogue dropdown); a
+ *   `recordingsFileName` template with `${field.patient_code}`, `${field.visitNumber}` and
  *   `${taskIndex}`; strings exercising `<bold>` markup (`bold_notice` — the only
  *   supported markup, §6.2/§13 decision 26). `enableEditor: true`,
  *   `useCalibration: true` (so "Share" opens on the calibration screen).

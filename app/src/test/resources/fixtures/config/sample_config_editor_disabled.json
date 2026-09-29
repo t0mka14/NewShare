@@ -11,40 +11,37 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "patientFields": [
-    {
-      "name": "code",
-      "labelKey": "patient_code_label",
-      "helpKey": "patient_code_help",
-      "placeholder": "HC001",
-      "regex": "[a-zA-Z0-9_-]+",
-      "required": true,
-      "useInFilename": true
-    },
-    {
-      "name": "visitNumber",
-      "labelKey": "patient_visit_number_label",
-      "helpKey": "patient_visit_number_help",
-      "placeholder": "V0",
-      "regex": "V\\d+",
-      "required": true,
-      "useInFilename": true
-    },
-    {
-      "name": "sex",
-      "labelKey": "patient_sex_label",
-      "helpKey": "patient_sex_help",
-      "placeholder": "F/M",
-      "regex": "",
-      "required": false,
-      "useInFilename": false
-    }
-  ],
   "protocols": [
     {
       "name": "Share",
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
-      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "recordingsFileName": "${installationId}_${field.patient_code}_${field.visitNumber}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
+        {
+          "name": "patient_code",
+          "labelKey": "patient_code_label",
+          "helpKey": "patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[a-zA-Z0-9_-]+",
+          "required": true
+        },
+        {
+          "name": "visitNumber",
+          "labelKey": "patient_visit_number_label",
+          "helpKey": "patient_visit_number_help",
+          "placeholder": "V0",
+          "regex": "V\\d+",
+          "required": true
+        },
+        {
+          "name": "sex",
+          "labelKey": "patient_sex_label",
+          "helpKey": "patient_sex_help",
+          "placeholder": "F/M",
+          "regex": "",
+          "required": false
+        }
+      ],
       "tasks": [
         {
           "type": "VOCAL",
@@ -98,7 +95,33 @@
     {
       "name": "QuestionnaireOnly",
       "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/questionnaire_only_manual.pdf",
-      "recordingsFileName": "${installationId}_${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "recordingsFileName": "${installationId}_${field.patient_code}_${field.visitNumber}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
+        {
+          "name": "patient_code",
+          "labelKey": "patient_code_label",
+          "helpKey": "patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[a-zA-Z0-9_-]+",
+          "required": true
+        },
+        {
+          "name": "visitNumber",
+          "labelKey": "patient_visit_number_label",
+          "helpKey": "patient_visit_number_help",
+          "placeholder": "V0",
+          "regex": "V\\d+",
+          "required": true
+        },
+        {
+          "name": "sex",
+          "labelKey": "patient_sex_label",
+          "helpKey": "patient_sex_help",
+          "placeholder": "F/M",
+          "regex": "",
+          "required": false
+        }
+      ],
       "tasks": [
         {
           "type": "QUESTIONNAIRE",
