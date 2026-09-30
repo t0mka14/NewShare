@@ -14,6 +14,7 @@ import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioPlaybackService
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeConfigApi
+import org.example.app.fakes.FakeExampleAudioCache
 import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.FakeIdGenerator
 import org.example.app.fakes.FakeUploadApi
@@ -95,6 +96,7 @@ class ScenarioHarness(tempDir: Path) {
         ptzControllerFactory = { ptzController },
         idGenerator = FakeIdGenerator(),
         dispatchers = dispatchers,
+        exampleAudioCache = FakeExampleAudioCache(), // §10.3: no real downloads in tests
         // Never actually called (scenarios seed config via `loadConfig`/the raw cache, not a
         // live fetch) but explicit rather than defaulting to a real `KtorConfigApi` (§10.3: no
         // real network in tests).

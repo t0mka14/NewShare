@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.example.app.domain.config.ConfigError
 import org.example.app.fakes.ConfigFixtures
 import org.example.app.fakes.FakeConfigApi
+import org.example.app.fakes.FakeExampleAudioCache
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioInputGainControl
 import org.example.app.fakes.FakeContinuousSessionRecorder
@@ -48,6 +49,7 @@ class RootComponentTest {
             clock = clock,
             idGenerator = FakeIdGenerator(),
             dispatchers = dispatchers,
+            exampleAudioCache = FakeExampleAudioCache(), // §10.3: no real downloads in tests
             // The mic-level port would otherwise reach the machine's sound subsystem when a session
             // opens its device; the device list and recorder are faked for the same reason.
             audioInputGainControl = gainControl,

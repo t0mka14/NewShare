@@ -71,7 +71,7 @@
           "showIndicator": true,
           "canRepeat": true,
           "canSkip": false,
-          "audioExamplePath": "audio_instructions/aaa.wav",
+          "audioExamplePath": "https://example.org/share/audio/aaa.wav",
           "nrepetition": 2
         },
         {
@@ -86,7 +86,7 @@
           "showIndicator": true,
           "canRepeat": true,
           "canSkip": false,
-          "audioExamplePath": "audio_instructions/pataka.wav",
+          "audioExamplePath": "https://example.org/share/audio/pataka.wav",
           "nrepetition": 1
         },
         {
@@ -101,7 +101,7 @@
           "showIndicator": true,
           "canRepeat": true,
           "canSkip": false,
-          "audioExamplePath": "audio_instructions/pa_speed.wav",
+          "audioExamplePath": "https://example.org/share/audio/pa_speed.wav",
           "nrepetition": 1
         },
         {
@@ -143,7 +143,7 @@
           "showIndicator": false,
           "canRepeat": true,
           "canSkip": false,
-          "audioExamplePath": "audio_instructions/snehurka_3.wav",
+          "audioExamplePath": "https://example.org/share/audio/snehurka_3.wav",
           "nrepetition": 1
         },
         {

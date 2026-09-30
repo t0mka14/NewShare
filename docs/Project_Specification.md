@@ -1079,9 +1079,8 @@ Error taxonomy (normative, inlined from the old plan):
     large regular-weight labels — without resizing the shared scale, which is what this
     addendum was protecting.
 
-37. **Example-audio location (interim):** `audioExamplePath` from the config resolves
-    relative to `AppDirectories.configDir` until the server contract (open q1) defines how
-    example WAVs are distributed. The legacy Roboto fonts are bundled as classpath
+37. **Example-audio location (interim, superseded by decision 51):** `audioExamplePath` from
+    the config resolved relative to `AppDirectories.configDir`. The legacy Roboto fonts are bundled as classpath
     resources (the original's working-directory `File` loading was a packaging bug, fixed
     per decision 36); the material icon packs are bundled since 2026-07-16
     (`material-icons-extended` 1.7.3, the final release of the icon artifacts) — the legacy
@@ -1296,6 +1295,9 @@ Error taxonomy (normative, inlined from the old plan):
     `RefreshConfigurationUseCase.lastError` keeps why the last refresh failed (startup or
     Settings; cleared by a success or the offline-cache fallback). The configuration-required
     screen shows that reason instead of the generic text, and Settings shows it on arrival.
+    An offline fallback (`OfflineUsingCache`, `usingCachedConfig`) is not reported as success:
+    Settings says the server was unreachable and the saved configuration is in use, after a
+    Refresh and on arrival after an offline startup.
     Leaving Settings: to the main menu when a config is now active (a refresh there succeeded —
     returning to the blocking screen would strand the examiner); otherwise back to the blocking
     screen **plus one more refresh**, so a token edited without pressing Refresh is checked and
@@ -1305,6 +1307,17 @@ Error taxonomy (normative, inlined from the old plan):
     blocking screen use it without a component depending on `ui/` (§5.2). The Settings buttons
     keep their labels "Refresh configuration" and "Back" — Settings saves every change
     immediately, so there is no separate save step.
+
+51. **Example audio is downloaded and cached (2026-09-30, config alignment row 13).**
+    `audioExamplePath` is an absolute `http(s)` URL. After a refresh applies a config,
+    `RefreshConfigurationUseCase` syncs `ExampleAudioCache` with every URL the config references
+    (before reporting success; a failure never fails the refresh). `KtorExampleAudioCache` keeps
+    the files in `configDir/example_audio/`, named `sha256(url)` + the URL's extension, so an
+    unchanged URL is never downloaded again; downloads stream to a `.tmp`, are capped at 20 MB
+    and moved into place atomically; files no URL references any more are deleted. Offline or
+    failed refreshes leave the cache as it is, so earlier downloads keep playing offline. A task
+    whose URL is not cached shows no example button (`SessionComponent` maps the URL through
+    `localFileFor`). Relative paths are no longer supported.
 
 **Still open:**
 

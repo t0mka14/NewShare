@@ -20,6 +20,8 @@ class RefreshConfigurationUseCase(
     private val settingsRepository: AppSettingsRepository,
     private val configApi: ConfigApi,
     private val configurationRepository: ConfigurationRepository,
+    /** Downloads the new config's example audio before [refresh] reports success (row 13). */
+    private val exampleAudioCache: ExampleAudioCache = ExampleAudioCache.None,
 ) {
     sealed interface Result {
         data class Success(val config: RemoteConfig) : Result
@@ -33,8 +35,17 @@ class RefreshConfigurationUseCase(
      * fallback or before any refresh — the blocking screen shows it instead of the generic text. */
     val lastError: StateFlow<ConfigError?> = _lastError
 
+    private val _usingCachedConfig = MutableStateFlow(false)
+
+    /** The last refresh could not reach the server and kept the cached config
+     * ([Result.OfflineUsingCache]) — Settings says so instead of reporting success. */
+    val usingCachedConfig: StateFlow<Boolean> = _usingCachedConfig
+
     suspend fun refresh(): Result =
-        fetchAndApply().also { _lastError.value = (it as? Result.Failed)?.error }
+        fetchAndApply().also {
+            _lastError.value = (it as? Result.Failed)?.error
+            _usingCachedConfig.value = it is Result.OfflineUsingCache
+        }
 
     private suspend fun fetchAndApply(): Result {
         val siteToken = settingsRepository.read()?.siteToken
@@ -62,9 +73,12 @@ class RefreshConfigurationUseCase(
         }
     }
 
-    private fun applyFetched(json: String): Result =
+    private suspend fun applyFetched(json: String): Result =
         when (val applied = configurationRepository.applyFetched(json)) {
-            is ConfigApplyResult.Applied -> Result.Success(applied.config)
+            is ConfigApplyResult.Applied -> {
+                syncExampleAudio(applied.config)
+                Result.Success(applied.config)
+            }
 
             is ConfigApplyResult.Malformed -> Result.Failed(ConfigError.Malformed(applied.detail))
 
@@ -81,4 +95,15 @@ class RefreshConfigurationUseCase(
                 }
             }
         }
+
+    /** Best effort: the config is already active, so a cache failure never fails the refresh. */
+    private suspend fun syncExampleAudio(config: RemoteConfig) {
+        try {
+            exampleAudioCache.sync(config.exampleAudioUrls())
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // ExampleAudioCache.sync logs its own failures; nothing to add here.
+        }
+    }
 }

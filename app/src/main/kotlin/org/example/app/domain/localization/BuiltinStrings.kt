@@ -57,6 +57,7 @@ object BuiltinStrings {
         "settings.refresh.button" to "Refresh configuration",
         "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
+        "settings.refresh.offline" to "Could not reach the server. Using the saved configuration.",
 
         // Main menu.
         "mainMenu.title" to "Speech examination",
@@ -242,6 +243,7 @@ object BuiltinStrings {
         "settings.refresh.button" to "Aktualizovat konfiguraci",
         "settings.refresh.success" to "Konfigurace byla aktualizována. Vše je v pořádku.",
         "settings.refresh.failed" to "Konfiguraci se nepodařilo aktualizovat.",
+        "settings.refresh.offline" to "Server není dostupný. Používá se uložená konfigurace.",
 
         "mainMenu.title" to "Vyšetření řeči",
         "mainMenu.startButton" to "Nové vyšetření",

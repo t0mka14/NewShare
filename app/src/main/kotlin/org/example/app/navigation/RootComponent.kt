@@ -307,7 +307,7 @@ class DefaultRootComponent(
             timelineRepository = container.timelineRepository,
             clock = container.clock,
             dispatchers = container.dispatchers,
-            directories = container.directories,
+            exampleAudioCache = container.exampleAudioCache,
             audioPlaybackService = container.audioPlaybackService,
             useCalibration = activeConfig.useCalibration,
             calibrationLoudness = savedSettings.loudnessRange(),

@@ -16,6 +16,7 @@ import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioPlaybackService
+import org.example.app.fakes.FakeExampleAudioCache
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeContinuousSessionRecorder
 import org.example.app.fakes.FakeDiskSpaceProvider
@@ -122,6 +123,7 @@ class SessionComponentTest {
             clinicZone = ZoneOffset.UTC,
         )
         val audioPlaybackService = FakeAudioPlaybackService()
+        val exampleAudioCache = FakeExampleAudioCache()
         var ended = 0
         var endedFolderName: String? = null
 
@@ -148,7 +150,7 @@ class SessionComponentTest {
             timelineRepository = timelineRepository,
             clock = clock,
             dispatchers = dispatchers,
-            directories = directories,
+            exampleAudioCache = exampleAudioCache,
             audioPlaybackService = audioPlaybackService,
             useCalibration = useCalibration,
             calibrationLoudness = 0.2..0.8,
@@ -186,6 +188,38 @@ class SessionComponentTest {
         assertTrue(events.any { it.type == TimelineEventType.SESSION_RECORDING_STARTED })
 
         assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+    }
+
+    @Test
+    fun `a cached example-audio URL shows the example button and plays the downloaded file`() {
+        val url = "https://assets.example/audio/phonation_a.wav"
+        val cachedFile = java.nio.file.Path.of("/cache/example.wav")
+        val protocol = Protocol(
+            name = "Example",
+            recordingsFileName = "\${taskIndex}.wav",
+            tasks = listOf(
+                VocalTask(titleKey = "with", subtype = VocalSubtype.PHONATION, audioExamplePath = url),
+                VocalTask(titleKey = "uncached", subtype = VocalSubtype.PHONATION, audioExamplePath = "https://assets.example/other.wav"),
+            ),
+        )
+        val h = Harness()
+        h.exampleAudioCache.cached[url] = cachedFile
+        val component = h.build(protocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val first = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertTrue((first.state.value.content as TaskComponent.Content.Vocal).exampleAudioAvailable)
+        first.onPlayExampleAudio()
+        assertEquals(listOf(cachedFile), h.audioPlaybackService.playCalls)
+
+        first.onStart()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        first.onStop()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        first.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val second = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertFalse((second.state.value.content as TaskComponent.Content.Vocal).exampleAudioAvailable)
     }
 
     @Test

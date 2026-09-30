@@ -55,7 +55,7 @@
           "showIndicator": true,
           "canRepeat": true,
           "canSkip": false,
-          "audioExamplePath": "audio_instructions/aaa.wav",
+          "audioExamplePath": "https://example.org/share/audio/aaa.wav",
           "nrepetition": 2
         },
         {

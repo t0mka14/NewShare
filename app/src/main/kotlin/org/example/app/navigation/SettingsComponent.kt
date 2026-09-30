@@ -127,7 +127,8 @@ class DefaultSettingsComponent(
             availableLanguages = config?.languages.orEmpty(),
             selectedLanguage = effectiveLanguage(saved?.language, config),
             // A failure from an earlier refresh (e.g. the startup one) is shown on arrival.
-            lastRefreshResultKey = refreshConfigurationUseCase.lastError.value?.messageKey(),
+            lastRefreshResultKey = refreshConfigurationUseCase.lastError.value?.messageKey()
+                ?: OFFLINE_KEY.takeIf { refreshConfigurationUseCase.usingCachedConfig.value },
             micGainOverride = saved?.micGain?.coerceIn(MIC_GAIN_RANGE),
             configMicGain = configGainFor(config, selected),
         ).withSliderPosition()
@@ -158,7 +159,7 @@ class DefaultSettingsComponent(
         scope.launch(dispatchers.main) {
             val resultKey = when (val result = refreshConfigurationUseCase.refresh()) {
                 is RefreshConfigurationUseCase.Result.Success -> "settings.refresh.success"
-                is RefreshConfigurationUseCase.Result.OfflineUsingCache -> "settings.refresh.success"
+                is RefreshConfigurationUseCase.Result.OfflineUsingCache -> OFFLINE_KEY
                 is RefreshConfigurationUseCase.Result.Failed -> result.error.messageKey()
             }
             _state.value = _state.value.copy(refreshInProgress = false, lastRefreshResultKey = resultKey)
@@ -238,5 +239,10 @@ class DefaultSettingsComponent(
                 micGain = current.micGainOverride,
             ),
         )
+    }
+
+    private companion object {
+        /** The server was unreachable and the cached config stays active (§6.1 pt 4). */
+        const val OFFLINE_KEY = "settings.refresh.offline"
     }
 }

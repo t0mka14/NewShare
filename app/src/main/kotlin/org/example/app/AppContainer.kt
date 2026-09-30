@@ -15,6 +15,7 @@ import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.WaveformService
 import org.example.app.domain.config.ConfigApi
+import org.example.app.domain.config.ExampleAudioCache
 import org.example.app.domain.video.NoOpPtzController
 import org.example.app.domain.video.PtzController
 import org.example.app.domain.video.SessionVideoRecorder
@@ -49,6 +50,7 @@ import org.example.app.infrastructure.config.JsonConfigurationRepository
 import org.example.app.infrastructure.config.RawConfigCache
 import org.example.app.infrastructure.lock.SingleInstanceLock
 import org.example.app.infrastructure.network.KtorConfigApi
+import org.example.app.infrastructure.network.KtorExampleAudioCache
 import org.example.app.infrastructure.network.KtorUploadApi
 import org.example.app.infrastructure.persistence.JsonAppSettingsRepository
 import org.example.app.infrastructure.persistence.JsonSessionRepository
@@ -71,6 +73,8 @@ class AppContainer(
     // full-fake container; production defaults below.
     val configApi: ConfigApi = KtorConfigApi(),
     val uploadApi: UploadApi = KtorUploadApi(),
+    /** Example-audio downloads (row 13); defaults to a Ktor cache under `configDir`. */
+    val exampleAudioCache: ExampleAudioCache = KtorExampleAudioCache(directories),
     val audioInputDeviceProvider: AudioInputDeviceProvider = JvmAudioInputDeviceProvider(),
     /** OS-level microphone gain, addressed by device name (§13 decision 44). */
     val audioInputGainControl: AudioInputGainControl = JvmAudioInputGainControl(),
@@ -133,7 +137,7 @@ class AppContainer(
     val localizedStringProvider = LocalizedStringProvider()
 
     val refreshConfigurationUseCase =
-        RefreshConfigurationUseCase(appSettingsRepository, configApi, configurationRepository)
+        RefreshConfigurationUseCase(appSettingsRepository, configApi, configurationRepository, exampleAudioCache)
 
     val validateParticipantInfoUseCase = ValidateParticipantInfoUseCase()
 

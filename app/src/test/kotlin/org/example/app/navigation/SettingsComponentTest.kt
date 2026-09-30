@@ -46,6 +46,7 @@ class SettingsComponentTest {
             listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
         ),
         val gainControl: FakeAudioInputGainControl = FakeAudioInputGainControl(),
+        refreshUseCase: RefreshConfigurationUseCase? = null,
     ) {
         val dispatchers = TestCoroutineDispatchers()
 
@@ -54,7 +55,8 @@ class SettingsComponentTest {
             deviceProvider = deviceProvider,
             settingsRepository = settingsRepository,
             configurationRepository = configurationRepository,
-            refreshConfigurationUseCase = RefreshConfigurationUseCase(settingsRepository, configApi, configurationRepository),
+            refreshConfigurationUseCase = refreshUseCase
+                ?: RefreshConfigurationUseCase(settingsRepository, configApi, configurationRepository),
             micGainApplier = MicGainApplier(gainControl, settingsRepository, dispatchers),
             installationIdProvider = InstallationIdProvider(settingsRepository) { "generated-pc-id" },
             dispatchers = dispatchers,
@@ -166,7 +168,7 @@ class SettingsComponentTest {
     }
 
     @Test
-    fun `offline with cached config still active counts as success, not a failure`() {
+    fun `offline with cached config still active says the saved configuration is used`() {
         val h = Harness(configurationRepository = FakeConfigurationRepository(initialConfig = sampleConfig()))
         h.settingsRepository.write(AppSettings(siteToken = "token-1"))
         h.configApi.enqueueNetworkUnavailable()
@@ -174,8 +176,21 @@ class SettingsComponentTest {
         h.component.onRefreshClicked()
         h.dispatchers.scheduler.advanceUntilIdle()
 
-        assertEquals("settings.refresh.success", h.component.state.value.lastRefreshResultKey)
+        assertEquals("settings.refresh.offline", h.component.state.value.lastRefreshResultKey)
         assertEquals(false, h.component.state.value.refreshInProgress)
+    }
+
+    @Test
+    fun `an offline fallback from an earlier refresh is shown when Settings opens`() {
+        val settingsRepository = FakeAppSettingsRepository().apply { write(AppSettings(siteToken = "token-1")) }
+        val configApi = FakeConfigApi().apply { enqueueNetworkUnavailable() }
+        val configurationRepository = FakeConfigurationRepository(initialConfig = sampleConfig())
+        val useCase = RefreshConfigurationUseCase(settingsRepository, configApi, configurationRepository)
+        kotlinx.coroutines.runBlocking { useCase.refresh() } // the startup refresh, before Settings exists
+
+        val h = Harness(settingsRepository = settingsRepository, configurationRepository = configurationRepository, refreshUseCase = useCase)
+
+        assertEquals("settings.refresh.offline", h.component.state.value.lastRefreshResultKey)
     }
 
     @Test

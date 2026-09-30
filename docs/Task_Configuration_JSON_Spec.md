@@ -151,7 +151,7 @@ two exported clips.
   "showIndicator": true,
   "canRepeat": true,
   "canSkip": false,
-  "audioExamplePath": "audio_instructions/aaa.wav",
+  "audioExamplePath": "https://example.org/share/audio/aaa.wav",
   "nrepetition": 1
 }
 ```
@@ -166,7 +166,10 @@ two exported clips.
   the first repetition only. **`READING`:** the *last* paragraph is the passage to read aloud,
   shown in its own scrollable panel on every repetition (with a single paragraph, that
   paragraph is the passage).
-- `audioExamplePath` — optional example audio, played on demand, never recorded.
+- `audioExamplePath` — optional example audio, played on demand, never recorded. An absolute
+  `http(s)` URL: the app downloads it when a new config is applied and caches it locally, so it
+  also plays offline afterwards. No key, a non-http value, or a download that failed means no
+  example button. A changed file needs a new URL (the cache is keyed by URL).
 
 ### 4.2 QUESTIONNAIRE
 
@@ -356,7 +359,7 @@ One map per language: `strings.<lang>.<key> → value`.
           "showIndicator": true,
           "canRepeat": true,
           "canSkip": false,
-          "audioExamplePath": "audio_instructions/aaa.wav",
+          "audioExamplePath": "https://example.org/share/audio/aaa.wav",
           "nrepetition": 1
         },
         {

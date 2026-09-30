@@ -5,9 +5,11 @@ import org.example.app.domain.settings.AppSettings
 import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeConfigApi
 import org.example.app.fakes.FakeConfigurationRepository
+import org.example.app.fakes.FakeExampleAudioCache
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class RefreshConfigurationUseCaseTest {
@@ -219,5 +221,70 @@ class RefreshConfigurationUseCaseTest {
         val result = useCase.refresh()
 
         assertNull((result.toString()).let { if (it.contains("SUPER-SECRET-ID")) it else null })
+    }
+
+    @Test
+    fun `usingCachedConfig is set by an offline fallback and cleared by the next success`() = runTest {
+        val api = FakeConfigApi()
+        val repo = FakeConfigurationRepository(initialConfig = sampleConfig)
+        val (useCase, _, _) = useCase(configApi = api, configurationRepository = repo)
+
+        api.enqueueNetworkUnavailable()
+        useCase.refresh()
+        assertEquals(true, useCase.usingCachedConfig.value)
+
+        api.enqueueSuccess("""{"schemaVersion":1}""")
+        repo.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig))
+        useCase.refresh()
+        assertEquals(false, useCase.usingCachedConfig.value)
+    }
+
+    private fun configWithExamples(vararg urls: String?) = sampleConfig.copy(
+        protocols = listOf(
+            Protocol(
+                name = "P",
+                recordingsFileName = "\${taskIndex}",
+                tasks = urls.map { VocalTask(titleKey = "t", subtype = VocalSubtype.PHONATION, audioExamplePath = it) },
+            ),
+        ),
+    )
+
+    @Test
+    fun `a successful refresh syncs exactly the config's example-audio URLs`() = runTest {
+        val cache = FakeExampleAudioCache()
+        val repo = FakeConfigurationRepository()
+        val config = configWithExamples("https://a/x.wav", null, "https://a/x.wav", "https://a/y.wav")
+        repo.enqueueApplyResult(ConfigApplyResult.Applied(config))
+        val api = FakeConfigApi().apply { enqueueSuccess("{}") }
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(siteToken = "t")) }
+
+        RefreshConfigurationUseCase(settings, api, repo, cache).refresh()
+
+        assertEquals(listOf(setOf("https://a/x.wav", "https://a/y.wav")), cache.syncCalls)
+    }
+
+    @Test
+    fun `offline or failed refreshes leave the example-audio cache alone`() = runTest {
+        val cache = FakeExampleAudioCache()
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(siteToken = "t")) }
+        val api = FakeConfigApi().apply { enqueueNetworkUnavailable(); enqueueSiteTokenUnknown() }
+        val useCase = RefreshConfigurationUseCase(settings, api, FakeConfigurationRepository(initialConfig = sampleConfig), cache)
+
+        useCase.refresh()
+        useCase.refresh()
+
+        assertTrue(cache.syncCalls.isEmpty())
+    }
+
+    @Test
+    fun `a failing example-audio cache does not fail the refresh`() = runTest {
+        val cache = FakeExampleAudioCache().apply { failSync = true }
+        val repo = FakeConfigurationRepository().apply { enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig)) }
+        val api = FakeConfigApi().apply { enqueueSuccess("{}") }
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(siteToken = "t")) }
+
+        val result = RefreshConfigurationUseCase(settings, api, repo, cache).refresh()
+
+        assertEquals(RefreshConfigurationUseCase.Result.Success(sampleConfig), result)
     }
 }

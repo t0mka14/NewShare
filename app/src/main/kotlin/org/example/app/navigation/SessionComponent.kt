@@ -15,7 +15,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import org.example.app.domain.AppDirectories
 import org.example.app.domain.Clock
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioInputDevice
@@ -23,6 +22,7 @@ import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
+import org.example.app.domain.config.ExampleAudioCache
 import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.VocalTask
@@ -121,10 +121,9 @@ class DefaultSessionComponent(
     private val timelineRepository: TimelineRepository,
     private val clock: Clock,
     private val dispatchers: CoroutineDispatchers,
-    /** Resolves a VOCAL task's `audioExamplePath` (§6.2, relative) to an absolute file for
-     * `AudioPlaybackService` (§8.6 follow-up) — resolved relative to `configDir`, where
-     * config-adjacent assets are deployed alongside the fetched config JSON. */
-    private val directories: AppDirectories,
+    /** Maps a VOCAL task's `audioExamplePath` URL to its downloaded file for
+     * `AudioPlaybackService` (row 13); not cached means no example button. */
+    private val exampleAudioCache: ExampleAudioCache,
     private val audioPlaybackService: AudioPlaybackService,
     /** `RemoteConfig.useCalibration`: show calibration before the first task of a VOCAL protocol. */
     private val useCalibration: Boolean,
@@ -277,7 +276,7 @@ class DefaultSessionComponent(
         val instance = navigableInstances[listIndex]
         val task = instance.task
         val resolvedAudioExamplePath = (task as? VocalTask)?.audioExamplePath
-            ?.let { directories.configDir.resolve(it) }
+            ?.let(exampleAudioCache::localFileFor)
         val currentDevice = availableDevices.firstOrNull { it.id == currentDeviceId }
 
         // The camera is opened here rather than from a lifecycle callback for two reasons:
