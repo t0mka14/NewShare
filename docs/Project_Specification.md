@@ -276,7 +276,8 @@ RecoverSessionsUseCase        startup crash recovery (§8.4)
    once at deployment and shared by every computer of the site (§13 decision 45). Separately,
    each computer has an **installation ID**, a UUID generated on first use; it is not a
    credential (it traces uploads to a device and is the `${installationId}` filename variable).
-2. On startup (and on manual "refresh" in Settings) the app sends
+2. On startup, on manual "refresh" in Settings, and when leaving Settings back to the
+   configuration-required screen while there is still no config (§13 decision 50), the app sends
    `GET {WEB_SERVER_BASE_URL}/site-config/{siteToken}`. **The server validates the token during
    this request** — there is no separate registration step. Errors, surfaced on the Settings
    screen / configuration-required screen: 404 unknown token → `SiteTokenRejected`, 403 site
@@ -1290,6 +1291,20 @@ Error taxonomy (normative, inlined from the old plan):
     from the second repetition on stays for everything else. QUESTIONNAIRE `length` is ignored
     (the web was asked to stop sending it). All nine web sample configs are test fixtures
     (`WebSampleConfigsTest`).
+
+50. **Config errors are shown where the examiner is; leaving Settings re-checks (2026-09-29).**
+    `RefreshConfigurationUseCase.lastError` keeps why the last refresh failed (startup or
+    Settings; cleared by a success or the offline-cache fallback). The configuration-required
+    screen shows that reason instead of the generic text, and Settings shows it on arrival.
+    Leaving Settings: to the main menu when a config is now active (a refresh there succeeded —
+    returning to the blocking screen would strand the examiner); otherwise back to the blocking
+    screen **plus one more refresh**, so a token edited without pressing Refresh is checked and
+    the shown reason is not stale. Known cost: when Refresh was just pressed and failed, leaving
+    repeats that failed request (another failed lookup against the web's rate limit, §6.1).
+    `ConfigError.messageKey()` lives in `domain/config` so both the Settings component and the
+    blocking screen use it without a component depending on `ui/` (§5.2). The Settings buttons
+    keep their labels "Refresh configuration" and "Back" — Settings saves every change
+    immediately, so there is no separate save step.
 
 **Still open:**
 

@@ -35,3 +35,20 @@ sealed interface ConfigError {
     /** Any other non-success HTTP response. */
     data class ServerError(val httpStatus: Int) : ConfigError
 }
+
+/**
+ * The localization key (§7) that explains this error — shown by Settings after a refresh and
+ * by the blocking "configuration required" screen. Here, not in `ui/`, so components can use it
+ * without depending on the UI layer (§5.2).
+ */
+fun ConfigError.messageKey(): String = when (this) {
+    ConfigError.SiteTokenMissing -> "error.config.siteTokenMissing"
+    ConfigError.SiteTokenRejected -> "error.config.siteTokenRejected"
+    ConfigError.SiteDeactivated -> "error.config.siteDeactivated"
+    ConfigError.RateLimited -> "error.config.rateLimited"
+    ConfigError.NetworkUnavailableNoCache -> "error.config.networkUnavailable"
+    is ConfigError.SchemaUnsupported -> "error.config.schemaUnsupported"
+    is ConfigError.ValidationFailed -> "error.config.validationFailed"
+    is ConfigError.Malformed -> "error.config.malformed"
+    is ConfigError.ServerError -> "settings.refresh.failed"
+}

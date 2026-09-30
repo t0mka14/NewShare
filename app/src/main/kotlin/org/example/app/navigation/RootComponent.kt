@@ -119,7 +119,7 @@ class DefaultRootComponent(
         lifecycle.doOnDestroy { scope.cancel() }
         scope.launch(container.dispatchers.main) {
             container.configurationRepository.activeConfig.collect { config ->
-                _localization.value = _localization.value.copy(config = config)
+                _localization.value = _localization.value.copy(config = config, language = resolveLanguage(config))
                 val active = stack.value.active.instance
                 if (config != null && active is RootComponent.Child.Blocking) {
                     navigation.replaceAll(Config.MainMenu)
@@ -136,8 +136,21 @@ class DefaultRootComponent(
         return UiLocalization(container.localizedStringProvider, resolveLanguage(config), config)
     }
 
-    private fun resolveLanguage(config: RemoteConfig?): String =
-        container.appSettingsRepository.read()?.language ?: config?.defaultLanguage ?: "en"
+    /**
+     * The saved choice, unless the active config doesn't offer it (e.g. a Czech-only site while
+     * Settings still says `en`) — then the config's default language, so config texts and the
+     * built-in chrome agree.
+     */
+    private fun resolveLanguage(
+        config: RemoteConfig?,
+        saved: String? = container.appSettingsRepository.read()?.language,
+    ): String {
+        val offered = config?.languages.orEmpty()
+        return when {
+            saved != null && (offered.isEmpty() || saved in offered) -> saved
+            else -> config?.defaultLanguage ?: saved ?: "en"
+        }
+    }
 
     private fun createChild(config: Config, childContext: ComponentContext): RootComponent.Child =
         when (config) {
@@ -218,7 +231,8 @@ class DefaultRootComponent(
             dispatchers = container.dispatchers,
         )
         val subscription = settingsComponent.state.subscribe { state ->
-            val language = state.selectedLanguage ?: return@subscribe
+            val selected = state.selectedLanguage ?: return@subscribe
+            val language = resolveLanguage(_localization.value.config, saved = selected)
             if (_localization.value.language != language) {
                 _localization.value = _localization.value.copy(language = language)
             }

@@ -200,6 +200,27 @@ class RootComponentTest {
     }
 
     @Test
+    fun `a saved language the config does not offer falls back to the config's default`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        val czechOnly = ConfigFixtures.questionnaireOnly.replace(Regex(""""languages": \[[^\]]*]"""), """"languages": ["cs"]""")
+        container.rawConfigCache.write(czechOnly)
+        container.configurationRepository.loadCached()
+        container.appSettingsRepository.write(AppSettings(language = "en"))
+
+        assertEquals("cs", buildRoot(container).localization.value.language)
+    }
+
+    @Test
+    fun `an offered saved language is kept`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        container.rawConfigCache.write(ConfigFixtures.questionnaireOnly) // cs + en, default cs
+        container.configurationRepository.loadCached()
+        container.appSettingsRepository.write(AppSettings(language = "en"))
+
+        assertEquals("en", buildRoot(container).localization.value.language)
+    }
+
+    @Test
     fun `the main menu language flag persists the choice and re-publishes localization`(@TempDir tempDir: Path) {
         val container = buildContainer(tempDir)
         container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)

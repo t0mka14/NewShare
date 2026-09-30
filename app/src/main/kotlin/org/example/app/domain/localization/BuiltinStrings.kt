@@ -1,8 +1,9 @@
 package org.example.app.domain.localization
 
 /**
- * Bundled English fallback strings compiled into the app (§7). This is the **only** place
- * built-in display text lives — UI code references keys, never literals (§12).
+ * Bundled fallback strings compiled into the app (§7), in English ([en]) and Czech ([cs]). This
+ * is the **only** place built-in display text lives — UI code references keys, never literals
+ * (§12). [cs] must define exactly the keys of [en] (`BuiltinStringsTest`).
  *
  * Coverage (§7 minimum + Phase 2 screen chrome, see the integration-engineer's task report for
  * the full rationale): everything that must render before/without a config (single-instance
@@ -53,10 +54,9 @@ object BuiltinStrings {
         "settings.siteToken.label" to "Site token",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
-        "settings.refresh.button" to "Test configuration",
+        "settings.refresh.button" to "Refresh configuration",
         "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
-        "settings.backButton" to "Save and go back",
 
         // Main menu.
         "mainMenu.title" to "Speech examination",
@@ -156,6 +156,8 @@ object BuiltinStrings {
         "patientInfo.error.pattern" to "Please check the format of this field.",
         "patientInfo.error.option" to "Please choose one of the options.",
         "patientInfo.error.summary" to "Please check the highlighted fields.",
+        // Label of a choice field's dropdown before anything is selected.
+        "patientInfo.chooseOption" to "Choose…",
 
         // Option labels of the identifier catalogue's choice fields (config alignment row 7a; the
         // web sends no options). Stored values are the raw options; see PatientFieldCatalogue.
@@ -205,4 +207,162 @@ object BuiltinStrings {
         "placeholder.title" to "Coming soon",
         "placeholder.message" to "This screen isn't available yet.",
     )
+
+    val cs: Map<String, String> = mapOf(
+        "app.title" to "SHARE",
+        "app.alreadyRunning" to "SHARE už běží. Před spuštěním nové instance zavřete tu původní.",
+
+        "error.config.required" to "Je potřeba konfigurace. Připojte se k síti a aktualizujte ji, nebo kontaktujte správce.",
+        "error.config.siteTokenMissing" to "Není nastaven token pracoviště. Otevřete Nastavení a zadejte token od správce.",
+        "error.config.siteTokenRejected" to "Server tento token pracoviště nerozpoznal. Zkontrolujte ho v Nastavení nebo kontaktujte správce.",
+        "error.config.siteDeactivated" to "Toto pracoviště bylo na serveru deaktivováno. Kontaktujte správce.",
+        "error.config.rateLimited" to "Příliš mnoho neúspěšných pokusů. Počkejte několik minut a zkuste to znovu.",
+        "error.config.networkUnavailable" to "Nepodařilo se spojit s konfiguračním serverem.",
+        "error.config.schemaUnsupported" to "Konfigurace ze serveru není kompatibilní s touto verzí aplikace. Aktualizujte prosím aplikaci.",
+        "error.config.validationFailed" to "Konfigurace ze serveru je neplatná. Kontaktujte správce.",
+        "error.config.malformed" to "Konfiguraci ze serveru se nepodařilo načíst. Kontaktujte správce.",
+
+        "error.dialog.title" to "Chyba",
+        "error.dialog.dismiss" to "OK",
+        "error.dialog.exit" to "Zavřít aplikaci",
+        "error.generic.message" to "Něco se pokazilo. Zkuste to prosím znovu.",
+
+        "calibration.title" to "Kalibrační obrazovka",
+        "calibration.instructions" to "Tato obrazovka slouží ke kalibraci nasazeného mikrofonu. Přesvědčte se, že mikrofon je umístěn stejně jako na obrázku níže. Poté požádejte účastníka, ať provede fonaci hlásky /a/ v pro něj přirozené hlasitosti. Pokud je signál mimo zelenou oblast, posuňte mikrofon blíže k ústům, případně dál. Poté pokračujte na první úlohu.",
+        "calibration.continueButton" to "Pokračovat",
+
+        "settings.title" to "Nastavení",
+        "settings.device.label" to "Mikrofon",
+        "settings.micGain.label" to "Úroveň mikrofonu",
+        "settings.micGain.reset" to "Použít nastavenou výchozí hodnotu ({value})",
+        "settings.micGain.hint" to "",
+        "settings.siteToken.label" to "Token pracoviště",
+        "settings.installationId.label" to "ID instalace",
+        "settings.language.label" to "Jazyk",
+        "settings.refresh.button" to "Aktualizovat konfiguraci",
+        "settings.refresh.success" to "Konfigurace byla aktualizována. Vše je v pořádku.",
+        "settings.refresh.failed" to "Konfiguraci se nepodařilo aktualizovat.",
+
+        "mainMenu.title" to "Vyšetření řeči",
+        "mainMenu.startButton" to "Nové vyšetření",
+        "mainMenu.uploadButton" to "Odeslání nahrávek",
+        "mainMenu.settingsButton" to "Nastavení",
+        "mainMenu.sessionBrowserButton" to "Sezení",
+        "mainMenu.protocolPdfButton" to "PDF manuál protokolu",
+
+        "patientInfo.title" to "Údaje o pacientovi",
+        "patientInfo.continueButton" to "Pokračovat",
+
+        "upload.title" to "Odeslání dat",
+        "upload.instructions" to "Níže uvedená sezení jsou připravena k odeslání. Odesílání může podle rychlosti připojení chvíli trvat — prosím nezavírejte aplikaci.",
+        "upload.readyCount" to "Sezení připravená k odeslání: {count}",
+        "upload.noSessions" to "Žádná sezení nejsou připravena k odeslání.",
+        "upload.successMessage" to "Soubory byly úspěšně odeslány.",
+        "upload.failureMessage" to "Odeslání selhalo: {reason}",
+        "upload.error.interrupted" to "předchozí pokus byl přerušen",
+        "upload.error.network" to "chyba sítě",
+        "upload.error.server" to "chyba serveru",
+        "upload.error.rejected" to "server odeslání odmítl",
+        "upload.error.generic" to "nastala neznámá chyba",
+
+        "sessionBrowser.title" to "Sezení",
+        "sessionBrowser.noSessions" to "Zatím nebyla nahrána žádná sezení.",
+        "sessionBrowser.reprocessButton" to "Znovu zpracovat",
+        "sessionBrowser.openEditorButton" to "Otevřít editor",
+        "sessionBrowser.retryUploadButton" to "Odeslat znovu",
+        "sessionBrowser.goToUploadButton" to "Přejít k odeslání",
+        "sessionBrowser.recoveredLabel" to "Obnoveno",
+        "sessionBrowser.processingStatus.NotProcessed" to "Nezpracováno",
+        "sessionBrowser.processingStatus.Processing" to "Zpracovává se…",
+        "sessionBrowser.processingStatus.Done" to "Zpracováno",
+        "sessionBrowser.processingStatus.Failed" to "Zpracování selhalo",
+        "sessionBrowser.uploadStatus.NotUploaded" to "Neodesláno",
+        "sessionBrowser.uploadStatus.Uploading" to "Odesílá se…",
+        "sessionBrowser.uploadStatus.Uploaded" to "Odesláno",
+        "sessionBrowser.uploadStatus.Failed" to "Odeslání selhalo",
+
+        "editor.title" to "Kontrola nahrávek",
+        "editor.instructions" to "Posunutím počáteční a koncové značky nahrávku zkraťte. Přehrajte si ji pro kontrolu a poté ji potvrďte.",
+        "editor.segmentOfTotal" to "Nahrávka {n} z {total}",
+        "editor.noSegments" to "V tomto sezení není co kontrolovat.",
+        "editor.startLabel" to "Začátek",
+        "editor.stopLabel" to "Konec",
+        "editor.durationLabel" to "Délka",
+        "editor.positionLabel" to "Pozice",
+        "action.accept" to "Potvrdit",
+
+        "processing.title" to "Zpracování",
+        "processing.step.selectingTimeline" to "Příprava…",
+        "processing.step.cuttingClips" to "Stříhání nahrávek…",
+        "processing.step.buildingArchive" to "Vytváření archivu…",
+        "processing.step.updatingMetadata" to "Dokončování…",
+        "processing.error.title" to "Zpracování selhalo",
+        "processing.error.generic" to "Toto sezení se nepodařilo zpracovat. Můžete to zkusit znovu, nebo se vrátit zpět.",
+
+        "protocolPicker.title" to "Vyberte protokol",
+        "protocolPicker.instructions" to "Zvolte protokol pro toto vyšetření.",
+
+        "task.playExample" to "Přehrát ukázku",
+        "task.stopExample" to "Zastavit ukázku",
+
+        "action.start" to "START",
+        "action.stop" to "STOP",
+        "action.repeat" to "Opakovat úlohu",
+        "action.next" to "Další",
+        "action.skip" to "Přeskočit",
+        "action.back" to "Zpět",
+        "action.confirm" to "Potvrdit",
+        "action.cancel" to "Zrušit",
+        "action.upload" to "Odeslat",
+        "action.retry" to "Zkusit znovu",
+        "action.play" to "Přehrát",
+        "action.previous" to "Předchozí",
+        "action.reconnect" to "Znovu připojit",
+        "action.resume" to "Pokračovat",
+        "action.done" to "Hotovo",
+
+        "patientInfo.error.required" to "Toto pole je povinné.",
+        "patientInfo.error.pattern" to "Zkontrolujte prosím formát tohoto pole.",
+        "patientInfo.error.option" to "Vyberte prosím jednu z možností.",
+        "patientInfo.error.summary" to "Zkontrolujte prosím zvýrazněná pole.",
+        "patientInfo.chooseOption" to "Vyberte…",
+
+        "patientField.sex.male" to "Muž",
+        "patientField.sex.female" to "Žena",
+        "patientField.education.less_than_upper_secondary" to "Nižší než středoškolské",
+        "patientField.education.upper_secondary_and_vocational" to "Středoškolské a odborné",
+        "patientField.education.tertiary_education" to "Vysokoškolské",
+
+        "task.numberLabel" to "Úloha {n}",
+        "task.numberOfTotalLabel" to "Úloha {n}/{total}",
+        "task.repetitionLabel" to "Opakování {n}",
+        "task.takeLabel" to "Pokus {n}",
+        "task.nextLabel" to "Další úloha",
+        "task.prevLabel" to "Předchozí úloha",
+        "task.endOfProtocol" to "Konec",
+
+        "questionnaire.error.invalid" to "Zadejte prosím platnou odpověď.",
+
+        "error.audio.deviceLost" to "Mikrofon byl odpojen. Připojte ho znovu nebo pro pokračování zvolte jiné zařízení.",
+        "error.audio.deviceUnavailable" to "Zvolený mikrofon není dostupný.",
+        "error.audio.noSupportedPcmFormat" to "Toto zařízení nepodporuje kompatibilní formát nahrávání.",
+        "error.audio.recordingStartFailed" to "Nahrávání se nepodařilo spustit.",
+        "error.audio.diskWriteFailed" to "Nahrávku se nepodařilo uložit na disk.",
+
+        "error.storage.insufficientDiskSpace" to "Na disku není dost místa pro zahájení nového nahrávání.",
+        "error.storage.writeFailed" to "Nepodařilo se vytvořit složku sezení.",
+        "error.storage.corruptMetadata" to "Data sezení se nepodařilo načíst.",
+        "session.failedTitle" to "Sezení se nepodařilo zahájit",
+
+        "sessionSummary.title" to "Vyšetření dokončeno",
+        "sessionSummary.message" to "Vyšetření skončilo. Děkujeme.",
+
+        "blocking.openSettingsButton" to "Otevřít nastavení",
+
+        "placeholder.title" to "Již brzy",
+        "placeholder.message" to "Tato obrazovka zatím není k dispozici.",
+    )
+
+    /** Built-in strings by language code; languages missing here fall back to [en]. */
+    val byLanguage: Map<String, Map<String, String>> = mapOf("en" to en, "cs" to cs)
 }

@@ -145,4 +145,26 @@ class LocalizedStringProviderTest {
             logger.level = previousLevel
         }
     }
+
+    @Test
+    fun `built-in strings follow the selected language, before the config's default language`() {
+        val localized = LocalizedStringProvider(
+            builtins = mapOf("chrome.key" to "English"),
+            localizedBuiltins = mapOf("cs" to mapOf("chrome.key" to "Česky")),
+        )
+        // A site overriding the key only in its default language must not beat the Czech built-in.
+        val config = configWith(defaultLanguage = "en", strings = mapOf("en" to mapOf("chrome.key" to "Site override")))
+
+        assertEquals("Česky", localized.resolveRaw("chrome.key", "cs", config))
+        assertEquals("Site override", localized.resolveRaw("chrome.key", "en", config))
+        assertEquals("English", localized.resolveRaw("chrome.key", "de", null))
+    }
+
+    @Test
+    fun `config strings in the selected language still override the built-ins`() {
+        val localized = LocalizedStringProvider(localizedBuiltins = mapOf("cs" to mapOf("k" to "Vestavěné")))
+        val config = configWith(strings = mapOf("cs" to mapOf("k" to "Od pracoviště")))
+
+        assertEquals("Od pracoviště", localized.resolveRaw("k", "cs", config))
+    }
 }

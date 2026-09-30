@@ -10,14 +10,16 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Resolves `key -> RichText` for a language, layering the active config's `strings` over the
- * bundled built-in English fallback set (§7). Precedence (exact-match lookup only, no
- * `contains()`-style matching — fixes the original app's XPath bug):
+ * bundled built-in strings (§7). Precedence (exact-match lookup only, no `contains()`-style
+ * matching — fixes the original app's XPath bug):
  *
  * 1. `config.strings[language][key]`
- * 2. `config.strings[config.defaultLanguage][key]` (skipped if `language == defaultLanguage`,
+ * 2. the built-in strings for `language` ([BuiltinStrings.byLanguage]) — before the config's
+ *    default language, so the app's own chrome stays in the selected language
+ * 3. `config.strings[config.defaultLanguage][key]` (skipped if `language == defaultLanguage`,
  *    already covered by step 1)
- * 3. [BuiltinStrings.en]
- * 4. the key itself (logged at most once per key, per §7 — never a raw `"ERROR"`)
+ * 4. [BuiltinStrings.en]
+ * 5. the key itself (logged at most once per key, per §7 — never a raw `"ERROR"`)
  *
  * Deliberately stateless with respect to *which* language/config is active: it takes both as
  * explicit parameters to [resolve] rather than observing
@@ -29,6 +31,7 @@ private val logger = KotlinLogging.logger {}
  */
 class LocalizedStringProvider(
     private val builtins: Map<String, String> = BuiltinStrings.en,
+    private val localizedBuiltins: Map<String, Map<String, String>> = BuiltinStrings.byLanguage,
 ) {
     private val loggedMissingKeys = ConcurrentHashMap.newKeySet<String>()
 
@@ -40,6 +43,8 @@ class LocalizedStringProvider(
     /** Same precedence as [resolve] but returns the raw (unparsed) string. */
     fun resolveRaw(key: String, language: String, config: RemoteConfig?): String {
         config?.strings?.get(language)?.get(key)?.let { return it }
+
+        localizedBuiltins[language]?.get(key)?.let { return it }
 
         val defaultLanguage = config?.defaultLanguage
         if (defaultLanguage != null && defaultLanguage != language) {

@@ -85,7 +85,8 @@ class BatchUploadScenarioTest {
 
         // ---- reach the upload screen from the main menu ----
         onNodeWithTag(TestTags.MainMenu.UPLOAD_BUTTON).performClick()
-        onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("2 sessions ready to upload")
+        // The fixture config defaults to Czech and nothing is saved, so the built-in chrome is Czech too.
+        onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("Sezení připravená k odeslání: 2")
         onNodeWithTag(TestTags.Upload.sessionRow(failingSessionId)).assertIsDisplayed()
         onNodeWithTag(TestTags.Upload.sessionRow(succeedingSessionId)).assertIsDisplayed()
 
@@ -102,9 +103,9 @@ class BatchUploadScenarioTest {
         onNodeWithTag(TestTags.Upload.sessionRow(failingSessionId)).assertIsDisplayed()
         onNodeWithTag(TestTags.Upload.sessionErrorText(failingSessionId))
             .assertIsDisplayed()
-            .assertTextEquals("Upload failed: network failure")
+            .assertTextEquals("Odeslání selhalo: chyba sítě")
         onNodeWithTag(TestTags.Upload.sessionRow(succeedingSessionId)).assertDoesNotExist()
-        onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("1 sessions ready to upload")
+        onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("Sezení připravená k odeslání: 1")
 
         // ---- both upload_status.json files are correct (§8.10) ----
         val failingFolder = folderNames[sessionIds.indexOf(failingSessionId)]
@@ -159,7 +160,7 @@ class BatchUploadScenarioTest {
         onNodeWithTag(TestTags.Upload.sessionRow(sessionId)).assertIsDisplayed()
         onNodeWithTag(TestTags.Upload.sessionErrorText(sessionId))
             .assertIsDisplayed()
-            .assertTextEquals("Upload failed: the previous attempt was interrupted")
+            .assertTextEquals("Odeslání selhalo: předchozí pokus byl přerušen")
 
         onNodeWithTag(TestTags.Upload.UPLOAD_BUTTON).performClick()
         harness.dispatchers.scheduler.advanceUntilIdle()

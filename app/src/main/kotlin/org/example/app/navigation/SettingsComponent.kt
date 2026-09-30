@@ -21,7 +21,7 @@ import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.InstallationIdProvider
-import org.example.app.ui.messageKey
+import org.example.app.domain.config.messageKey
 
 interface SettingsComponent {
     val state: Value<State>
@@ -106,6 +106,7 @@ class DefaultSettingsComponent(
             configurationRepository.activeConfig.collect { config ->
                 _state.value = _state.value.copy(
                     availableLanguages = config?.languages.orEmpty(),
+                    selectedLanguage = effectiveLanguage(settingsRepository.read()?.language, config),
                     configMicGain = configGainFor(config, selectedDevice()),
                 ).withSliderPosition()
             }
@@ -124,7 +125,7 @@ class DefaultSettingsComponent(
             installationId = installationIdProvider.get(),
             siteToken = saved?.siteToken.orEmpty(),
             availableLanguages = config?.languages.orEmpty(),
-            selectedLanguage = saved?.language,
+            selectedLanguage = effectiveLanguage(saved?.language, config),
             // A failure from an earlier refresh (e.g. the startup one) is shown on arrival.
             lastRefreshResultKey = refreshConfigurationUseCase.lastError.value?.messageKey(),
             micGainOverride = saved?.micGain?.coerceIn(MIC_GAIN_RANGE),
@@ -189,6 +190,13 @@ class DefaultSettingsComponent(
                 _state.value = _state.value.withSliderPosition()
             }
         }
+    }
+
+    /** The saved language, or the config's default when the config doesn't offer it (mirrors
+     *  `RootComponent`'s rule, so the dropdown shows the language the app actually uses). */
+    private fun effectiveLanguage(saved: String?, config: RemoteConfig?): String? {
+        val offered = config?.languages.orEmpty()
+        return if (saved != null && (offered.isEmpty() || saved in offered)) saved else config?.defaultLanguage ?: saved
     }
 
     private fun selectedDevice(): AudioInputDevice? =

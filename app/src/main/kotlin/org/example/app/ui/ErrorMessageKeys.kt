@@ -1,27 +1,16 @@
 package org.example.app.ui
 
 import org.example.app.domain.audio.AudioError
-import org.example.app.domain.config.ConfigError
 import org.example.app.domain.session.StorageError
 
 /**
- * Structural sealed-type → localization-key mapping (§11, §7). [ConfigError] is shown by both
- * Settings and the blocking screen; [TaskComponent.Content.Vocal]'s `Failed(AudioError)` and
- * [SessionComponent.startError]'s `StorageError?` are exposed as raw sealed values, so this
- * one-to-one lookup — no branching beyond the `when`, no business decisions — lives here instead
- * of duplicating it per screen.
+ * Structural sealed-type → localization-key mapping (§11, §7) for errors only screens show:
+ * [TaskComponent.Content.Vocal]'s `Failed(AudioError)` and [SessionComponent.startError]'s
+ * `StorageError?` are exposed as raw sealed values, so this one-to-one lookup — no branching
+ * beyond the `when`, no business decisions — lives here instead of duplicating it per screen.
+ * `ConfigError.messageKey()` lives with [org.example.app.domain.config.ConfigError] instead,
+ * because a component (Settings) needs it too and components must not depend on `ui/` (§5.2).
  */
-fun ConfigError.messageKey(): String = when (this) {
-    ConfigError.SiteTokenMissing -> "error.config.siteTokenMissing"
-    ConfigError.SiteTokenRejected -> "error.config.siteTokenRejected"
-    ConfigError.SiteDeactivated -> "error.config.siteDeactivated"
-    ConfigError.RateLimited -> "error.config.rateLimited"
-    ConfigError.NetworkUnavailableNoCache -> "error.config.networkUnavailable"
-    is ConfigError.SchemaUnsupported -> "error.config.schemaUnsupported"
-    is ConfigError.ValidationFailed -> "error.config.validationFailed"
-    is ConfigError.Malformed -> "error.config.malformed"
-    is ConfigError.ServerError -> "settings.refresh.failed"
-}
 
 fun AudioError.messageKey(): String = when (this) {
     is AudioError.DeviceUnavailable -> "error.audio.deviceUnavailable"

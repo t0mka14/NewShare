@@ -144,7 +144,7 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
 
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = onBack, modifier = Modifier.testTag(TestTags.Settings.BACK_BUTTON)) {
-                Text(localization.resolve("settings.backButton"))
+                Text(localization.resolve("action.back"))
             }
         }
     }

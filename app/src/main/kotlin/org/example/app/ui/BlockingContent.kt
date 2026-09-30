@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import org.example.app.domain.config.ConfigError
+import org.example.app.domain.config.messageKey
 
 /**
  * Blocking "configuration required" screen (§6.1 pt 4): no active config (no cache, or the

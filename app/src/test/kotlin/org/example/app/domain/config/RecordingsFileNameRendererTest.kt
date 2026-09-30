@@ -34,9 +34,9 @@ class RecordingsFileNameRendererTest {
     }
 
     @Test
-    fun `field values are sanitized to filename-safe characters`() {
+    fun `field values are sanitized to filename-safe characters, keeping accented letters`() {
         val fields = mapOf("education" to "upper secondary and vocational", "surname" to "Novák/Č.")
-        assertEquals("uppersecondaryandvocational_Novk", render("\${field.education}_\${field.surname}", fields))
+        assertEquals("uppersecondaryandvocational_NovakC", render("\${field.education}_\${field.surname}", fields))
     }
 
     @Test

@@ -1,5 +1,7 @@
 package org.example.app.domain.participant
 
+import java.text.Normalizer
+
 /**
  * The identifier catalogue agreed with the web (config alignment row 7a): well-known
  * `PatientField.name`s whose rendering the app owns — the web sends no options. Every other name
@@ -42,9 +44,16 @@ object PatientFieldCatalogue {
         "patientField.$fieldName.${option.replace(' ', '_')}"
 
     private val unsafeCharacters = Regex("[^A-Za-z0-9_-]")
+    private val combiningMarks = Regex("\\p{M}+")
 
-    /** Filename-safe (Windows/macOS): drops everything outside `[A-Za-z0-9_-]`. */
-    fun sanitize(value: String): String = value.replace(unsafeCharacters, "")
+    /**
+     * Filename-safe (Windows/macOS): accents are stripped but the letter kept (`Novák` → `Novak`,
+     * `Čížek` → `Cizek`), then everything still outside `[A-Za-z0-9_-]` is dropped.
+     */
+    fun sanitize(value: String): String =
+        Normalizer.normalize(value, Normalizer.Form.NFD)
+            .replace(combiningMarks, "")
+            .replace(unsafeCharacters, "")
 
     /**
      * The session's label in its folder name, ZIP name and the session lists: the sanitized

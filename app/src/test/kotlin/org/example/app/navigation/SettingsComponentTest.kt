@@ -79,6 +79,18 @@ class SettingsComponentTest {
     }
 
     @Test
+    fun `the language dropdown shows the config's default when the saved language is not offered`() {
+        val h = Harness(
+            settingsRepository = FakeAppSettingsRepository().apply { write(AppSettings(language = "en")) },
+            configurationRepository = FakeConfigurationRepository(
+                initialConfig = sampleConfig().copy(defaultLanguage = "cs", languages = listOf("cs")),
+            ),
+        )
+
+        assertEquals("cs", h.component.state.value.selectedLanguage)
+    }
+
+    @Test
     fun `changing a field persists immediately via AppSettingsRepository`() {
         val h = Harness()
 

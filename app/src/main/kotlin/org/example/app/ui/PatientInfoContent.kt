@@ -1,6 +1,8 @@
 package org.example.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,7 +37,11 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
     val state by component.state.subscribeAsState()
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
-        Column(modifier = Modifier.contentWidth(1200.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        // Scrolls: a protocol can define many fields, and Continue must stay reachable.
+        Column(
+            modifier = Modifier.contentWidth(1200.dp).verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(localization.resolve("patientInfo.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -51,8 +57,10 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
                             Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
                             DropdownSelector(
                                 triggerTag = TestTags.PatientInfo.field(field.name),
-                                selectedLabel = if (value.isEmpty()) "" else
-                                    localization.resolvePlain(PatientFieldCatalogue.optionLabelKey(field.name, value)),
+                                selectedLabel = localization.resolvePlain(
+                                    if (value.isEmpty()) "patientInfo.chooseOption"
+                                    else PatientFieldCatalogue.optionLabelKey(field.name, value),
+                                ),
                                 items = kind.options,
                                 itemLabel = { localization.resolvePlain(PatientFieldCatalogue.optionLabelKey(field.name, it)) },
                                 itemTag = { TestTags.PatientInfo.fieldOption(field.name, it) },

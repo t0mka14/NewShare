@@ -31,7 +31,8 @@ class PatientFieldCatalogueTest {
     fun `sanitize keeps only filename-safe characters`() {
         assertEquals("HC-001_a", PatientFieldCatalogue.sanitize("HC-001_a"))
         assertEquals("HC001", PatientFieldCatalogue.sanitize("HC 0/0.1"))
-        assertEquals("Novk", PatientFieldCatalogue.sanitize("Novák"))
+        assertEquals("Novak", PatientFieldCatalogue.sanitize("Novák"))
+        assertEquals("CizekRehor", PatientFieldCatalogue.sanitize("Čížek Řehoř"))
     }
 
     @Test
