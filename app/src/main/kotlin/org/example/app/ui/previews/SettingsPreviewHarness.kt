@@ -70,6 +70,8 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
 
     override fun onRefreshClicked() = Unit
 
+    override fun onRefreshDevicesClicked() = Unit
+
     override fun onMicGainChanged(value: Int) {
         _state.value = _state.value.copy(micGain = value)
     }

@@ -31,6 +31,9 @@ interface SettingsComponent {
     fun onLanguageSelected(language: String)
     fun onRefreshClicked()
 
+    /** Re-enumerate the mic devices (same lookup as when the screen opens). */
+    fun onRefreshDevicesClicked()
+
     /** Slider dragged (live); nothing is persisted or applied until [onMicGainChangeFinished]. */
     fun onMicGainChanged(value: Int)
 
@@ -164,6 +167,16 @@ class DefaultSettingsComponent(
             }
             _state.value = _state.value.copy(refreshInProgress = false, lastRefreshResultKey = resultKey)
         }
+    }
+
+    override fun onRefreshDevicesClicked() {
+        val devices = deviceProvider.availableDevices()
+        val selected = devices.firstOrNull { it.id == _state.value.selectedDeviceId }
+        _state.value = _state.value.copy(
+            availableDevices = devices,
+            configMicGain = configGainFor(configurationRepository.activeConfig.value, selected),
+        )
+        readDeviceLevel()
     }
 
     override fun onMicGainChanged(value: Int) {

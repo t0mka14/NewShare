@@ -188,6 +188,8 @@ object TestTags {
     /** Settings screen (§3): mic device, site token, installation ID, language, refresh config. */
     object Settings {
         const val DEVICE_SELECT = "settings.deviceSelect"
+        /** Re-enumerates the devices listed in [DEVICE_SELECT]. */
+        const val DEVICE_REFRESH_BUTTON = "settings.deviceRefreshButton"
         /** Microphone level slider under the device dropdown (§13 decision 44). */
         const val MIC_GAIN_SLIDER = "settings.micGainSlider"
         const val MIC_GAIN_VALUE = "settings.micGainValue"

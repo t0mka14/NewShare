@@ -107,6 +107,16 @@ class SettingsComponentTest {
     }
 
     @Test
+    fun `refreshing devices re-enumerates the dropdown items`() {
+        val h = Harness()
+        h.deviceProvider.setDevices(listOf(FakeAudioInputDeviceProvider.INELIGIBLE_DEVICE))
+
+        h.component.onRefreshDevicesClicked()
+
+        assertEquals(listOf(FakeAudioInputDeviceProvider.INELIGIBLE_DEVICE), h.component.state.value.availableDevices)
+    }
+
+    @Test
     fun `refresh success maps to the localized success key`() {
         val h = Harness()
         h.settingsRepository.write(AppSettings(siteToken = "token-1"))

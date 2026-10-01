@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -45,16 +49,24 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(localization.resolve("settings.device.label"), style = MaterialTheme.typography.titleMedium)
-            DropdownSelector(
-                triggerTag = TestTags.Settings.DEVICE_SELECT,
-                selectedLabel = state.availableDevices.firstOrNull { it.id == state.selectedDeviceId }?.name
-                    ?: state.selectedDeviceId.orEmpty(),
-                items = state.availableDevices,
-                itemLabel = { it.name },
-                itemEnabled = { it.eligible },
-                itemTag = { TestTags.Settings.deviceOption(it.id) },
-                onSelected = { component.onDeviceSelected(it.id) },
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DropdownSelector(
+                    triggerTag = TestTags.Settings.DEVICE_SELECT,
+                    selectedLabel = state.availableDevices.firstOrNull { it.id == state.selectedDeviceId }?.name
+                        ?: state.selectedDeviceId.orEmpty(),
+                    items = state.availableDevices,
+                    itemLabel = { it.name },
+                    itemEnabled = { it.eligible },
+                    itemTag = { TestTags.Settings.deviceOption(it.id) },
+                    onSelected = { component.onDeviceSelected(it.id) },
+                )
+                IconButton(
+                    onClick = component::onRefreshDevicesClicked,
+                    modifier = Modifier.testTag(TestTags.Settings.DEVICE_REFRESH_BUTTON),
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh devices")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             // The legacy microphone row: value label + 0..100 slider, disabled until the selected
