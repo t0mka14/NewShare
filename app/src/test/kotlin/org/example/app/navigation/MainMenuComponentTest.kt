@@ -19,7 +19,10 @@ class MainMenuComponentTest {
         defaultLanguage = "en",
     )
 
-    private class Harness(configurationRepository: FakeConfigurationRepository) {
+    private class Harness(
+        configurationRepository: FakeConfigurationRepository,
+        reachable: (String) -> Boolean = { true },
+    ) {
         val dispatchers = TestCoroutineDispatchers()
         var startClicks = 0
         var uploadClicks = 0
@@ -36,6 +39,7 @@ class MainMenuComponentTest {
             onSettingsClicked = { settingsClicks++ },
             onSessionBrowserClicked = { browserClicks++ },
             onLanguageSelectedClicked = { selectedLanguages += it },
+            isUrlReachable = reachable,
         )
     }
 
@@ -118,6 +122,27 @@ class MainMenuComponentTest {
                 MainMenuComponent.ProtocolPdf("Shared", "https://example.org/shared.pdf", project = null),
                 MainMenuComponent.ProtocolPdf("Own", "https://example.org/own.pdf", project = "A"),
             ),
+            h.component.state.value.protocolPdfs,
+        )
+    }
+
+    @Test
+    fun `a declared but unreachable PDF URL is dropped`() {
+        val repo = FakeConfigurationRepository(initialConfig = null)
+        val h = Harness(repo, reachable = { it == "https://example.org/live.pdf" })
+
+        repo.setActiveConfig(
+            sampleConfig().copy(
+                protocols = listOf(
+                    protocol("Live", "https://example.org/live.pdf"),
+                    protocol("Dead", "https://example.org/dead.pdf"),
+                ),
+            ),
+        )
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(
+            listOf(MainMenuComponent.ProtocolPdf("Live", "https://example.org/live.pdf")),
             h.component.state.value.protocolPdfs,
         )
     }

@@ -131,7 +131,9 @@ private fun MenuButtons(
             Text(localization.resolve("mainMenu.settingsButton"), style = buttonText)
         }
 
-        ProtocolPdfButton(component, state, localization, buttonWidth, buttonText)
+        if (state.protocolPdfs.isNotEmpty()) {
+            ProtocolPdfButton(component, state, localization, buttonWidth, buttonText)
+        }
 
         Button(
             onClick = component::onUpload,
@@ -150,7 +152,7 @@ private fun MenuButtons(
 }
 
 /**
- * The original's "Get protocol PDF" button. Disabled when no protocol declares a
+ * The original's "Get protocol PDF" button. Not shown when no protocol declares a reachable
  * `protocolInstructionsPdfUrl`; with exactly one it opens straight away, and with several it
  * drops down a picker of protocol names rather than guessing.
  */
@@ -171,7 +173,6 @@ private fun ProtocolPdfButton(
             onClick = {
                 if (pdfs.size == 1) component.onOpenProtocolPdf(pdfs.first().url) else pickerExpanded = true
             },
-            enabled = pdfs.isNotEmpty(),
             modifier = Modifier.fillMaxWidth().testTag(TestTags.MainMenu.PROTOCOL_PDF_BUTTON),
         ) {
             Text(localization.resolve("mainMenu.protocolPdfButton"), style = textStyle)

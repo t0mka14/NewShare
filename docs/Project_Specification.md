@@ -687,7 +687,7 @@ a centered button column, and the SAMI logo bottom right. Buttons, in order:
 |---|---|---|
 | Start the protocol | an active config exists | protocol picker (>1 protocol) or patient info |
 | Settings | always | Settings (§3) |
-| Get protocol PDF | some protocol declares `protocolInstructionsPdfUrl` | opens that URL in the system browser; with several, a picker of protocol names first |
+| Get protocol PDF | some protocol declares a `protocolInstructionsPdfUrl` that answers a GET with anything but 404/410 (checked on each config change; no answer or not-found hides the button) | opens that URL in the system browser; with several, a picker of protocol names first |
 | Upload | always | upload screen (§8.9) |
 | Sessions | always | session browser (§8.11) |
 
