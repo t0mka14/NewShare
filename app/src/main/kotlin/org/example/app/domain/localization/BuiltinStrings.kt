@@ -61,6 +61,8 @@ object BuiltinStrings {
 
         // Main menu.
         "mainMenu.title" to "Speech examination",
+        "mainMenu.site" to "Site: {name}",
+        "mainMenu.appVersion" to "App version: {version}",
         "mainMenu.startButton" to "New examination",
         "mainMenu.uploadButton" to "Upload",
         "mainMenu.settingsButton" to "Settings",
@@ -247,6 +249,8 @@ object BuiltinStrings {
         "settings.refresh.offline" to "Server není dostupný. Používá se uložená konfigurace.",
 
         "mainMenu.title" to "Vyšetření řeči",
+        "mainMenu.site" to "Pracoviště: {name}",
+        "mainMenu.appVersion" to "Verze aplikace: {version}",
         "mainMenu.startButton" to "Nové vyšetření",
         "mainMenu.uploadButton" to "Odeslání nahrávek",
         "mainMenu.settingsButton" to "Nastavení",

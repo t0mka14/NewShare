@@ -29,9 +29,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.example.app.BuildInfo
 import org.example.app.navigation.MainMenuComponent
 
 /**
@@ -83,11 +85,17 @@ private fun TitleBar(component: MainMenuComponent, localization: UiLocalization)
         // Equal slots either side of the title keep it centered whether or not the language
         // selector is showing.
         Spacer(modifier = Modifier.weight(1f))
-        Text(
-            localization.resolve("mainMenu.title"),
-            style = screenTitleTextStyle(),
-            textAlign = TextAlign.Center,
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                localization.resolve("mainMenu.title"),
+                style = screenTitleTextStyle(),
+                textAlign = TextAlign.Center,
+            )
+            val infoStyle = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+            val version = BuildInfo.appVersion.takeIf { it != BuildInfo.UNKNOWN }?.toString().orEmpty()
+            Text(localization.resolve("mainMenu.site", mapOf("name" to localization.config?.siteName.orEmpty())), style = infoStyle)
+            Text(localization.resolve("mainMenu.appVersion", mapOf("version" to version)), style = infoStyle)
+        }
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             LanguageSelector(component, localization)
         }

@@ -61,6 +61,20 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `siteName and protocol version decode, and are null when absent`() {
+        val bare = ConfigDecoder.decode(minimalConfigJson).config
+        assertEquals(null, bare.siteName)
+        assertEquals(null, bare.protocols[0].version)
+
+        val json = minimalConfigJson
+            .replace("\"configVersion\": \"2026-07-01.1\",", "\"configVersion\": \"2026-07-01.1\", \"siteName\": \"Paris\",")
+            .replace("\"name\": \"Share\",", "\"name\": \"Share\", \"version\": 1,")
+        val config = ConfigDecoder.decode(json).config
+        assertEquals("Paris", config.siteName)
+        assertEquals(1, config.protocols[0].version)
+    }
+
+    @Test
     fun `findProtocol matches name and project, or name alone without a project`() {
         val config = RemoteConfig(
             schemaVersion = 1, configVersion = "v", defaultLanguage = "en",

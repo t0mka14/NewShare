@@ -27,6 +27,7 @@ enum class IndicatorType { CIRCLE, WAVEFORM }
 data class Protocol(
     val name: String,
     val project: String? = null,
+    val version: Int? = null,
     val protocolInstructionsPdfUrl: String? = null,
     val recordingsFileName: String,
     /** Shown after this protocol is picked (config alignment row 6); names are unique per protocol. */
@@ -44,6 +45,8 @@ data class Protocol(
 data class RemoteConfig(
     val schemaVersion: Int,
     val configVersion: String,
+    /** Display name of the site this config belongs to, shown on the main menu. */
+    val siteName: String? = null,
     val defaultLanguage: String,
     val languages: List<String> = emptyList(),
     /**
