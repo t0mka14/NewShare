@@ -32,8 +32,9 @@ interface SessionRepository {
     fun clipsDir(folderName: String): Path
 
     /**
-     * `video/` — one MJPEG elementary stream per VIDEO task attempt. Unlike `master/`, these
-     * enter the processing archive directly (see [SessionArchiveContents]).
+     * `video/` — one MJPEG elementary stream per filmed take. Like `master/`, these are the local
+     * originals and stay out of the processing archive (see [SessionArchiveContents]); the kept
+     * takes reach it as MP4s in `clips/`.
      */
     fun videoDir(folderName: String): Path
 

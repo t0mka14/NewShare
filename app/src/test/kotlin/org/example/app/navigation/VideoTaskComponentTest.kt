@@ -159,7 +159,7 @@ class VideoTaskComponentTest {
         harness.videoState.value = VideoRecorderState.Failed(VideoError.CaptureInterrupted("ffmpeg exited"))
 
         assertEquals(TaskScreenState.Idle, harness.content.screenState)
-        assertEquals(VideoError.CaptureInterrupted("ffmpeg exited"), harness.content.error)
+        assertEquals(VideoError.CaptureInterrupted("ffmpeg exited"), harness.content.feed.error)
         assertEquals(1, harness.takeStops, "the session is told to close the file it opened")
         assertTrue(harness.events.any { it.type == TimelineEventType.TAKE_REJECTED && it.reason == "CAPTURE_FAILED" })
     }
@@ -224,7 +224,7 @@ class VideoTaskComponentTest {
         harness.videoState.value = VideoRecorderState.Failed(VideoError.DeviceUnavailable("none"))
 
         assertFalse(harness.component.state.value.buttons.startEnabled)
-        assertEquals(VideoError.DeviceUnavailable("none"), harness.content.error)
+        assertEquals(VideoError.DeviceUnavailable("none"), harness.content.feed.error)
 
         harness.component.onStart()
 
@@ -239,7 +239,7 @@ class VideoTaskComponentTest {
         harness.videoState.value = VideoRecorderState.Previewing
 
         assertTrue(harness.component.state.value.buttons.startEnabled)
-        assertEquals(null, harness.content.error)
+        assertEquals(null, harness.content.feed.error)
     }
     // region camera startup
 
@@ -253,9 +253,9 @@ class VideoTaskComponentTest {
         val harness = Harness(videoTask)
         harness.videoState.value = VideoRecorderState.Idle
 
-        assertFalse(harness.content.ready)
+        assertFalse(harness.content.feed.ready)
         assertFalse(harness.component.state.value.buttons.startEnabled)
-        assertEquals(null, harness.content.error, "still opening is not an error")
+        assertEquals(null, harness.content.feed.error, "still opening is not an error")
 
         harness.component.onStart()
 
@@ -268,7 +268,7 @@ class VideoTaskComponentTest {
         harness.videoState.value = VideoRecorderState.Idle
         harness.videoState.value = VideoRecorderState.Previewing
 
-        assertTrue(harness.content.ready)
+        assertTrue(harness.content.feed.ready)
         assertTrue(harness.component.state.value.buttons.startEnabled)
 
         harness.component.onStart()
@@ -282,7 +282,7 @@ class VideoTaskComponentTest {
         val harness = Harness(videoTask)
         harness.videoState.value = VideoRecorderState.Stopped
 
-        assertFalse(harness.content.ready)
+        assertFalse(harness.content.feed.ready)
         assertFalse(harness.component.state.value.buttons.startEnabled)
     }
 

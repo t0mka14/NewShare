@@ -49,6 +49,12 @@ data class VocalTask(
     /** Optional example audio, played on demand, never recorded. */
     val audioExamplePath: String? = null,
     override val nrepetition: Int = 1,
+    /**
+     * Also films each take, one file per take exactly as a [VideoTask] does. The live preview
+     * replaces the `indicatorType` widget; there is no PTZ. Start waits for the camera, but no
+     * camera, a failed one, or one still not previewing after a timeout falls back to audio only.
+     */
+    val recordVideo: Boolean = false,
 ) : Task
 
 @Serializable
@@ -96,3 +102,7 @@ data class VideoTask(
     override val nrepetition: Int = 1,
     val havePTZ: Boolean = false,
 ) : Task
+
+/** Whether this task's screen needs the camera: a [VideoTask], or a [VocalTask] with `recordVideo`. */
+val Task.capturesVideo: Boolean
+    get() = this is VideoTask || (this is VocalTask && recordVideo)

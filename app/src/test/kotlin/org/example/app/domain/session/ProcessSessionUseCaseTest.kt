@@ -14,6 +14,8 @@ import org.example.app.domain.upload.UploadStatusValue
 import org.example.app.fakes.FakeAudioClipService
 import org.example.app.fakes.FakeSessionArchiveService
 import org.example.app.fakes.FakeUploadStatusRepository
+import org.example.app.fakes.FakeVideoRemuxService
+import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.fakes.ImmediateCoroutineDispatchers
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.TestAppDirectories
@@ -57,6 +59,7 @@ class ProcessSessionUseCaseTest {
         val timelineRepository = JsonTimelineRepository(directories)
         val uploadStatusRepository = FakeUploadStatusRepository()
         val audioClipService = FakeAudioClipService()
+        val videoRemuxService = FakeVideoRemuxService()
         val archiveService = FakeSessionArchiveService()
         val clock = FakeClock()
         val useCase = ProcessSessionUseCase(
@@ -65,6 +68,7 @@ class ProcessSessionUseCaseTest {
             timelineRepository = timelineRepository,
             uploadStatusRepository = uploadStatusRepository,
             audioClipService = audioClipService,
+            videoRemuxService = videoRemuxService,
             archiveService = archiveService,
             clock = clock,
             dispatchers = ImmediateCoroutineDispatchers(),
@@ -78,6 +82,7 @@ class ProcessSessionUseCaseTest {
             interruptions: List<Interruption> = emptyList(),
             tasks: List<TaskRecord>,
             protocolName: String = "Share",
+            videoTakes: List<VideoTakeRecord> = emptyList(),
         ): Examination {
             sessionRepository.createSessionDirectory(folderName)
             sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
@@ -91,6 +96,7 @@ class ProcessSessionUseCaseTest {
                 captureFormat = captureFormat,
                 interruptions = interruptions,
                 tasks = tasks,
+                videoTakes = videoTakes,
             )
             sessionRepository.writeExamination(folderName, examination)
             return examination
@@ -342,4 +348,119 @@ class ProcessSessionUseCaseTest {
         assertEquals(ProcessingStatus.Failed, f.sessionRepository.readExamination(f.folderName)!!.processing?.status)
         assertNull(f.sessionRepository.readExamination(f.folderName)!!.processing?.timelineUsed)
     }
+
+    // region video
+
+    private fun videoTake(taskIndex: Int, take: Int, fps: Int = 30) = VideoTakeRecord(
+        file = "video/task%02d_rep01_take%02d.mjpeg".format(taskIndex, take),
+        taskIndex = taskIndex,
+        repetition = 1,
+        take = take,
+        captureFormat = VideoCaptureFormat(1920, 1080, fps),
+    )
+
+    /** Filming VOCAL (take 1 rejected, take 2 kept), a VIDEO task with no subtype, and a plain VOCAL. */
+    private fun Fixture.setUpFilmingSession(captureFormat: CaptureFormat? = format48k) {
+        val takes = listOf(videoTake(0, 1), videoTake(0, 2), videoTake(1, 1, fps = 15))
+        setUpSession(
+            captureFormat = captureFormat,
+            tasks = listOf(
+                TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 2),
+                TaskRecord(taskIndex = 1, type = "VIDEO", subtype = null, repetition = 1, takes = 1),
+                TaskRecord(taskIndex = 2, type = "VOCAL", subtype = "PATAKA", repetition = 1, takes = 1),
+            ),
+            videoTakes = takes,
+        )
+        takes.forEach { writeStray(it.file) }
+        writeOriginal(
+            listOf(
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 0), event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 1000),
+                event(TimelineEventType.TAKE_REJECTED, 0, 1, 1, 1000),
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 2, 1100), event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 2, 2000),
+                event(TimelineEventType.START_BUTTON_PRESSED, 1, 1, 1, 2100), event(TimelineEventType.STOP_BUTTON_PRESSED, 1, 1, 1, 3000),
+                event(TimelineEventType.START_BUTTON_PRESSED, 2, 1, 1, 3100), event(TimelineEventType.STOP_BUTTON_PRESSED, 2, 1, 1, 4000),
+            ),
+        )
+    }
+
+    @Test
+    fun `the kept take of every filming instance is remuxed into clips under its audio clip name`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpFilmingSession()
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+
+        val sessionDir = f.sessionRepository.sessionDir(f.folderName)
+        val clipsDir = f.sessionRepository.clipsDir(f.folderName)
+        assertEquals(
+            listOf(
+                FakeVideoRemuxService.Call(sessionDir.resolve("video/task00_rep01_take02.mjpeg"), 30, clipsDir.resolve("install1_HC001_0_PHONATION_1.mp4")),
+                FakeVideoRemuxService.Call(sessionDir.resolve("video/task01_rep01_take01.mjpeg"), 15, clipsDir.resolve("install1_HC001_1_VIDEO_1.mp4")),
+            ),
+            f.videoRemuxService.calls,
+            "the rejected take 1 is not remuxed, and the video sits next to its audio clip",
+        )
+
+        val tasks = f.sessionRepository.readExamination(f.folderName)!!.tasks.associateBy { it.taskIndex }
+        assertEquals("clips/install1_HC001_0_PHONATION_1.mp4", tasks.getValue(0).videoFile)
+        assertEquals("clips/install1_HC001_0_PHONATION_1.wav", tasks.getValue(0).clipFile)
+        assertEquals("clips/install1_HC001_1_VIDEO_1.mp4", tasks.getValue(1).videoFile)
+        assertNull(tasks.getValue(2).videoFile, "a VOCAL task that filmed nothing gets no video")
+
+        val entries = f.archiveService.buildCalls.single().entries.map { it.zipPath }
+        assertTrue("clips/install1_HC001_0_PHONATION_1.mp4" in entries)
+        assertTrue("clips/install1_HC001_1_VIDEO_1.mp4" in entries)
+        assertTrue(entries.none { it.startsWith("video/") }, "raw takes stay out of the ZIP: $entries")
+    }
+
+    @Test
+    fun `a failed remux fails processing`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpFilmingSession()
+        f.videoRemuxService.failWith = "frame count mismatch"
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        val error = (outcome as ProcessSessionUseCase.Outcome.Failed).error
+        assertEquals(ProcessingError.VideoRemux(0, 1, "frame count mismatch"), error)
+        assertEquals(ProcessingStatus.Failed, f.sessionRepository.readExamination(f.folderName)!!.processing?.status)
+    }
+
+    /** No master, so no clip cutting — the template and field values are still needed for video. */
+    @Test
+    fun `a video-only session is remuxed too`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = null,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VIDEO", subtype = "EMOTIONS", repetition = 1, takes = 1)),
+            videoTakes = listOf(videoTake(0, 1)),
+        )
+        f.writeStray("video/task00_rep01_take01.mjpeg")
+        f.writeOriginal(
+            listOf(event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 0), event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 0)),
+        )
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+        assertEquals(listOf("install1_HC001_0_EMOTIONS_1.mp4"), f.videoRemuxService.calls.map { it.output.fileName.toString() })
+        assertTrue(f.audioClipService.cutClipCalls.isEmpty())
+    }
+
+    /** A camera that died before its first frame leaves an empty file; the audio take is still good. */
+    @Test
+    fun `an empty take file is skipped without failing processing`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpFilmingSession()
+        Files.write(f.sessionRepository.sessionDir(f.folderName).resolve("video/task00_rep01_take02.mjpeg"), ByteArray(0))
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+        assertEquals(listOf(1), f.videoRemuxService.calls.map { it.output.fileName.toString().split('_')[2].toInt() })
+        assertNull(f.sessionRepository.readExamination(f.folderName)!!.tasks.first { it.taskIndex == 0 }.videoFile)
+    }
+
+    // endregion
 }

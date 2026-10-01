@@ -90,6 +90,9 @@ object TestTags {
         /** VIDEO task: shown while the camera is opening, before the first frame. */
         const val VIDEO_STARTING = "task.videoStarting"
 
+        /** VOCAL task with `recordVideo`: the camera is unusable and takes record audio only. */
+        const val VIDEO_AUDIO_ONLY = "task.videoAudioOnly"
+
         /** VIDEO task: PTZ cluster. Absent unless the host has a PTZ backend *and* `havePTZ`. */
         const val PTZ_CONTROLS = "task.ptzControls"
         fun ptzButton(action: String) = "task.ptz.$action"

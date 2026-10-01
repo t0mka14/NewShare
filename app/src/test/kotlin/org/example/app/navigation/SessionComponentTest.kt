@@ -13,6 +13,7 @@ import org.example.app.domain.config.VocalTask
 import org.example.app.domain.session.StartSessionUseCase
 import org.example.app.domain.session.StorageError
 import org.example.app.domain.video.VideoCaptureFormat
+import org.example.app.domain.video.VideoRecorderState
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioPlaybackService
@@ -512,7 +513,7 @@ class SessionComponentTest {
 
         val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
         val content = task.state.value.content as TaskComponent.Content.Video
-        assertTrue(content.ready, "the fake reaches Previewing immediately")
+        assertTrue(content.feed.ready, "the fake reaches Previewing immediately")
 
         // Drop back to a not-ready state and confirm Start is refused.
         h.videoRecorder!!.simulateFailure(org.example.app.domain.video.VideoError.CaptureInterrupted("gone"))
@@ -602,6 +603,86 @@ class SessionComponentTest {
         task.onStop()
         h.dispatchers.scheduler.advanceUntilIdle()
 
+        assertTrue(h.sessionRepository.examinationWrites.all { it.videoTakes.isEmpty() })
+    }
+
+    // endregion
+
+    // region VOCAL with recordVideo
+
+    private val filmingVocalProtocol = Protocol(
+        name = "FilmingVocal",
+        recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
+        tasks = listOf(
+            VocalTask(titleKey = "vocal", subtype = VocalSubtype.MONOLOGUE, recordVideo = true),
+            InfoTask(titleKey = "info"),
+        ),
+    )
+
+    /** A filming VOCAL task needs the camera exactly as a VIDEO task does, and only on its own screen. */
+    @Test
+    fun `a filming VOCAL task opens the camera on its screen and releases it on leaving`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(filmingVocalProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.videoDeviceProvider.enumerationCount)
+        assertEquals(1, h.videoRecorder!!.previewStarts.size)
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.videoRecorder!!.stopCallCount, "the INFO screen does not keep the camera")
+    }
+
+    @Test
+    fun `a filming VOCAL task gets no PTZ controller`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(filmingVocalProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(emptyList<FakePtzController>(), h.ptzControllers)
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertTrue(task.state.value.content is TaskComponent.Content.Vocal)
+    }
+
+    @Test
+    fun `a filming VOCAL take writes a video file alongside the audio take`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(filmingVocalProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val takes = h.sessionRepository.examinationWrites.last().videoTakes
+        assertEquals(listOf("video/task00_rep01_take01.mjpeg"), takes.map { it.file })
+
+        task.onStop()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(VideoRecorderState.Previewing, h.videoRecorder!!.state.value, "stop closes the file, not the camera")
+    }
+
+    /** With no camera the take still records audio; the missing `videoTakes[]` entry says so. */
+    @Test
+    fun `a filming VOCAL task without a camera records audio only`() {
+        val h = Harness(withCamera = false)
+        val component = h.build(filmingVocalProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertTrue(task.state.value.buttons.startEnabled)
+
+        task.onStart()
+        task.onStop()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val events = h.timelineRepository.readEventLog(h.sessionRepository.listSessionFolderNames().single()).events
+        assertTrue(events.any { it.type == TimelineEventType.STOP_BUTTON_PRESSED })
         assertTrue(h.sessionRepository.examinationWrites.all { it.videoTakes.isEmpty() })
     }
 

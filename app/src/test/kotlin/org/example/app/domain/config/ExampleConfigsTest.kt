@@ -85,4 +85,12 @@ class ExampleConfigsTest {
             "each VIDEO repetition must occupy its own task instance",
         )
     }
+
+    @Test
+    fun `the full example has a VOCAL task that also films`() {
+        val file = configs.single { it.name == "full_example_config.json" }
+        val tasks = ConfigDecoder.decode(file.readText()).config.protocols.first().tasks
+
+        assertTrue(tasks.filterIsInstance<VocalTask>().any { it.recordVideo })
+    }
 }

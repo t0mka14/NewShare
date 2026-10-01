@@ -13,10 +13,11 @@ package org.example.app.domain.session
  * bookkeeping, not clinical data), and `master/` (the *raw* master directory — the archive gets
  * a single synthesized, converted/concatenated `master/session_master.wav` entry from a
  * temp-staged file instead, so the immutable original part file(s) are never read into the ZIP
- * directly, §8.1).
+ * directly, §8.1), and `video/` (the raw MJPEG takes — the kept ones go into the ZIP as
+ * MP4s under `clips/`, which hold the very same frames in a container players can open).
  */
 object SessionArchiveContents {
-    private val excludedTopLevelDirs = setOf("archive", "waveform_cache", "metadata", "master")
+    private val excludedTopLevelDirs = setOf("archive", "waveform_cache", "metadata", "master", "video")
     private val excludedFiles = setOf("timeline.events.jsonl")
 
     fun isIncluded(relativePath: String): Boolean {

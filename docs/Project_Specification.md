@@ -330,7 +330,8 @@ record a master WAV at all.**
 
 `indicatorType` selects the live recording feedback on VOCAL task screens: `CIRCLE` — a
 pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — a rolling ~3 s
-amplitude envelope drawn on a canvas. Both consume `ContinuousSessionRecorder.levels`.
+amplitude envelope drawn on a canvas. Both consume `ContinuousSessionRecorder.levels`. A VOCAL
+task with `recordVideo` shows the live camera preview there instead (§13 decision 23).
 
 Config-level fields: `schemaVersion`, `configVersion`, `defaultLanguage`, `languages`,
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
@@ -406,7 +407,8 @@ data/
     timeline_edited.json          (only if editor was used)
     master/session_master.wav
     waveform_cache/master_waveform.cache
-    clips/                        (per recordingsFileName template)
+    video/                        (raw MJPEG takes; local only, not zipped)
+    clips/                        (per recordingsFileName template: .wav, and .mp4 for filmed takes)
     archive/<PatientCode>_<SessionId>.zip
     metadata/upload_status.json
   logs/app.log
@@ -563,16 +565,21 @@ VOCAL task instance; the editor shows one segment at a time.
 3. Write clips to `clips/` named by the protocol's `recordingsFileName` template
    (variables: `${installationId}`, `${taskIndex}`, `${task.subtype}`, `${repetition}`,
    `${field.<name>}` with values read from `participant.json`).
-4. Build `archive/<PatientCode>_<SessionId>.zip` containing: `participant.json`,
+4. Remux the last take's video of each filming instance (VIDEO, or VOCAL with `recordVideo`)
+   into `clips/` as `<same name>.mp4`, by stream copy with every frame kept (§13 decision 23).
+   An instance whose kept take has no `videoTakes[]` entry (audio-only fallback) or an empty
+   file gets no MP4; a remux that fails or loses a frame fails processing.
+5. Build `archive/<PatientCode>_<SessionId>.zip` containing: `participant.json`,
    `examination.json`, `task_configuration_snapshot.json`, `timeline_original.json`,
-   `timeline_edited.json` (if present), `master/session_master.wav`, `clips/*`, and
+   `timeline_edited.json` (if present), `master/session_master.wav`, `clips/*` (WAV and MP4), and
    `manifest.json` (SHA-256 of every included file + sessionId + configVersion).
    **Excluded:** `archive/` itself, `waveform_cache/`, `timeline.events.jsonl`,
-   `metadata/`.
-5. Update `examination.json` with clip paths, processing status, `timelineUsed`.
+   `metadata/`, and the raw `video/` takes.
+6. Update `examination.json` with clip and video paths (`clipFile`, `videoFile`), processing
+   status, `timelineUsed`.
 
 **No-master sessions** (questionnaire/info-only protocols, §6.2): steps 2–3 are skipped and
-there is no `master/` or `clips/`. The event log still exists (events carry
+there is no `master/`; `clips/` exists only if step 4 produced video (a VIDEO-only protocol). The event log still exists (events carry
 `"sampleOffset": null`); processing means building the ZIP + manifest from the JSON files
 only.
 
@@ -948,10 +955,19 @@ Error taxonomy (normative, inlined from the old plan):
       when the take opens, so a crash mid-take still leaves the rate on record. The reported rate is
       the one `-r` enforced rather than the one the camera advertised, so it always describes the
       file rather than the device.
-      **Still not implemented:** no remux. Nothing in `ProcessSessionUseCase` touches video, so
-      `video/*.mjpeg` enters the archive as a bare elementary stream (as `SessionRepository.videoDir`
-      states). A consumer must remux using the rate from `videoTakes[]`, e.g.
-      `ffmpeg -f mjpeg -r <fps> -i <file> -c:v copy out.mp4`.
+      **Processing remuxes the kept take to MP4** (added 2026-09-30, §8.8). For every filming
+      instance, the last stopped take (the same take whose audio is cut) becomes
+      `clips/<recordingsFileName>.mp4`, next to its audio clip, via
+      `ffmpeg -f mjpeg -framerate <videoTakes[].captureFormat.fps> -i <take> -c:v copy`. That is a
+      stream copy: no decode or encode, and no frame dropped or duplicated, because
+      cheek-movement analysis measures the frames themselves. The frame count of the MP4 is
+      checked against the source's (counted by `MjpegFrameSplitter`), and a mismatch fails
+      processing. A half-written final JPEG from a crash is cut off by `-frames:v`. Rejected
+      takes are not exported. The raw `video/*.mjpeg` takes stay on disk and are **excluded from
+      the ZIP**, since the MP4s carry the same bytes. Frames are timed at a constant `n / fps`
+      because the stream has no timestamps: a camera that delivered fewer frames than it
+      advertised therefore plays slightly fast, with every frame present. Older notes about a
+      consumer having to remux apply only to the raw files.
       The mode actually negotiated is read back from ffmpeg's stream
       banner and is what the remux uses — recordings carry no timestamps of their own, so a
       wrong frame rate would alter playback speed.
@@ -977,6 +993,19 @@ Error taxonomy (normative, inlined from the old plan):
       the sole site permitted to name a platform implementation, so the COM classes are never
       loaded off Windows rather than merely never called; a `havePTZ: true` task renders no
       controls there. Enforced by `PtzPlatformIsolationTest`.
+    - **A VOCAL task can film too** (added 2026-09-30). Its `recordVideo` flag films each take
+      alongside the audio, sharing all of the VIDEO machinery above: the same per-screen camera
+      refcount (a filming VOCAL screen counts as a video screen, so the camera stays open across
+      a VOCAL-with-video → VIDEO transition), the same file naming and `videoTakes[]` entries.
+      The preview replaces the `indicatorType` widget, and there is no PTZ: the controller is
+      only built for a `VideoTask`. Audio is what the task exists for, so the camera may delay it
+      but never prevent it. Start is refused while the camera is still opening, as for VIDEO, but
+      no camera, a `Failed` camera, or one still not previewing 10 s
+      (`DefaultTaskComponent.CAMERA_WAIT_TIMEOUT`) after the screen opened switches the screen to
+      audio only, and Start records without video. A camera failure mid-take stops only the video;
+      the audio take is not rejected, unlike VIDEO's `CAPTURE_FAILED`. A camera that comes up after
+      the fallback films the next take, because the session films only a previewing camera. A
+      take without a `videoTakes[]` entry was therefore recorded audio only.
 24. **RichText edge semantics:** an unresolved `{placeholder}` renders literally (visible
     failure, consistent with §7's key-fallback philosophy).
 25. **Config fetch timeouts:** 15 s request / 10 s connect are the confirmed defaults for

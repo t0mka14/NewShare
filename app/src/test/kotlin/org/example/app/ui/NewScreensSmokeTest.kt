@@ -245,6 +245,7 @@ class NewScreensSmokeTest {
                 timelineRepository = timelineRepository,
                 uploadStatusRepository = FakeUploadStatusRepository(),
                 audioClipService = FakeAudioClipService(),
+                videoRemuxService = org.example.app.fakes.FakeVideoRemuxService(),
                 archiveService = FakeSessionArchiveService(),
                 clock = FakeClock(),
                 dispatchers = dispatchers,

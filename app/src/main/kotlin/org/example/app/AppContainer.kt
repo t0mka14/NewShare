@@ -21,8 +21,10 @@ import org.example.app.domain.video.PtzController
 import org.example.app.domain.video.SessionVideoRecorder
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoInputDeviceProvider
+import org.example.app.domain.video.VideoRemuxService
 import org.example.app.infrastructure.video.FfmpegDeviceEnumerator
 import org.example.app.infrastructure.video.FfmpegSessionVideoRecorder
+import org.example.app.infrastructure.video.FfmpegVideoRemuxService
 import org.example.app.infrastructure.DefaultAppDirectories
 import org.example.app.infrastructure.UuidIdGenerator
 import org.example.app.infrastructure.audio.JvmAudioClipService
@@ -79,6 +81,8 @@ class AppContainer(
     /** OS-level microphone gain, addressed by device name (§13 decision 44). */
     val audioInputGainControl: AudioInputGainControl = JvmAudioInputGainControl(),
     val audioClipService: AudioClipService = JvmAudioClipService(),
+    /** Processing's MJPEG → MP4 stream copy (§8.8). */
+    val videoRemuxService: VideoRemuxService = FfmpegVideoRemuxService(),
     val waveformService: WaveformService = JvmWaveformService(),
     val audioPlaybackService: AudioPlaybackService = JvmAudioPlaybackService(),
     /**
@@ -161,6 +165,7 @@ class AppContainer(
         timelineRepository = timelineRepository,
         uploadStatusRepository = uploadStatusRepository,
         audioClipService = audioClipService,
+        videoRemuxService = videoRemuxService,
         archiveService = sessionArchiveService,
         clock = clock,
         dispatchers = dispatchers,

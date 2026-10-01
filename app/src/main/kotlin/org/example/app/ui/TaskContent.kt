@@ -77,8 +77,12 @@ import org.example.app.navigation.TaskScreenState
 fun TaskContent(component: TaskComponent, localization: UiLocalization) {
     val state by component.state.subscribeAsState()
     val vocal = state.content as? TaskComponent.Content.Vocal
-    val capturing = vocal?.screenState is TaskScreenState.Capturing
-    val elapsedSeconds = rememberElapsedSeconds(capturing = capturing, resetKey = vocal?.takeNumber)
+    val video = state.content as? TaskComponent.Content.Video
+    val capturing = (vocal?.screenState ?: video?.screenState) is TaskScreenState.Capturing
+    val elapsedSeconds = rememberElapsedSeconds(
+        capturing = capturing,
+        resetKey = vocal?.takeNumber ?: video?.takeNumber,
+    )
 
     Column(
         modifier = Modifier.fillMaxSize().padding(all = 20.dp),
@@ -91,11 +95,15 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         // Instructions field, with the example-audio utility row between the two cards
         InstructionsField(component, state, localization, Modifier.contentWidth(1500.dp))
 
-        // Middle area: recording circle / live waveform (VOCAL) or the questionnaire.
+        // Middle area: recording circle / live waveform (VOCAL), the camera preview (VIDEO, or
+        // VOCAL with `recordVideo` — shown even without `showIndicator`, since the examiner
+        // frames the shot by it) or the questionnaire.
         // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
         Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             when (val content = state.content) {
-                is TaskComponent.Content.Vocal -> if (content.showIndicator) {
+                is TaskComponent.Content.Vocal -> if (content.video != null) {
+                    VideoPreview(content.video, Modifier.contentWidth(1500.dp).fillMaxHeight())
+                } else if (content.showIndicator) {
                     TaskLevelIndicator(
                         indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
                         level = content.level,
@@ -341,8 +349,12 @@ private fun BottomButtonRow(component: TaskComponent, state: TaskComponent.State
         // keeps the state button centered. There is no back navigation in this app.
         Spacer(modifier = Modifier.weight(1f))
 
-        if (state.content is TaskComponent.Content.Vocal) {
-            StartStateButton(component, state.content.screenState, state.buttons, localization)
+        when (val content = state.content) {
+            is TaskComponent.Content.Vocal ->
+                StartStateButton(component, content.screenState, state.buttons, localization)
+            is TaskComponent.Content.Video ->
+                StartStateButton(component, content.screenState, state.buttons, localization)
+            else -> Unit
         }
 
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {

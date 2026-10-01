@@ -53,14 +53,14 @@ class SessionArchiveContentsTest {
     }
 
     /**
-     * VIDEO recordings ride into the upload ZIP because `video/` is simply not excluded. That
-     * is deliberate — the ZIP is the entire upload payload, so anything not in it never reaches
-     * the server — but it is exactly the kind of implicit inclusion worth pinning: adding
-     * "video" to the exclusion set would silently stop shipping clinical data.
+     * Video reaches the server as the MP4s processing writes into `clips/` — the very same frames
+     * as the raw takes, in a container players open. The raw `video/` takes stay on disk only;
+     * shipping both would double every upload. The ZIP is the entire upload payload, so this pair
+     * of assertions is what guarantees the video still gets there.
      */
     @Test
-    fun `video recordings are included in the archive`() {
-        assertTrue(SessionArchiveContents.isIncluded("video/task03_rep01_take01.mjpeg"))
-        assertTrue(SessionArchiveContents.isIncluded("video/task03_rep01_take01.mkv"))
+    fun `video ships as the clips MP4s, not as the raw takes`() {
+        assertTrue(SessionArchiveContents.isIncluded("clips/install1_HC001_3_MONOLOGUE_1.mp4"))
+        assertFalse(SessionArchiveContents.isIncluded("video/task03_rep01_take01.mjpeg"))
     }
 }

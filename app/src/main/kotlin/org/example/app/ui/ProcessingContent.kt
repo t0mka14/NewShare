@@ -73,6 +73,7 @@ fun ProcessingContent(component: ProcessingComponent, localization: UiLocalizati
 private fun stepKey(step: ProcessSessionUseCase.Step): String = when (step) {
     ProcessSessionUseCase.Step.SELECTING_TIMELINE -> "processing.step.selectingTimeline"
     ProcessSessionUseCase.Step.CUTTING_CLIPS -> "processing.step.cuttingClips"
+    ProcessSessionUseCase.Step.CONVERTING_VIDEO -> "processing.step.convertingVideo"
     ProcessSessionUseCase.Step.BUILDING_ARCHIVE -> "processing.step.buildingArchive"
     ProcessSessionUseCase.Step.UPDATING_METADATA -> "processing.step.updatingMetadata"
 }

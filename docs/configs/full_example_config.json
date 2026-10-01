@@ -129,7 +129,8 @@
           "showIndicator": false,
           "canRepeat": true,
           "canSkip": false,
-          "nrepetition": 1
+          "nrepetition": 1,
+          "recordVideo": true
         },
         {
           "type": "VOCAL",

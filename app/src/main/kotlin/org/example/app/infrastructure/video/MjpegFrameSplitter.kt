@@ -30,6 +30,9 @@ internal class MjpegFrameSplitter(
     var resyncCount: Long = 0
         private set
 
+    /** Bytes held back as the start of a frame not yet complete — at end of input, a truncated tail. */
+    val pendingBytes: Int get() = size
+
     fun append(src: ByteArray, offset: Int, length: Int) {
         if (length <= 0) return
         ensureCapacity(size + length)

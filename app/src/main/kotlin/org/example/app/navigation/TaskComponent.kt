@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioError
@@ -22,6 +23,7 @@ import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.Task
 import org.example.app.domain.config.VocalSubtype
 import org.example.app.domain.config.VocalTask
+import org.example.app.domain.config.capturesVideo
 import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.timeline.TaskInstance
 import org.example.app.domain.config.VideoTask
@@ -34,6 +36,7 @@ import org.example.app.domain.video.VideoRecorderState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * §8.6 task screen state machine for a VOCAL task instance. Exhaustive over
@@ -92,6 +95,37 @@ data class TaskButtonState(
     }
 }
 
+/**
+ * The camera preview of a filming task screen — a VIDEO task, or a VOCAL one with `recordVideo`.
+ *
+ * [frames] is a flow rather than the frame itself, deliberately. Republishing the whole
+ * screen state thirty times a second would recompose the task screen for every frame;
+ * `ui/VideoSurface.kt` collects this and invalidates only its own draw phase.
+ */
+data class VideoFeed(
+    val frames: StateFlow<ByteArray?>,
+    /**
+     * Where `ui/VideoSurface.kt` decodes [frames]. Carried here because the UI layer has
+     * no other route to an injected dispatcher and must not name `Dispatchers.*` itself
+     * (§5.2) — and this must not default to the composition's dispatcher: JPEG decode on
+     * the EDT put the preview in direct competition with input handling and rendering.
+     */
+    val decodeDispatcher: CoroutineDispatcher,
+    /**
+     * False while the camera is still opening. Entering the screen starts the capture
+     * process, and negotiation may walk several modes, so there is a real window in
+     * which no frames exist yet and a take cannot be started.
+     */
+    val ready: Boolean,
+    /** Set when capture failed; the screen shows it inline rather than as a dialog. */
+    val error: VideoError?,
+    /**
+     * VOCAL only: the camera is missing, failed, or did not come up in time, so takes record
+     * audio without video. Always false for a VIDEO task, which has nothing to fall back to.
+     */
+    val audioOnly: Boolean = false,
+)
+
 /** One question's answer-in-progress (§8.6 QUESTIONNAIRE rendering). */
 data class AnswerState(
     val selected: List<String> = emptyList(),
@@ -143,6 +177,8 @@ interface TaskComponent {
             val showIndicator: Boolean,
             val exampleAudioAvailable: Boolean,
             val exampleAudioPlaying: Boolean,
+            /** The camera preview, shown in place of the level indicator; `null` unless `recordVideo`. */
+            val video: VideoFeed? = null,
         ) : Content
 
         data class Questionnaire(
@@ -152,33 +188,13 @@ interface TaskComponent {
             val allValid: Boolean,
         ) : Content
 
-        /**
-         * [frames] is a flow rather than the frame itself, deliberately. Republishing the whole
-         * screen state thirty times a second would recompose the task screen for every frame;
-         * `ui/VideoSurface.kt` collects this and invalidates only its own draw phase.
-         */
         data class Video(
             val screenState: TaskScreenState,
             val takeNumber: Int,
-            val frames: StateFlow<ByteArray?>,
-            /**
-             * Where `ui/VideoSurface.kt` decodes [frames]. Carried here because the UI layer has
-             * no other route to an injected dispatcher and must not name `Dispatchers.*` itself
-             * (§5.2) — and this must not default to the composition's dispatcher: JPEG decode on
-             * the EDT put the preview in direct competition with input handling and rendering.
-             */
-            val decodeDispatcher: CoroutineDispatcher,
-            /**
-             * False while the camera is still opening. Entering the screen starts the capture
-             * process, and negotiation may walk several modes, so there is a real window in
-             * which no frames exist yet and a take cannot be started.
-             */
-            val ready: Boolean,
+            val feed: VideoFeed,
             /** True only where a PTZ backend exists *and* the task asked for PTZ. */
             val ptzAvailable: Boolean,
             val zoom: StateFlow<Int?>,
-            /** Set when capture failed; the screen shows it inline rather than as a dialog. */
-            val error: VideoError?,
         ) : Content
 
         data object Info : Content
@@ -286,6 +302,8 @@ class DefaultTaskComponent(
     private var answers: Map<String, AnswerState> = initialAnswers()
     private var videoError: VideoError? = null
     private var videoReady = false
+    /** VOCAL with `recordVideo` only: Start no longer waits for the camera. Never reset. */
+    private var videoAudioOnly = false
 
     private val _state = MutableValue(buildState())
     override val state: Value<TaskComponent.State> = _state
@@ -312,20 +330,38 @@ class DefaultTaskComponent(
             }
         }
 
-        if (task is VideoTask && videoState != null) {
+        if (task.capturesVideo && videoState != null) {
             scope.launch(dispatchers.main) {
                 videoState.collect { vs ->
                     videoError = (vs as? VideoRecorderState.Failed)?.error
                     videoReady = vs == VideoRecorderState.Previewing || vs == VideoRecorderState.Recording
-                    if (videoError != null && screenState is TaskScreenState.Capturing) {
+                    if (videoError != null && task is VocalTask) {
+                        // No camera, or it died: the task goes on with audio alone. A take in
+                        // progress keeps its audio; only its video ends.
+                        if (screenState is TaskScreenState.Capturing) onVideoTakeStopped()
+                        videoAudioOnly = true
+                    } else if (videoError != null && screenState is TaskScreenState.Capturing) {
                         // Capture died mid-take. Reject the take and return to Idle rather than
                         // leaving a Stop button that would imply a recording exists; the error
-                        // itself rides on Content.Video so the screen can show it inline.
+                        // itself rides on the video feed so the screen can show it inline.
                         // (TaskScreenState.Failed is not usable here — it carries an AudioError.)
                         eventLogger(TimelineEventType.TAKE_REJECTED, currentTake, REASON_CAPTURE_FAILED)
                         onVideoTakeStopped()
                         screenState = TaskScreenState.Idle
                     }
+                    publish()
+                }
+            }
+        }
+
+        if (task is VocalTask && task.recordVideo) {
+            // A camera that neither previews nor fails is not worth holding the examination up
+            // for: after the wait, Start records audio alone. Should the camera come up later, the
+            // next take still films, because the session starts video only when it is previewing.
+            scope.launch(dispatchers.main) {
+                delay(CAMERA_WAIT_TIMEOUT)
+                if (!videoReady && !videoAudioOnly) {
+                    videoAudioOnly = true
                     publish()
                 }
             }
@@ -348,17 +384,14 @@ class DefaultTaskComponent(
         currentTake += 1
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
-        if (task is VideoTask) {
-            videoError = null
-            onVideoTakeStarted(currentTake)
-        }
+        startVideoTake()
         publish()
     }
 
     override fun onStop() {
         if (!isCapturingType) return
         if (screenState !is TaskScreenState.Capturing) return
-        if (task is VideoTask) onVideoTakeStopped()
+        if (task.capturesVideo) onVideoTakeStopped()
         eventLogger(TimelineEventType.STOP_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Stopped
         publish()
@@ -372,11 +405,19 @@ class DefaultTaskComponent(
         currentTake += 1
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
-        if (task is VideoTask) {
-            videoError = null
-            onVideoTakeStarted(currentTake)
-        }
+        startVideoTake()
         publish()
+    }
+
+    /**
+     * Asks the session to film this take. A VIDEO task clears a previous failure, since Start
+     * means the camera is previewing again. A VOCAL one keeps its error on screen: in the
+     * audio-only fallback the session simply finds no previewing camera and films nothing.
+     */
+    private fun startVideoTake() {
+        if (!task.capturesVideo) return
+        if (task is VideoTask) videoError = null
+        onVideoTakeStarted(currentTake)
     }
 
     override fun onPtz(action: PtzAction) {
@@ -391,8 +432,16 @@ class DefaultTaskComponent(
      * A camera that is not previewing — still opening, or failed — would record nothing.
      * Enforced here and not only by the disabled button, so a keyboard path or a caller that
      * bypasses the UI cannot open an empty take and inflate the take counter.
+     *
+     * A VOCAL task waits only while the camera is still opening; once it falls back to audio
+     * only, there is a recording to make without it.
      */
-    private val videoCaptureUnavailable: Boolean get() = task is VideoTask && !videoReady
+    private val videoCaptureUnavailable: Boolean
+        get() = when {
+            task is VideoTask -> !videoReady
+            task.capturesVideo -> !videoReady && !videoAudioOnly
+            else -> false
+        }
 
     override fun onNext() {
         when (task) {
@@ -526,6 +575,8 @@ class DefaultTaskComponent(
     private fun onInterrupted() {
         if (screenState is TaskScreenState.Capturing) {
             eventLogger(TimelineEventType.TAKE_REJECTED, currentTake, REASON_DEVICE_LOST)
+            // The take is gone, so its video must not keep filming until the next Stop.
+            if (task.capturesVideo) onVideoTakeStopped()
             screenState = TaskScreenState.Idle
         }
         deviceLost = true
@@ -570,6 +621,14 @@ class DefaultTaskComponent(
         _state.value = buildState()
     }
 
+    private fun videoFeed(): VideoFeed = VideoFeed(
+        frames = videoFrames ?: emptyFrames,
+        decodeDispatcher = dispatchers.default,
+        ready = videoReady,
+        error = videoError,
+        audioOnly = videoAudioOnly,
+    )
+
     private fun buildState(): TaskComponent.State {
         val content: TaskComponent.Content = when (task) {
             is VocalTask -> TaskComponent.Content.Vocal(
@@ -580,6 +639,7 @@ class DefaultTaskComponent(
                 showIndicator = task.showIndicator,
                 exampleAudioAvailable = resolvedAudioExamplePath != null,
                 exampleAudioPlaying = exampleAudioPlaying,
+                video = if (task.recordVideo) videoFeed() else null,
             )
 
             is QuestionnaireTask -> TaskComponent.Content.Questionnaire(
@@ -591,13 +651,10 @@ class DefaultTaskComponent(
             is VideoTask -> TaskComponent.Content.Video(
                 screenState = screenState,
                 takeNumber = currentTake,
-                frames = videoFrames ?: emptyFrames,
-                decodeDispatcher = dispatchers.default,
+                feed = videoFeed(),
                 // Both halves matter: a config may ask for PTZ on a host that has no backend.
-                ready = videoReady,
                 ptzAvailable = task.havePTZ && ptzController.isAvailable,
                 zoom = ptzController.zoom,
-                error = videoError,
             )
 
             is InfoTask -> TaskComponent.Content.Info
@@ -609,7 +666,7 @@ class DefaultTaskComponent(
             val base = TaskButtonState.of(screenState, task.canRepeat, task.canSkip)
             // With no camera previewing there is nothing to record, so offering Start would
             // produce an empty take and a take counter that lies about it.
-            if (task is VideoTask && !videoReady) {
+            if (videoCaptureUnavailable) {
                 base.copy(startEnabled = false, repeatEnabled = false)
             } else {
                 base
@@ -653,5 +710,8 @@ class DefaultTaskComponent(
         const val REASON_DEVICE_LOST = "DEVICE_LOST"
         const val REASON_CAPTURE_FAILED = "CAPTURE_FAILED"
         val emptyFrames: StateFlow<ByteArray?> = MutableStateFlow(null)
+
+        /** How long a VOCAL `recordVideo` task holds Start back for a camera that is still opening. */
+        val CAMERA_WAIT_TIMEOUT = 10.seconds
     }
 }

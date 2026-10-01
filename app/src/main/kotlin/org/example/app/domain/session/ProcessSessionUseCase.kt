@@ -1,5 +1,6 @@
 package org.example.app.domain.session
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -14,15 +15,21 @@ import org.example.app.domain.timeline.TimelineRepository
 import org.example.app.domain.upload.UploadStatus
 import org.example.app.domain.upload.UploadStatusRepository
 import org.example.app.domain.upload.UploadStatusValue
+import org.example.app.domain.video.VideoRemuxException
+import org.example.app.domain.video.VideoRemuxService
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Comparator
 
+private val logger = KotlinLogging.logger {}
+
 /**
  * §5.5/§8.8 `ProcessSessionUseCase`: picks the timeline (edited > original), cuts the last
- * take of every VOCAL task instance into `clips/`, builds the converted/concatenated archived
+ * take of every VOCAL task instance into `clips/`, remuxes the last take's video of every
+ * filming instance into `clips/` as an MP4 named like its audio clip (stream copy, every frame
+ * kept — [VideoExportPlanner], [VideoRemuxService]), builds the converted/concatenated archived
  * master, and zips everything into `archive/<PatientCode>_<SessionId>.zip` with a
- * `manifest.json`. Progress is reported as a cold [Flow] (one [Progress] per step change, with
+ * `manifest.json`. The raw `video/` takes stay on disk and out of the ZIP. Progress is reported as a cold [Flow] (one [Progress] per step change, with
  * a terminal [Progress.Completed] carrying the [Outcome]) so a progress-screen UI can collect it
  * directly; a plain callback would work just as well but the rest of this codebase already
  * models "what's currently true" as a `Flow` (§5.4 `ConfigurationRepository.activeConfig`), so
@@ -50,11 +57,15 @@ class ProcessSessionUseCase(
     private val timelineRepository: TimelineRepository,
     private val uploadStatusRepository: UploadStatusRepository,
     private val audioClipService: AudioClipService,
+    private val videoRemuxService: VideoRemuxService,
     private val archiveService: SessionArchiveService,
     private val clock: Clock,
     private val dispatchers: CoroutineDispatchers,
 ) {
-    enum class Step { SELECTING_TIMELINE, CUTTING_CLIPS, BUILDING_ARCHIVE, UPDATING_METADATA }
+    enum class Step { SELECTING_TIMELINE, CUTTING_CLIPS, CONVERTING_VIDEO, BUILDING_ARCHIVE, UPDATING_METADATA }
+
+    /** What clip and video names are rendered from: the protocol's template and the entered field values. */
+    private data class Naming(val template: String, val fieldValues: Map<String, String>)
 
     sealed interface Outcome {
         data class Success(val examination: Examination, val archiveFile: Path) : Outcome
@@ -120,12 +131,15 @@ class ProcessSessionUseCase(
             }
 
             val vocalRecords = examination.tasks.filter { it.type == "VOCAL" && !it.skipped }
+            val cutsClips = hasMaster && vocalRecords.isNotEmpty()
+            val hasVideo = examination.videoTakes.isNotEmpty()
 
             var updatedTasks = examination.tasks
 
-            onStep(Step.CUTTING_CLIPS, 0.1f)
-
-            if (hasMaster && vocalRecords.isNotEmpty()) {
+            // Clip and video names both come from the protocol's `recordingsFileName` and the
+            // participant's values — needed even without a master, by a video-only protocol.
+            var naming: Naming? = null
+            if (cutsClips || hasVideo) {
                 val rawConfig = sessionRepository.readConfigSnapshot(folderName)
                     ?: return fail(examination, ProcessingError.MissingConfigSnapshot("task_configuration_snapshot.json missing"))
                 val decoded = try {
@@ -139,14 +153,20 @@ class ProcessSessionUseCase(
                 val participant = sessionRepository.readParticipant(folderName)
                     ?: return fail(examination, ProcessingError.MissingParticipant(folderName))
 
+                naming = Naming(protocol.recordingsFileName, participant.fields)
+            }
+
+            onStep(Step.CUTTING_CLIPS, 0.1f)
+
+            if (cutsClips && naming != null) {
                 val planningResult = ClipExportPlanner.plan(
                     vocalTaskRecords = vocalRecords,
                     originalEvents = originalTimeline.events,
                     editedSegments = editedTimeline?.segments,
                     masterParts = masterParts,
-                    recordingsFileNameTemplate = protocol.recordingsFileName,
+                    recordingsFileNameTemplate = naming.template,
                     installationId = examination.installationId,
-                    fieldValues = participant.fields,
+                    fieldValues = naming.fieldValues,
                 )
                 if (planningResult.errors.isNotEmpty()) {
                     return fail(examination, ProcessingError.ClipPlanning(planningResult.errors))
@@ -162,13 +182,48 @@ class ProcessSessionUseCase(
                         targetFormat = CaptureFormat.PREFERRED,
                         output = clipsDir.resolve(plan.clipFileName),
                     )
-                    onStep(Step.CUTTING_CLIPS, 0.1f + 0.5f * (index + 1) / total)
+                    onStep(Step.CUTTING_CLIPS, 0.1f + 0.4f * (index + 1) / total)
                 }
 
                 val clipByKey = planningResult.plans.associateBy { it.taskIndex to it.repetition }
-                updatedTasks = examination.tasks.map { task ->
+                updatedTasks = updatedTasks.map { task ->
                     val plan = clipByKey[task.taskIndex to task.repetition]
                     if (plan != null) task.copy(clipFile = "clips/${plan.clipFileName}") else task
+                }
+            }
+
+            onStep(Step.CONVERTING_VIDEO, 0.5f)
+
+            if (hasVideo && naming != null) {
+                val plans = VideoExportPlanner.plan(
+                    taskRecords = examination.tasks,
+                    videoTakes = examination.videoTakes,
+                    originalEvents = originalTimeline.events,
+                    recordingsFileNameTemplate = naming.template,
+                    installationId = examination.installationId,
+                    fieldValues = naming.fieldValues,
+                )
+                val clipsDir = sessionRepository.clipsDir(folderName)
+                val total = plans.size.coerceAtLeast(1)
+                val videoByKey = mutableMapOf<Pair<Int, Int>, String>()
+                plans.forEachIndexed { index, plan ->
+                    val source = sessionDir.resolve(plan.source)
+                    // A camera that died before its first frame leaves an empty file, or none. There
+                    // is no video to keep, and the audio take is still good.
+                    if (!Files.isRegularFile(source) || Files.size(source) == 0L) {
+                        logger.warn { "skipping video of task ${plan.taskIndex} rep ${plan.repetition}: ${plan.source} is missing or empty" }
+                    } else {
+                        try {
+                            videoRemuxService.remuxToMp4(source, plan.fps, clipsDir.resolve(plan.fileName))
+                        } catch (e: VideoRemuxException) {
+                            return fail(examination, ProcessingError.VideoRemux(plan.taskIndex, plan.repetition, e.detail))
+                        }
+                        videoByKey[plan.taskIndex to plan.repetition] = "clips/${plan.fileName}"
+                    }
+                    onStep(Step.CONVERTING_VIDEO, 0.5f + 0.15f * (index + 1) / total)
+                }
+                updatedTasks = updatedTasks.map { task ->
+                    videoByKey[task.taskIndex to task.repetition]?.let { task.copy(videoFile = it) } ?: task
                 }
             }
 

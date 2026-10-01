@@ -40,6 +40,7 @@ class ProcessingComponentTest {
             timelineRepository = timelineRepository,
             uploadStatusRepository = uploadStatusRepository,
             audioClipService = FakeAudioClipService(),
+            videoRemuxService = org.example.app.fakes.FakeVideoRemuxService(),
             archiveService = FakeSessionArchiveService(),
             clock = FakeClock(),
             dispatchers = dispatchers,

@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import org.example.app.domain.video.PtzAction
 import org.example.app.domain.video.VideoError
 import org.example.app.navigation.TaskComponent
+import org.example.app.navigation.VideoFeed
 
 /**
  * VIDEO task body: the live preview, with the PTZ cluster beside it when the host platform
@@ -53,39 +54,7 @@ fun VideoTaskBody(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.Black),
-            contentAlignment = Alignment.Center,
-        ) {
-            VideoSurface(
-                frames = content.frames,
-                decodeDispatcher = content.decodeDispatcher,
-                modifier = Modifier.fillMaxHeight(),
-                testTag = TestTags.Task.VIDEO_PREVIEW,
-            )
-
-            when {
-                content.error != null -> Text(
-                    text = describe(content.error),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_ERROR),
-                )
-
-                // Entering the screen opens the camera; until the first frame arrives the
-                // surface is black, so say why rather than looking broken.
-                !content.ready -> Text(
-                    text = "Starting camera…",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_STARTING),
-                )
-            }
-        }
+        VideoPreview(content.feed, Modifier.weight(1f).fillMaxHeight())
 
         if (content.ptzAvailable) {
             PtzControls(
@@ -93,6 +62,57 @@ fun VideoTaskBody(
                 onPtz = onPtz,
                 modifier = Modifier.testTag(TestTags.Task.PTZ_CONTROLS),
             )
+        }
+    }
+}
+
+/**
+ * The live camera preview of any filming task: a black frame with the picture, or a line saying
+ * why there is none. A VOCAL task with `recordVideo` shows this in place of its level indicator.
+ */
+@Composable
+fun VideoPreview(feed: VideoFeed, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Black),
+        contentAlignment = Alignment.Center,
+    ) {
+        VideoSurface(
+            frames = feed.frames,
+            decodeDispatcher = feed.decodeDispatcher,
+            modifier = Modifier.fillMaxHeight(),
+            testTag = TestTags.Task.VIDEO_PREVIEW,
+        )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            when {
+                feed.error != null -> Text(
+                    text = describe(feed.error),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_ERROR),
+                )
+
+                // Entering the screen opens the camera; until the first frame arrives the
+                // surface is black, so say why rather than looking broken. Past the wait of an
+                // audio-only fallback, the line below says what happens instead.
+                !feed.ready && !feed.audioOnly -> Text(
+                    text = "Starting camera…",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_STARTING),
+                )
+            }
+
+            if (feed.audioOnly && !feed.ready) {
+                Text(
+                    text = "Camera not available — recording audio only.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp).testTag(TestTags.Task.VIDEO_AUDIO_ONLY),
+                )
+            }
         }
     }
 }

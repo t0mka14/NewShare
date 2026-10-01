@@ -121,7 +121,7 @@ Tasks are polymorphic on the `type` discriminator:
   `QUESTIONAIRE` with a logged warning during server migration).
 - `INFO` — display-only screen (e.g., final screen).
 - `VIDEO` — camera recording (e.g. emotions). Shares VOCAL's Start/Stop/Repeat flow; one file
-  per take.
+  per take. To film a VOCAL task instead, set its `recordVideo` flag (§4.1).
 
 Fields common to all task types:
 
@@ -152,7 +152,8 @@ two exported clips.
   "canRepeat": true,
   "canSkip": false,
   "audioExamplePath": "https://example.org/share/audio/aaa.wav",
-  "nrepetition": 1
+  "nrepetition": 1,
+  "recordVideo": false
 }
 ```
 
@@ -170,6 +171,16 @@ two exported clips.
   `http(s)` URL: the app downloads it when a new config is applied and caches it locally, so it
   also plays offline afterwards. No key, a non-http value, or a download that failed means no
   example button. A changed file needs a new URL (the cache is keyed by URL).
+- `recordVideo` — optional, default `false`. Also films every take with the camera, alongside
+  the audio. The live camera preview replaces the `indicatorType` widget on this task's screen
+  (even with `showIndicator: false`). There are no PTZ controls; use a `VIDEO` task (§4.5) for
+  those. The camera opens when the screen does, and Start waits until it is previewing. If no
+  camera is present, the camera fails, or it is still not previewing 10 s after the screen
+  opened, the screen says so and the task records **audio only**. A camera failure during a
+  take ends that take's video, but the audio take is kept. Video is recorded and packaged
+  as for `VIDEO` (§4.5): the kept take's MP4 sits next to its WAV in `clips/` under the same
+  name. A take with no `videoTakes[]` entry in `examination.json` was recorded without video,
+  and its task gets no MP4.
 
 ### 4.2 QUESTIONNAIRE
 
@@ -259,8 +270,11 @@ then the one closest to 1080p), falling back to fixed resolutions and finally th
 default if the camera reports nothing usable. A plain webcam records normally — it just shows
 no PTZ controls.
 
-Recordings are written to `video/task<NN>_rep<NN>_take<NN>.mjpeg` inside the session directory
-and are included in the upload ZIP.
+Each take is recorded to `video/task<NN>_rep<NN>_take<NN>.mjpeg` inside the session directory.
+During processing, the kept (last) take of each repetition is packaged as
+`clips/<recordingsFileName>.mp4`, under the same name as its audio clip. This is a stream copy:
+every frame is the camera's own JPEG, unchanged, with none dropped or duplicated. The MP4s go
+into the upload ZIP; the raw `video/` takes stay on the device only.
 
 ## 5. PatientField
 

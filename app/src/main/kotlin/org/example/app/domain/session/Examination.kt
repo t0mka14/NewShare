@@ -69,16 +69,24 @@ data class TaskRecord(
     val skipped: Boolean = false,
     val clipFile: String? = null,
     val questionnaireAnswers: Map<String, List<String>>? = null,
+    /**
+     * Set by processing (§8.8): the kept take's video, remuxed to `clips/<name>.mp4`. Null when the
+     * instance filmed nothing — not a filming task, or a VOCAL `recordVideo` take that fell back to
+     * audio only.
+     */
+    val videoFile: String? = null,
 )
 
 /**
- * One `videoTakes[]` entry in `examination.json`: a VIDEO capture that was opened for writing.
+ * One `videoTakes[]` entry in `examination.json`: a filmed take (VIDEO, or VOCAL with
+ * `recordVideo`) that was opened for writing.
  *
  * Its reason to exist is [captureFormat]. A take is stored as a bare MJPEG elementary stream —
  * whole JPEGs back to back, no container — which carries no timestamps at all, so the rate it plays
- * back at is implicit in the file and recoverable from nothing else. Without this, a consumer of the
- * archive has to be told the frame rate out of band and guesses wrong the moment a camera opens at
- * anything other than the requested rate.
+ * back at is implicit in the file and recoverable from nothing else. Processing reads it from here
+ * to time the MP4 it wraps the kept take in ([VideoExportPlanner]); without it, the frame rate
+ * would be a guess that goes wrong the moment a camera opens at anything other than the requested
+ * rate.
  *
  * Per take rather than per session, for the same reason [Interruption] carries its own
  * `captureFormat`: one session can hold several. Each take is its own file; the camera is released

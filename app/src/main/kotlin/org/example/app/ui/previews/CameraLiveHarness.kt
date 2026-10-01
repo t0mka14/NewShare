@@ -43,6 +43,7 @@ import org.example.app.infrastructure.video.FfmpegDeviceEnumerator
 import org.example.app.infrastructure.video.FfmpegSessionVideoRecorder
 import org.example.app.navigation.TaskComponent
 import org.example.app.navigation.TaskScreenState
+import org.example.app.navigation.VideoFeed
 import org.example.app.ui.VideoTaskBody
 import org.example.app.ui.theme.ShareTheme
 import java.nio.file.Files
@@ -231,12 +232,14 @@ private fun CameraLive() {
                         TaskScreenState.Idle
                     },
                     takeNumber = 1,
-                    frames = recorder.previewFrames,
-                    decodeDispatcher = if (decodeOnEdt) dispatchers.main else dispatchers.default,
-                    ready = state == VideoRecorderState.Previewing || state == VideoRecorderState.Recording,
+                    feed = VideoFeed(
+                        frames = recorder.previewFrames,
+                        decodeDispatcher = if (decodeOnEdt) dispatchers.main else dispatchers.default,
+                        ready = state == VideoRecorderState.Previewing || state == VideoRecorderState.Recording,
+                        error = (state as? VideoRecorderState.Failed)?.error,
+                    ),
                     ptzAvailable = false,
                     zoom = remember { MutableStateFlow(null) },
-                    error = (state as? VideoRecorderState.Failed)?.error,
                 ),
                 onPtz = {},
                 modifier = Modifier.fillMaxSize(),

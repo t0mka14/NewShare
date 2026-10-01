@@ -128,6 +128,16 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `VOCAL recordVideo decodes, and defaults to false when absent`() {
+        val plain = ConfigDecoder.decode(minimalConfigJson).config.protocols[0].tasks[0] as VocalTask
+        assertFalse(plain.recordVideo)
+
+        val json = minimalConfigJson.replace("\"showIndicator\": true,", "\"showIndicator\": true, \"recordVideo\": true,")
+        val filming = ConfigDecoder.decode(json).config.protocols[0].tasks[0] as VocalTask
+        assertTrue(filming.recordVideo)
+    }
+
+    @Test
     fun `rejects 0-1 in place of real booleans`() {
         val badJson = minimalConfigJson.replace("\"canRepeat\": true", "\"canRepeat\": 1")
         org.junit.jupiter.api.assertThrows<Exception> {
