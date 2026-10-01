@@ -54,10 +54,11 @@ object BuiltinStrings {
         "settings.siteToken.label" to "Site token",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
-        "settings.refresh.button" to "Refresh configuration",
+        "settings.refresh.button" to "Test configuration",
         "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
         "settings.refresh.offline" to "Could not reach the server. Using the saved configuration.",
+        "settings.backButton" to "Save and go back",
 
         // Main menu.
         "mainMenu.title" to "Speech examination",
@@ -243,10 +244,11 @@ object BuiltinStrings {
         "settings.siteToken.label" to "Token pracoviště",
         "settings.installationId.label" to "ID instalace",
         "settings.language.label" to "Jazyk",
-        "settings.refresh.button" to "Aktualizovat konfiguraci",
+        "settings.refresh.button" to "Otestovat konfiguraci",
         "settings.refresh.success" to "Konfigurace byla aktualizována. Vše je v pořádku.",
         "settings.refresh.failed" to "Konfiguraci se nepodařilo aktualizovat.",
         "settings.refresh.offline" to "Server není dostupný. Používá se uložená konfigurace.",
+        "settings.backButton" to "Uložit a vrátit se",
 
         "mainMenu.title" to "Vyšetření řeči",
         "mainMenu.site" to "Pracoviště: {name}",
