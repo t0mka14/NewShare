@@ -3,7 +3,6 @@ package org.example.app.navigation
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.config.ConfigApplyResult
-import org.example.app.domain.config.ConfigFetchResult
 import org.example.app.domain.config.RefreshConfigurationUseCase
 import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.config.RemoteConfig
