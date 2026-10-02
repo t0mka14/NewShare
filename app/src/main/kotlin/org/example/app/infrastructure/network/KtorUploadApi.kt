@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.example.app.domain.upload.UploadApi
 import org.example.app.domain.upload.UploadResult
+import org.example.app.domain.settings.DEFAULT_SERVER_URL
 import org.example.app.infrastructure.logging.LogPolicy
 import java.io.FileInputStream
 import java.nio.file.Files
@@ -61,7 +62,8 @@ private val logger = KotlinLogging.logger {}
  */
 class KtorUploadApi(
     engine: HttpClientEngine = CIO.create(),
-    private val baseUrl: String = DEMO_SERVER_BASE_URL,
+    /** Read on every request, so a Server URL edited in Settings applies without a restart. */
+    private val baseUrl: () -> String = { DEFAULT_SERVER_URL },
     private val uploadPath: () -> String = { "/upload" },
 ) : UploadApi {
 
@@ -143,7 +145,7 @@ class KtorUploadApi(
         return runCatching { Json.parseToJsonElement(body) }.getOrNull()
     }
 
-    private fun buildUrl(): String = baseUrl.trimEnd('/') + uploadPath()
+    private fun buildUrl(): String = baseUrl().trimEnd('/') + uploadPath()
 
     private fun HttpStatusCode.isRejection(): Boolean =
         this == HttpStatusCode.Unauthorized || this == HttpStatusCode.Forbidden || this == HttpStatusCode.NotFound

@@ -41,7 +41,7 @@ class KtorConfigApiTest {
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),
             )
         }
-        val api = KtorConfigApi(engine = engine, baseUrl = "http://web.test")
+        val api = KtorConfigApi(engine = engine, baseUrl = { "http://web.test" })
 
         val result = api.fetchConfig(siteToken)
 
@@ -54,7 +54,7 @@ class KtorConfigApiTest {
             assertEquals("/prefix/site-config/$siteToken", request.url.encodedPath)
             respond("{}", HttpStatusCode.OK)
         }
-        val api = KtorConfigApi(engine = engine, baseUrl = "http://web.test/prefix/")
+        val api = KtorConfigApi(engine = engine, baseUrl = { "http://web.test/prefix/" })
 
         assertTrue(api.fetchConfig(siteToken) is ConfigFetchResult.Success)
     }

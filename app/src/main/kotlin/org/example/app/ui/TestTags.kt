@@ -193,9 +193,13 @@ object TestTags {
         /** Microphone level slider under the device dropdown (§13 decision 44). */
         const val MIC_GAIN_SLIDER = "settings.micGainSlider"
         const val MIC_GAIN_VALUE = "settings.micGainValue"
+        /** Note under the slider when the selected device's level cannot be read. */
+        const val MIC_GAIN_UNAVAILABLE = "settings.micGainUnavailable"
         /** Clears the local level override; shown only while one exists and the config has a default. */
         const val MIC_GAIN_RESET_BUTTON = "settings.micGainResetButton"
         const val SITE_TOKEN_FIELD = "settings.siteTokenField"
+        const val SERVER_URL_FIELD = "settings.serverUrlField"
+        const val SERVER_URL_RESET_BUTTON = "settings.serverUrlResetButton"
         /** Read-only text: this computer's generated installation ID. */
         const val INSTALLATION_ID_FIELD = "settings.installationIdField"
         const val LANGUAGE_SELECT = "settings.languageSelect"

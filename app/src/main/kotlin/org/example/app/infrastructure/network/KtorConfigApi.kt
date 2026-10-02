@@ -14,13 +14,14 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import org.example.app.domain.config.ConfigApi
 import org.example.app.domain.config.ConfigFetchResult
+import org.example.app.domain.settings.DEFAULT_SERVER_URL
 import org.example.app.infrastructure.logging.LogPolicy
 
 private val logger = KotlinLogging.logger {}
 
 /**
  * Ktor-backed [ConfigApi] (§6.1): `GET {baseUrl}/site-config/{siteToken}` on the web backend
- * (config alignment row 1, [WEB_SERVER_BASE_URL]).
+ * (config alignment row 1, [DEFAULT_SERVER_URL] unless overridden in Settings).
  *
  * The endpoint is a **single configuration point**: [baseUrl] + [configPath] together form the
  * request URL; changing the server means changing the constructor defaults (or the values the
@@ -42,7 +43,8 @@ private val logger = KotlinLogging.logger {}
  */
 class KtorConfigApi(
     engine: HttpClientEngine = CIO.create(),
-    private val baseUrl: String = WEB_SERVER_BASE_URL,
+    /** Read on every request, so a Server URL edited in Settings applies without a restart. */
+    private val baseUrl: () -> String = { DEFAULT_SERVER_URL },
     private val configPath: (siteToken: String) -> String = { siteToken -> "/site-config/${siteToken.encodeURLPathPart()}" },
 ) : ConfigApi {
 
@@ -91,5 +93,5 @@ class KtorConfigApi(
     fun close() = client.close()
 
     private fun buildUrl(siteToken: String): String =
-        baseUrl.trimEnd('/') + configPath(siteToken)
+        baseUrl().trimEnd('/') + configPath(siteToken)
 }

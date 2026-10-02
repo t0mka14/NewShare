@@ -7,6 +7,7 @@ import org.example.app.domain.config.RefreshConfigurationUseCase
 import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.DEFAULT_SERVER_URL
 import org.example.app.domain.settings.InstallationIdProvider
 import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeAudioInputDeviceProvider
@@ -103,6 +104,18 @@ class SettingsComponentTest {
         assertEquals("secondary", saved.micDeviceId)
         assertEquals("token-42", saved.siteToken)
         assertEquals("cs", saved.language)
+    }
+
+    @Test
+    fun `server URL shows the default and persists only an override`() {
+        val h = Harness()
+        assertEquals(DEFAULT_SERVER_URL, h.component.state.value.serverUrl)
+
+        h.component.onServerUrlChanged(" http://other.test/api ")
+        assertEquals("http://other.test/api", h.settingsRepository.read()!!.serverUrl)
+
+        h.component.onServerUrlChanged(DEFAULT_SERVER_URL)
+        assertEquals(null, h.settingsRepository.read()!!.serverUrl)
     }
 
     @Test
@@ -217,12 +230,14 @@ class SettingsComponentTest {
         val h = Harness(settingsRepository = settingsRepository, gainControl = gainControl)
 
         assertFalse(h.component.state.value.micGainControllable)
+        assertFalse(h.component.state.value.micGainUnavailable) // still reading — no note yet
         assertNull(h.component.state.value.micGain)
 
         h.dispatchers.scheduler.advanceUntilIdle()
 
         val state = h.component.state.value
         assertTrue(state.micGainControllable)
+        assertFalse(state.micGainUnavailable)
         assertEquals(70, state.micGain)
         assertNull(state.micGainOverride)
         assertEquals(listOf(secondaryName), gainControl.readCalls)
@@ -236,6 +251,7 @@ class SettingsComponentTest {
         h.dispatchers.scheduler.advanceUntilIdle()
 
         assertFalse(h.component.state.value.micGainControllable)
+        assertTrue(h.component.state.value.micGainUnavailable)
         assertNull(h.component.state.value.micGain)
     }
 

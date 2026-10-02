@@ -37,7 +37,20 @@ data class AppSettings(
      * [DEFAULT_OPTIMAL_LOUDNESS]. See [loudnessRange].
      */
     val optimalLoudness: List<Double>? = null,
+    /** Server base URL entered in Settings (config fetch + upload); null uses [DEFAULT_SERVER_URL]. */
+    val serverUrl: String? = null,
 )
+
+/**
+ * Base URL both the config fetch and the upload default to. The web backend's reverse proxy
+ * mounts the backend under `/api` (config is `GET /api/site-config/{token}`, config alignment
+ * row 1); uploads (`POST /api/upload`, §8.9) go to the same host — today the demo mock server in
+ * `tools/mock-server`. HTTPS (§6.1 pt 7) is still open.
+ */
+const val DEFAULT_SERVER_URL: String = "http://192.168.122.183:10001/api"
+
+/** [AppSettings.serverUrl] when set, else [DEFAULT_SERVER_URL]. */
+fun AppSettings?.serverUrl(): String = this?.serverUrl ?: DEFAULT_SERVER_URL
 
 val DEFAULT_OPTIMAL_LOUDNESS: ClosedFloatingPointRange<Double> = 0.2..0.5
 
