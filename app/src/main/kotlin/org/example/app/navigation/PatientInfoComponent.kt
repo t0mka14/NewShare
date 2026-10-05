@@ -18,7 +18,10 @@ interface PatientInfoComponent {
     data class State(
         val fields: List<PatientField>,
         val values: Map<String, String> = emptyMap(),
+        /** Errors currently shown. Pattern errors are live; `Required` only appears after Continue. */
         val errors: Map<String, List<FieldValidationError>> = emptyMap(),
+        /** Whether every field currently validates — drives the Continue button's look, not its clickability. */
+        val canContinue: Boolean = false,
     ) {
         val isValid: Boolean get() = errors.isEmpty()
     }
@@ -47,22 +50,33 @@ class DefaultPatientInfoComponent(
         .filter { PatientFieldCatalogue.kindOf(it.name) == PatientFieldCatalogue.FieldKind.AutoDate }
         .associate { it.name to examinationDate.toString() }
 
-    private val _state = MutableValue(PatientInfoComponent.State(fields = fields, values = autoFilled))
+    private val _state = MutableValue(
+        PatientInfoComponent.State(
+            fields = fields,
+            values = autoFilled,
+            canContinue = validateParticipantInfoUseCase.execute(fields, autoFilled).isEmpty(),
+        )
+    )
     override val state: Value<PatientInfoComponent.State> = _state
 
+    /** Editing a field re-checks it live, except "not filled", which stays hidden until Continue. */
     override fun onFieldChanged(fieldName: String, value: String) {
         if (fieldName in autoFilled) return
-        val updatedValues = _state.value.values + (fieldName to value)
-        _state.value = _state.value.copy(
+        val current = _state.value
+        val updatedValues = current.values + (fieldName to value)
+        val allErrors = validateParticipantInfoUseCase.execute(current.fields, updatedValues)
+        val liveErrors = allErrors[fieldName].orEmpty().filterNot { it is FieldValidationError.Required }
+        _state.value = current.copy(
             values = updatedValues,
-            errors = _state.value.errors - fieldName,
+            errors = if (liveErrors.isEmpty()) current.errors - fieldName else current.errors + (fieldName to liveErrors),
+            canContinue = allErrors.isEmpty(),
         )
     }
 
     override fun onContinue() {
         val current = _state.value
         val errors = validateParticipantInfoUseCase.execute(current.fields, current.values)
-        _state.value = current.copy(errors = errors)
+        _state.value = current.copy(errors = errors, canContinue = errors.isEmpty())
         if (errors.isEmpty()) {
             onValidated(current.values)
         }
