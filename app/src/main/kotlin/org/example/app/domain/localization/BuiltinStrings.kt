@@ -133,6 +133,11 @@ object BuiltinStrings {
         // more than one protocol; a single-protocol config skips straight to patient info.
         "protocolPicker.title" to "Choose a protocol",
         "protocolPicker.instructions" to "Select which protocol to run for this examination.",
+        // Info line under each protocol button, assembled as "<tasks>, <taskType>…. <camera>. <version>."
+        "protocolPicker.summary.tasks" to "No. tasks: {count}",
+        "protocolPicker.summary.taskType" to "{type}: {count}x",
+        "protocolPicker.summary.camera" to "Requires camera",
+        "protocolPicker.summary.version" to "Version: {version}",
 
         // Example-audio playback on VOCAL task screens (§8.6 follow-up).
         "task.playExample" to "Play example",
@@ -317,6 +322,10 @@ object BuiltinStrings {
 
         "protocolPicker.title" to "Vyberte protokol",
         "protocolPicker.instructions" to "Zvolte protokol pro toto vyšetření.",
+        "protocolPicker.summary.tasks" to "Počet úloh: {count}",
+        "protocolPicker.summary.taskType" to "{type}: {count}x",
+        "protocolPicker.summary.camera" to "Vyžaduje kameru",
+        "protocolPicker.summary.version" to "Verze: {version}",
 
         "task.playExample" to "Přehrát ukázku",
         "task.stopExample" to "Zastavit ukázku",
