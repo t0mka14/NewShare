@@ -16,6 +16,8 @@ import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
+import org.example.app.domain.audio.takePeaks
+import org.example.app.domain.settings.showWaveformAfterTask
 import org.example.app.domain.config.InfoTask
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
@@ -179,6 +181,8 @@ interface TaskComponent {
             val exampleAudioPlaying: Boolean,
             /** The camera preview, shown in place of the level indicator; `null` unless `recordVideo`. */
             val video: VideoFeed? = null,
+            /** Signed peaks of the last take, set only while Stopped and the preview is enabled. */
+            val waveform: FloatArray? = null,
         ) : Content
 
         data class Questionnaire(
@@ -297,6 +301,7 @@ class DefaultTaskComponent(
     private var screenState: TaskScreenState = TaskScreenState.Idle
     private var currentTake = 0
     private var level = 0f
+    private var takeWaveform: FloatArray? = null
     private var deviceLost = false
     private var exampleAudioPlaying = false
     private var answers: Map<String, AnswerState> = initialAnswers()
@@ -382,6 +387,7 @@ class DefaultTaskComponent(
         if (videoCaptureUnavailable) return
         if (screenState !is TaskScreenState.Idle && screenState !is TaskScreenState.Failed) return
         currentTake += 1
+        recorder?.beginTake()
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
         startVideoTake()
@@ -391,6 +397,11 @@ class DefaultTaskComponent(
     override fun onStop() {
         if (!isCapturingType) return
         if (screenState !is TaskScreenState.Capturing) return
+        if (task is VocalTask && recorder != null) {
+            val pcm = recorder.endTake()
+            val format = recorder.captureFormat.value
+            takeWaveform = if (showWaveformAfterTask && format != null) takePeaks(pcm, format) else null
+        }
         if (task.capturesVideo) onVideoTakeStopped()
         eventLogger(TimelineEventType.STOP_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Stopped
@@ -403,6 +414,7 @@ class DefaultTaskComponent(
         if (screenState !is TaskScreenState.Stopped) return
         eventLogger(TimelineEventType.TAKE_REJECTED, currentTake, REASON_EXAMINER_REPEAT)
         currentTake += 1
+        recorder?.beginTake()
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
         startVideoTake()
@@ -640,6 +652,7 @@ class DefaultTaskComponent(
                 exampleAudioAvailable = resolvedAudioExamplePath != null,
                 exampleAudioPlaying = exampleAudioPlaying,
                 video = if (task.recordVideo) videoFeed() else null,
+                waveform = takeWaveform.takeIf { screenState is TaskScreenState.Stopped },
             )
 
             is QuestionnaireTask -> TaskComponent.Content.Questionnaire(

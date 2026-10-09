@@ -39,6 +39,8 @@ data class AppSettings(
     val optimalLoudness: List<Double>? = null,
     /** Server base URL entered in Settings (config fetch + upload); null uses [DEFAULT_SERVER_URL]. */
     val serverUrl: String? = null,
+    /** Settings switch for the post-task waveform preview; null follows the default (on). */
+    val showWaveform: Boolean? = null,
 )
 
 /**
@@ -51,6 +53,9 @@ const val DEFAULT_SERVER_URL: String = "http://192.168.122.183:10001/api"
 
 /** [AppSettings.serverUrl] when set, else [DEFAULT_SERVER_URL]. */
 fun AppSettings?.serverUrl(): String = this?.serverUrl ?: DEFAULT_SERVER_URL
+
+/** Runtime flag read by the task screen; loaded from [AppSettings.showWaveform] at startup and kept in sync by Settings. */
+var showWaveformAfterTask: Boolean = true
 
 val DEFAULT_OPTIMAL_LOUDNESS: ClosedFloatingPointRange<Double> = 0.2..0.5
 

@@ -14,7 +14,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -169,6 +173,29 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 Text(
                     localization.resolve(key),
                     color = if (isSuccess) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // The legacy toggle-row look
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(localization.resolve("settings.showWaveform.label"), style = MaterialTheme.typography.bodyLarge)
+                Switch(
+                    checked = state.showWaveform,
+                    onCheckedChange = component::onShowWaveformChanged,
+                    thumbContent = if (state.showWaveform) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(SwitchDefaults.IconSize)) }
+                    } else {
+                        null
+                    },
+                    colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.tertiary),
+                    modifier = Modifier.testTag(TestTags.Settings.SHOW_WAVEFORM_SWITCH),
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))

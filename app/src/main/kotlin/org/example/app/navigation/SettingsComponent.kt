@@ -23,6 +23,7 @@ import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.DEFAULT_SERVER_URL
 import org.example.app.domain.settings.InstallationIdProvider
 import org.example.app.domain.settings.serverUrl
+import org.example.app.domain.settings.showWaveformAfterTask
 import org.example.app.domain.config.messageKey
 
 interface SettingsComponent {
@@ -32,6 +33,7 @@ interface SettingsComponent {
     fun onSiteTokenChanged(value: String)
     fun onServerUrlChanged(value: String)
     fun onLanguageSelected(language: String)
+    fun onShowWaveformChanged(value: Boolean)
     fun onRefreshClicked()
 
     /** Re-enumerate the mic devices (same lookup as when the screen opens). */
@@ -54,6 +56,7 @@ interface SettingsComponent {
         val siteToken: String = "",
         /** Base URL for config fetch + upload; shows the built-in default until edited. */
         val serverUrl: String = DEFAULT_SERVER_URL,
+        val showWaveform: Boolean = true,
         val availableLanguages: List<String> = emptyList(),
         val selectedLanguage: String? = null,
         val refreshInProgress: Boolean = false,
@@ -135,6 +138,7 @@ class DefaultSettingsComponent(
             installationId = installationIdProvider.get(),
             siteToken = saved?.siteToken.orEmpty(),
             serverUrl = saved.serverUrl(),
+            showWaveform = saved?.showWaveform ?: true,
             availableLanguages = config?.languages.orEmpty(),
             selectedLanguage = effectiveLanguage(saved?.language, config),
             // A failure from an earlier refresh (e.g. the startup one) is shown on arrival.
@@ -162,6 +166,12 @@ class DefaultSettingsComponent(
 
     override fun onServerUrlChanged(value: String) {
         _state.value = _state.value.copy(serverUrl = value)
+        persist()
+    }
+
+    override fun onShowWaveformChanged(value: Boolean) {
+        showWaveformAfterTask = value
+        _state.value = _state.value.copy(showWaveform = value)
         persist()
     }
 
@@ -263,6 +273,7 @@ class DefaultSettingsComponent(
                 siteToken = current.siteToken.trim().ifBlank { null },
                 // Blank or the built-in default is stored as null, so a later default change applies.
                 serverUrl = current.serverUrl.trim().takeUnless { it.isBlank() || it == DEFAULT_SERVER_URL },
+                showWaveform = current.showWaveform.takeUnless { it },
                 language = current.selectedLanguage,
                 micGain = current.micGainOverride,
             ),

@@ -80,6 +80,7 @@ object TestTags {
 
         /** Example-audio playback button (§8.6, follow-up) — disabled while `Capturing`. */
         const val EXAMPLE_AUDIO_BUTTON = "task.exampleAudioButton"
+        const val WAVEFORM = "task.waveform"
 
         /** VIDEO task: the live camera preview surface. */
         const val VIDEO_PREVIEW = "task.videoPreview"
@@ -200,6 +201,7 @@ object TestTags {
         const val SITE_TOKEN_FIELD = "settings.siteTokenField"
         const val SERVER_URL_FIELD = "settings.serverUrlField"
         const val SERVER_URL_RESET_BUTTON = "settings.serverUrlResetButton"
+        const val SHOW_WAVEFORM_SWITCH = "settings.showWaveformSwitch"
         /** Read-only text: this computer's generated installation ID. */
         const val INSTALLATION_ID_FIELD = "settings.installationIdField"
         const val LANGUAGE_SELECT = "settings.languageSelect"

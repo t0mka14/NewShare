@@ -69,6 +69,10 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
         _state.value = _state.value.copy(serverUrl = value)
     }
 
+    override fun onShowWaveformChanged(value: Boolean) {
+        _state.value = _state.value.copy(showWaveform = value)
+    }
+
     override fun onLanguageSelected(language: String) {
         _state.value = _state.value.copy(selectedLanguage = language)
     }

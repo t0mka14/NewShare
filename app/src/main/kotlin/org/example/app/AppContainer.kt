@@ -48,6 +48,7 @@ import org.example.app.domain.upload.UploadSessionUseCase
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.InstallationIdProvider
 import org.example.app.domain.settings.serverUrl
+import org.example.app.domain.settings.showWaveformAfterTask
 import org.example.app.domain.timeline.TimelineRepository
 import org.example.app.infrastructure.config.JsonConfigurationRepository
 import org.example.app.infrastructure.config.RawConfigCache
@@ -126,6 +127,7 @@ class AppContainer(
     val configurationRepository: ConfigurationRepository = JsonConfigurationRepository(rawConfigCache)
 
     val appSettingsRepository: AppSettingsRepository = JsonAppSettingsRepository(directories)
+        .also { showWaveformAfterTask = it.read()?.showWaveform ?: true }
 
     /** This computer's ID, generated on first use (config alignment row 1). */
     val installationIdProvider = InstallationIdProvider(appSettingsRepository)
