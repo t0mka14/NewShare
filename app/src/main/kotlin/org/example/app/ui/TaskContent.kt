@@ -284,9 +284,7 @@ private fun InstructionsField(
 ) {
     val firstKey = state.instructionKeys.firstOrNull()
     val remainingKeys = state.instructionKeys.drop(1)
-    // Legacy `showExampleButtonAndSecondInstructions`: consecutive repetitions of the same
-    // task hide the utility row and the second instructions card
-    val showSecond = state.repetition <= 1
+    val isRepetition = state.repetition > 1
 
     Column(
         modifier = modifier,
@@ -296,25 +294,14 @@ private fun InstructionsField(
         // The legacy replaced its `xx` marker with the task length; this config's instruction
         // strings use the named `{length}` placeholder (§7)
         val placeholders = mapOf("length" to state.taskLengthSeconds.toString())
-        if (firstKey != null) InstructionsCard(listOf(firstKey), placeholders, localization)
-        if (showSecond) {
-            UtilitiesRowBelowInstructions(component, state, localization)
-            if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
+        if (firstKey != null) {
+            // A repetition swaps the first card for a short "again" prompt; the second card
+            // keeps the original text. READING's passage is never shown (read off paper).
+            if (isRepetition) InstructionsCard(listOf("task.repeatInstruction"), placeholders, localization)
+            else InstructionsCard(listOf(firstKey), placeholders, localization)
         }
-        // READING's passage is what the participant reads aloud, so unlike the second card it
-        // stays on every repetition; upright and larger than the italic instructions.
-        state.readingPassageKey?.let { key ->
-            Card(modifier = Modifier.fillMaxWidth().testTag(TestTags.Task.READING_PASSAGE)) {
-                Text(
-                    localization.resolve(key, placeholders),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .heightIn(max = 320.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                )
-            }
-        }
+        if (!isRepetition) UtilitiesRowBelowInstructions(component, state, localization)
+        if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
     }
 }
 
