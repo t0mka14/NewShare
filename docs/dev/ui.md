@@ -82,9 +82,8 @@ re-expansion in the UI layer.
 
 `TaskContent` is a 1:1 copy of the legacy `StandardProtocolScreen`: title block ("Task X/Y"
 over the 35sp title, repetition appended to the title line), instruction card(s) with the
-example-audio row between them (hidden on repetitions > 1, where the first card becomes
-`task.repeatInstruction`), a weighted middle area (level circle, the post-take waveform when
-Settings has it on, or the questionnaire), the legacy timer card (invisible until a take runs,
+example-audio row between them (hidden on repetitions > 1), a weighted middle area (level
+circle/waveform or the questionnaire), the legacy timer card (invisible until a take runs,
 green once `taskLengthSeconds` is reached), and the legacy 3-button bottom row:
 
 - *Left slot*: empty. The legacy prev-task button was gated behind a `showBackButton`

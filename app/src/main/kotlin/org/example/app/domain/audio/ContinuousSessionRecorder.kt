@@ -69,12 +69,6 @@ interface ContinuousSessionRecorder {
      */
     suspend fun resume(device: AudioInputDevice, partFile: Path)
 
-    /** Starts buffering the written PCM in memory for a take preview, discarding any previous take. */
-    fun beginTake() {}
-
-    /** Stops buffering and returns the PCM of the take (in [captureFormat]); empty if none. */
-    fun endTake(): ByteArray = ByteArray(0)
-
     /** Flush, finalize header, close the line. State: any → Stopped. */
     suspend fun stop()
 }

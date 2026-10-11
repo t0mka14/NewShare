@@ -47,8 +47,6 @@ import org.example.app.domain.upload.UploadApi
 import org.example.app.domain.upload.UploadSessionUseCase
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.InstallationIdProvider
-import org.example.app.domain.settings.serverUrl
-import org.example.app.domain.settings.showWaveformAfterTask
 import org.example.app.domain.timeline.TimelineRepository
 import org.example.app.infrastructure.config.JsonConfigurationRepository
 import org.example.app.infrastructure.config.RawConfigCache
@@ -75,10 +73,8 @@ class AppContainer(
     val dispatchers: CoroutineDispatchers = DefaultCoroutineDispatchers(),
     // §10.3: every hardware/network port is injectable so tests can build a
     // full-fake container; production defaults below.
-    /** Server URL edited in Settings (`settings.json`), re-read per request. */
-    val serverUrl: () -> String = { JsonAppSettingsRepository(directories).read().serverUrl() },
-    val configApi: ConfigApi = KtorConfigApi(baseUrl = serverUrl),
-    val uploadApi: UploadApi = KtorUploadApi(baseUrl = serverUrl),
+    val configApi: ConfigApi = KtorConfigApi(),
+    val uploadApi: UploadApi = KtorUploadApi(),
     /** Example-audio downloads (row 13); defaults to a Ktor cache under `configDir`. */
     val exampleAudioCache: ExampleAudioCache = KtorExampleAudioCache(directories),
     val audioInputDeviceProvider: AudioInputDeviceProvider = JvmAudioInputDeviceProvider(),
@@ -127,7 +123,6 @@ class AppContainer(
     val configurationRepository: ConfigurationRepository = JsonConfigurationRepository(rawConfigCache)
 
     val appSettingsRepository: AppSettingsRepository = JsonAppSettingsRepository(directories)
-        .also { showWaveformAfterTask = it.read()?.showWaveform ?: true }
 
     /** This computer's ID, generated on first use (config alignment row 1). */
     val installationIdProvider = InstallationIdProvider(appSettingsRepository)

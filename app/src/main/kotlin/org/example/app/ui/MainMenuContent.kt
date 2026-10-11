@@ -29,11 +29,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import org.example.app.BuildInfo
 import org.example.app.navigation.MainMenuComponent
 
 /**
@@ -85,17 +83,11 @@ private fun TitleBar(component: MainMenuComponent, localization: UiLocalization)
         // Equal slots either side of the title keep it centered whether or not the language
         // selector is showing.
         Spacer(modifier = Modifier.weight(1f))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                localization.resolve("mainMenu.title"),
-                style = screenTitleTextStyle(),
-                textAlign = TextAlign.Center,
-            )
-            val infoStyle = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
-            val version = BuildInfo.appVersion.takeIf { it != BuildInfo.UNKNOWN }?.toString().orEmpty()
-            Text(localization.resolve("mainMenu.site", mapOf("name" to localization.config?.siteName.orEmpty())), style = infoStyle)
-            Text(localization.resolve("mainMenu.appVersion", mapOf("version" to version)), style = infoStyle)
-        }
+        Text(
+            localization.resolve("mainMenu.title"),
+            style = screenTitleTextStyle(),
+            textAlign = TextAlign.Center,
+        )
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             LanguageSelector(component, localization)
         }
@@ -131,9 +123,7 @@ private fun MenuButtons(
             Text(localization.resolve("mainMenu.settingsButton"), style = buttonText)
         }
 
-        if (state.protocolPdfs.isNotEmpty()) {
-            ProtocolPdfButton(component, state, localization, buttonWidth, buttonText)
-        }
+        ProtocolPdfButton(component, state, localization, buttonWidth, buttonText)
 
         Button(
             onClick = component::onUpload,
@@ -152,7 +142,7 @@ private fun MenuButtons(
 }
 
 /**
- * The original's "Get protocol PDF" button. Not shown when no protocol declares a reachable
+ * The original's "Get protocol PDF" button. Disabled when no protocol declares a
  * `protocolInstructionsPdfUrl`; with exactly one it opens straight away, and with several it
  * drops down a picker of protocol names rather than guessing.
  */
@@ -173,6 +163,7 @@ private fun ProtocolPdfButton(
             onClick = {
                 if (pdfs.size == 1) component.onOpenProtocolPdf(pdfs.first().url) else pickerExpanded = true
             },
+            enabled = pdfs.isNotEmpty(),
             modifier = Modifier.fillMaxWidth().testTag(TestTags.MainMenu.PROTOCOL_PDF_BUTTON),
         ) {
             Text(localization.resolve("mainMenu.protocolPdfButton"), style = textStyle)

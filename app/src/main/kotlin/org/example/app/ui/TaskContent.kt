@@ -1,6 +1,5 @@
 package org.example.app.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,12 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
@@ -59,7 +53,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import kotlin.math.abs
 import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
@@ -108,20 +101,8 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
         Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             when (val content = state.content) {
-                is TaskComponent.Content.Vocal -> if (content.waveform != null) {
-                    WaveformPreview(content.waveform)
-                } else if (content.video != null) {
-                    // Legacy: a small ~200x150 preview beside the recording circle
-                    Row(horizontalArrangement = Arrangement.spacedBy(200.dp), verticalAlignment = Alignment.CenterVertically) {
-                        if (content.showIndicator) {
-                            TaskLevelIndicator(
-                                indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
-                                level = content.level,
-                                capturing = capturing,
-                            )
-                        }
-                        VideoPreview(content.video, Modifier.size(200.dp, 150.dp))
-                    }
+                is TaskComponent.Content.Vocal -> if (content.video != null) {
+                    VideoPreview(content.video, Modifier.contentWidth(1500.dp).fillMaxHeight())
                 } else if (content.showIndicator) {
                     TaskLevelIndicator(
                         indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
@@ -198,52 +179,6 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
     }
 }
 
-/**
- * Static preview of the last take, in the legacy `DrawAudio` look: one signed, one-sided bar per
- * peak from the vertical centre, fixed 16-bit full scale. Only deviation: bars are merged down to
- * at most one per pixel (largest magnitude wins) — closer ones overlapped anyway — so long takes
- * draw ~1.5k rects instead of tens of thousands.
- */
-@Composable
-private fun WaveformPreview(peaks: FloatArray) {
-    val brush = remember {
-        Brush.linearGradient(colors = listOf(Color(0xFF00B4DB), Color(0xFF0083B0)))
-    }
-    var widthPx by remember { mutableStateOf(0) }
-    val bars = remember(peaks, widthPx) {
-        if (widthPx <= 0 || peaks.size <= widthPx) {
-            peaks
-        } else {
-            FloatArray(widthPx) { i ->
-                var best = 0f
-                for (j in (i * peaks.size.toLong() / widthPx).toInt() until ((i + 1) * peaks.size.toLong() / widthPx).toInt()) {
-                    if (abs(peaks[j]) > abs(best)) best = peaks[j]
-                }
-                best
-            }
-        }
-    }
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-            .padding(10.dp)
-            .onSizeChanged { widthPx = it.width }
-            .testTag(TestTags.Task.WAVEFORM),
-    ) {
-        val spike = 2.dp.toPx()
-        val radius = CornerRadius(spike, spike)
-        bars.forEachIndexed { i, p ->
-            drawRoundRect(
-                brush = brush,
-                topLeft = Offset(i * size.width / bars.size, size.height / 2),
-                size = Size(spike, p * size.height / 2),
-                cornerRadius = radius,
-            )
-        }
-    }
-}
-
 @Composable
 private fun TaskTitle(state: TaskComponent.State, localization: UiLocalization) {
     val numberLabel = if (state.totalInstanceCount > 0) {
@@ -264,7 +199,7 @@ private fun TaskTitle(state: TaskComponent.State, localization: UiLocalization) 
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(bottom = 50.dp),
+        modifier = Modifier.padding(bottom = 15.dp),
     ) {
         Text(
             numberLabel,
@@ -284,38 +219,50 @@ private fun InstructionsField(
 ) {
     val firstKey = state.instructionKeys.firstOrNull()
     val remainingKeys = state.instructionKeys.drop(1)
-    val isRepetition = state.repetition > 1
+    // Legacy `showExampleButtonAndSecondInstructions`: consecutive repetitions of the same
+    // task hide the utility row and the second instructions card
+    val showSecond = state.repetition <= 1
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // The legacy replaced its `xx` marker with the task length; this config's instruction
         // strings use the named `{length}` placeholder (§7)
         val placeholders = mapOf("length" to state.taskLengthSeconds.toString())
-        if (firstKey != null) {
-            // A repetition swaps the first card for a short "again" prompt; the second card
-            // keeps the original text. READING's passage is never shown (read off paper).
-            if (isRepetition) InstructionsCard(listOf("task.repeatInstruction"), placeholders, localization)
-            else InstructionsCard(listOf(firstKey), placeholders, localization)
+        if (firstKey != null) InstructionsCard(listOf(firstKey), placeholders, localization)
+        if (showSecond) {
+            UtilitiesRowBelowInstructions(component, state, localization)
+            if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
         }
-        if (!isRepetition) UtilitiesRowBelowInstructions(component, state, localization)
-        if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
+        // READING's passage is what the participant reads aloud, so unlike the second card it
+        // stays on every repetition; upright and larger than the italic instructions.
+        state.readingPassageKey?.let { key ->
+            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag(TestTags.Task.READING_PASSAGE)) {
+                Text(
+                    localization.resolve(key, placeholders),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun InstructionsCard(keys: List<String>, placeholders: Map<String, String>, localization: UiLocalization) {
     Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             // Legacy `processStringTags` rendered instructions italic by default; markup
             // (<bold>/<italic>) comes through the resolved AnnotatedString (§7, decision 26)
             keys.forEach { key ->
                 Text(
                     localization.resolve(key, placeholders),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontStyle = FontStyle.Italic,
                 )
             }
@@ -334,7 +281,7 @@ private fun UtilitiesRowBelowInstructions(
     val capturing = vocal.screenState is TaskScreenState.Capturing
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
     ) {
@@ -510,18 +457,13 @@ private fun NextTaskButton(component: TaskComponent, state: TaskComponent.State,
             .testTag(if (actsAsSkip) TestTags.Task.SKIP_BUTTON else TestTags.Task.NEXT_BUTTON),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f, fill = false).padding(horizontal = 16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(
                     localization.resolve("task.nextLabel"),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
-                Text(
-                    nextTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Text(nextTitle, style = MaterialTheme.typography.titleMedium)
             }
             Icon(
                 Icons.Filled.ArrowForward,

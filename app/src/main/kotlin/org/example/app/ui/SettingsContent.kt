@@ -10,18 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -36,18 +26,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import org.example.app.domain.settings.DEFAULT_SERVER_URL
 import org.example.app.navigation.SettingsComponent
 import kotlin.math.roundToInt
 
-/** §3 Settings screen: mic device + level slider (legacy layout, §13/44) and language; site token, server URL and refresh; installation ID. Scrolls when the window is short. */
+/** §3 Settings screen: mic device + level slider (legacy layout, §13/44), site token + installation ID, language, refresh — nothing else. */
 @Composable
 fun SettingsContent(component: SettingsComponent, localization: UiLocalization, onBack: () -> Unit) {
     val state by component.state.subscribeAsState()
     val contentWidth = Modifier.contentWidth(1100.dp)
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
-        Column(modifier = contentWidth.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.Start) {
+        Column(modifier = contentWidth, horizontalAlignment = Alignment.Start) {
             Text(
                 localization.resolve("settings.title"),
                 style = MaterialTheme.typography.headlineLarge,
@@ -56,24 +45,16 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(localization.resolve("settings.device.label"), style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DropdownSelector(
-                    triggerTag = TestTags.Settings.DEVICE_SELECT,
-                    selectedLabel = state.availableDevices.firstOrNull { it.id == state.selectedDeviceId }?.name
-                        ?: state.selectedDeviceId.orEmpty(),
-                    items = state.availableDevices,
-                    itemLabel = { it.name },
-                    itemEnabled = { it.eligible },
-                    itemTag = { TestTags.Settings.deviceOption(it.id) },
-                    onSelected = { component.onDeviceSelected(it.id) },
-                )
-                IconButton(
-                    onClick = component::onRefreshDevicesClicked,
-                    modifier = Modifier.testTag(TestTags.Settings.DEVICE_REFRESH_BUTTON),
-                ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh devices")
-                }
-            }
+            DropdownSelector(
+                triggerTag = TestTags.Settings.DEVICE_SELECT,
+                selectedLabel = state.availableDevices.firstOrNull { it.id == state.selectedDeviceId }?.name
+                    ?: state.selectedDeviceId.orEmpty(),
+                items = state.availableDevices,
+                itemLabel = { it.name },
+                itemEnabled = { it.eligible },
+                itemTag = { TestTags.Settings.deviceOption(it.id) },
+                onSelected = { component.onDeviceSelected(it.id) },
+            )
             Spacer(modifier = Modifier.height(12.dp))
 
             // The legacy microphone row: value label + 0..100 slider, disabled until the selected
@@ -94,13 +75,6 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                     modifier = Modifier.weight(1f).testTag(TestTags.Settings.MIC_GAIN_SLIDER),
                 )
             }
-            if (state.micGainUnavailable) {
-                Text(
-                    localization.resolve("settings.micGain.unavailable"),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.testTag(TestTags.Settings.MIC_GAIN_UNAVAILABLE),
-                )
-            }
             if (state.micGainOverride != null && state.configMicGain != null) {
                 TextButton(
                     onClick = component::onMicGainReset,
@@ -112,7 +86,26 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             if (localization.resolvePlain("settings.micGain.hint").isNotBlank()) {
                 Text(localization.resolve("settings.micGain.hint"), style = MaterialTheme.typography.bodyMedium)
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
 
+            Text(localization.resolve("settings.siteToken.label"), style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = state.siteToken,
+                onValueChange = component::onSiteTokenChanged,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.SITE_TOKEN_FIELD),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
+            SelectionContainer {
+                Text(
+                    state.installationId,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))
@@ -126,34 +119,7 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 itemTag = { TestTags.Settings.languageOption(it) },
                 onSelected = component::onLanguageSelected,
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(localization.resolve("settings.siteToken.label"), style = MaterialTheme.typography.titleMedium)
-            OutlinedTextField(
-                value = state.siteToken,
-                onValueChange = component::onSiteTokenChanged,
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.SITE_TOKEN_FIELD),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(localization.resolve("settings.serverUrl.label"), style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = state.serverUrl,
-                    onValueChange = component::onServerUrlChanged,
-                    singleLine = true,
-                    modifier = Modifier.weight(1f).testTag(TestTags.Settings.SERVER_URL_FIELD),
-                )
-                Button(
-                    onClick = { component.onServerUrlChanged(DEFAULT_SERVER_URL) },
-                    modifier = Modifier.testTag(TestTags.Settings.SERVER_URL_RESET_BUTTON),
-                ) {
-                    Text(localization.resolve("settings.serverUrl.reset"))
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
@@ -175,48 +141,10 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                     color = if (isSuccess) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // The legacy toggle-row look
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(localization.resolve("settings.showWaveform.label"), style = MaterialTheme.typography.bodyLarge)
-                Switch(
-                    checked = state.showWaveform,
-                    onCheckedChange = component::onShowWaveformChanged,
-                    thumbContent = if (state.showWaveform) {
-                        { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(SwitchDefaults.IconSize)) }
-                    } else {
-                        null
-                    },
-                    colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.tertiary),
-                    modifier = Modifier.testTag(TestTags.Settings.SHOW_WAVEFORM_SWITCH),
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
-            SelectionContainer {
-                Text(
-                    state.installationId,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
-                )
-            }
 
             Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = onBack,
-                modifier = Modifier.align(Alignment.CenterHorizontally).testTag(TestTags.Settings.BACK_BUTTON),
-            ) {
-                Text(localization.resolve("settings.backButton"))
+            Button(onClick = onBack, modifier = Modifier.testTag(TestTags.Settings.BACK_BUTTON)) {
+                Text(localization.resolve("action.back"))
             }
         }
     }

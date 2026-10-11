@@ -158,7 +158,7 @@ two exported clips.
 ```
 
 - `subtype`: `PHONATION` | `PATAKA` | `SYLLABLES` | `READING` | `MONOLOGUE` | `RETELLING` |
-  `PICTURE_DESCRIPTION` | `COUNTING` | `CUSTOM`. The subtype is a label (it feeds `${task.subtype}` and
+  `COUNTING` | `CUSTOM`. The subtype is a label (it feeds `${task.subtype}` and
   `examination.json`); every subtype uses the same Start/Stop/Repeat screen. `CUSTOM` is the
   generic one the web emits for any voice task without a dedicated subtype.
 - `length` — target duration in seconds.

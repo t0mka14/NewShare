@@ -77,9 +77,8 @@ but is retired for these reasons:
 1. **It predates the remote-config model.** Its Settings sections (task management UI, local
    `tasks.json` editing, participant field configuration screens) conflict with server-pushed
    configuration. In the rewrite, Settings contains only: audio input device selection, the
-   microphone level slider (§13 decision 44; the device list has a refresh button), site token (plus the read-only
-   installation ID), server URL (§13 decision 52), language, a "show audio waveform after task" switch (decision 52),
-   and a "refresh configuration" action.
+   microphone level slider (§13 decision 44), site token (plus the read-only installation ID), language, and a "refresh
+   configuration" action.
 2. **Localization mismatch.** It specifies bundled `strings_*.xml` files; the new model ships
    all strings inside the configuration JSON (§7).
 3. **Missing concepts.** It has no notion of *protocols* (named ordered task lists selectable
@@ -688,7 +687,7 @@ a centered button column, and the SAMI logo bottom right. Buttons, in order:
 |---|---|---|
 | Start the protocol | an active config exists | protocol picker (>1 protocol) or patient info |
 | Settings | always | Settings (§3) |
-| Get protocol PDF | some protocol declares a `protocolInstructionsPdfUrl` that answers a GET with anything but 404/410 (checked on each config change; no answer or not-found hides the button) | opens that URL in the system browser; with several, a picker of protocol names first |
+| Get protocol PDF | some protocol declares `protocolInstructionsPdfUrl` | opens that URL in the system browser; with several, a picker of protocol names first |
 | Upload | always | upload screen (§8.9) |
 | Sessions | always | session browser (§8.11) |
 
@@ -1310,13 +1309,14 @@ Error taxonomy (normative, inlined from the old plan):
     names (checked 2026-09-28); its only rule is `${taskIndex}` in the template.
 
 49. **Task mapping and subtypes from the web (2026-09-28, config alignment rows 12/12a).** The
-    web emits `VOCAL` (PHONATION, PATAKA, SYLLABLES, READING, MONOLOGUE, RETELLING, PICTURE_DESCRIPTION, CUSTOM) and
+    web emits `VOCAL` (PHONATION, PATAKA, SYLLABLES, READING, MONOLOGUE, RETELLING, CUSTOM) and
     `QUESTIONNAIRE`; the existing model already covers every shape, and subtypes carry no app
     behaviour, so `CUSTOM` is simply the generic VOCAL screen. Two app changes: (1) an OPEN
     question counts as answered-valid when its regex accepts `""`, so the web's `.*` (optional)
     no longer blocks Next while untouched (`Question.acceptsOpenAnswer`); (2) READING's last
-    instruction paragraph is the passage (`TaskComponent.State.readingPassageKey`). *Superseded
-    by decision 52:* the passage panel is no longer rendered (it is read off paper). QUESTIONNAIRE `length` is ignored
+    instruction paragraph is the passage (`TaskComponent.State.readingPassageKey`), rendered in
+    its own panel on every repetition — the legacy rule that hides instruction paragraphs 2+
+    from the second repetition on stays for everything else. QUESTIONNAIRE `length` is ignored
     (the web was asked to stop sending it). All nine web sample configs are test fixtures
     (`WebSampleConfigsTest`).
 
@@ -1361,19 +1361,3 @@ Error taxonomy (normative, inlined from the old plan):
 3. Is `patient_code` guaranteed pseudonymous? It appears in folder names, the ZIP name and
    (through `${field.patient_code}`) usually in clip filenames; any other field a template
    references appears in clip filenames too.
-
-52. **Legacy UI parity round (2026-10).** (1) Settings: a "Server URL" field (`AppSettings.serverUrl`,
-    used by config fetch and upload; blank or the built-in `DEFAULT_SERVER_URL` is stored as null so a
-    later default change applies; a Reset button; `ServerEndpoints.kt` is gone), a mic-device refresh
-    button, a "device level cannot be set" hint, and a "Show audio waveform after task" switch
-    (`AppSettings.showWaveform`, default on, mirrored in the runtime flag `showWaveformAfterTask`).
-    (2) Task screen: while a VOCAL take runs the recorder buffers its PCM (`beginTake`/`endTake`); after
-    Stop, with the switch on, the middle area shows a static signed-peak waveform of the take
-    (`takePeaks`, `Content.Vocal.waveform`) in place of the level indicator. With `recordVideo` the
-    live preview is a small 200x150 box beside the indicator. On repetitions > 1 the first instruction
-    card is replaced by `task.repeatInstruction` ("Please perform the same task again."), the example
-    row is hidden, and the remaining cards keep the original text; READING's passage panel is gone.
-    (3) Protocol picker: each protocol button has an italic info line ("No. tasks: 5, VOCAL: 3x, INFO: 2x.
-    Requires camera. Version: 1.", `protocolPicker.summary.*`), inside a bordered scroll panel.
-    (4) Patient info: fields re-validate live on edit except "required", which stays hidden until
-    Continue; `State.canContinue` drives the Continue button's look (it stays clickable).

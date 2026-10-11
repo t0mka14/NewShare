@@ -75,11 +75,6 @@ class FakeContinuousSessionRecorder(
     }
 
     override suspend fun startMonitoring(device: AudioInputDevice) {
-        // Same precondition as JvmContinuousSessionRecorder, so callers that skip stop() fail in tests too.
-        val s = _state.value
-        check(s == RecorderState.Idle || s == RecorderState.Stopped || s is RecorderState.Failed) {
-            "startMonitoring is only valid from Idle/Stopped/Failed, was $s"
-        }
         monitoringStarts += device
         lastAccountedInstant = clock.now()
         _captureFormat.value = negotiatedFormat

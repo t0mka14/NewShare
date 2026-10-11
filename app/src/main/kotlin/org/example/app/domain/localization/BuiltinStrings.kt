@@ -49,25 +49,18 @@ object BuiltinStrings {
         "settings.device.label" to "Microphone",
         "settings.micGain.label" to "Microphone level",
         "settings.micGain.reset" to "Use configured default ({value})",
-        "settings.micGain.unavailable" to "Microphone level can not be set for this device.",
         // Empty by design: a config may supply a hint (the legacy app's "recommended level is 63").
         "settings.micGain.hint" to "",
         "settings.siteToken.label" to "Site token",
-        "settings.serverUrl.label" to "Server URL",
-        "settings.serverUrl.reset" to "Reset",
-        "settings.showWaveform.label" to "Show audio waveform after task",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
-        "settings.refresh.button" to "Test configuration",
+        "settings.refresh.button" to "Refresh configuration",
         "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
         "settings.refresh.offline" to "Could not reach the server. Using the saved configuration.",
-        "settings.backButton" to "Save and go back",
 
         // Main menu.
         "mainMenu.title" to "Speech examination",
-        "mainMenu.site" to "Site: {name}",
-        "mainMenu.appVersion" to "App version: {version}",
         "mainMenu.startButton" to "New examination",
         "mainMenu.uploadButton" to "Upload",
         "mainMenu.settingsButton" to "Settings",
@@ -134,11 +127,6 @@ object BuiltinStrings {
         // more than one protocol; a single-protocol config skips straight to patient info.
         "protocolPicker.title" to "Choose a protocol",
         "protocolPicker.instructions" to "Select which protocol to run for this examination.",
-        // Info line under each protocol button, assembled as "<tasks>, <taskType>…. <camera>. <version>."
-        "protocolPicker.summary.tasks" to "No. tasks: {count}",
-        "protocolPicker.summary.taskType" to "{type}: {count}x",
-        "protocolPicker.summary.camera" to "Requires camera",
-        "protocolPicker.summary.version" to "Version: {version}",
 
         // Example-audio playback on VOCAL task screens (§8.6 follow-up).
         "task.playExample" to "Play example",
@@ -186,7 +174,6 @@ object BuiltinStrings {
         "task.numberLabel" to "Task {n}",
         "task.numberOfTotalLabel" to "Task {n}/{total}",
         "task.repetitionLabel" to "Repetition {n}",
-        "task.repeatInstruction" to "Please perform the same task again.",
         "task.takeLabel" to "Take {n}",
         // Legacy prev/next task-button chrome (§13 decision 36): small label line above the
         // task name; `task.endOfProtocol` replaces the next task's name on the last task.
@@ -250,23 +237,16 @@ object BuiltinStrings {
         "settings.device.label" to "Mikrofon",
         "settings.micGain.label" to "Úroveň mikrofonu",
         "settings.micGain.reset" to "Použít nastavenou výchozí hodnotu ({value})",
-        "settings.micGain.unavailable" to "Úroveň mikrofonu nelze pro toto zařízení nastavit.",
         "settings.micGain.hint" to "",
         "settings.siteToken.label" to "Token pracoviště",
-        "settings.serverUrl.label" to "URL serveru",
-        "settings.serverUrl.reset" to "Reset",
-        "settings.showWaveform.label" to "Zobrazit audio po dokončení úlohy",
         "settings.installationId.label" to "ID instalace",
         "settings.language.label" to "Jazyk",
-        "settings.refresh.button" to "Otestovat konfiguraci",
+        "settings.refresh.button" to "Aktualizovat konfiguraci",
         "settings.refresh.success" to "Konfigurace byla aktualizována. Vše je v pořádku.",
         "settings.refresh.failed" to "Konfiguraci se nepodařilo aktualizovat.",
         "settings.refresh.offline" to "Server není dostupný. Používá se uložená konfigurace.",
-        "settings.backButton" to "Uložit a vrátit se",
 
         "mainMenu.title" to "Vyšetření řeči",
-        "mainMenu.site" to "Pracoviště: {name}",
-        "mainMenu.appVersion" to "Verze aplikace: {version}",
         "mainMenu.startButton" to "Nové vyšetření",
         "mainMenu.uploadButton" to "Odeslání nahrávek",
         "mainMenu.settingsButton" to "Nastavení",
@@ -325,10 +305,6 @@ object BuiltinStrings {
 
         "protocolPicker.title" to "Vyberte protokol",
         "protocolPicker.instructions" to "Zvolte protokol pro toto vyšetření.",
-        "protocolPicker.summary.tasks" to "Počet úloh: {count}",
-        "protocolPicker.summary.taskType" to "{type}: {count}x",
-        "protocolPicker.summary.camera" to "Vyžaduje kameru",
-        "protocolPicker.summary.version" to "Verze: {version}",
 
         "task.playExample" to "Přehrát ukázku",
         "task.stopExample" to "Zastavit ukázku",
@@ -364,7 +340,6 @@ object BuiltinStrings {
         "task.numberLabel" to "Úloha {n}",
         "task.numberOfTotalLabel" to "Úloha {n}/{total}",
         "task.repetitionLabel" to "Opakování {n}",
-        "task.repeatInstruction" to "Prosím, zopakujte úlohu ještě jednou.",
         "task.takeLabel" to "Pokus {n}",
         "task.nextLabel" to "Další úloha",
         "task.prevLabel" to "Předchozí úloha",

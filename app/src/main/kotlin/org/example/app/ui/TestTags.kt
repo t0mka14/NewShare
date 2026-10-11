@@ -80,7 +80,6 @@ object TestTags {
 
         /** Example-audio playback button (§8.6, follow-up) — disabled while `Capturing`. */
         const val EXAMPLE_AUDIO_BUTTON = "task.exampleAudioButton"
-        const val WAVEFORM = "task.waveform"
 
         /** VIDEO task: the live camera preview surface. */
         const val VIDEO_PREVIEW = "task.videoPreview"
@@ -189,19 +188,12 @@ object TestTags {
     /** Settings screen (§3): mic device, site token, installation ID, language, refresh config. */
     object Settings {
         const val DEVICE_SELECT = "settings.deviceSelect"
-        /** Re-enumerates the devices listed in [DEVICE_SELECT]. */
-        const val DEVICE_REFRESH_BUTTON = "settings.deviceRefreshButton"
         /** Microphone level slider under the device dropdown (§13 decision 44). */
         const val MIC_GAIN_SLIDER = "settings.micGainSlider"
         const val MIC_GAIN_VALUE = "settings.micGainValue"
-        /** Note under the slider when the selected device's level cannot be read. */
-        const val MIC_GAIN_UNAVAILABLE = "settings.micGainUnavailable"
         /** Clears the local level override; shown only while one exists and the config has a default. */
         const val MIC_GAIN_RESET_BUTTON = "settings.micGainResetButton"
         const val SITE_TOKEN_FIELD = "settings.siteTokenField"
-        const val SERVER_URL_FIELD = "settings.serverUrlField"
-        const val SERVER_URL_RESET_BUTTON = "settings.serverUrlResetButton"
-        const val SHOW_WAVEFORM_SWITCH = "settings.showWaveformSwitch"
         /** Read-only text: this computer's generated installation ID. */
         const val INSTALLATION_ID_FIELD = "settings.installationIdField"
         const val LANGUAGE_SELECT = "settings.languageSelect"

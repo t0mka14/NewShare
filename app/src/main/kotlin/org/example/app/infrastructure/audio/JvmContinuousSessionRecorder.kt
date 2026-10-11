@@ -86,10 +86,6 @@ class JvmContinuousSessionRecorder(
     @Volatile private var currentWriter: WavFileWriter? = null
     @Volatile private var captureThread: Thread? = null
 
-    /** Current take's PCM for the post-task waveform preview; see [beginTake]/[endTake]. */
-    private val takeBuf = java.io.ByteArrayOutputStream()
-    @Volatile private var takeActive = false
-
     private val lastSuccessfulReadAtMillis = AtomicLong(0L)
     private val interruptionHandled = AtomicBoolean(true) // no episode in flight until a line is open
     private var lastHeaderPatchAtMillis = 0L
@@ -164,16 +160,6 @@ class JvmContinuousSessionRecorder(
         }
     }
 
-    override fun beginTake() {
-        synchronized(takeBuf) { takeBuf.reset() }
-        takeActive = true
-    }
-
-    override fun endTake(): ByteArray {
-        takeActive = false
-        return synchronized(takeBuf) { takeBuf.toByteArray().also { takeBuf.reset() } }
-    }
-
     override suspend fun stop() = withContext(dispatchers.io) {
         stopCaptureThreadAndLine()
 
@@ -231,7 +217,6 @@ class JvmContinuousSessionRecorder(
                 val writer = currentWriter
                 if (writer != null && _state.value is RecorderState.Writing) {
                     writer.write(buffer, 0, n)
-                    if (takeActive) synchronized(takeBuf) { takeBuf.write(buffer, 0, n) }
                     val globalTotal = globalSampleCounter.update(format.framesIn(writer.bytesWritten))
                     _writtenSamples.value = globalTotal
                     maybePatchHeader(writer)
@@ -338,8 +323,6 @@ class JvmContinuousSessionRecorder(
         state == RecorderState.Idle || state == RecorderState.Stopped || state is RecorderState.Failed
 
     private fun resetSessionState() {
-        takeActive = false
-        synchronized(takeBuf) { takeBuf.reset() }
         captureThread = null
         currentLine = null
         currentWriter = null

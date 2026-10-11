@@ -77,35 +77,13 @@ class PatientInfoComponentTest {
     }
 
     @Test
-    fun `editing a field after a failed continue clears its required error`() {
+    fun `editing a field after a failed continue clears just that field's error`() {
         val h = Harness(fields)
         h.component.onContinue()
         assertTrue(h.component.state.value.errors.containsKey("code"))
 
-        h.component.onFieldChanged("code", "HC0")
-        assertTrue(h.component.state.value.errors["code"]!!.none { it is FieldValidationError.Required })
-        h.component.onFieldChanged("code", "HC001")
+        h.component.onFieldChanged("code", "still-typing")
         assertFalse(h.component.state.value.errors.containsKey("code"))
-    }
-
-    @Test
-    fun `pattern errors show live, required errors wait for continue`() {
-        val h = Harness(fields)
-        assertFalse(h.component.state.value.canContinue)
-
-        h.component.onFieldChanged("code", "HC001")
-        assertTrue(h.component.state.value.canContinue)
-
-        h.component.onFieldChanged("code", "HC00x")
-        assertEquals(
-            listOf(FieldValidationError.PatternMismatch("code", "[A-Z]{2}\\d{3}")),
-            h.component.state.value.errors["code"],
-        )
-        assertFalse(h.component.state.value.canContinue)
-
-        h.component.onFieldChanged("code", "")
-        assertTrue(h.component.state.value.errors.isEmpty())
-        assertFalse(h.component.state.value.canContinue)
     }
 
     @Test

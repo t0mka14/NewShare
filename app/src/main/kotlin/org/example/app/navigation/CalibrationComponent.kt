@@ -87,9 +87,6 @@ class DefaultCalibrationComponent(
     override fun onDeviceSelected(device: AudioInputDevice) {
         _state.value = _state.value.copy(selectedDevice = device, deviceLost = false)
         scope.launch(dispatchers.main) {
-            // Bootstrap already left the recorder Monitoring (or Interrupted after device loss);
-            // startMonitoring only accepts Idle/Stopped/Failed, so close the current line first.
-            recorder.stop()
             recorder.startMonitoring(device)
         }
     }

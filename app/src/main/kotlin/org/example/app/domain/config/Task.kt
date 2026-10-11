@@ -32,7 +32,7 @@ sealed interface Task {
 /** `subtype` values for [VocalTask] (§4.1). */
 @Serializable
 enum class VocalSubtype {
-    PHONATION, PATAKA, SYLLABLES, READING, MONOLOGUE, RETELLING, PICTURE_DESCRIPTION, COUNTING, CUSTOM
+    PHONATION, PATAKA, SYLLABLES, READING, MONOLOGUE, RETELLING, COUNTING, CUSTOM
 }
 
 @Serializable
