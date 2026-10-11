@@ -61,6 +61,13 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `PICTURE_DESCRIPTION subtype decodes`() {
+        val json = minimalConfigJson.replace("\"subtype\": \"PHONATION\"", "\"subtype\": \"PICTURE_DESCRIPTION\"")
+        val vocal = ConfigDecoder.decode(json).config.protocols[0].tasks[0] as VocalTask
+        assertEquals(VocalSubtype.PICTURE_DESCRIPTION, vocal.subtype)
+    }
+
+    @Test
     fun `findProtocol matches name and project, or name alone without a project`() {
         val config = RemoteConfig(
             schemaVersion = 1, configVersion = "v", defaultLanguage = "en",

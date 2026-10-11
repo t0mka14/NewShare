@@ -1309,7 +1309,7 @@ Error taxonomy (normative, inlined from the old plan):
     names (checked 2026-09-28); its only rule is `${taskIndex}` in the template.
 
 49. **Task mapping and subtypes from the web (2026-09-28, config alignment rows 12/12a).** The
-    web emits `VOCAL` (PHONATION, PATAKA, SYLLABLES, READING, MONOLOGUE, RETELLING, CUSTOM) and
+    web emits `VOCAL` (PHONATION, PATAKA, SYLLABLES, READING, MONOLOGUE, RETELLING, PICTURE_DESCRIPTION, CUSTOM) and
     `QUESTIONNAIRE`; the existing model already covers every shape, and subtypes carry no app
     behaviour, so `CUSTOM` is simply the generic VOCAL screen. Two app changes: (1) an OPEN
     question counts as answered-valid when its regex accepts `""`, so the web's `.*` (optional)
