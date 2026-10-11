@@ -47,6 +47,10 @@ interface MainMenuComponent {
     data class State(
         val startEnabled: Boolean = false,
         val protocolPdfs: List<ProtocolPdf> = emptyList(),
+        /** The active config's `siteName`; null (no line shown) when absent or blank. */
+        val siteName: String? = null,
+        /** This build's version; null (no line shown) when unknown, e.g. a dev run without `version.json`. */
+        val appVersion: String? = null,
     )
 }
 
@@ -59,6 +63,8 @@ class DefaultMainMenuComponent(
     private val onSettingsClicked: () -> Unit,
     private val onSessionBrowserClicked: () -> Unit,
     private val onLanguageSelectedClicked: (String) -> Unit,
+    /** `BuildInfo.appVersion`, or null when unknown; passed in so the component stays testable. */
+    private val appVersion: String? = null,
 ) : MainMenuComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -75,6 +81,8 @@ class DefaultMainMenuComponent(
 
     private fun stateOf(config: RemoteConfig?) = MainMenuComponent.State(
         startEnabled = config != null,
+        siteName = config?.siteName?.trim()?.ifBlank { null },
+        appVersion = appVersion,
         protocolPdfs = config?.protocols.orEmpty()
             .filter { !it.protocolInstructionsPdfUrl.isNullOrBlank() }
             .groupBy { it.name to it.protocolInstructionsPdfUrl!! }

@@ -36,6 +36,7 @@ The configuration fully describes:
 {
   "schemaVersion": 1,
   "configVersion": "2026-07-01.1",
+  "siteName": "Paris",
   "defaultLanguage": "cs",
   "languages": ["cs", "en"],
   "defaultMicName": "USBAudioDevice",
@@ -52,6 +53,7 @@ The configuration fully describes:
 |---|---|---|
 | `schemaVersion` | int | Parser compatibility; app rejects unknown major versions |
 | `configVersion` | string | Server-side revision identifier, stored in session snapshots |
+| `siteName` | string | Optional. The site's display name, shown under the main menu title ("Site: …"). Absent or blank shows no line. Display only — no app behaviour depends on it |
 | `defaultLanguage` | string | Fallback language |
 | `languages` | string[] | Languages selectable in the UI |
 | `defaultMicName` | string | The microphone **model** the session records from when Settings has no saved device (a device saved in Settings wins), and the target of `defaultMicGain`. Give the device's product string as the sound panel shows it, e.g. `USB audio CODEC` — the same physical device is named `Microphone (USB audio CODEC)` on Windows, `USB audio CODEC` on macOS and `CODEC [plughw:3,0]` on Linux, so the value is matched case-insensitively as a substring of the device's name + description, which all three contain. It identifies a model, not a unit. Java on Windows cuts device names to 31 characters (JDK-7116070); a name cut through the model string still matches while at least half of it (and six characters) remain |

@@ -19,7 +19,7 @@ class MainMenuComponentTest {
         defaultLanguage = "en",
     )
 
-    private class Harness(configurationRepository: FakeConfigurationRepository) {
+    private class Harness(configurationRepository: FakeConfigurationRepository, appVersion: String? = null) {
         val dispatchers = TestCoroutineDispatchers()
         var startClicks = 0
         var uploadClicks = 0
@@ -36,7 +36,25 @@ class MainMenuComponentTest {
             onSettingsClicked = { settingsClicks++ },
             onSessionBrowserClicked = { browserClicks++ },
             onLanguageSelectedClicked = { selectedLanguages += it },
+            appVersion = appVersion,
         )
+    }
+
+    @Test
+    fun `site name follows the active config, blank shows none`() {
+        val repo = FakeConfigurationRepository(initialConfig = sampleConfig().copy(siteName = "Paris"))
+        val h = Harness(repo)
+        assertEquals("Paris", h.component.state.value.siteName)
+
+        repo.setActiveConfig(sampleConfig().copy(siteName = "  "))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(null, h.component.state.value.siteName)
+    }
+
+    @Test
+    fun `app version is shown as given and absent when unknown`() {
+        assertEquals("1.2.3", Harness(FakeConfigurationRepository(sampleConfig()), appVersion = "1.2.3").component.state.value.appVersion)
+        assertEquals(null, Harness(FakeConfigurationRepository(sampleConfig())).component.state.value.appVersion)
     }
 
     @Test

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.example.app.AppContainer
+import org.example.app.BuildInfo
 import org.example.app.domain.audio.MicGainReapplyingRecorder
 import org.example.app.domain.audio.MicNames
 import org.example.app.domain.config.ConfigError
@@ -167,6 +168,7 @@ class DefaultRootComponent(
                     onSettingsClicked = { navigation.pushNew(Config.Settings) },
                     onSessionBrowserClicked = { navigation.pushNew(Config.SessionBrowser) },
                     onLanguageSelectedClicked = ::selectLanguage,
+                    appVersion = BuildInfo.appVersion.takeIf { it != BuildInfo.UNKNOWN }?.toString(),
                 ),
             )
 

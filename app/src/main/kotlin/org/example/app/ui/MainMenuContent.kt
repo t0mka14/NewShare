@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -83,11 +84,29 @@ private fun TitleBar(component: MainMenuComponent, localization: UiLocalization)
         // Equal slots either side of the title keep it centered whether or not the language
         // selector is showing.
         Spacer(modifier = Modifier.weight(1f))
-        Text(
-            localization.resolve("mainMenu.title"),
-            style = screenTitleTextStyle(),
-            textAlign = TextAlign.Center,
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                localization.resolve("mainMenu.title"),
+                style = screenTitleTextStyle(),
+                textAlign = TextAlign.Center,
+            )
+            val state by component.state.subscribeAsState()
+            val infoStyle = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+            state.siteName?.let { name ->
+                Text(
+                    localization.resolve("mainMenu.site", mapOf("name" to name)),
+                    style = infoStyle,
+                    modifier = Modifier.testTag(TestTags.MainMenu.SITE_NAME),
+                )
+            }
+            state.appVersion?.let { version ->
+                Text(
+                    localization.resolve("mainMenu.appVersion", mapOf("version" to version)),
+                    style = infoStyle,
+                    modifier = Modifier.testTag(TestTags.MainMenu.APP_VERSION),
+                )
+            }
+        }
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             LanguageSelector(component, localization)
         }

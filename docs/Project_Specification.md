@@ -335,7 +335,8 @@ amplitude envelope drawn on a canvas. The config value is a default: a choice ma
 overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.levels`. A VOCAL
 task with `recordVideo` shows the live camera preview there instead (§13 decision 23).
 
-Config-level fields: `schemaVersion`, `configVersion`, `defaultLanguage`, `languages`,
+Config-level fields: `schemaVersion`, `configVersion`, `siteName` (display only, main menu;
+§13 decision 54), `defaultLanguage`, `languages`,
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
 wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
 the Settings slider; decision 44), `enableEditor`, `indicatorType` (overridden by Settings;
@@ -696,7 +697,9 @@ a centered button column, and the SAMI logo bottom right. Buttons, in order:
 
 `Get protocol PDF` is the original's manual button, restored 2026-08-22; `Sessions` has no
 legacy counterpart and is therefore last. The title is `mainMenu.title`, config-overridable,
-defaulting to the original's "Speech examination".
+defaulting to the original's "Speech examination". Under it, two italic info lines: "Site:
+{name}" from the config's `siteName` and "App version: {version}" from the build; each is
+left out when its value is missing (§13 decision 54).
 
 Scaling (§13 decision 36's rule that fixed-size legacy layouts are bugs): the buttons fill a
 60%-wide column capped at 560dp — about the original's `fillMaxWidth(0.3f)` on a 1920px screen,
@@ -1372,6 +1375,15 @@ Error taxonomy (normative, inlined from the old plan):
     so `TaskContent` no longer reads the config itself (§5.2). A change made in Settings
     applies from the next session. The post-take waveform from the reverted 2026-10 round is
     not adopted.
+
+54. **Site name and app version on the main menu (2026-10-10, from the reverted 2026-10
+    round).** The web emits `siteName` (the site's name; `""` when unknown), decoded as the
+    optional `RemoteConfig.siteName`. `MainMenuComponent.State` carries `siteName` (trimmed;
+    blank → null) and `appVersion` (`BuildInfo.appVersion`, null when it is `0.0.0`/unknown,
+    passed in by `RootComponent`); the title bar shows a line for each non-null value, so the
+    UI reads neither the config nor `BuildInfo` itself (§5.2). The reverted round's
+    reachability check that hid the "Get protocol PDF" button was rejected: a working URL is
+    the server's responsibility, and the browser reports an unreachable one.
 
 **Still open:**
 

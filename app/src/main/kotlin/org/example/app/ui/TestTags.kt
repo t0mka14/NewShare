@@ -28,6 +28,9 @@ object TestTags {
         const val UPLOAD_BUTTON = "mainMenu.uploadButton"
         const val SETTINGS_BUTTON = "mainMenu.settingsButton"
         const val SESSION_BROWSER_BUTTON = "mainMenu.sessionBrowserButton"
+        /** Info lines under the title (§13 decision 54); absent when there is no value. */
+        const val SITE_NAME = "mainMenu.siteName"
+        const val APP_VERSION = "mainMenu.appVersion"
         const val PROTOCOL_PDF_BUTTON = "mainMenu.protocolPdfButton"
         const val LANGUAGE_SELECTOR = "mainMenu.languageSelector"
 

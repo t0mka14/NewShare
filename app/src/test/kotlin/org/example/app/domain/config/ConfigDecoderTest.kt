@@ -61,6 +61,14 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `siteName decodes, and is null when absent`() {
+        assertEquals(null, ConfigDecoder.decode(minimalConfigJson).config.siteName)
+
+        val json = minimalConfigJson.replace("\"configVersion\": \"2026-07-01.1\",", "\"configVersion\": \"2026-07-01.1\", \"siteName\": \"Paris\",")
+        assertEquals("Paris", ConfigDecoder.decode(json).config.siteName)
+    }
+
+    @Test
     fun `PICTURE_DESCRIPTION subtype decodes`() {
         val json = minimalConfigJson.replace("\"subtype\": \"PHONATION\"", "\"subtype\": \"PICTURE_DESCRIPTION\"")
         val vocal = ConfigDecoder.decode(json).config.protocols[0].tasks[0] as VocalTask

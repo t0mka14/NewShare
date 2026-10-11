@@ -44,6 +44,8 @@ data class Protocol(
 data class RemoteConfig(
     val schemaVersion: Int,
     val configVersion: String,
+    /** The site's display name, shown on the main menu (§13 decision 54); blank or absent shows nothing. */
+    val siteName: String? = null,
     val defaultLanguage: String,
     val languages: List<String> = emptyList(),
     /**
