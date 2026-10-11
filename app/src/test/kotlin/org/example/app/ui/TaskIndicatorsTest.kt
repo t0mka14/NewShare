@@ -3,6 +3,9 @@ package org.example.app.ui
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import org.example.app.domain.config.IndicatorType
 import org.junit.jupiter.api.Test
 
@@ -53,5 +56,20 @@ class TaskIndicatorsTest {
         }
 
         onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertExists()
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `the preview glow renders its content while capturing a loud level`() = runComposeUiTest {
+        setContent {
+            LevelGlow(level = 0.9f, capturing = true, modifier = androidx.compose.ui.Modifier.size(400.dp, 300.dp)) {
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.testTag("content"))
+            }
+        }
+        mainClock.advanceTimeBy(2_000) // let the spring reach the level so the blurred halo is drawn
+        waitForIdle()
+
+        onNodeWithTag(TestTags.Task.LEVEL_GLOW).assertExists()
+        onNodeWithTag("content").assertExists()
     }
 }

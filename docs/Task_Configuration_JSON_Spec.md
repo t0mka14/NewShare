@@ -182,7 +182,8 @@ two exported clips.
   example button. A changed file needs a new URL (the cache is keyed by URL).
 - `recordVideo` — optional, default `false`. Also films every take with the camera, alongside
   the audio. The live camera preview replaces the `indicatorType` widget on this task's screen
-  (even with `showIndicator: false`). There are no PTZ controls; use a `VIDEO` task (§4.5) for
+  (even with `showIndicator: false`); with `showIndicator` a glow around the preview follows the
+  audio level instead. There are no PTZ controls; use a `VIDEO` task (§4.5) for
   those. The camera opens when the screen does, and Start waits until it is previewing. If no
   camera is present, the camera fails, or it is still not previewing 10 s after the screen
   opened, the screen says so and the task records **audio only**. A camera failure during a

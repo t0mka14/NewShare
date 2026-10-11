@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -13,11 +14,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import org.example.app.domain.config.IndicatorType
+import org.jetbrains.skia.FilterBlurMode
+import org.jetbrains.skia.MaskFilter
 
 /**
  * Live recording feedback on VOCAL task screens (§6.2), fed by
@@ -111,5 +118,53 @@ private fun WaveformLevelIndicator(level: Float, modifier: Modifier = Modifier) 
                 strokeWidth = stepX * 0.6f,
             )
         }
+    }
+}
+
+/** Room reserved around a glowing preview so the halo is never clipped and the video never moves. */
+private val GLOW_MARGIN = 40.dp
+
+/**
+ * The level indicator of a filming VOCAL task (§13 decision 57): a soft green halo behind
+ * [content] (the camera preview) whose spread and brightness follow [level] while [capturing],
+ * spring-smoothed like [CircleLevelIndicator]. At rest there is no halo, as the circle rests at
+ * its minimum. Drawn as a Skia-blurred rounded rect inside a fixed [GLOW_MARGIN], so the
+ * preview keeps its full framing size — the reason decision 23 gave it the middle area.
+ */
+@Composable
+fun LevelGlow(level: Float, capturing: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val glowColor = MaterialTheme.colorScheme.tertiary
+    val target = if (capturing) level.coerceIn(0f, 1f) else 0f
+    val intensity: Float by animateFloatAsState(
+        targetValue = target,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessVeryLow,
+        ),
+    )
+    Box(
+        modifier = modifier
+            .testTag(TestTags.Task.LEVEL_GLOW)
+            .drawBehind {
+                if (intensity <= 0.01f) return@drawBehind
+                // Louder = the halo reaches further out (2..16dp past the preview), blurs wider
+                // (4..14dp sigma) and is more opaque (0.45..0.95).
+                val spread = (2f + intensity * 14f).dp.toPx()
+                val sigma = (4f + intensity * 10f).dp.toPx()
+                val inset = GLOW_MARGIN.toPx() - spread
+                val paint = Paint().apply { color = glowColor.copy(alpha = 0.45f + intensity * 0.5f) }
+                paint.asFrameworkPaint().maskFilter = MaskFilter.makeBlur(FilterBlurMode.NORMAL, sigma)
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawRRect(
+                        org.jetbrains.skia.RRect.makeLTRB(
+                            inset, inset, size.width - inset, size.height - inset, (8.dp + 4.dp * intensity).toPx(),
+                        ),
+                        paint.asFrameworkPaint(),
+                    )
+                }
+            }
+            .padding(GLOW_MARGIN),
+    ) {
+        content()
     }
 }

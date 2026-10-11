@@ -101,7 +101,14 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             when (val content = state.content) {
                 is TaskComponent.Content.Vocal -> if (content.video != null) {
-                    VideoPreview(content.video, Modifier.contentWidth(1500.dp).fillMaxHeight())
+                    // The preview keeps the middle area (decision 23); its glow is the level indicator
+                    if (content.showIndicator) {
+                        LevelGlow(content.level, capturing, Modifier.contentWidth(1500.dp).fillMaxHeight()) {
+                            VideoPreview(content.video, Modifier.fillMaxSize())
+                        }
+                    } else {
+                        VideoPreview(content.video, Modifier.contentWidth(1500.dp).fillMaxHeight())
+                    }
                 } else if (content.showIndicator) {
                     TaskLevelIndicator(
                         indicatorType = content.indicatorType,

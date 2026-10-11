@@ -75,6 +75,8 @@ object TestTags {
         const val NEXT_BUTTON = "task.nextButton"
         const val SKIP_BUTTON = "task.skipButton"
         const val LEVEL_INDICATOR = "task.levelIndicator"
+        /** Filming VOCAL task: the glow around the camera preview that follows the level (§13 decision 57). */
+        const val LEVEL_GLOW = "task.levelGlow"
         /** READING only: the passage panel, shown on every repetition. */
         const val READING_PASSAGE = "task.readingPassage"
         const val ERROR_DIALOG = "task.errorDialog"

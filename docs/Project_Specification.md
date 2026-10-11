@@ -333,7 +333,8 @@ record a master WAV at all.**
 pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — a rolling ~3 s
 amplitude envelope drawn on a canvas. The config value is a default: a choice made in Settings
 overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.levels`. A VOCAL
-task with `recordVideo` shows the live camera preview there instead (§13 decision 23).
+task with `recordVideo` shows the live camera preview there instead (§13 decision 23); with
+`showIndicator` the preview's surrounding glow follows the level (decision 57).
 
 Config-level fields: `schemaVersion`, `configVersion`, `siteName` (display only, main menu;
 §13 decision 54), `defaultLanguage`, `languages`,
@@ -1003,7 +1004,8 @@ Error taxonomy (normative, inlined from the old plan):
       alongside the audio, sharing all of the VIDEO machinery above: the same per-screen camera
       refcount (a filming VOCAL screen counts as a video screen, so the camera stays open across
       a VOCAL-with-video → VIDEO transition), the same file naming and `videoTakes[]` entries.
-      The preview replaces the `indicatorType` widget, and there is no PTZ: the controller is
+      The preview replaces the `indicatorType` widget (its glow is the level indicator since
+      decision 57), and there is no PTZ: the controller is
       only built for a `VideoTask`. Audio is what the task exists for, so the camera may delay it
       but never prevent it. Start is refused while the camera is still opening, as for VIDEO, but
       no camera, a `Failed` camera, or one still not previewing 10 s
@@ -1403,6 +1405,17 @@ Error taxonomy (normative, inlined from the old plan):
     its normal look and is always clickable. Chosen over the reverted 2026-10 round's
     check-on-every-keystroke, which flagged a partly typed code as wrong, and its
     disabled-looking-but-clickable Continue button.
+
+57. **A filming VOCAL task's level indicator is a glow around the camera preview
+    (2026-10-10).** Decision 23 gave the preview the whole middle area for framing, which left
+    the examiner without level feedback. With `showIndicator`, `LevelGlow` now draws a soft
+    green halo (the circle's `tertiary`) behind the preview: while a take is captured its
+    reach (2–16 dp past the preview), blur and opacity follow `Content.Vocal.level`,
+    spring-smoothed like the circle; at rest there is none, as the circle rests at its
+    minimum. It is a Skia-blurred rounded rect drawn inside a fixed 40 dp margin, so the
+    preview never moves or shrinks. Without `showIndicator` the preview stays plain. The
+    Settings indicator choice (decision 53) does not change it. It replaces the reverted
+    2026-10 round's 200×150 preview beside the indicator, which was too small to frame by.
 
 **Still open:**
 

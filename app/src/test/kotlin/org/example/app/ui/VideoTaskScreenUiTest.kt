@@ -63,7 +63,18 @@ class VideoTaskScreenUiTest {
 
         onNodeWithTag(TestTags.Task.VIDEO_PREVIEW).assertIsDisplayed()
         onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertDoesNotExist()
+        onNodeWithTag(TestTags.Task.LEVEL_GLOW).assertExists() // the preview's glow is the indicator
         onNodeWithTag(TestTags.Task.START_BUTTON).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a filming VOCAL task without showIndicator shows a plain preview with no glow`() = runComposeUiTest {
+        val task = VocalTask(titleKey = "t", subtype = VocalSubtype.MONOLOGUE, recordVideo = true, showIndicator = false)
+        setContent { TaskContent(component(task, VideoRecorderState.Previewing), localization) }
+        waitForIdle()
+
+        onNodeWithTag(TestTags.Task.VIDEO_PREVIEW).assertIsDisplayed()
+        onNodeWithTag(TestTags.Task.LEVEL_GLOW).assertDoesNotExist()
     }
 
     @Test
