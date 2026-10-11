@@ -217,7 +217,8 @@ interface TaskComponent {
         /**
          * READING only: the passage to read aloud — the task's *last* instruction paragraph, as the
          * web emits it (config alignment row 12). Shown in its own panel on every repetition,
-         * unlike the second instructions card. `null` for every other task.
+         * unlike the second instructions card. `null` for every other task, and for READING too
+         * while [READING_PASSAGE_PANEL] is off (§13 decision 59).
          */
         val readingPassageKey: String? = null,
         /** `VocalTask.length` (target seconds, 0 = none) — drives the legacy timer's green
@@ -703,7 +704,7 @@ class DefaultTaskComponent(
             // Rep 2+ of an `nrepetition` task: the first card's text becomes the "same task
             // again" prompt (§13 decision 58); the UI already hides the cards after it there.
             instructionKeys = if (taskInstance.repetition > 1) listOf(REPEAT_INSTRUCTION_KEY) + ownKeys.drop(1) else ownKeys,
-            readingPassageKey = readingPassageKey,
+            readingPassageKey = readingPassageKey.takeIf { READING_PASSAGE_PANEL },
             taskLengthSeconds = (task as? VocalTask)?.length ?: (task as? VideoTask)?.length ?: 0,
             nextTaskTitleKey = nextTaskTitleKey,
             canSkip = task.canSkip,
@@ -715,6 +716,12 @@ class DefaultTaskComponent(
     }
 
     private companion object {
+        /**
+         * §13 decision 59: the READING passage panel is hidden — the passage is read off paper. The
+         * passage is still kept out of the instruction cards; `true` brings the panel back as-is.
+         */
+        const val READING_PASSAGE_PANEL = false
+
         const val REASON_EXAMINER_REPEAT = "EXAMINER_REPEAT"
         const val REPEAT_INSTRUCTION_KEY = "task.repeatInstruction"
         const val REASON_DEVICE_LOST = "DEVICE_LOST"

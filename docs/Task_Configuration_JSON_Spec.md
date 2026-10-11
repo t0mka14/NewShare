@@ -175,9 +175,10 @@ two exported clips.
   the count is the array length). On the first repetition every paragraph is shown. From the
   second repetition on, the first paragraph's text is replaced by the app string
   `task.repeatInstruction` ("Please perform the same task again.", overridable in `strings`)
-  and the remaining paragraphs are hidden. **`READING`:** the *last* paragraph is the passage to read aloud,
-  shown in its own scrollable panel on every repetition (with a single paragraph, that
-  paragraph is the passage).
+  and the remaining paragraphs are hidden. **`READING`:** the *last* paragraph is the passage to read aloud.
+  It is not shown on screen (the passage is read off paper) and is kept out of the instruction
+  cards; the app keeps a hidden panel for it that can be switched back on (decision 59 of the
+  project specification).
 - `audioExamplePath` — optional example audio, played on demand, never recorded. An absolute
   `http(s)` URL: the app downloads it when a new config is applied and caches it locally, so it
   also plays offline afterwards. No key, a non-http value, or a download that failed means no

@@ -321,17 +321,18 @@ class TaskComponentTest {
     }
 
     @Test
-    fun `a READING task's last instruction paragraph is the passage, on every repetition`() {
+    fun `a READING task's passage is kept out of the cards and, with the panel hidden, shown nowhere`() {
         val reading = VocalTask(titleKey = "r", subtype = VocalSubtype.READING, instructionKeys = listOf("a", "b", "passage"))
 
         listOf(1, 2).forEach { repetition ->
             val state = Harness(reading, repetition = repetition).component.state.value
-            assertEquals("passage", state.readingPassageKey)
+            assertEquals(null, state.readingPassageKey) // decision 59: panel hidden
+            assertFalse("passage" in state.instructionKeys)
         }
         assertEquals(listOf("a", "b"), Harness(reading, repetition = 1).component.state.value.instructionKeys)
 
         val single = Harness(reading.copy(instructionKeys = listOf("passage"))).component.state.value
-        assertEquals("passage", single.readingPassageKey)
+        assertEquals(null, single.readingPassageKey)
         assertEquals(emptyList<String>(), single.instructionKeys)
     }
 

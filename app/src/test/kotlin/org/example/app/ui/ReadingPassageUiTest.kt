@@ -1,7 +1,7 @@
 package org.example.app.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.runComposeUiTest
 import com.arkivanov.decompose.DefaultComponentContext
@@ -20,15 +20,14 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Path
 
 /**
- * READING's passage (its last instruction paragraph, config alignment row 12) is rendered in its
- * own panel on every repetition — the legacy rule hides the *second instructions card* from the
- * second repetition on, and the passage must not go with it.
+ * READING's passage (its last instruction paragraph, config alignment row 12) is hidden (§13
+ * decision 59: read off paper): no panel, and it is kept out of the instruction cards too.
  */
 class ReadingPassageUiTest {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun `the reading passage is shown on the second repetition`() = runComposeUiTest {
+    fun `the reading passage panel is hidden`() = runComposeUiTest {
         val clock = FakeClock()
         val recorder = FakeContinuousSessionRecorder(clock)
         kotlinx.coroutines.runBlocking { recorder.startWriting(Path.of("master.wav")) }
@@ -59,6 +58,7 @@ class ReadingPassageUiTest {
         setContent { TaskContent(component, UiLocalization(LocalizedStringProvider(), "en", null)) }
         waitForIdle()
 
-        onNodeWithTag(TestTags.Task.READING_PASSAGE).assertIsDisplayed()
+        onNodeWithTag(TestTags.Task.READING_PASSAGE).assertDoesNotExist()
+        onNodeWithText("reading_passage").assertDoesNotExist()
     }
 }

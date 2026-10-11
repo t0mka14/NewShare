@@ -1323,7 +1323,7 @@ Error taxonomy (normative, inlined from the old plan):
     question counts as answered-valid when its regex accepts `""`, so the web's `.*` (optional)
     no longer blocks Next while untouched (`Question.acceptsOpenAnswer`); (2) READING's last
     instruction paragraph is the passage (`TaskComponent.State.readingPassageKey`), rendered in
-    its own panel on every repetition — the legacy rule that hides instruction paragraphs 2+
+    its own panel on every repetition (*hidden since decision 59*) — the legacy rule that hides instruction paragraphs 2+
     from the second repetition on stays for everything else. QUESTIONNAIRE `length` is ignored
     (the web was asked to stop sending it). All nine web sample configs are test fixtures
     (`WebSampleConfigsTest`).
@@ -1426,6 +1426,14 @@ Error taxonomy (normative, inlined from the old plan):
     repetition shows only this prompt. The swap is made in the component, so `TaskContent`
     only renders the keys it is given (§5.2). It does not concern the examiner's Repeat button
     (a new take of the same instance, §8.3).
+
+59. **The READING passage panel is hidden (2026-10-10).** The passage is read off paper, so
+    the panel from decision 49 is no longer shown. It is hidden rather than removed, in case it
+    comes back: `TaskComponent` still separates READING's last instruction paragraph from the
+    cards (so the passage appears nowhere on screen), but passes `readingPassageKey = null`
+    while its `READING_PASSAGE_PANEL` constant is `false`. Flipping it to `true` restores the
+    panel unchanged (and `ReadingPassageUiTest` / `TaskComponentTest` then need their
+    assertions flipped back).
 
 **Still open:**
 
