@@ -23,6 +23,7 @@ import org.example.app.domain.config.ConfigError
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.indicatorType
 import org.example.app.domain.settings.loudnessRange
 import org.example.app.ui.UiLocalization
 import java.time.LocalDate
@@ -311,6 +312,7 @@ class DefaultRootComponent(
             audioPlaybackService = container.audioPlaybackService,
             useCalibration = activeConfig.useCalibration,
             calibrationLoudness = savedSettings.loudnessRange(),
+            indicatorType = savedSettings.indicatorType(activeConfig),
             onSessionEnded = { folderName ->
                 val enableEditor = container.configurationRepository.activeConfig.value?.enableEditor ?: false
                 if (enableEditor) {

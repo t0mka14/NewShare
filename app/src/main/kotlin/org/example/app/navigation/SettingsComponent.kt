@@ -16,6 +16,7 @@ import org.example.app.domain.audio.MIC_GAIN_RANGE
 import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.audio.MicNames
 import org.example.app.domain.config.ConfigurationRepository
+import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.RefreshConfigurationUseCase
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
@@ -42,6 +43,12 @@ interface SettingsComponent {
 
     /** Drop the local override; the config's default (if any for this device) is re-applied. */
     fun onMicGainReset()
+
+    /** The examiner picked an indicator: it becomes the local override, even if equal to the config's. */
+    fun onIndicatorTypeSelected(type: IndicatorType)
+
+    /** Drop the indicator override; the config's `indicatorType` applies again. */
+    fun onIndicatorTypeReset()
 
     data class State(
         val availableDevices: List<AudioInputDevice> = emptyList(),
@@ -70,7 +77,14 @@ interface SettingsComponent {
         val micGainControllable: Boolean = false,
         /** The read finished and returned no level — the device's level cannot be set. */
         val micGainUnavailable: Boolean = false,
-    )
+        /** The persisted local override (`AppSettings.indicatorType`, §13 decision 53). */
+        val indicatorTypeOverride: IndicatorType? = null,
+        /** The active config's `indicatorType` (its default when there is no config). */
+        val configIndicatorType: IndicatorType = IndicatorType.CIRCLE,
+    ) {
+        /** What the next session's task screens will show. */
+        val indicatorType: IndicatorType get() = indicatorTypeOverride ?: configIndicatorType
+    }
 }
 
 /**
@@ -113,6 +127,7 @@ class DefaultSettingsComponent(
                     availableLanguages = config?.languages.orEmpty(),
                     selectedLanguage = effectiveLanguage(settingsRepository.read()?.language, config),
                     configMicGain = configGainFor(config, selectedDevice()),
+                    configIndicatorType = config?.indicatorType ?: IndicatorType.CIRCLE,
                 ).withSliderPosition()
             }
         }
@@ -136,6 +151,8 @@ class DefaultSettingsComponent(
                 ?: OFFLINE_KEY.takeIf { refreshConfigurationUseCase.usingCachedConfig.value },
             micGainOverride = saved?.micGain?.coerceIn(MIC_GAIN_RANGE),
             configMicGain = configGainFor(config, selected),
+            indicatorTypeOverride = saved?.indicatorType,
+            configIndicatorType = config?.indicatorType ?: IndicatorType.CIRCLE,
         ).withSliderPosition()
     }
 
@@ -208,6 +225,16 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onIndicatorTypeSelected(type: IndicatorType) {
+        _state.value = _state.value.copy(indicatorTypeOverride = type)
+        persist()
+    }
+
+    override fun onIndicatorTypeReset() {
+        _state.value = _state.value.copy(indicatorTypeOverride = null)
+        persist()
+    }
+
     /** The saved language, or the config's default when the config doesn't offer it (mirrors
      *  `RootComponent`'s rule, so the dropdown shows the language the app actually uses). */
     private fun effectiveLanguage(saved: String?, config: RemoteConfig?): String? {
@@ -252,6 +279,7 @@ class DefaultSettingsComponent(
                 siteToken = current.siteToken.trim().ifBlank { null },
                 language = current.selectedLanguage,
                 micGain = current.micGainOverride,
+                indicatorType = current.indicatorTypeOverride,
             ),
         )
     }

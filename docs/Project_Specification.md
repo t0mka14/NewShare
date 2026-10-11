@@ -77,7 +77,8 @@ but is retired for these reasons:
 1. **It predates the remote-config model.** Its Settings sections (task management UI, local
    `tasks.json` editing, participant field configuration screens) conflict with server-pushed
    configuration. In the rewrite, Settings contains only: audio input device selection, the
-   microphone level slider (§13 decision 44; the device list has a refresh button, decision 52), site token (plus the read-only installation ID), language, and a "refresh
+   microphone level slider (§13 decision 44; the device list has a refresh button, decision 52), site token (plus the read-only installation ID), language, the live recording indicator
+   (a local override of the config's `indicatorType`, decision 53), and a "refresh
    configuration" action.
 2. **Localization mismatch.** It specifies bundled `strings_*.xml` files; the new model ships
    all strings inside the configuration JSON (§7).
@@ -330,13 +331,15 @@ record a master WAV at all.**
 
 `indicatorType` selects the live recording feedback on VOCAL task screens: `CIRCLE` — a
 pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — a rolling ~3 s
-amplitude envelope drawn on a canvas. Both consume `ContinuousSessionRecorder.levels`. A VOCAL
+amplitude envelope drawn on a canvas. The config value is a default: a choice made in Settings
+overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.levels`. A VOCAL
 task with `recordVideo` shows the live camera preview there instead (§13 decision 23).
 
 Config-level fields: `schemaVersion`, `configVersion`, `defaultLanguage`, `languages`,
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
 wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
-the Settings slider; decision 44), `enableEditor`, `indicatorType`, `useCalibration`,
+the Settings slider; decision 44), `enableEditor`, `indicatorType` (overridden by Settings;
+decision 53), `useCalibration`,
 `protocols[]` and `strings{lang → {key → value}}`. Each protocol carries its own
 `patientFields[]` (participant-input field definitions — name, label key, help key,
 placeholder, regex, required), shown after the protocol is picked; catalogue names
@@ -1334,8 +1337,9 @@ Error taxonomy (normative, inlined from the old plan):
     repeats that failed request (another failed lookup against the web's rate limit, §6.1).
     `ConfigError.messageKey()` lives in `domain/config` so both the Settings component and the
     blocking screen use it without a component depending on `ui/` (§5.2). The Settings buttons
-    keep their labels "Refresh configuration" and "Back" — Settings saves every change
-    immediately, so there is no separate save step.
+    are "Refresh configuration" and "Save and go back" (`settings.backButton`, 2026-10-10 at
+    user request). Settings still saves every change immediately; the label only tells the
+    examiner that nothing is lost by leaving.
 
 51. **Example audio is downloaded and cached (2026-09-30, config alignment row 13).**
     `audioExamplePath` is an absolute `http(s)` URL. After a refresh applies a config,
@@ -1356,6 +1360,18 @@ Error taxonomy (normative, inlined from the old plan):
     shows "Microphone level can not be set for this device." under the disabled slider (hidden
     while the read is still running). The rest of that round was reverted; a Settings
     server-URL field was rejected because the site token travels in the config URL (§6.1).
+
+53. **The recording indicator is a config default with a Settings override (2026-10-10,
+    config alignment row 4 "locally modified in Settings wins").** `AppSettings.indicatorType`
+    (null = follow the config) is picked from a Settings dropdown (Circle / Waveform); a reset
+    button, shown only while an override exists, returns to the config's value, as the mic
+    level does (decision 44). Picking the same value as the config still counts as an
+    override, so a later config push does not change it. `RootComponent` resolves
+    `AppSettings.indicatorType(config)` once per session against the session's config and
+    passes it through `SessionComponent` to every task screen (`Content.Vocal.indicatorType`),
+    so `TaskContent` no longer reads the config itself (§5.2). A change made in Settings
+    applies from the next session. The post-take waveform from the reverted 2026-10 round is
+    not adopted.
 
 **Still open:**
 

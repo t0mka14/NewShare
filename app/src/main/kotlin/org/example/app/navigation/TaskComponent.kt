@@ -16,6 +16,7 @@ import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
+import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.InfoTask
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
@@ -179,6 +180,8 @@ interface TaskComponent {
             val exampleAudioPlaying: Boolean,
             /** The camera preview, shown in place of the level indicator; `null` unless `recordVideo`. */
             val video: VideoFeed? = null,
+            /** Effective live indicator (§13 decision 53), resolved once per session by [SessionComponent]. */
+            val indicatorType: IndicatorType = IndicatorType.CIRCLE,
         ) : Content
 
         data class Questionnaire(
@@ -277,6 +280,8 @@ class DefaultTaskComponent(
      * platform without a PTZ backend, so `havePTZ` cannot produce live controls there.
      */
     private val ptzController: PtzController = NoOpPtzController,
+    /** Settings override, else the session config's `indicatorType` (§13 decision 53). */
+    private val indicatorType: IndicatorType = IndicatorType.CIRCLE,
     /**
      * Asks [SessionComponent] to begin/end video capture for a take. This component never
      * touches the camera itself, for the same single-writer reason it never touches the mic.
@@ -640,6 +645,7 @@ class DefaultTaskComponent(
                 exampleAudioAvailable = resolvedAudioExamplePath != null,
                 exampleAudioPlaying = exampleAudioPlaying,
                 video = if (task.recordVideo) videoFeed() else null,
+                indicatorType = indicatorType,
             )
 
             is QuestionnaireTask -> TaskComponent.Content.Questionnaire(

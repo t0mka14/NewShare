@@ -7,6 +7,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.localization.LocalizedStringProvider
+import org.example.app.domain.config.IndicatorType
 import org.example.app.navigation.SettingsComponent
 import org.example.app.ui.SettingsContent
 import org.example.app.ui.UiLocalization
@@ -72,6 +73,14 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
     override fun onRefreshClicked() = Unit
 
     override fun onRefreshDevicesClicked() = Unit
+
+    override fun onIndicatorTypeSelected(type: IndicatorType) {
+        _state.value = _state.value.copy(indicatorTypeOverride = type)
+    }
+
+    override fun onIndicatorTypeReset() {
+        _state.value = _state.value.copy(indicatorTypeOverride = null)
+    }
 
     override fun onMicGainChanged(value: Int) {
         _state.value = _state.value.copy(micGain = value)

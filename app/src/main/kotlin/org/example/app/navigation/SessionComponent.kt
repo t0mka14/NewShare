@@ -23,6 +23,7 @@ import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.RecorderState
 import org.example.app.domain.config.ExampleAudioCache
+import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.VocalTask
@@ -130,6 +131,8 @@ class DefaultSessionComponent(
     private val useCalibration: Boolean,
     /** Calibration target band, `AppSettings.loudnessRange()`. */
     private val calibrationLoudness: ClosedFloatingPointRange<Double>,
+    /** Live task-screen indicator, `AppSettings.indicatorType(config)` (§13 decision 53). */
+    private val indicatorType: IndicatorType,
     /** Carries the finished session's folder name, so the caller (RootComponent) can route
      * into the editor (if `enableEditor`) or straight to processing (§8.8) without
      * re-deriving it. */
@@ -319,6 +322,7 @@ class DefaultSessionComponent(
             videoFrames = videoRecorder?.previewFrames,
             videoState = videoRecorder?.state ?: noCameraState.takeIf { task.capturesVideo },
             ptzController = ptz,
+            indicatorType = indicatorType,
             onVideoTakeStarted = { take -> startVideoTake(instance, take) },
             onVideoTakeStopped = { stopVideoTake() },
             nextPartFile = { computeNextPartFile() },

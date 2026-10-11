@@ -53,7 +53,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
 import org.example.app.navigation.AnswerState
@@ -105,7 +104,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                     VideoPreview(content.video, Modifier.contentWidth(1500.dp).fillMaxHeight())
                 } else if (content.showIndicator) {
                     TaskLevelIndicator(
-                        indicatorType = localization.config?.indicatorType ?: IndicatorType.CIRCLE,
+                        indicatorType = content.indicatorType,
                         level = content.level,
                         capturing = capturing,
                     )

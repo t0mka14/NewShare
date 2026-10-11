@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.InterruptionReason
+import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.InfoTask
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.QuestionnaireTask
@@ -128,7 +129,11 @@ class SessionComponentTest {
         var ended = 0
         var endedFolderName: String? = null
 
-        fun build(protocol: Protocol, useCalibration: Boolean = true): SessionComponent = DefaultSessionComponent(
+        fun build(
+            protocol: Protocol,
+            useCalibration: Boolean = true,
+            indicatorType: IndicatorType = IndicatorType.CIRCLE,
+        ): SessionComponent = DefaultSessionComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             installationId = "install-1",
             protocol = protocol,
@@ -155,6 +160,7 @@ class SessionComponentTest {
             audioPlaybackService = audioPlaybackService,
             useCalibration = useCalibration,
             calibrationLoudness = 0.2..0.8,
+            indicatorType = indicatorType,
             onSessionEnded = { folderName -> ended++; endedFolderName = folderName },
         )
     }
@@ -234,6 +240,16 @@ class SessionComponentTest {
         val folderName = h.sessionRepository.listSessionFolderNames().single()
         val events = h.timelineRepository.readEventLog(folderName).events
         assertTrue(events.any { it.type == TimelineEventType.SESSION_RECORDING_STARTED })
+    }
+
+    @Test
+    fun `the session's indicator type reaches the VOCAL task screen`() {
+        val h = Harness()
+        val component = h.build(vocalProtocol, useCalibration = false, indicatorType = IndicatorType.WAVEFORM)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertEquals(IndicatorType.WAVEFORM, (task.state.value.content as TaskComponent.Content.Vocal).indicatorType)
     }
 
     @Test

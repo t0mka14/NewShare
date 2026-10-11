@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.example.app.domain.config.IndicatorType
 import org.example.app.navigation.SettingsComponent
 import kotlin.math.roundToInt
 
@@ -138,6 +139,27 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 itemTag = { TestTags.Settings.languageOption(it) },
                 onSelected = component::onLanguageSelected,
             )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Local override of the config's `indicatorType` (§13 decision 53)
+            Text(localization.resolve("settings.indicator.label"), style = MaterialTheme.typography.titleMedium)
+            DropdownSelector(
+                triggerTag = TestTags.Settings.INDICATOR_SELECT,
+                selectedLabel = localization.resolvePlain("settings.indicator.${state.indicatorType.name}"),
+                items = IndicatorType.entries,
+                itemLabel = { localization.resolvePlain("settings.indicator.${it.name}") },
+                itemTag = { TestTags.Settings.indicatorOption(it.name) },
+                onSelected = component::onIndicatorTypeSelected,
+            )
+            if (state.indicatorTypeOverride != null) {
+                TextButton(
+                    onClick = component::onIndicatorTypeReset,
+                    modifier = Modifier.testTag(TestTags.Settings.INDICATOR_RESET_BUTTON),
+                ) {
+                    val configured = localization.resolvePlain("settings.indicator.${state.configIndicatorType.name}")
+                    Text(localization.resolve("settings.indicator.reset", mapOf("value" to configured)))
+                }
+            }
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -163,7 +185,7 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
 
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = onBack, modifier = Modifier.testTag(TestTags.Settings.BACK_BUTTON)) {
-                Text(localization.resolve("action.back"))
+                Text(localization.resolve("settings.backButton"))
             }
         }
     }

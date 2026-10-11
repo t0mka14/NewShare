@@ -3,6 +3,7 @@ package org.example.app.navigation
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.config.ConfigApplyResult
+import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.ConfigFetchResult
 import org.example.app.domain.config.RefreshConfigurationUseCase
 import org.example.app.domain.audio.MicGainApplier
@@ -104,6 +105,39 @@ class SettingsComponentTest {
         assertEquals("secondary", saved.micDeviceId)
         assertEquals("token-42", saved.siteToken)
         assertEquals("cs", saved.language)
+    }
+
+    @Test
+    fun `indicator follows the config until picked, then the pick wins and persists`() {
+        val configurationRepository = FakeConfigurationRepository(initialConfig = sampleConfig().copy(indicatorType = IndicatorType.WAVEFORM))
+        val h = Harness(configurationRepository = configurationRepository)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(IndicatorType.WAVEFORM, h.component.state.value.indicatorType)
+        assertNull(h.component.state.value.indicatorTypeOverride)
+
+        h.component.onIndicatorTypeSelected(IndicatorType.CIRCLE)
+        assertEquals(IndicatorType.CIRCLE, h.component.state.value.indicatorType)
+        assertEquals(IndicatorType.CIRCLE, h.settingsRepository.read()!!.indicatorType)
+
+        // A later config push changes the default but not the examiner's pick.
+        configurationRepository.setActiveConfig(sampleConfig().copy(indicatorType = IndicatorType.WAVEFORM))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(IndicatorType.CIRCLE, h.component.state.value.indicatorType)
+    }
+
+    @Test
+    fun `resetting the indicator drops the override and the config applies again`() {
+        val settingsRepository = FakeAppSettingsRepository().apply { write(AppSettings(indicatorType = IndicatorType.CIRCLE)) }
+        val h = Harness(
+            settingsRepository = settingsRepository,
+            configurationRepository = FakeConfigurationRepository(initialConfig = sampleConfig().copy(indicatorType = IndicatorType.WAVEFORM)),
+        )
+        assertEquals(IndicatorType.CIRCLE, h.component.state.value.indicatorType)
+
+        h.component.onIndicatorTypeReset()
+
+        assertEquals(IndicatorType.WAVEFORM, h.component.state.value.indicatorType)
+        assertNull(settingsRepository.read()!!.indicatorType)
     }
 
     @Test

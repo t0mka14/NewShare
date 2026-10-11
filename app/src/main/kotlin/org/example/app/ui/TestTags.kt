@@ -209,6 +209,12 @@ object TestTags {
 
         /** One selectable item per configured language within [LANGUAGE_SELECT]'s dropdown. */
         fun languageOption(language: String) = "settings.languageOption.$language"
+        /** Live recording indicator dropdown (§13 decision 53). */
+        const val INDICATOR_SELECT = "settings.indicatorSelect"
+        /** One item per `IndicatorType` within [INDICATOR_SELECT]'s dropdown, e.g. `settings.indicatorOption.WAVEFORM`. */
+        fun indicatorOption(type: String) = "settings.indicatorOption.$type"
+        /** Clears the local indicator override; shown only while one exists. */
+        const val INDICATOR_RESET_BUTTON = "settings.indicatorResetButton"
     }
 
     /** Last-resort uncaught-error dialog rendered over any screen (ErrorReporter). */

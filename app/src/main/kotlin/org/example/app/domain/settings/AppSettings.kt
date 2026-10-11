@@ -1,6 +1,8 @@
 package org.example.app.domain.settings
 
 import kotlinx.serialization.Serializable
+import org.example.app.domain.config.IndicatorType
+import org.example.app.domain.config.RemoteConfig
 
 /**
  * `config/settings.json` (§5.4, §8.2) — local-only settings, distinct from the remote
@@ -37,7 +39,15 @@ data class AppSettings(
      * [DEFAULT_OPTIMAL_LOUDNESS]. See [loudnessRange].
      */
     val optimalLoudness: List<Double>? = null,
+    /**
+     * Live recording indicator picked in Settings (§13 decision 53). Overrides the config's
+     * `indicatorType`; null follows the config. See [indicatorType].
+     */
+    val indicatorType: IndicatorType? = null,
 )
+
+/** The Settings override when set, else the config's `indicatorType` (local wins, §13 decision 53). */
+fun AppSettings?.indicatorType(config: RemoteConfig): IndicatorType = this?.indicatorType ?: config.indicatorType
 
 val DEFAULT_OPTIMAL_LOUDNESS: ClosedFloatingPointRange<Double> = 0.2..0.5
 
