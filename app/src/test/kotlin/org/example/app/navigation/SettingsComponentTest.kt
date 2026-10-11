@@ -107,6 +107,16 @@ class SettingsComponentTest {
     }
 
     @Test
+    fun `refreshing devices re-enumerates the dropdown items`() {
+        val h = Harness()
+        h.deviceProvider.setDevices(listOf(FakeAudioInputDeviceProvider.INELIGIBLE_DEVICE))
+
+        h.component.onRefreshDevicesClicked()
+
+        assertEquals(listOf(FakeAudioInputDeviceProvider.INELIGIBLE_DEVICE), h.component.state.value.availableDevices)
+    }
+
+    @Test
     fun `refresh success maps to the localized success key`() {
         val h = Harness()
         h.settingsRepository.write(AppSettings(siteToken = "token-1"))
@@ -208,12 +218,14 @@ class SettingsComponentTest {
         val h = Harness(settingsRepository = settingsRepository, gainControl = gainControl)
 
         assertFalse(h.component.state.value.micGainControllable)
+        assertFalse(h.component.state.value.micGainUnavailable) // still reading — no note yet
         assertNull(h.component.state.value.micGain)
 
         h.dispatchers.scheduler.advanceUntilIdle()
 
         val state = h.component.state.value
         assertTrue(state.micGainControllable)
+        assertFalse(state.micGainUnavailable)
         assertEquals(70, state.micGain)
         assertNull(state.micGainOverride)
         assertEquals(listOf(secondaryName), gainControl.readCalls)
@@ -227,6 +239,7 @@ class SettingsComponentTest {
         h.dispatchers.scheduler.advanceUntilIdle()
 
         assertFalse(h.component.state.value.micGainControllable)
+        assertTrue(h.component.state.value.micGainUnavailable)
         assertNull(h.component.state.value.micGain)
     }
 

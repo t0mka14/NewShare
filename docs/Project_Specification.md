@@ -77,7 +77,7 @@ but is retired for these reasons:
 1. **It predates the remote-config model.** Its Settings sections (task management UI, local
    `tasks.json` editing, participant field configuration screens) conflict with server-pushed
    configuration. In the rewrite, Settings contains only: audio input device selection, the
-   microphone level slider (§13 decision 44), site token (plus the read-only installation ID), language, and a "refresh
+   microphone level slider (§13 decision 44; the device list has a refresh button, decision 52), site token (plus the read-only installation ID), language, and a "refresh
    configuration" action.
 2. **Localization mismatch.** It specifies bundled `strings_*.xml` files; the new model ships
    all strings inside the configuration JSON (§7).
@@ -1347,6 +1347,15 @@ Error taxonomy (normative, inlined from the old plan):
     failed refreshes leave the cache as it is, so earlier downloads keep playing offline. A task
     whose URL is not cached shows no example button (`SessionComponent` maps the URL through
     `localFileFor`). Relative paths are no longer supported.
+
+52. **Mic device refresh and "level cannot be set" note in Settings (2026-10-10, from the
+    reverted 2026-10 legacy-parity round).** A refresh icon button beside the microphone
+    dropdown (`SettingsComponent.onRefreshDevicesClicked`) re-enumerates the devices, recomputes
+    the config's per-device level and re-reads the selected device's level — the same lookup
+    as opening the screen. When that read finishes with no level, `State.micGainUnavailable`
+    shows "Microphone level can not be set for this device." under the disabled slider (hidden
+    while the read is still running). The rest of that round was reverted; a Settings
+    server-URL field was rejected because the site token travels in the config URL (§6.1).
 
 **Still open:**
 

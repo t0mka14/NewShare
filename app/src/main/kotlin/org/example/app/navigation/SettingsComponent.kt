@@ -31,6 +31,9 @@ interface SettingsComponent {
     fun onLanguageSelected(language: String)
     fun onRefreshClicked()
 
+    /** Re-enumerate the mic devices (same lookup as when the screen opens). */
+    fun onRefreshDevicesClicked()
+
     /** Slider dragged (live); nothing is persisted or applied until [onMicGainChangeFinished]. */
     fun onMicGainChanged(value: Int)
 
@@ -65,6 +68,8 @@ interface SettingsComponent {
         val configMicGain: Int? = null,
         /** The selected device's level could be read through the OS — the slider is enabled. */
         val micGainControllable: Boolean = false,
+        /** The read finished and returned no level — the device's level cannot be set. */
+        val micGainUnavailable: Boolean = false,
     )
 }
 
@@ -166,6 +171,16 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onRefreshDevicesClicked() {
+        val devices = deviceProvider.availableDevices()
+        val selected = devices.firstOrNull { it.id == _state.value.selectedDeviceId }
+        _state.value = _state.value.copy(
+            availableDevices = devices,
+            configMicGain = configGainFor(configurationRepository.activeConfig.value, selected),
+        )
+        readDeviceLevel()
+    }
+
     override fun onMicGainChanged(value: Int) {
         _state.value = _state.value.copy(micGain = value.coerceIn(MIC_GAIN_RANGE))
     }
@@ -216,13 +231,13 @@ class DefaultSettingsComponent(
     /** Legacy `findMicGain`: disable the slider, read the device's level off the UI thread, re-enable. */
     private fun readDeviceLevel() {
         deviceLevel = null
-        _state.value = _state.value.copy(micGainControllable = false).withSliderPosition()
+        _state.value = _state.value.copy(micGainControllable = false, micGainUnavailable = false).withSliderPosition()
         val device = selectedDevice() ?: return
         scope.launch(dispatchers.main) {
             val level = micGainApplier.read(device)
             if (selectedDevice()?.id != device.id) return@launch // the examiner moved on
             deviceLevel = level
-            _state.value = _state.value.copy(micGainControllable = level != null).withSliderPosition()
+            _state.value = _state.value.copy(micGainControllable = level != null, micGainUnavailable = level == null).withSliderPosition()
         }
     }
 

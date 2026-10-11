@@ -47,8 +47,10 @@ object BuiltinStrings {
 
         "settings.title" to "Settings",
         "settings.device.label" to "Microphone",
+        "settings.device.refresh" to "Refresh microphones",
         "settings.micGain.label" to "Microphone level",
         "settings.micGain.reset" to "Use configured default ({value})",
+        "settings.micGain.unavailable" to "Microphone level can not be set for this device.",
         // Empty by design: a config may supply a hint (the legacy app's "recommended level is 63").
         "settings.micGain.hint" to "",
         "settings.siteToken.label" to "Site token",
@@ -235,8 +237,10 @@ object BuiltinStrings {
 
         "settings.title" to "Nastavení",
         "settings.device.label" to "Mikrofon",
+        "settings.device.refresh" to "Obnovit seznam mikrofonů",
         "settings.micGain.label" to "Úroveň mikrofonu",
         "settings.micGain.reset" to "Použít nastavenou výchozí hodnotu ({value})",
+        "settings.micGain.unavailable" to "Úroveň mikrofonu nelze pro toto zařízení nastavit.",
         "settings.micGain.hint" to "",
         "settings.siteToken.label" to "Token pracoviště",
         "settings.installationId.label" to "ID instalace",

@@ -49,6 +49,7 @@ private fun previewState(micGain: Int?, controllable: Boolean, override: Int? = 
         micGainOverride = override,
         configMicGain = configGain,
         micGainControllable = controllable,
+        micGainUnavailable = !controllable,
     )
 
 /** Inert [SettingsComponent]: edits update the state so the slider and reset button react. */
@@ -69,6 +70,8 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
     }
 
     override fun onRefreshClicked() = Unit
+
+    override fun onRefreshDevicesClicked() = Unit
 
     override fun onMicGainChanged(value: Int) {
         _state.value = _state.value.copy(micGain = value)
