@@ -1395,6 +1395,15 @@ Error taxonomy (normative, inlined from the old plan):
     app's expanded "Task X/Y" numbering is the server's job. `Protocol.version` is therefore
     not modelled. Needs the web's mapping layer to emit the key and its strings.
 
+56. **Patient-info fields are checked when they lose focus (2026-10-10).** Besides the full
+    check on Continue, leaving a text field (`PatientInfoComponent.onFieldFocusLost`) checks
+    that field and shows its format errors; a "required" error shows there only once Continue
+    has been tried, so tabbing through an empty form stays clean. Editing a field clears its
+    errors until the next check, so nothing flickers while typing. The Continue button keeps
+    its normal look and is always clickable. Chosen over the reverted 2026-10 round's
+    check-on-every-keystroke, which flagged a partly typed code as wrong, and its
+    disabled-looking-but-clickable Continue button.
+
 **Still open:**
 
 1. Concrete server API contracts: upload endpoint shape, and transport hardening (config

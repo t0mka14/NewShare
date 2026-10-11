@@ -17,6 +17,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -67,15 +71,25 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
                                 onSelected = { component.onFieldChanged(field.name, it) },
                             )
                         }
-                        FieldKind.Text -> OutlinedTextField(
-                            value = value,
-                            onValueChange = { component.onFieldChanged(field.name, it) },
-                            label = { Text(localization.resolve(field.labelKey)) },
-                            placeholder = field.placeholder.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
-                            isError = state.errors[field.name].orEmpty().isNotEmpty(),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().testTag(TestTags.PatientInfo.field(field.name)),
-                        )
+                        FieldKind.Text -> {
+                            // onFocusChanged also fires unfocused on first composition; only a real
+                            // focused → unfocused transition counts as leaving the field.
+                            var hadFocus by remember { mutableStateOf(false) }
+                            OutlinedTextField(
+                                value = value,
+                                onValueChange = { component.onFieldChanged(field.name, it) },
+                                label = { Text(localization.resolve(field.labelKey)) },
+                                placeholder = field.placeholder.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
+                                isError = state.errors[field.name].orEmpty().isNotEmpty(),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                                    .onFocusChanged { focus ->
+                                        if (hadFocus && !focus.isFocused) component.onFieldFocusLost(field.name)
+                                        hadFocus = focus.isFocused
+                                    }
+                                    .testTag(TestTags.PatientInfo.field(field.name)),
+                            )
+                        }
                     }
                     if (field.helpKey.isNotEmpty() && localization.resolvePlain(field.helpKey).isNotBlank()) {
                         Text(localization.resolve(field.helpKey), style = MaterialTheme.typography.bodySmall)

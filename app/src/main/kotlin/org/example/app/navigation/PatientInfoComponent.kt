@@ -13,6 +13,10 @@ interface PatientInfoComponent {
     val state: Value<State>
 
     fun onFieldChanged(fieldName: String, value: String)
+
+    /** A text field lost focus: check it and show its format errors (§13 decision 56). */
+    fun onFieldFocusLost(fieldName: String)
+
     fun onContinue()
 
     data class State(
@@ -33,6 +37,10 @@ interface PatientInfoComponent {
  *
  * `current_date` fields (the catalogue's auto-filled date) start as [examinationDate] in ISO form
  * and ignore edits.
+ *
+ * Errors show at two points (§13 decision 56): when a field loses focus (its format errors;
+ * "required" only once Continue has been tried) and on Continue (every field). Editing a field
+ * clears its errors until the next check, so nothing flickers while typing.
  */
 class DefaultPatientInfoComponent(
     componentContext: ComponentContext,
@@ -50,6 +58,9 @@ class DefaultPatientInfoComponent(
     private val _state = MutableValue(PatientInfoComponent.State(fields = fields, values = autoFilled))
     override val state: Value<PatientInfoComponent.State> = _state
 
+    /** Set by the first Continue: from then on a focus-loss check also reports "required". */
+    private var continueAttempted = false
+
     override fun onFieldChanged(fieldName: String, value: String) {
         if (fieldName in autoFilled) return
         val updatedValues = _state.value.values + (fieldName to value)
@@ -59,7 +70,18 @@ class DefaultPatientInfoComponent(
         )
     }
 
+    override fun onFieldFocusLost(fieldName: String) {
+        if (fieldName in autoFilled) return
+        val current = _state.value
+        val fieldErrors = validateParticipantInfoUseCase.execute(current.fields, current.values)[fieldName].orEmpty()
+            .filter { continueAttempted || it !is FieldValidationError.Required }
+        _state.value = current.copy(
+            errors = if (fieldErrors.isEmpty()) current.errors - fieldName else current.errors + (fieldName to fieldErrors),
+        )
+    }
+
     override fun onContinue() {
+        continueAttempted = true
         val current = _state.value
         val errors = validateParticipantInfoUseCase.execute(current.fields, current.values)
         _state.value = current.copy(errors = errors)

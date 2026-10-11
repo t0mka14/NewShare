@@ -87,6 +87,33 @@ class PatientInfoComponentTest {
     }
 
     @Test
+    fun `leaving a field with a bad format shows the error, a fix clears it on the next focus loss`() {
+        val h = Harness(fields)
+        h.component.onFieldChanged("code", "HC")
+        assertFalse(h.component.state.value.errors.containsKey("code")) // nothing while typing
+
+        h.component.onFieldFocusLost("code")
+        assertTrue(h.component.state.value.errors["code"]!!.any { it is FieldValidationError.PatternMismatch })
+
+        h.component.onFieldChanged("code", "HC001")
+        assertFalse(h.component.state.value.errors.containsKey("code")) // editing clears it
+        h.component.onFieldFocusLost("code")
+        assertFalse(h.component.state.value.errors.containsKey("code"))
+    }
+
+    @Test
+    fun `leaving an empty required field shows nothing until Continue has been tried`() {
+        val h = Harness(fields)
+        h.component.onFieldFocusLost("code")
+        assertTrue(h.component.state.value.errors.isEmpty())
+
+        h.component.onContinue()
+        h.component.onFieldChanged("code", "")
+        h.component.onFieldFocusLost("code")
+        assertTrue(h.component.state.value.errors["code"]!!.any { it is FieldValidationError.Required })
+    }
+
+    @Test
     fun `current_date is pre-filled with the examination date and cannot be edited`() {
         val h = Harness(listOf(PatientField(name = "current_date", labelKey = "field.date", required = true)))
 
