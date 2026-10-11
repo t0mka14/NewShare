@@ -73,6 +73,7 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
 {
   "name": "Share",
   "project": "PD study",
+  "descriptionKey": "share_description",
   "protocolInstructionsPdfUrl": "https://example.org/share/protocol_manuals/MDSE_app_manual_2024.pdf",
   "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
   "patientFields": [ /* PatientField objects, §5 */ ],
@@ -85,6 +86,12 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
   projects is listed once per project (same `name`, different `project`), so a protocol is
   identified by `name` + `project`; sessions record both (`examination.json`
   `protocolName`/`protocolProject`).
+- `descriptionKey` — optional string key (§6) of a short info line shown in italics under the
+  protocol's button in the protocol picker, e.g. "No. tasks: 7, voice: 3×, info: 2×. Requires
+  camera. Version: 3." The server writes the whole text — the app computes nothing — so it is
+  the server's job to keep counts consistent with the app's numbering (repetitions expand into
+  separate task instances, §4). `<bold>`/`<italic>` markup applies. Absent or blank shows no
+  line.
 - `protocolInstructionsPdfUrl` — optional URL of the protocol's instruction manual
   (PDF). When at least one protocol defines it the main menu's "Get protocol PDF"
   button is enabled and opens the URL with the system browser; when several protocols

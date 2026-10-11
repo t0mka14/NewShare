@@ -69,6 +69,14 @@ class ConfigDecoderTest {
     }
 
     @Test
+    fun `protocol descriptionKey decodes, and is null when absent`() {
+        assertEquals(null, ConfigDecoder.decode(minimalConfigJson).config.protocols[0].descriptionKey)
+
+        val json = minimalConfigJson.replace("\"name\": \"Share\",", "\"name\": \"Share\", \"descriptionKey\": \"share_description\",")
+        assertEquals("share_description", ConfigDecoder.decode(json).config.protocols[0].descriptionKey)
+    }
+
+    @Test
     fun `PICTURE_DESCRIPTION subtype decodes`() {
         val json = minimalConfigJson.replace("\"subtype\": \"PHONATION\"", "\"subtype\": \"PICTURE_DESCRIPTION\"")
         val vocal = ConfigDecoder.decode(json).config.protocols[0].tasks[0] as VocalTask

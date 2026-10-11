@@ -27,6 +27,8 @@ enum class IndicatorType { CIRCLE, WAVEFORM }
 data class Protocol(
     val name: String,
     val project: String? = null,
+    /** String key of a server-written info line shown under this protocol in the picker (§13 decision 55). */
+    val descriptionKey: String? = null,
     val protocolInstructionsPdfUrl: String? = null,
     val recordingsFileName: String,
     /** Shown after this protocol is picked (config alignment row 6); names are unique per protocol. */

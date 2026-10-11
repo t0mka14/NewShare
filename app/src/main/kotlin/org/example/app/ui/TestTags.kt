@@ -161,6 +161,9 @@ object TestTags {
         fun protocolButton(protocolName: String, project: String? = null) =
             "protocolPicker.protocolButton." + (project?.let { "$it/" } ?: "") + protocolName
         fun projectHeader(project: String) = "protocolPicker.projectHeader.$project"
+        /** The protocol's `descriptionKey` line under its button; same qualification as [protocolButton]. */
+        fun protocolDescription(protocolName: String, project: String? = null) =
+            "protocolPicker.protocolDescription." + (project?.let { "$it/" } ?: "") + protocolName
         const val BACK_BUTTON = "protocolPicker.backButton"
     }
 

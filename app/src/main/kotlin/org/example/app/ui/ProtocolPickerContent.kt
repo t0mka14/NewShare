@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import org.example.app.navigation.ProtocolPickerComponent
 
@@ -49,12 +50,24 @@ fun ProtocolPickerContent(component: ProtocolPickerComponent, localization: UiLo
                         )
                     }
                     protocols.forEach { protocol ->
-                        Button(
-                            onClick = { component.onProtocolSelected(protocol) },
-                            modifier = Modifier.fillMaxWidth(0.6f)
-                                .testTag(TestTags.ProtocolPicker.protocolButton(protocol.name, protocol.project)),
-                        ) {
-                            Text(protocol.name)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Button(
+                                onClick = { component.onProtocolSelected(protocol) },
+                                modifier = Modifier.fillMaxWidth(0.6f)
+                                    .testTag(TestTags.ProtocolPicker.protocolButton(protocol.name, protocol.project)),
+                            ) {
+                                Text(protocol.name)
+                            }
+                            // Server-written summary (tasks, camera, version…), §13 decision 55
+                            protocol.descriptionKey?.takeIf { it.isNotBlank() }?.let { key ->
+                                Text(
+                                    localization.resolve(key),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                        .testTag(TestTags.ProtocolPicker.protocolDescription(protocol.name, protocol.project)),
+                                )
+                            }
                         }
                     }
                 }

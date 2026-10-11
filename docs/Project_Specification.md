@@ -1385,6 +1385,16 @@ Error taxonomy (normative, inlined from the old plan):
     reachability check that hid the "Get protocol PDF" button was rejected: a working URL is
     the server's responsibility, and the browser reports an unreachable one.
 
+55. **Protocol picker info line is server-written (2026-10-10).** A protocol may carry
+    `descriptionKey`, a string key into `strings` like every other text; the picker shows the
+    resolved text in italics under the protocol's button, or nothing without a key. The
+    reverted 2026-10 round computed this line in the app (config task count, per-type counts
+    with untranslated type names, a camera flag and a new `Protocol.version`); that is
+    replaced by the server writing the whole line, since it knows the protocol's revision and
+    tasks and already produces every displayed string. Keeping its counts consistent with the
+    app's expanded "Task X/Y" numbering is the server's job. `Protocol.version` is therefore
+    not modelled. Needs the web's mapping layer to emit the key and its strings.
+
 **Still open:**
 
 1. Concrete server API contracts: upload endpoint shape, and transport hardening (config
