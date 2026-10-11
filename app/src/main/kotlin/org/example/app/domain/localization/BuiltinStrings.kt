@@ -183,6 +183,8 @@ object BuiltinStrings {
         "task.numberLabel" to "Task {n}",
         "task.numberOfTotalLabel" to "Task {n}/{total}",
         "task.repetitionLabel" to "Repetition {n}",
+        // Replaces the first instruction card on repetitions 2+ (§13 decision 58); config-overridable.
+        "task.repeatInstruction" to "Please perform the same task again.",
         "task.takeLabel" to "Take {n}",
         // Legacy prev/next task-button chrome (§13 decision 36): small label line above the
         // task name; `task.endOfProtocol` replaces the next task's name on the last task.
@@ -358,6 +360,7 @@ object BuiltinStrings {
         "task.numberLabel" to "Úloha {n}",
         "task.numberOfTotalLabel" to "Úloha {n}/{total}",
         "task.repetitionLabel" to "Opakování {n}",
+        "task.repeatInstruction" to "Prosím, zopakujte úlohu ještě jednou.",
         "task.takeLabel" to "Pokus {n}",
         "task.nextLabel" to "Další úloha",
         "task.prevLabel" to "Předchozí úloha",

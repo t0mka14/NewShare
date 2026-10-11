@@ -327,12 +327,22 @@ class TaskComponentTest {
         listOf(1, 2).forEach { repetition ->
             val state = Harness(reading, repetition = repetition).component.state.value
             assertEquals("passage", state.readingPassageKey)
-            assertEquals(listOf("a", "b"), state.instructionKeys)
         }
+        assertEquals(listOf("a", "b"), Harness(reading, repetition = 1).component.state.value.instructionKeys)
 
         val single = Harness(reading.copy(instructionKeys = listOf("passage"))).component.state.value
         assertEquals("passage", single.readingPassageKey)
         assertEquals(emptyList<String>(), single.instructionKeys)
+    }
+
+    @Test
+    fun `from the second repetition the first instruction becomes the repeat prompt`() {
+        val task = vocalTask.copy(instructionKeys = listOf("a", "b"))
+        assertEquals(listOf("a", "b"), Harness(task, repetition = 1).component.state.value.instructionKeys)
+        assertEquals(listOf("task.repeatInstruction", "b"), Harness(task, repetition = 2).component.state.value.instructionKeys)
+        assertEquals(listOf("task.repeatInstruction", "b"), Harness(task, repetition = 3).component.state.value.instructionKeys)
+        // A task without instructions still says it is a repetition.
+        assertEquals(listOf("task.repeatInstruction"), Harness(vocalTask.copy(instructionKeys = emptyList()), repetition = 2).component.state.value.instructionKeys)
     }
 
     @Test

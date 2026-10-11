@@ -172,8 +172,10 @@ two exported clips.
   generic one the web emits for any voice task without a dedicated subtype.
 - `length` — target duration in seconds.
 - `instructionKeys` — one key per instruction paragraph (replaces the draft's `nTextFields`;
-  the count is the array length). The first paragraph is always shown; the rest are shown on
-  the first repetition only. **`READING`:** the *last* paragraph is the passage to read aloud,
+  the count is the array length). On the first repetition every paragraph is shown. From the
+  second repetition on, the first paragraph's text is replaced by the app string
+  `task.repeatInstruction` ("Please perform the same task again.", overridable in `strings`)
+  and the remaining paragraphs are hidden. **`READING`:** the *last* paragraph is the passage to read aloud,
   shown in its own scrollable panel on every repetition (with a single paragraph, that
   paragraph is the passage).
 - `audioExamplePath` — optional example audio, played on demand, never recorded. An absolute

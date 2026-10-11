@@ -693,13 +693,16 @@ class DefaultTaskComponent(
             ?: emptyList()
         val readingPassageKey = allInstructionKeys.lastOrNull()
             ?.takeIf { (task as? VocalTask)?.subtype == VocalSubtype.READING }
+        val ownKeys = if (readingPassageKey != null) allInstructionKeys.dropLast(1) else allInstructionKeys
         return TaskComponent.State(
             taskIndex = taskInstance.taskIndex,
             repetition = taskInstance.repetition,
             positionInProtocol = positionInProtocol,
             totalInstanceCount = totalInstanceCount,
             titleKey = task.titleKey,
-            instructionKeys = if (readingPassageKey != null) allInstructionKeys.dropLast(1) else allInstructionKeys,
+            // Rep 2+ of an `nrepetition` task: the first card's text becomes the "same task
+            // again" prompt (§13 decision 58); the UI already hides the cards after it there.
+            instructionKeys = if (taskInstance.repetition > 1) listOf(REPEAT_INSTRUCTION_KEY) + ownKeys.drop(1) else ownKeys,
             readingPassageKey = readingPassageKey,
             taskLengthSeconds = (task as? VocalTask)?.length ?: (task as? VideoTask)?.length ?: 0,
             nextTaskTitleKey = nextTaskTitleKey,
@@ -713,6 +716,7 @@ class DefaultTaskComponent(
 
     private companion object {
         const val REASON_EXAMINER_REPEAT = "EXAMINER_REPEAT"
+        const val REPEAT_INSTRUCTION_KEY = "task.repeatInstruction"
         const val REASON_DEVICE_LOST = "DEVICE_LOST"
         const val REASON_CAPTURE_FAILED = "CAPTURE_FAILED"
         val emptyFrames: StateFlow<ByteArray?> = MutableStateFlow(null)

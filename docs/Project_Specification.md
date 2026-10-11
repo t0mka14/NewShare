@@ -1417,6 +1417,16 @@ Error taxonomy (normative, inlined from the old plan):
     Settings indicator choice (decision 53) does not change it. It replaces the reverted
     2026-10 round's 200×150 preview beside the indicator, which was too small to frame by.
 
+58. **Repetitions 2+ say "Please perform the same task again." (2026-10-10).** For the
+    instances an `nrepetition` task expands into, `TaskComponent` replaces the first
+    instruction key with `task.repeatInstruction` from the second repetition on (built-in in
+    English and Czech, matching the legacy `repeat_task` string; a config can override it). A
+    task with no instructions gets it as its only card. The legacy rule that hides the
+    example-audio row and the instruction cards after the first on repetitions stays, so a
+    repetition shows only this prompt. The swap is made in the component, so `TaskContent`
+    only renders the keys it is given (§5.2). It does not concern the examiner's Repeat button
+    (a new take of the same instance, §8.3).
+
 **Still open:**
 
 1. Concrete server API contracts: upload endpoint shape, and transport hardening (config
