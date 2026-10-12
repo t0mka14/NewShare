@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,10 +46,16 @@ fun TaskLevelIndicator(
     level: Float,
     capturing: Boolean = true,
     modifier: Modifier = Modifier,
+    takeKey: Any? = null,
 ) {
-    when (indicatorType) {
-        IndicatorType.CIRCLE -> CircleLevelIndicator(level, capturing, modifier)
-        IndicatorType.WAVEFORM -> if (capturing) WaveformLevelIndicator(level, modifier)
+    // The whole take's levels, kept after Stop so the finished take stays on screen as a static
+    // preview (any indicator type); a new [takeKey] starts an empty history.
+    val history = remember(takeKey) { mutableStateListOf<Float>() }
+    if (capturing) history.add(level.coerceIn(0f, 1f))
+    when {
+        !capturing && history.isNotEmpty() -> WaveformLevelIndicator(history, false, modifier)
+        indicatorType == IndicatorType.CIRCLE -> CircleLevelIndicator(level, capturing, modifier)
+        capturing -> WaveformLevelIndicator(history, true, modifier)
     }
 }
 
@@ -87,28 +92,23 @@ private fun CircleLevelIndicator(level: Float, capturing: Boolean, modifier: Mod
 private const val WAVEFORM_HISTORY_SIZE = 120 // ~3s at a representative ~30 updates/s (§6.2).
 
 @Composable
-private fun WaveformLevelIndicator(level: Float, modifier: Modifier = Modifier) {
-    val history = remember { mutableStateListOf<Float>() }
-    history.add(level.coerceIn(0f, 1f))
-    while (history.size > WAVEFORM_HISTORY_SIZE) history.removeAt(0)
-
+private fun WaveformLevelIndicator(history: List<Float>, capturing: Boolean, modifier: Modifier = Modifier) {
     val waveColor = MaterialTheme.colorScheme.tertiary
-    // Same outline treatment as the calibration level bar, so the trace reads as a bounded
-    // instrument rather than free-floating strokes.
-    val outlineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Canvas(
         modifier = modifier
             .size(width = 500.dp, height = 250.dp)
-            .border(width = 1.dp, color = outlineColor)
-            .padding(all = 4.dp) // keeps peaks off the outline
+            .padding(all = 4.dp)
             .testTag(TestTags.Task.LEVEL_INDICATOR),
     ) {
         if (history.isEmpty()) return@Canvas
         val midY = size.height / 2f
-        val stepX = size.width / WAVEFORM_HISTORY_SIZE
-        val startIndex = WAVEFORM_HISTORY_SIZE - history.size
-        history.forEachIndexed { i, value ->
+        // Live: scrolling window of the last WAVEFORM_HISTORY_SIZE samples; stopped: whole take.
+        val window = if (capturing) WAVEFORM_HISTORY_SIZE else history.size
+        val stepX = size.width / window
+        val shown = history.takeLast(window)
+        val startIndex = window - shown.size
+        shown.forEachIndexed { i, value ->
             val x = (startIndex + i) * stepX
             val barHeight = value * midY
             drawLine(

@@ -53,7 +53,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
 import org.example.app.navigation.AnswerState
@@ -105,17 +104,14 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                     // Legacy: a small ~200x150 preview beside the recording circle
                     Row(horizontalArrangement = Arrangement.spacedBy(200.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (content.showIndicator) {
-                            // Reserve the indicator's footprint from the start: the waveform draws
-                            // nothing until capturing, which would otherwise shift the preview.
-                            val slot = when (content.indicatorType) {
-                                IndicatorType.CIRCLE -> Modifier.size(160.dp)
-                                IndicatorType.WAVEFORM -> Modifier.size(500.dp, 250.dp)
-                            }
-                            Box(slot, contentAlignment = Alignment.Center) {
+                            // Reserve the waveform's footprint from the start (it replaces the circle
+                            // after Stop), which would otherwise shift the preview.
+                            Box(Modifier.size(500.dp, 250.dp), contentAlignment = Alignment.Center) {
                                 TaskLevelIndicator(
                                     indicatorType = content.indicatorType,
                                     level = content.level,
                                     capturing = capturing,
+                                    takeKey = content.takeNumber,
                                 )
                             }
                         }
@@ -126,6 +122,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                         indicatorType = content.indicatorType,
                         level = content.level,
                         capturing = capturing,
+                        takeKey = content.takeNumber,
                     )
                 }
 
