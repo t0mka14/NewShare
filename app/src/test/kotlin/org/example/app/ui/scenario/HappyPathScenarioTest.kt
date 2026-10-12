@@ -43,9 +43,7 @@ class HappyPathScenarioTest {
 
         onNodeWithTag(TestTags.PatientInfo.field("patient_code")).performTextInput("HC001")
         onNodeWithTag(TestTags.PatientInfo.field("visitNumber")).performTextInput("V1")
-        // `sex` is a catalogue choice field: a dropdown of fixed options, not a text field.
-        onNodeWithTag(TestTags.PatientInfo.field("sex")).performClick()
-        waitForIdle()
+        // `sex` is a catalogue choice field: radio buttons of fixed options, not a text field.
         onNodeWithTag(TestTags.PatientInfo.fieldOption("sex", "female")).performClick()
         waitForIdle()
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performClick()

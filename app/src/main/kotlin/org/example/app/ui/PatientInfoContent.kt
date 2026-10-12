@@ -71,23 +71,15 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
 
                             is FieldKind.Choice -> {
                                 Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
-                                DropdownSelector(
-                                    triggerTag = TestTags.PatientInfo.field(field.name),
-                                    selectedLabel = localization.resolvePlain(
-                                        if (value.isEmpty()) "patientInfo.chooseOption"
-                                        else PatientFieldCatalogue.optionLabelKey(field.name, value),
-                                    ),
+                                RadioSelector(
+                                    selected = value.ifEmpty { null },
                                     items = kind.options,
                                     itemLabel = {
-                                        localization.resolvePlain(
-                                            PatientFieldCatalogue.optionLabelKey(
-                                                field.name,
-                                                it
-                                            )
-                                        )
+                                        localization.resolvePlain(PatientFieldCatalogue.optionLabelKey(field.name, it))
                                     },
                                     itemTag = { TestTags.PatientInfo.fieldOption(field.name, it) },
                                     onSelected = { component.onFieldChanged(field.name, it) },
+                                    modifier = Modifier.testTag(TestTags.PatientInfo.field(field.name)),
                                 )
                             }
 

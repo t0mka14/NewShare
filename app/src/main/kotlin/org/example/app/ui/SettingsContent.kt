@@ -125,25 +125,25 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(localization.resolve("settings.language.label"), style = MaterialTheme.typography.titleMedium)
-            DropdownSelector(
-                triggerTag = TestTags.Settings.LANGUAGE_SELECT,
-                selectedLabel = state.selectedLanguage.orEmpty(),
+            RadioSelector(
+                selected = state.selectedLanguage,
                 items = state.availableLanguages,
                 itemLabel = { it },
                 itemTag = { TestTags.Settings.languageOption(it) },
                 onSelected = component::onLanguageSelected,
+                modifier = Modifier.testTag(TestTags.Settings.LANGUAGE_SELECT),
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             // Local override of the config's `indicatorType` (§13 decision 53)
             Text(localization.resolve("settings.indicator.label"), style = MaterialTheme.typography.titleMedium)
-            DropdownSelector(
-                triggerTag = TestTags.Settings.INDICATOR_SELECT,
-                selectedLabel = localization.resolvePlain("settings.indicator.${state.indicatorType.name}"),
+            RadioSelector(
+                selected = state.indicatorType,
                 items = IndicatorType.entries,
                 itemLabel = { localization.resolvePlain("settings.indicator.${it.name}") },
                 itemTag = { TestTags.Settings.indicatorOption(it.name) },
                 onSelected = component::onIndicatorTypeSelected,
+                modifier = Modifier.testTag(TestTags.Settings.INDICATOR_SELECT),
             )
             if (state.indicatorTypeOverride != null) {
                 TextButton(

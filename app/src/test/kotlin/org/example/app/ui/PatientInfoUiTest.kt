@@ -2,6 +2,8 @@ package org.example.app.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -35,7 +37,9 @@ class PatientInfoUiTest {
         setContent { PatientInfoContent(component, UiLocalization(LocalizedStringProvider(), "en", null), onBack = {}) }
         waitForIdle()
 
-        onNodeWithTag(TestTags.PatientInfo.field("sex")).assertTextEquals("Choose…")
+        onNodeWithTag(TestTags.PatientInfo.fieldOption("sex", "male")).assertIsNotSelected()
+        onNodeWithTag(TestTags.PatientInfo.fieldOption("sex", "male")).performScrollTo().performClick()
+        onNodeWithTag(TestTags.PatientInfo.fieldOption("sex", "male")).assertIsSelected()
         onNodeWithTag(TestTags.PatientInfo.CONTINUE_BUTTON).performScrollTo().assertIsDisplayed()
     }
 
