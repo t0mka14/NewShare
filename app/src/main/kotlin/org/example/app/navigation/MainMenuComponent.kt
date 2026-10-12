@@ -41,7 +41,7 @@ interface MainMenuComponent {
     /**
      * `startEnabled` mirrors `ConfigurationRepository.activeConfig != null` (§8.6/§12: start
      * a new protocol is only possible with an active config). `protocolPdfs` lists the
-     * protocols that declare an instruction-manual URL — empty disables the PDF button, one
+     * protocols that declare an instruction-manual URL — empty hides the PDF button, one
      * opens directly, several make the button offer a picker.
      */
     data class State(

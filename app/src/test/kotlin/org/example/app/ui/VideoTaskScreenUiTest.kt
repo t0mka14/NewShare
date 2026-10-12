@@ -56,25 +56,24 @@ class VideoTaskScreenUiTest {
     private val localization = UiLocalization(LocalizedStringProvider(), "en", null)
 
     @Test
-    fun `a filming VOCAL task shows the camera preview instead of the level indicator`() = runComposeUiTest {
+    fun `a filming VOCAL task shows the small camera preview beside the level indicator`() = runComposeUiTest {
         val task = VocalTask(titleKey = "t", subtype = VocalSubtype.MONOLOGUE, recordVideo = true)
         setContent { TaskContent(component(task, VideoRecorderState.Previewing), localization) }
         waitForIdle()
 
         onNodeWithTag(TestTags.Task.VIDEO_PREVIEW).assertIsDisplayed()
-        onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertDoesNotExist()
-        onNodeWithTag(TestTags.Task.LEVEL_GLOW).assertExists() // the preview's glow is the indicator
+        onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertExists()
         onNodeWithTag(TestTags.Task.START_BUTTON).assertIsDisplayed()
     }
 
     @Test
-    fun `a filming VOCAL task without showIndicator shows a plain preview with no glow`() = runComposeUiTest {
+    fun `a filming VOCAL task without showIndicator shows the preview alone`() = runComposeUiTest {
         val task = VocalTask(titleKey = "t", subtype = VocalSubtype.MONOLOGUE, recordVideo = true, showIndicator = false)
         setContent { TaskContent(component(task, VideoRecorderState.Previewing), localization) }
         waitForIdle()
 
         onNodeWithTag(TestTags.Task.VIDEO_PREVIEW).assertIsDisplayed()
-        onNodeWithTag(TestTags.Task.LEVEL_GLOW).assertDoesNotExist()
+        onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertDoesNotExist()
     }
 
     @Test

@@ -54,6 +54,7 @@ object BuiltinStrings {
         // Empty by design: a config may supply a hint (the legacy app's "recommended level is 63").
         "settings.micGain.hint" to "",
         "settings.siteToken.label" to "Site token",
+        "settings.server.title" to "Server",
         "settings.installationId.label" to "Installation ID",
         "settings.language.label" to "Language",
         "settings.indicator.label" to "Recording indicator",
@@ -252,6 +253,7 @@ object BuiltinStrings {
         "settings.micGain.unavailable" to "Úroveň mikrofonu nelze pro toto zařízení nastavit.",
         "settings.micGain.hint" to "",
         "settings.siteToken.label" to "Token pracoviště",
+        "settings.server.title" to "Server",
         "settings.installationId.label" to "ID instalace",
         "settings.language.label" to "Jazyk",
         "settings.indicator.label" to "Indikátor nahrávání",

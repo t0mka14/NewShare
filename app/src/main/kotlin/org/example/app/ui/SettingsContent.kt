@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -34,14 +36,14 @@ import org.example.app.domain.config.IndicatorType
 import org.example.app.navigation.SettingsComponent
 import kotlin.math.roundToInt
 
-/** §3 Settings screen: mic device + level slider (legacy layout, §13/44), site token + installation ID, language, refresh — nothing else. */
+/** §3 Settings screen: mic device + level slider (legacy layout, §13/44), installation ID, language, indicator; Server section (site token, refresh) at the bottom. Scrolls when the window is short. */
 @Composable
 fun SettingsContent(component: SettingsComponent, localization: UiLocalization, onBack: () -> Unit) {
     val state by component.state.subscribeAsState()
     val contentWidth = Modifier.contentWidth(1100.dp)
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
-        Column(modifier = contentWidth, horizontalAlignment = Alignment.Start) {
+        Column(modifier = contentWidth.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.Start) {
             Text(
                 localization.resolve("settings.title"),
                 style = MaterialTheme.typography.headlineLarge,
@@ -110,14 +112,6 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(localization.resolve("settings.siteToken.label"), style = MaterialTheme.typography.titleMedium)
-            OutlinedTextField(
-                value = state.siteToken,
-                onValueChange = component::onSiteTokenChanged,
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.SITE_TOKEN_FIELD),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
             SelectionContainer {
                 Text(
@@ -160,7 +154,21 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                     Text(localization.resolve("settings.indicator.reset", mapOf("value" to configured)))
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Server section, kept at the bottom: site token, configuration refresh.
+            Text(localization.resolve("settings.server.title"), style = MaterialTheme.typography.headlineSmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(localization.resolve("settings.siteToken.label"), style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = state.siteToken,
+                onValueChange = component::onSiteTokenChanged,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().testTag(TestTags.Settings.SITE_TOKEN_FIELD),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
@@ -183,8 +191,14 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 )
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+
             Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = onBack, modifier = Modifier.testTag(TestTags.Settings.BACK_BUTTON)) {
+            Button(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterHorizontally).testTag(TestTags.Settings.BACK_BUTTON),
+            ) {
                 Text(localization.resolve("settings.backButton"))
             }
         }

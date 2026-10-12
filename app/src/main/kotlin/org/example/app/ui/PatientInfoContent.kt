@@ -1,6 +1,8 @@
 package org.example.app.ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
@@ -31,6 +33,9 @@ import org.example.app.domain.participant.PatientFieldCatalogue
 import org.example.app.domain.participant.PatientFieldCatalogue.FieldKind
 import org.example.app.navigation.PatientInfoComponent
 
+/** Fraction of the content width the bordered fields column occupies. */
+private const val FIELDS_WIDTH = 0.70f
+
 /**
  * §8.10 participant-info screen — the chosen protocol's `patientFields` (config alignment row 6).
  * Catalogue fields render per [PatientFieldCatalogue]: `current_date` as read-only text, `sex`
@@ -49,62 +54,83 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
             Text(localization.resolve("patientInfo.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(32.dp))
 
-            state.fields.forEach { field ->
-                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    val value = state.values[field.name].orEmpty()
-                    when (val kind = PatientFieldCatalogue.kindOf(field.name)) {
-                        FieldKind.AutoDate -> {
-                            Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
-                            Text(value, modifier = Modifier.testTag(TestTags.PatientInfo.field(field.name)))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(FIELDS_WIDTH)
+                    .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+            ) {
+                state.fields.forEach { field ->
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                        val value = state.values[field.name].orEmpty()
+                        when (val kind = PatientFieldCatalogue.kindOf(field.name)) {
+                            FieldKind.AutoDate -> {
+                                Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
+                                Text(value, modifier = Modifier.testTag(TestTags.PatientInfo.field(field.name)))
+                            }
+
+                            is FieldKind.Choice -> {
+                                Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
+                                DropdownSelector(
+                                    triggerTag = TestTags.PatientInfo.field(field.name),
+                                    selectedLabel = localization.resolvePlain(
+                                        if (value.isEmpty()) "patientInfo.chooseOption"
+                                        else PatientFieldCatalogue.optionLabelKey(field.name, value),
+                                    ),
+                                    items = kind.options,
+                                    itemLabel = {
+                                        localization.resolvePlain(
+                                            PatientFieldCatalogue.optionLabelKey(
+                                                field.name,
+                                                it
+                                            )
+                                        )
+                                    },
+                                    itemTag = { TestTags.PatientInfo.fieldOption(field.name, it) },
+                                    onSelected = { component.onFieldChanged(field.name, it) },
+                                )
+                            }
+
+                            FieldKind.Text -> {
+                                // onFocusChanged also fires unfocused on first composition; only a real
+                                // focused → unfocused transition counts as leaving the field.
+                                var hadFocus by remember { mutableStateOf(false) }
+                                OutlinedTextField(
+                                    value = value,
+                                    onValueChange = { component.onFieldChanged(field.name, it) },
+                                    label = { Text(localization.resolve(field.labelKey)) },
+                                    placeholder = field.placeholder.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
+                                    isError = state.errors[field.name].orEmpty().isNotEmpty(),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .onFocusChanged { focus ->
+                                            if (hadFocus && !focus.isFocused) component.onFieldFocusLost(field.name)
+                                            hadFocus = focus.isFocused
+                                        }
+                                        .testTag(TestTags.PatientInfo.field(field.name)),
+                                )
+                            }
                         }
-                        is FieldKind.Choice -> {
-                            Text(localization.resolve(field.labelKey), style = MaterialTheme.typography.titleMedium)
-                            DropdownSelector(
-                                triggerTag = TestTags.PatientInfo.field(field.name),
-                                selectedLabel = localization.resolvePlain(
-                                    if (value.isEmpty()) "patientInfo.chooseOption"
-                                    else PatientFieldCatalogue.optionLabelKey(field.name, value),
-                                ),
-                                items = kind.options,
-                                itemLabel = { localization.resolvePlain(PatientFieldCatalogue.optionLabelKey(field.name, it)) },
-                                itemTag = { TestTags.PatientInfo.fieldOption(field.name, it) },
-                                onSelected = { component.onFieldChanged(field.name, it) },
+                        if (field.helpKey.isNotEmpty() && localization.resolvePlain(field.helpKey).isNotBlank()) {
+                            Text(
+                                localization.resolve(field.helpKey),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 6.dp),
                             )
                         }
-                        FieldKind.Text -> {
-                            // onFocusChanged also fires unfocused on first composition; only a real
-                            // focused → unfocused transition counts as leaving the field.
-                            var hadFocus by remember { mutableStateOf(false) }
-                            OutlinedTextField(
-                                value = value,
-                                onValueChange = { component.onFieldChanged(field.name, it) },
-                                label = { Text(localization.resolve(field.labelKey)) },
-                                placeholder = field.placeholder.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
-                                isError = state.errors[field.name].orEmpty().isNotEmpty(),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                                    .onFocusChanged { focus ->
-                                        if (hadFocus && !focus.isFocused) component.onFieldFocusLost(field.name)
-                                        hadFocus = focus.isFocused
-                                    }
-                                    .testTag(TestTags.PatientInfo.field(field.name)),
+                        state.errors[field.name].orEmpty().forEach { error ->
+                            Text(
+                                localization.resolve(error.messageKey()),
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.testTag(TestTags.PatientInfo.fieldError(field.name)),
                             )
                         }
-                    }
-                    if (field.helpKey.isNotEmpty() && localization.resolvePlain(field.helpKey).isNotBlank()) {
-                        Text(localization.resolve(field.helpKey), style = MaterialTheme.typography.bodySmall)
-                    }
-                    state.errors[field.name].orEmpty().forEach { error ->
-                        Text(
-                            localization.resolve(error.messageKey()),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(TestTags.PatientInfo.fieldError(field.name)),
-                        )
                     }
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
             if (state.errors.isNotEmpty()) {
                 Text(
                     localization.resolve("patientInfo.error.summary"),
@@ -118,7 +144,10 @@ fun PatientInfoContent(component: PatientInfoComponent, localization: UiLocaliza
                 Button(onClick = onBack, modifier = Modifier.testTag(TestTags.PatientInfo.BACK_BUTTON)) {
                     Text(localization.resolve("action.back"))
                 }
-                Button(onClick = component::onContinue, modifier = Modifier.testTag(TestTags.PatientInfo.CONTINUE_BUTTON)) {
+                Button(
+                    onClick = component::onContinue,
+                    modifier = Modifier.testTag(TestTags.PatientInfo.CONTINUE_BUTTON)
+                ) {
                     Text(localization.resolve("patientInfo.continueButton"))
                 }
             }
