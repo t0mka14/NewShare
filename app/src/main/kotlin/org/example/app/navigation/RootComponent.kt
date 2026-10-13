@@ -303,6 +303,8 @@ class DefaultRootComponent(
             // `DefaultSessionComponent` resolves it during its own async bootstrap instead.
             videoInputDeviceProvider = container.videoInputDeviceProvider,
             savedCameraDeviceId = savedSettings?.cameraDeviceId,
+            savedMicDeviceId = savedSettings?.micDeviceId,
+            readMicGain = container.micGainApplier::read,
             videoRecorderFactory = container.sessionVideoRecorderFactory,
             ptzControllerFactory = container.ptzControllerFactory,
             startSessionUseCase = container.startSessionUseCase,

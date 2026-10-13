@@ -28,7 +28,12 @@ import org.example.app.domain.config.PatientField
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.VocalTask
 import org.example.app.domain.config.capturesVideo
+import org.example.app.domain.audio.DeviceOpenReportingRecorder
+import org.example.app.domain.session.CameraUse
 import org.example.app.domain.session.Examination
+import org.example.app.domain.session.HardwareEvent
+import org.example.app.domain.session.MicUse
+import org.example.app.domain.session.SessionHardware
 import org.example.app.domain.session.Interruption
 import org.example.app.domain.session.SessionRepository
 import org.example.app.domain.session.StartSessionUseCase
@@ -137,6 +142,10 @@ class DefaultSessionComponent(
      * into the editor (if `enableEditor`) or straight to processing (§8.8) without
      * re-deriving it. */
     private val onSessionEnded: (folderName: String) -> Unit,
+    /** `AppSettings.micDeviceId`; only logged, to show whether the device used is the configured one. */
+    private val savedMicDeviceId: String? = null,
+    /** The OS input level of a device right now (`MicGainApplier.read`); null when unreadable. */
+    private val readMicGain: suspend (AudioInputDevice) -> Int? = { null },
 ) : SessionComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -174,6 +183,16 @@ class DefaultSessionComponent(
     private var pendingInterruption: PendingInterruption? = null
     private var interruptionPartCounter = 1
 
+    /**
+     * Devices actually used, written into `examination.json.hardware`. Kept here as well as in
+     * [examination] because the first microphone open happens during [bootstrap], before the
+     * examination exists; [updateHardware] flushes it once it does.
+     */
+    private var hardware = SessionHardware(
+        configuredMicDeviceId = savedMicDeviceId,
+        configuredCameraDeviceId = savedCameraDeviceId,
+    )
+
     override val stack: Value<ChildStack<*, SessionComponent.Child>> =
         childStack(
             source = navigation,
@@ -198,7 +217,7 @@ class DefaultSessionComponent(
         var negotiatedFormat: CaptureFormat? = null
 
         if (hasVocal) {
-            val r = recorderFactory()
+            val r = DeviceOpenReportingRecorder(recorderFactory(), ::onMicOpened)
             recorder = r
             r.startMonitoring(initialDevice)
             negotiatedFormat = r.captureFormat.value
@@ -222,7 +241,7 @@ class DefaultSessionComponent(
         // stable for the whole session, but the camera itself is not opened until a filming task
         // screen is entered (see [buildTaskComponent]). Constructing it starts no process.
         if (initialVideoDevice != null) {
-            videoRecorder = videoRecorderFactory()
+            videoRecorder = videoRecorderFactory().also(::observeCamera)
         }
 
         val outcome = startSessionUseCase.start(
@@ -242,6 +261,7 @@ class DefaultSessionComponent(
                 folderName = result.folderName
                 examination = result.examination
                 navigableInstances = result.expansion.instances
+                updateHardware { it } // flush what was opened before the examination existed
 
                 when {
                     hasVocal && useCalibration -> navigation.replaceAll(Config.Calibration)
@@ -345,8 +365,67 @@ class DefaultSessionComponent(
         videoScreensOpen++
         if (videoScreensOpen != 1) return
         scope.launch(dispatchers.main) {
-            if (videoScreensOpen > 0) v.startPreview(device)
+            if (videoScreensOpen > 0) {
+                v.startPreview(device)
+                if (v.state.value == VideoRecorderState.Previewing) {
+                    updateHardware {
+                        it.copy(
+                            cameraUses = it.cameraUses + CameraUse(
+                                openedAt = clock.now().toString(),
+                                deviceId = device.id,
+                                deviceName = device.name,
+                                nameOrdinal = device.nameOrdinal,
+                                platformIndex = device.platformIndex,
+                                captureFormat = v.captureFormat.value,
+                            ),
+                        )
+                    }
+                }
+            }
         }
+    }
+
+    /** A camera that dies mid-session leaves no other trace than a Failed state; log it. */
+    private fun observeCamera(v: SessionVideoRecorder) {
+        scope.launch(dispatchers.main) {
+            v.state.collect { vs ->
+                if (vs is VideoRecorderState.Failed) {
+                    logger.warn { "camera failed: ${vs.error}" }
+                    addHardwareEvent("camera", "capture_failed", vs.error.toString())
+                }
+            }
+        }
+    }
+
+    /** Every successful microphone open (see [DeviceOpenReportingRecorder]); also the change log. */
+    private suspend fun onMicOpened(device: AudioInputDevice, format: CaptureFormat?) {
+        val gain = readMicGain(device)
+        currentDeviceId = device.id
+        logger.info { "microphone opened: '${device.name}' (${device.id}) gain=$gain format=$format" }
+        updateHardware {
+            it.copy(
+                micUses = it.micUses + MicUse(
+                    openedAt = clock.now().toString(),
+                    deviceId = device.id,
+                    deviceName = device.name,
+                    description = device.description,
+                    inputGainPercent = gain,
+                    captureFormat = format,
+                ),
+            )
+        }
+    }
+
+    private fun addHardwareEvent(device: String, event: String, detail: String? = null) =
+        updateHardware { it.copy(events = it.events + HardwareEvent(clock.now().toString(), device, event, detail)) }
+
+    private fun updateHardware(change: (SessionHardware) -> SessionHardware) {
+        hardware = change(hardware)
+        val folder = folderName ?: return
+        val exam = examination ?: return
+        val updated = exam.copy(hardware = hardware)
+        examination = updated
+        sessionRepository.writeExamination(folder, updated)
     }
 
     /** Releases the camera once the last filming screen is gone. */
@@ -461,11 +540,18 @@ class DefaultSessionComponent(
         var exam = examination ?: return
 
         recorder?.let { r ->
+            // Somebody turning the OS mic level mid-session is invisible otherwise.
+            val device = availableDevices.firstOrNull { it.id == currentDeviceId } ?: initialDevice
+            val last = hardware.micUses.lastOrNull()
+            val gainNow = readMicGain(device)
+            if (last != null && gainNow != last.inputGainPercent) {
+                addHardwareEvent("microphone", "gain_changed", "${last.inputGainPercent} -> $gainNow")
+            }
             logEvent(TimelineEventType.SESSION_RECORDING_STOPPED, null, null, null)
             r.stop()
         }
 
-        exam = exam.copy(endedAt = clock.now().toString())
+        exam = (examination ?: exam).copy(endedAt = clock.now().toString()) // re-read: hardware events may have landed
         examination = exam
         sessionRepository.writeExamination(folder, exam)
 
@@ -487,6 +573,7 @@ class DefaultSessionComponent(
                         wallClockStart = clock.now().toString(),
                     )
                     logEvent(TimelineEventType.RECORDING_INTERRUPTED, null, null, null)
+                    addHardwareEvent("microphone", "interrupted", rs.reason.toString())
                 }
             }
         }

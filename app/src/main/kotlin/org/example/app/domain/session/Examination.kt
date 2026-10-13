@@ -145,5 +145,7 @@ data class Examination(
      * existed still decode, and one written now still decodes on a build without it.
      */
     val videoTakes: List<VideoTakeRecord> = emptyList(),
+    /** Devices actually used; null for sessions written before it existed. */
+    val hardware: SessionHardware? = null,
     val processing: ProcessingInfo? = null,
 )
