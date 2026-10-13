@@ -4,7 +4,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -13,17 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import org.example.app.domain.config.IndicatorType
-import org.jetbrains.skia.FilterBlurMode
-import org.jetbrains.skia.MaskFilter
 
 /**
  * Live recording feedback on VOCAL task screens (§6.2), fed by
@@ -32,12 +26,13 @@ import org.jetbrains.skia.MaskFilter
  * (both indicators shape the signal themselves; window in `LevelMeter.FAST_WINDOW_MS`). [CIRCLE] is the
  * legacy `drawRecCircle` (§13 decision 36): a static gray dot with a green spring-animated
  * stroke circle that swells with the input level only while [capturing] — at rest it sits at
- * the minimum radius like the legacy did outside the STOP state. [WAVEFORM] has no legacy
- * counterpart (the legacy waveform view showed the finished take, not a live signal) and renders
- * **only while [capturing]** — a trace scrolling in `Idle`/`Stopped` would show room noise and
- * suggest the app is recording when no take is open. Leaving the composition also drops its
- * rolling history buffer (local Compose display state, never read back by any component), so
- * each take starts from an empty trace instead of continuing the previous one.
+ * the minimum radius like the legacy did outside the STOP state. [WAVEFORM] draws the take's
+ * level history as one growing trace (§13 decision 61): it fills the canvas left to right, then
+ * compresses as the take goes on, and stops growing at Stop — the finished trace stays on screen
+ * unchanged, like the legacy post-take waveform. After Stop the trace replaces the circle too.
+ * Nothing is drawn before a take's first sample, so `Idle` shows no room noise. The history is
+ * local Compose display state, never read back by any component; a new [takeKey] (the take
+ * number) starts it empty.
  * Takes its colors from the app-wide `ShareTheme` palette (`tertiary` is the legacy green).
  */
 @Composable
@@ -48,14 +43,13 @@ fun TaskLevelIndicator(
     modifier: Modifier = Modifier,
     takeKey: Any? = null,
 ) {
-    // The whole take's levels, kept after Stop so the finished take stays on screen as a static
-    // preview (any indicator type); a new [takeKey] starts an empty history.
+    // Hoisted here so the trace outlives Stop; only an open take adds to it.
     val history = remember(takeKey) { mutableStateListOf<Float>() }
     if (capturing) history.add(level.coerceIn(0f, 1f))
     when {
-        !capturing && history.isNotEmpty() -> WaveformLevelIndicator(history, false, modifier)
-        indicatorType == IndicatorType.CIRCLE -> CircleLevelIndicator(level, capturing, modifier)
-        capturing -> WaveformLevelIndicator(history, true, modifier)
+        indicatorType == IndicatorType.CIRCLE && capturing -> CircleLevelIndicator(level, true, modifier)
+        history.isNotEmpty() -> WaveformLevelIndicator(history, modifier)
+        indicatorType == IndicatorType.CIRCLE -> CircleLevelIndicator(level, false, modifier)
     }
 }
 
@@ -89,27 +83,45 @@ private fun CircleLevelIndicator(level: Float, capturing: Boolean, modifier: Mod
     }
 }
 
-private const val WAVEFORM_HISTORY_SIZE = 120 // ~3s at a representative ~30 updates/s (§6.2).
+// Samples the canvas holds before the trace starts compressing: ~3s at ~30 updates/s (§6.2).
+private const val WAVEFORM_MIN_SAMPLES = 120
+
+/** Level step between the ticks on the waveform's left edge (0.2 → 0.2 … 0.8 each side; the outline marks 1.0). */
+private const val WAVEFORM_TICK_STEP = 0.2f
+private val WAVEFORM_PADDING = 4.dp
 
 @Composable
-private fun WaveformLevelIndicator(history: List<Float>, capturing: Boolean, modifier: Modifier = Modifier) {
+private fun WaveformLevelIndicator(history: List<Float>, modifier: Modifier = Modifier) {
     val waveColor = MaterialTheme.colorScheme.tertiary
+    // Same outline treatment as the calibration level bar, so the trace reads as a bounded
+    // instrument rather than free-floating strokes.
+    val outlineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Canvas(
         modifier = modifier
             .size(width = 500.dp, height = 250.dp)
-            .padding(all = 4.dp)
+            .border(width = 1.dp, color = outlineColor)
+            .padding(all = WAVEFORM_PADDING) // keeps peaks off the outline
             .testTag(TestTags.Task.LEVEL_INDICATOR),
     ) {
-        if (history.isEmpty()) return@Canvas
         val midY = size.height / 2f
-        // Live: scrolling window of the last WAVEFORM_HISTORY_SIZE samples; stopped: whole take.
-        val window = if (capturing) WAVEFORM_HISTORY_SIZE else history.size
-        val stepX = size.width / window
-        val shown = history.takeLast(window)
-        val startIndex = window - shown.size
-        shown.forEachIndexed { i, value ->
-            val x = (startIndex + i) * stepX
+        // Scale behind the trace: the zero line, and level ticks running from the outline
+        // (one padding left of the drawing area) to as far past it, mirrored above and below.
+        val axisStroke = 1.dp.toPx()
+        drawLine(outlineColor, Offset(0f, midY), Offset(size.width, midY), axisStroke)
+        val pad = WAVEFORM_PADDING.toPx()
+        var tick = WAVEFORM_TICK_STEP
+        while (tick < 1f - 1e-3f) {
+            for (y in floatArrayOf(midY - tick * midY, midY + tick * midY)) {
+                drawLine(outlineColor, Offset(-pad, y), Offset(pad, y), axisStroke)
+            }
+            tick += WAVEFORM_TICK_STEP
+        }
+
+        if (history.isEmpty()) return@Canvas
+        val stepX = size.width / maxOf(history.size, WAVEFORM_MIN_SAMPLES)
+        history.forEachIndexed { i, value ->
+            val x = i * stepX
             val barHeight = value * midY
             drawLine(
                 color = waveColor,
@@ -118,53 +130,5 @@ private fun WaveformLevelIndicator(history: List<Float>, capturing: Boolean, mod
                 strokeWidth = stepX * 0.6f,
             )
         }
-    }
-}
-
-/** Room reserved around a glowing preview so the halo is never clipped and the video never moves. */
-private val GLOW_MARGIN = 40.dp
-
-/**
- * The level indicator of a filming VOCAL task (§13 decision 57): a soft green halo behind
- * [content] (the camera preview) whose spread and brightness follow [level] while [capturing],
- * spring-smoothed like [CircleLevelIndicator]. At rest there is no halo, as the circle rests at
- * its minimum. Drawn as a Skia-blurred rounded rect inside a fixed [GLOW_MARGIN], so the
- * preview keeps its full framing size — the reason decision 23 gave it the middle area.
- */
-@Composable
-fun LevelGlow(level: Float, capturing: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    val glowColor = MaterialTheme.colorScheme.tertiary
-    val target = if (capturing) level.coerceIn(0f, 1f) else 0f
-    val intensity: Float by animateFloatAsState(
-        targetValue = target,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessVeryLow,
-        ),
-    )
-    Box(
-        modifier = modifier
-            .testTag(TestTags.Task.LEVEL_GLOW)
-            .drawBehind {
-                if (intensity <= 0.01f) return@drawBehind
-                // Louder = the halo reaches further out (2..16dp past the preview), blurs wider
-                // (4..14dp sigma) and is more opaque (0.45..0.95).
-                val spread = (2f + intensity * 14f).dp.toPx()
-                val sigma = (4f + intensity * 10f).dp.toPx()
-                val inset = GLOW_MARGIN.toPx() - spread
-                val paint = Paint().apply { color = glowColor.copy(alpha = 0.45f + intensity * 0.5f) }
-                paint.asFrameworkPaint().maskFilter = MaskFilter.makeBlur(FilterBlurMode.NORMAL, sigma)
-                drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawRRect(
-                        org.jetbrains.skia.RRect.makeLTRB(
-                            inset, inset, size.width - inset, size.height - inset, (8.dp + 4.dp * intensity).toPx(),
-                        ),
-                        paint.asFrameworkPaint(),
-                    )
-                }
-            }
-            .padding(GLOW_MARGIN),
-    ) {
-        content()
     }
 }

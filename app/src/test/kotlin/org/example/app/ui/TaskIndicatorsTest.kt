@@ -1,18 +1,18 @@
 package org.example.app.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
 import org.example.app.domain.config.IndicatorType
 import org.junit.jupiter.api.Test
 
 /**
- * The two live indicators (§6.2) differ in what they do outside an open take: CIRCLE stays on
- * screen at rest radius (legacy parity, §13 decision 36) while WAVEFORM disappears entirely —
- * a trace scrolling in Idle/Stopped shows room noise and reads as "recording" when nothing is.
+ * The two live indicators (§6.2) before and after a take: before the first sample CIRCLE rests
+ * at minimum radius (legacy parity, §13 decision 36) while WAVEFORM draws nothing — no room
+ * noise in Idle. After Stop both show the take's frozen trace (decision 61).
  */
 class TaskIndicatorsTest {
 
@@ -60,16 +60,29 @@ class TaskIndicatorsTest {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun `the preview glow renders its content while capturing a loud level`() = runComposeUiTest {
+    fun `waveform trace stays on screen after Stop`() = runComposeUiTest {
+        var capturing by mutableStateOf(true)
         setContent {
-            LevelGlow(level = 0.9f, capturing = true, modifier = androidx.compose.ui.Modifier.size(400.dp, 300.dp)) {
-                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.testTag("content"))
-            }
+            TaskLevelIndicator(indicatorType = IndicatorType.WAVEFORM, level = 0.4f, capturing = capturing, takeKey = 1)
         }
-        mainClock.advanceTimeBy(2_000) // let the spring reach the level so the blurred halo is drawn
+        waitForIdle()
+        capturing = false
         waitForIdle()
 
-        onNodeWithTag(TestTags.Task.LEVEL_GLOW).assertExists()
-        onNodeWithTag("content").assertExists()
+        onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertExists()
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `a new take starts with no trace`() = runComposeUiTest {
+        var takeKey by mutableStateOf(1)
+        setContent {
+            TaskLevelIndicator(indicatorType = IndicatorType.WAVEFORM, level = 0.4f, capturing = takeKey == 1, takeKey = takeKey)
+        }
+        waitForIdle()
+        takeKey = 2 // a new, not yet captured take
+        waitForIdle()
+
+        onNodeWithTag(TestTags.Task.LEVEL_INDICATOR).assertDoesNotExist()
     }
 }

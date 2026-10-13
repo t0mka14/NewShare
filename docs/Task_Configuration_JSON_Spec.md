@@ -59,7 +59,7 @@ The configuration fully describes:
 | `defaultMicName` | string | The microphone **model** the session records from when Settings has no saved device (a device saved in Settings wins), and the target of `defaultMicGain`. Give the device's product string as the sound panel shows it, e.g. `USB audio CODEC` — the same physical device is named `Microphone (USB audio CODEC)` on Windows, `USB audio CODEC` on macOS and `CODEC [plughw:3,0]` on Linux, so the value is matched case-insensitively as a substring of the device's name + description, which all three contain. It identifies a model, not a unit. Java on Windows cuts device names to 31 characters (JDK-7116070); a name cut through the model string still matches while at least half of it (and six characters) remain |
 | `defaultMicGain` | int | 0..100 input level (the Windows sound panel's units) set on the device matching `defaultMicName` right before it is opened for a session. Validated (a value outside 0..100 rejects the config). A level set on the Settings slider wins over this value. Omit to leave the OS level alone (§13 decision 44 of the project specification) |
 | `enableEditor` | boolean | Show waveform boundary editor after the protocol |
-| `indicatorType` | enum | `CIRCLE` (pulsating circle following RMS level) \| `WAVEFORM` (rolling ~3 s amplitude envelope) — live feedback on VOCAL task screens; a default the examiner can override in Settings |
+| `indicatorType` | enum | `CIRCLE` (pulsating circle following RMS level) \| `WAVEFORM` (the take's amplitude envelope, growing over the take and kept after Stop) — live feedback on VOCAL task screens; a default the examiner can override in Settings |
 | `useCalibration` | boolean | Show the calibration screen before the first task of every protocol that contains a `VOCAL` task (§4.3). Absent = `false` |
 
 All flags are real JSON booleans (`true`/`false`), never `0`/`1`.
@@ -184,9 +184,9 @@ two exported clips.
   also plays offline afterwards. No key, a non-http value, or a download that failed means no
   example button. A changed file needs a new URL (the cache is keyed by URL).
 - `recordVideo` — optional, default `false`. Also films every take with the camera, alongside
-  the audio. The live camera preview replaces the `indicatorType` widget on this task's screen
-  (even with `showIndicator: false`); with `showIndicator` a glow around the preview follows the
-  audio level instead. There are no PTZ controls; use a `VIDEO` task (§4.5) for
+  the audio. A small live camera preview is shown on this task's screen (even with
+  `showIndicator: false`); with `showIndicator` it sits beside the usual `indicatorType`
+  widget. There are no PTZ controls; use a `VIDEO` task (§4.5) for
   those. The camera opens when the screen does, and Start waits until it is previewing. If no
   camera is present, the camera fails, or it is still not previewing 10 s after the screen
   opened, the screen says so and the task records **audio only**. A camera failure during a

@@ -330,11 +330,11 @@ scale, default `[0.2, 0.5]`) and must be confirmed before the master recording s
 record a master WAV at all.**
 
 `indicatorType` selects the live recording feedback on VOCAL task screens: `CIRCLE` — a
-pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — a rolling ~3 s
-amplitude envelope drawn on a canvas. The config value is a default: a choice made in Settings
+pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — the take's amplitude
+envelope drawn on a canvas, growing over the take and kept on screen after Stop (decision 61). The config value is a default: a choice made in Settings
 overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.levels`. A VOCAL
-task with `recordVideo` shows the live camera preview there instead (§13 decision 23); with
-`showIndicator` the preview's surrounding glow follows the level (decision 57).
+task with `recordVideo` also shows a small live camera preview: beside the indicator with
+`showIndicator`, alone without it (§13 decision 60).
 
 Config-level fields: `schemaVersion`, `configVersion`, `siteName` (display only, main menu;
 §13 decision 54), `defaultLanguage`, `languages`,
@@ -1004,8 +1004,8 @@ Error taxonomy (normative, inlined from the old plan):
       alongside the audio, sharing all of the VIDEO machinery above: the same per-screen camera
       refcount (a filming VOCAL screen counts as a video screen, so the camera stays open across
       a VOCAL-with-video → VIDEO transition), the same file naming and `videoTakes[]` entries.
-      The preview replaces the `indicatorType` widget (its glow is the level indicator since
-      decision 57), and there is no PTZ: the controller is
+      A small preview sits beside the `indicatorType` widget (decision 60), and there is no
+      PTZ: the controller is
       only built for a `VideoTask`. Audio is what the task exists for, so the camera may delay it
       but never prevent it. Start is refused while the camera is still opening, as for VIDEO, but
       no camera, a `Failed` camera, or one still not previewing 10 s
@@ -1092,9 +1092,9 @@ Error taxonomy (normative, inlined from the old plan):
     the second addendum below. The legacy 3-button task row is kept by mapping this app's state machine
     onto it: the Start→Stop→Again button carries the testTag of its current role, and the
     next-task button doubles as Skip (tag `task.skipButton`) on an unrecorded skippable task
-    (the legacy app had no skip). The legacy post-stop take waveform is deliberately not
-    reproduced yet — take audio isn't available to the UI during a session (single master
-    WAV; takes are cut in processing) — and would need recorder-side buffer plumbing.
+    (the legacy app had no skip). The legacy post-stop take waveform is not reproduced from
+    take audio — that isn't available to the UI during a session (single master WAV; takes
+    are cut in processing). Since decision 61 the indicator's level trace stands in for it.
     The legacy prev-task button (default-hidden behind its `showBackButton` preference) is
     an empty layout slot; there is no task back-navigation. Since 2026-07-16 the whole UI is
     Material3 (user request): the app-wide `ShareTheme` was converted from Material2 with
@@ -1375,8 +1375,8 @@ Error taxonomy (normative, inlined from the old plan):
     `AppSettings.indicatorType(config)` once per session against the session's config and
     passes it through `SessionComponent` to every task screen (`Content.Vocal.indicatorType`),
     so `TaskContent` no longer reads the config itself (§5.2). A change made in Settings
-    applies from the next session. The post-take waveform from the reverted 2026-10 round is
-    not adopted.
+    applies from the next session. The post-take waveform from the reverted 2026-10 round was
+    not adopted here; decision 61 adds a reworked one.
 
 54. **Site name and app version on the main menu (2026-10-10, from the reverted 2026-10
     round).** The web emits `siteName` (the site's name; `""` when unknown), decoded as the
@@ -1406,9 +1406,9 @@ Error taxonomy (normative, inlined from the old plan):
     check-on-every-keystroke, which flagged a partly typed code as wrong, and its
     disabled-looking-but-clickable Continue button.
 
-57. **A filming VOCAL task's level indicator is a glow around the camera preview
-    (2026-10-10).** Decision 23 gave the preview the whole middle area for framing, which left
-    the examiner without level feedback. With `showIndicator`, `LevelGlow` now draws a soft
+57. **[Superseded by decision 60, 2026-10-12.] A filming VOCAL task's level indicator is a
+    glow around the camera preview (2026-10-10).** Decision 23 gave the preview the whole
+    middle area for framing, which left the examiner without level feedback. With `showIndicator`, `LevelGlow` now draws a soft
     green halo (the circle's `tertiary`) behind the preview: while a take is captured its
     reach (2–16 dp past the preview), blur and opacity follow `Content.Vocal.level`,
     spring-smoothed like the circle; at rest there is none, as the circle rests at its
@@ -1434,6 +1434,27 @@ Error taxonomy (normative, inlined from the old plan):
     while its `READING_PASSAGE_PANEL` constant is `false`. Flipping it to `true` restores the
     panel unchanged (and `ReadingPassageUiTest` / `TaskComponentTest` then need their
     assertions flipped back).
+
+60. **A filming VOCAL task shows a small preview beside the indicator (2026-10-12, supersedes
+    decision 57).** The middle area is a row: the `indicatorType` widget (only with
+    `showIndicator`), then a 200×150 camera preview, the legacy layout. The indicator sits in a
+    fixed 500×250 slot so the preview never moves when the indicator's footprint changes. The
+    glow around a full-size preview (`LevelGlow`) is removed; the small preview is enough to
+    check the participant is in frame, and the examiner keeps the same level indicator as on
+    every other VOCAL task.
+
+61. **The waveform indicator is one growing trace, kept after Stop (2026-10-12).** It replaces
+    the rolling ~3 s window. `TaskLevelIndicator` keeps the take's levels in one list (keyed by
+    take number, so Start/Again begins empty) and only an open take adds to it. The trace fills
+    the canvas left to right at the old spacing for the first 120 samples (~3 s), then
+    compresses to fit the whole take; Stop only stops adding, so the picture never rescales on
+    stop. With CIRCLE the circle shows during the take and the same trace replaces it after
+    Stop, standing in for the legacy post-take waveform. Before a take's first sample WAVEFORM
+    draws nothing. The trace is display state built from the levels the UI receives (one
+    sample per recomposition, as before), not a time-accurate take waveform — the editor's
+    waveform (§8.7) is that. Memory is ~30 floats/s per take, dropped with the next take.
+    The canvas keeps the calibration bar's outline and adds a zero line plus ticks on its left
+    edge every 0.2 of full scale up to 0.8, mirrored above and below (the outline marks 1.0).
 
 **Still open:**
 
