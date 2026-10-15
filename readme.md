@@ -23,6 +23,7 @@ manual upload to a REST server. Remotely configured per installation.
 - [docs/dev/testing.md](docs/dev/testing.md) — test layers, fakes, scenario harness
 - [docs/dev/updater.md](docs/dev/updater.md) — `:updater` flow, install layout, failed-launch recovery
 - [docs/dev/packaging-and-deployment.md](docs/dev/packaging-and-deployment.md) — native images, signing/notarization, server-contract seams
+- [docs/dev/upload_data.md](docs/dev/upload_data.md) — which data and in which format are being sent to the server
 
 The original app being rewritten lives at `/home/tomas/IdeaProjects/shareapp` (reference
 for UI fidelity, §13 decision 36).
