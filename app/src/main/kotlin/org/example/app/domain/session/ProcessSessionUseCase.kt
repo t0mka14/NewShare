@@ -227,6 +227,14 @@ class ProcessSessionUseCase(
                 }
             }
 
+            // Written before the ZIP is built, so the archived examination.json is the final one
+            // (clip/video paths, Done). Should the build throw, the catch below marks it Failed.
+            val finalExamination = examination.copy(
+                tasks = updatedTasks,
+                processing = ProcessingInfo(status = ProcessingStatus.Done, processedAt = clock.now().toString(), timelineUsed = timelineUsed),
+            )
+            sessionRepository.writeExamination(folderName, finalExamination)
+
             onStep(Step.BUILDING_ARCHIVE, 0.65f)
 
             val stagingDir = sessionRepository.archiveDir(folderName).resolve(".staging")
@@ -280,13 +288,6 @@ class ProcessSessionUseCase(
             }
 
             onStep(Step.UPDATING_METADATA, 0.9f)
-
-            val nowIso = clock.now().toString()
-            val finalExamination = examination.copy(
-                tasks = updatedTasks,
-                processing = ProcessingInfo(status = ProcessingStatus.Done, processedAt = nowIso, timelineUsed = timelineUsed),
-            )
-            sessionRepository.writeExamination(folderName, finalExamination)
 
             val currentUploadStatus = uploadStatusRepository.read(folderName)
             if (currentUploadStatus?.status != UploadStatusValue.Uploaded) {

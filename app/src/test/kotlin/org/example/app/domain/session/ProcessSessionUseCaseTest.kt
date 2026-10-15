@@ -193,6 +193,32 @@ class ProcessSessionUseCaseTest {
     }
 
     @Test
+    fun `the archived examination json is the final one - Done, with clip paths`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+        )
+        f.writeOriginal(
+            listOf(
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 0),
+                event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 1000),
+            ),
+        )
+
+        f.runProcess()
+
+        val archived = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(
+            Examination.serializer(),
+            f.archiveService.buildCalls.single().jsonAtBuild.getValue("examination.json"),
+        )
+        assertEquals(ProcessingStatus.Done, archived.processing?.status)
+        assertEquals(TimelineSource.ORIGINAL, archived.processing?.timelineUsed)
+        assertTrue(archived.tasks.single().clipFile!!.startsWith("clips/"))
+        assertEquals(f.sessionRepository.readExamination(f.folderName), archived)
+    }
+
+    @Test
     fun `edited timeline takes precedence over original when present`(@TempDir tempDir: Path) {
         val f = Fixture(tempDir)
         f.setUpSession(

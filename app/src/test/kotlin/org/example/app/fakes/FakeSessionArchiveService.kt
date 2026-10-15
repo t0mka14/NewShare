@@ -5,6 +5,7 @@ import org.example.app.domain.session.ArchiveResult
 import org.example.app.domain.session.ManifestEntry
 import org.example.app.domain.session.SessionArchiveManifest
 import org.example.app.domain.session.SessionArchiveService
+import java.nio.file.Files
 import java.nio.file.Path
 
 /**
@@ -24,7 +25,11 @@ class FakeSessionArchiveService : SessionArchiveService {
         configVersion: String,
         generatedAt: String,
     ): ArchiveResult {
-        buildCalls += BuildCall(zipFile, entries, sessionId, configVersion, generatedAt)
+        // JSON entries are read now: the use case may rewrite them after the build returns.
+        val jsonAtBuild = entries.filterIsInstance<ArchiveEntry.FileEntry>()
+            .filter { it.zipPath.endsWith(".json") && Files.isRegularFile(it.source) }
+            .associate { it.zipPath to Files.readString(it.source) }
+        buildCalls += BuildCall(zipFile, entries, sessionId, configVersion, generatedAt, jsonAtBuild)
         val manifest = SessionArchiveManifest(
             sessionId = sessionId,
             configVersion = configVersion,
@@ -40,5 +45,7 @@ class FakeSessionArchiveService : SessionArchiveService {
         val sessionId: String,
         val configVersion: String,
         val generatedAt: String,
+        /** Text of each `.json` file entry as it was on disk when [build] ran, keyed by ZIP path. */
+        val jsonAtBuild: Map<String, String> = emptyMap(),
     )
 }
