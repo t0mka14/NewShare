@@ -574,14 +574,15 @@ VOCAL task instance; the editor shows one segment at a time.
    into `clips/` as `<same name>.mp4`, by stream copy with every frame kept (§13 decision 23).
    An instance whose kept take has no `videoTakes[]` entry (audio-only fallback) or an empty
    file gets no MP4; a remux that fails or loses a frame fails processing.
-5. Build `archive/<PatientCode>_<SessionId>.zip` containing: `participant.json`,
+5. Update `examination.json` with clip and video paths (`clipFile`, `videoFile`), processing
+   status `Done`, `timelineUsed` — *before* the ZIP is built, so the archived copy is the
+   final one (a build failure then rewrites the status to `Failed`).
+6. Build `archive/<PatientCode>_<SessionId>.zip` containing: `participant.json`,
    `examination.json`, `task_configuration_snapshot.json`, `timeline_original.json`,
    `timeline_edited.json` (if present), `master/session_master.wav`, `clips/*` (WAV and MP4), and
    `manifest.json` (SHA-256 of every included file + sessionId + configVersion).
    **Excluded:** `archive/` itself, `waveform_cache/`, `timeline.events.jsonl`,
-   `metadata/`, and the raw `video/` takes.
-6. Update `examination.json` with clip and video paths (`clipFile`, `videoFile`), processing
-   status, `timelineUsed`.
+   `metadata/`, and the raw `video/` takes. Exact upload format: `docs/dev/upload_data.md`.
 
 **No-master sessions** (questionnaire/info-only protocols, §6.2): steps 2–3 are skipped and
 there is no `master/`; `clips/` exists only if step 4 produced video (a VIDEO-only protocol). The event log still exists (events carry

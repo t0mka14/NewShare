@@ -48,6 +48,8 @@ demand (`EligibleUploadsQuery`).
 | `config/settings.json` | `settings/AppSettings.kt` | `AppSettingsRepository` |
 | `manifest.json` (in ZIP) | `session/SessionArchiveManifest.kt` | built by `ZipSessionArchiveService` |
 
+What the uploaded ZIP contains, and the format of every file in it: [`upload_data.md`](upload_data.md).
+
 ## Timeline model (§8.3)
 
 Ten event types (`SESSION_RECORDING_STARTED` … `SESSION_RECORDING_STOPPED`). Each event:
