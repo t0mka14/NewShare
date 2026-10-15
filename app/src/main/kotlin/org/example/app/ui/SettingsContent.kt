@@ -112,18 +112,6 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
-            SelectionContainer {
-                Text(
-                    state.installationId,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(12.dp))
-
             Text(localization.resolve("settings.language.label"), style = MaterialTheme.typography.titleMedium)
             RadioSelector(
                 selected = state.selectedLanguage,
@@ -193,6 +181,16 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
 
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(localization.resolve("settings.installationId.label"), style = MaterialTheme.typography.titleMedium)
+            SelectionContainer {
+                Text(
+                    state.installationId,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.testTag(TestTags.Settings.INSTALLATION_ID_FIELD),
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
             Button(
