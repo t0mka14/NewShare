@@ -96,6 +96,7 @@ object BuiltinStrings {
 
         // Session browser (§8.11).
         "sessionBrowser.title" to "Sessions",
+        "sessionBrowser.instructions" to "Edit recorded sessions. Open editor: lets you cut unwanted parts out of the session's audio. Reprocess: rebuilds the session's clips and re-creates an archive from the recording — use it after editing or if processing failed.",
         "sessionBrowser.noSessions" to "No sessions recorded yet.",
         "sessionBrowser.reprocessButton" to "Reprocess",
         "sessionBrowser.openEditorButton" to "Open editor",
@@ -291,6 +292,7 @@ object BuiltinStrings {
         "upload.error.generic" to "nastala neznámá chyba",
 
         "sessionBrowser.title" to "Sezení",
+        "sessionBrowser.instructions" to "Editace jednotlivých sezení. Otevřít editor: umožní vystřihnout nežádoucí části ze zvukové nahrávky sezení. Znovu zpracovat: znovu vytvoří klipy a archiv z nahrávky — použijte po úpravách nebo když zpracování selhalo.",
         "sessionBrowser.noSessions" to "Zatím nebyla nahrána žádná sezení.",
         "sessionBrowser.reprocessButton" to "Znovu zpracovat",
         "sessionBrowser.openEditorButton" to "Otevřít editor",
