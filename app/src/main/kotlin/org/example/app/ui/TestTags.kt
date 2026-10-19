@@ -178,6 +178,7 @@ object TestTags {
         /** One row per session eligible for upload; error reason is a child of the row, §8.9. */
         fun sessionRow(sessionId: String) = "upload.sessionRow.$sessionId"
         fun sessionErrorText(sessionId: String) = "upload.sessionErrorText.$sessionId"
+        fun sessionInfo(sessionId: String) = "upload.sessionInfo.$sessionId"
     }
 
     /** Session browser (§8.11). */

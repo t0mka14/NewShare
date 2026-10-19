@@ -14,6 +14,8 @@ data class EligibleUpload(
     val patientCode: String,
     val status: UploadStatusValue,
     val failureReason: String?,
+    /** Raw `participant.json` fields (patient identifiers), empty if the file is missing. */
+    val participantFields: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -40,6 +42,7 @@ class EligibleUploadsQuery(
             .filter { sessionRepository.archiveExists(it.folderName) }
             .mapNotNull { summary ->
                 val uploadStatus = uploadStatusRepository.read(summary.folderName) ?: UploadStatus()
+                val fields = sessionRepository.readParticipant(summary.folderName)?.fields.orEmpty()
                 when (uploadStatus.status) {
                     UploadStatusValue.Uploaded -> null
                     UploadStatusValue.NotUploaded, UploadStatusValue.Failed -> EligibleUpload(
@@ -48,6 +51,7 @@ class EligibleUploadsQuery(
                         patientCode = summary.patientCode,
                         status = uploadStatus.status,
                         failureReason = uploadStatus.attempts.lastOrNull()?.outcome,
+                        participantFields = fields,
                     )
                     // Decision 35: leftover of a crash mid-upload — retryable, shown as failed.
                     UploadStatusValue.Uploading -> EligibleUpload(
@@ -56,6 +60,7 @@ class EligibleUploadsQuery(
                         patientCode = summary.patientCode,
                         status = UploadStatusValue.Failed,
                         failureReason = INTERRUPTED_REASON,
+                        participantFields = fields,
                     )
                 }
             }

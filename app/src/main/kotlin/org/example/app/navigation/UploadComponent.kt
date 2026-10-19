@@ -36,6 +36,10 @@ interface UploadComponent {
         /** Localized-string key for the last attempt's failure reason (§8.9), `null` if the
          * session has never been attempted or [status] isn't `Failed`. */
         val failureReasonKey: String?,
+        /** Session date as `dd. MM. yyyy`. */
+        val date: String,
+        /** Patient identifiers (`participant.json` fields), shown in the info tooltip. */
+        val identifiers: Map<String, String>,
     )
 
     data class State(
@@ -73,6 +77,9 @@ class DefaultUploadComponent(
         patientCode = upload.patientCode,
         status = upload.status,
         failureReasonKey = if (upload.status == UploadStatusValue.Failed) failureReasonKey(upload.failureReason) else null,
+        // Folder name starts with the clinic-local date `yyyy-MM-dd_` (§8.2).
+        date = upload.folderName.take(10).split("-").reversed().joinToString(". "),
+        identifiers = upload.participantFields.toSortedMap(),
     )
 
     private fun failureReasonKey(reason: String?): String = when {
