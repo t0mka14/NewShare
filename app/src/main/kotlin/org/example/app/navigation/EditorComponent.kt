@@ -168,6 +168,9 @@ class DefaultEditorComponent(
         )
         val globalTotal = globalTotalSamples(original.events, parts)
 
+        val editedByKey = timelineRepository.readEdited(folderName)?.segments.orEmpty()
+            .associateBy { it.taskIndex to it.repetition }
+
         val vocalRecords = examination.tasks.filter { it.type == "VOCAL" && !it.skipped }
         val result = mutableListOf<Loaded>()
         for (record in vocalRecords) {
@@ -176,13 +179,18 @@ class DefaultEditorComponent(
             val resolved = MasterPartMap.resolve(parts, globalRange.first, globalRange.last + 1) ?: continue
             val (part, localRange) = resolved
             val fileTotal = (part.globalEndExclusive ?: globalTotal) - part.globalStart
+            // Previously accepted edit (global samples → this part's local frame); ignored if it
+            // no longer fits the part's file.
+            val edited = editedByKey[record.taskIndex to record.repetition]
+                ?.let { (it.startSample - part.globalStart) to (it.stopSample - part.globalStart) }
+                ?.takeIf { (s, e) -> s >= 0 && e > s && e <= fileTotal }
             result += Loaded(
                 segment = EditorComponent.Segment(
                     taskIndex = record.taskIndex,
                     repetition = record.repetition,
                     subtype = record.subtype.orEmpty(),
-                    startSample = localRange.first,
-                    stopSample = localRange.last + 1,
+                    startSample = edited?.first ?: localRange.first,
+                    stopSample = edited?.second ?: (localRange.last + 1),
                     initialStartSample = localRange.first,
                     initialStopSample = localRange.last + 1,
                     fileTotalSamples = fileTotal,
@@ -326,6 +334,10 @@ class DefaultEditorComponent(
                     segments = segments,
                 ),
             )
+        } else {
+            // Everything is back at the original position: drop any earlier edit so processing
+            // uses the original timeline again.
+            timelineRepository.deleteEdited(folderName)
         }
         audioPlaybackService.stop()
         _state.value = _state.value.copy(accepted = true)

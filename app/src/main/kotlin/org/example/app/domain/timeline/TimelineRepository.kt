@@ -25,4 +25,7 @@ interface TimelineRepository {
     fun editedExists(folderName: String): Boolean
     fun writeEdited(folderName: String, timeline: TimelineEdited)
     fun readEdited(folderName: String): TimelineEdited?
+
+    /** Removes `timeline_edited.json` (no-op if absent) — used when every boundary is back at its original position. */
+    fun deleteEdited(folderName: String)
 }

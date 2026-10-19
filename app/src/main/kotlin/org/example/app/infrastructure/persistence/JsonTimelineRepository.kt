@@ -84,4 +84,8 @@ class JsonTimelineRepository(
     override fun readEdited(folderName: String): TimelineEdited? =
         AtomicFileWriter.readStringOrNull(editedPath(folderName))
             ?.let { json.decodeFromString(TimelineEdited.serializer(), it) }
+
+    override fun deleteEdited(folderName: String) {
+        Files.deleteIfExists(editedPath(folderName))
+    }
 }

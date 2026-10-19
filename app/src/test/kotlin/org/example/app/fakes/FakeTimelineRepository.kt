@@ -47,4 +47,8 @@ class FakeTimelineRepository : TimelineRepository {
     }
 
     override fun readEdited(folderName: String): TimelineEdited? = editeds[folderName]
+
+    override fun deleteEdited(folderName: String) {
+        editeds.remove(folderName)
+    }
 }
