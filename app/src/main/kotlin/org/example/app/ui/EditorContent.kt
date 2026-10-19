@@ -51,6 +51,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -112,10 +113,15 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
             }
         } else {
             Text(
-                localization.resolve(
-                    "editor.segmentOfTotal",
-                    mapOf("n" to (state.currentIndex + 1).toString(), "total" to state.segments.size.toString()),
-                ),
+                buildAnnotatedString {
+                    append(
+                        localization.resolve(
+                            "editor.segmentOfTotal",
+                            mapOf("n" to (state.currentIndex + 1).toString(), "total" to state.segments.size.toString()),
+                        ),
+                    )
+                    if (segment.subtype.isNotBlank()) append(" - ${segment.subtype}")
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.testTag(TestTags.Editor.SEGMENT_LABEL),
