@@ -563,7 +563,8 @@ class SessionComponentTest {
         assertEquals(1, takes[0].take)
         assertEquals(VideoCaptureFormat.PREFERRED, takes[0].captureFormat)
         // The path in the record must name the file that was actually opened.
-        assertTrue(h.videoRecorder!!.recordingStarts.single().toString().endsWith(takes[0].file))
+        // Compared as paths, not strings: on Windows the opened path uses `\`, the record `/`.
+        assertTrue(h.videoRecorder!!.recordingStarts.single().endsWith(java.nio.file.Path.of(takes[0].file)))
     }
 
     /** A rejected take is still a file on disk, so it stays listed; the timeline says which counts. */
