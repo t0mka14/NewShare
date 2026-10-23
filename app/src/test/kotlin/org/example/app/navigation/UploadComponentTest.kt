@@ -3,13 +3,20 @@ package org.example.app.navigation
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.session.Examination
+import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.InstallationIdProvider
+import org.example.app.domain.upload.DeviceCheckin
+import org.example.app.domain.upload.DeviceCheckinUseCase
 import org.example.app.domain.upload.EligibleUploadsQuery
+import org.example.app.domain.upload.RejectionReason
 import org.example.app.domain.upload.UploadApi
 import org.example.app.domain.upload.UploadResult
 import org.example.app.domain.upload.UploadSessionUseCase
 import org.example.app.domain.upload.UploadStatus
 import org.example.app.domain.upload.UploadStatusValue
+import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeClock
+import org.example.app.fakes.FakeDeviceCheckinApi
 import org.example.app.fakes.FakeFileHashService
 import org.example.app.fakes.FakeSessionRepository
 import org.example.app.fakes.FakeUploadStatusRepository
@@ -35,6 +42,8 @@ class UploadComponentTest {
             installationId: String,
             sessionId: String,
             zipSha256: String,
+            siteToken: String?,
+            appVersion: String,
             onProgress: (Float) -> Unit,
         ): UploadResult {
             calls += sessionId
@@ -48,10 +57,16 @@ class UploadComponentTest {
         val sessionRepository = FakeSessionRepository()
         val uploadStatusRepository = FakeUploadStatusRepository()
         val eligibleUploadsQuery = EligibleUploadsQuery(sessionRepository, uploadStatusRepository)
+        val settingsRepository = FakeAppSettingsRepository().apply {
+            write(AppSettings(siteToken = "site-token-0000000", installationId = "install-1"))
+        }
+        val checkinApi = FakeDeviceCheckinApi()
         val uploadSessionUseCase = UploadSessionUseCase(
             sessionRepository = sessionRepository,
             uploadStatusRepository = uploadStatusRepository,
             uploadApi = uploadApi,
+            settingsRepository = settingsRepository,
+            appVersion = "1.2.3",
             fileHashService = FakeFileHashService(),
             clock = FakeClock(),
             dispatchers = dispatchers,
@@ -82,6 +97,14 @@ class UploadComponentTest {
             uploadSessionUseCase = uploadSessionUseCase,
             dispatchers = dispatchers,
             onBackClicked = { backCalled++ },
+            deviceCheckin = DeviceCheckinUseCase(
+                settingsRepository = settingsRepository,
+                installationIdProvider = InstallationIdProvider(settingsRepository),
+                eligibleUploadsQuery = eligibleUploadsQuery,
+                api = checkinApi,
+                appVersion = "1.2.3",
+                dispatchers = dispatchers,
+            ),
         )
     }
 
@@ -138,6 +161,53 @@ class UploadComponentTest {
         assertEquals("upload.error.network", remaining.failureReasonKey)
 
         assertEquals(UploadStatusValue.Uploaded, h.uploadStatusRepository.read("folder-b")!!.status)
+    }
+
+    @Test
+    fun `server answers that pressing Upload again cannot fix get their own messages`() {
+        val uploadApi = ScriptedUploadApi(
+            mapOf(
+                "session-a" to UploadResult.Conflict,
+                "session-b" to UploadResult.Rejected(RejectionReason.DeviceNotRegistered),
+                "session-c" to UploadResult.ServerError(503),
+                "session-d" to UploadResult.Rejected(RejectionReason.TooLarge),
+                "session-e" to UploadResult.ServerError(500),
+            ),
+        )
+        val h = Harness(uploadApi)
+        for (id in listOf("a", "b", "c", "d", "e")) h.seedSession("folder-$id", "session-$id", "HC00$id")
+        val component = h.build()
+
+        component.onUploadClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val keys = component.state.value.rows.associate { it.sessionId to it.failureReasonKey }
+        assertEquals(
+            mapOf(
+                "session-a" to "upload.error.conflict",
+                "session-b" to "upload.error.notRegistered",
+                "session-c" to "upload.error.busy",
+                "session-d" to "upload.error.tooLarge",
+                "session-e" to "upload.error.server",
+            ),
+            keys,
+        )
+    }
+
+    @Test
+    fun `after a batch the computer checks in with what is left to upload`() {
+        val h = Harness(ScriptedUploadApi(mapOf("session-a" to UploadResult.NetworkFailure)))
+        h.seedSession("folder-a", "session-a", "HC001")
+        h.seedSession("folder-b", "session-b", "HC002")
+        val component = h.build()
+
+        component.onUploadClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(
+            listOf(DeviceCheckin("site-token-0000000", "install-1", "1.2.3", pending = 0, failed = 1)),
+            h.checkinApi.calls,
+        )
     }
 
     @Test

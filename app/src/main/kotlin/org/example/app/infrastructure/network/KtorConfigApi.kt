@@ -9,18 +9,21 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodeURLParameter
 import io.ktor.http.encodeURLPathPart
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import org.example.app.domain.config.ConfigApi
 import org.example.app.domain.config.ConfigFetchResult
+import org.example.app.domain.config.DeviceIdentity
 import org.example.app.infrastructure.logging.LogPolicy
 
 private val logger = KotlinLogging.logger {}
 
 /**
  * Ktor-backed [ConfigApi] (§6.1): `GET {baseUrl}/site-config/{siteToken}` on the web backend
- * (config alignment row 1, [WEB_SERVER_BASE_URL]).
+ * (config alignment row 1, [WEB_SERVER_BASE_URL]), with `?installationId=…&appVersion=…` when a
+ * [DeviceIdentity] is given (§13 decision 62; the server ignores invalid values).
  *
  * The endpoint is a **single configuration point**: [baseUrl] + [configPath] together form the
  * request URL; changing the server means changing the constructor defaults (or the values the
@@ -38,12 +41,21 @@ private val logger = KotlinLogging.logger {}
  * **§11:** the site token is a bearer credential and must never be logged. This class
  * does not log the request URL, the token, or raw exception messages (which can
  * embed the URL, e.g. `ConnectException: Connection refused: /site-config/<token>`) — see
- * [LogPolicy.safeDescribe].
+ * [LogPolicy.safeDescribe]. The URL also carries the installation ID, which is never logged
+ * either.
  */
 class KtorConfigApi(
     engine: HttpClientEngine = CIO.create(),
     private val baseUrl: String = WEB_SERVER_BASE_URL,
-    private val configPath: (siteToken: String) -> String = { siteToken -> "/site-config/${siteToken.encodeURLPathPart()}" },
+    private val configPath: (siteToken: String, device: DeviceIdentity?) -> String = { siteToken, device ->
+        val path = "/site-config/${siteToken.encodeURLPathPart()}"
+        if (device == null) {
+            path
+        } else {
+            "$path?installationId=${device.installationId.encodeURLParameter()}" +
+                "&appVersion=${device.appVersion.encodeURLParameter()}"
+        }
+    },
 ) : ConfigApi {
 
     private val client = HttpClient(engine) {
@@ -54,8 +66,8 @@ class KtorConfigApi(
         }
     }
 
-    override suspend fun fetchConfig(siteToken: String): ConfigFetchResult {
-        val url = buildUrl(siteToken)
+    override suspend fun fetchConfig(siteToken: String, device: DeviceIdentity?): ConfigFetchResult {
+        val url = buildUrl(siteToken, device)
         val response: HttpResponse
         try {
             response = client.get(url)
@@ -90,6 +102,6 @@ class KtorConfigApi(
     /** Releases the underlying Ktor engine/connection pool. Safe to call multiple times. */
     fun close() = client.close()
 
-    private fun buildUrl(siteToken: String): String =
-        baseUrl.trimEnd('/') + configPath(siteToken)
+    private fun buildUrl(siteToken: String, device: DeviceIdentity?): String =
+        baseUrl.trimEnd('/') + configPath(siteToken, device)
 }

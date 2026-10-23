@@ -12,6 +12,7 @@ import io.ktor.http.content.OutgoingContent
 import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.test.runTest
+import org.example.app.domain.upload.RejectionReason
 import org.example.app.domain.upload.UploadResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -29,6 +30,8 @@ class KtorUploadApiTest {
     private val installationId = "SECRET-INSTALLATION-ID-42"
     private val sessionId = "session-123"
     private val zipSha256 = "abc123deadbeef"
+    private val siteToken = "SECRETsiteTOKEN000000"
+    private val appVersion = "1.4.0"
 
     private fun tempZip(dir: Path): Path {
         val zip = dir.resolve("session.zip")
@@ -55,7 +58,7 @@ class KtorUploadApiTest {
         }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         assertTrue(result is UploadResult.Success)
         val body = (result as UploadResult.Success).serverResponse
@@ -72,14 +75,14 @@ class KtorUploadApiTest {
         }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         assertTrue(result is UploadResult.Success)
         assertEquals(null, (result as UploadResult.Success).serverResponse)
     }
 
     @Test
-    fun `the multipart body carries the zip and all three form fields`(@TempDir dir: Path) = runTest {
+    fun `the multipart body carries the zip and all the text parts, text parts first`(@TempDir dir: Path) = runTest {
         val zip = tempZip(dir)
         var capturedBytes: ByteArray? = null
         val engine = MockEngine { request ->
@@ -88,7 +91,7 @@ class KtorUploadApiTest {
         }
         val api = KtorUploadApi(engine = engine)
 
-        api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         val text = String(capturedBytes!!, StandardCharsets.ISO_8859_1)
         assertTrue(text.contains("name=installationId"))
@@ -97,7 +100,31 @@ class KtorUploadApiTest {
         assertTrue(text.contains(sessionId))
         assertTrue(text.contains("name=zipSha256"))
         assertTrue(text.contains(zipSha256))
-        assertTrue(text.contains("name=zip"))
+        assertTrue(text.contains("name=siteToken"))
+        assertTrue(text.contains(siteToken))
+        assertTrue(text.contains("name=appVersion"))
+        assertTrue(text.contains(appVersion))
+        // The server rejects a text part after the zip.
+        // `(?<!file)` skips the `filename=` of the zip part itself.
+        val lastPart = text.substring(Regex("(?<!file)name=").findAll(text).last().range.first)
+        assertTrue(lastPart.startsWith("name=zip") && !lastPart.startsWith("name=zipSha256"), "zip must be the last part")
+    }
+
+    @Test
+    fun `the siteToken part is omitted when no token is set`(@TempDir dir: Path) = runTest {
+        val zip = tempZip(dir)
+        var capturedBytes: ByteArray? = null
+        val engine = MockEngine { request ->
+            capturedBytes = drain(request.body)
+            respond(content = "", status = HttpStatusCode.OK)
+        }
+        val api = KtorUploadApi(engine = engine)
+
+        api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken = null, appVersion = appVersion) {}
+
+        val text = String(capturedBytes!!, StandardCharsets.ISO_8859_1)
+        assertFalse(text.contains("name=siteToken"))
+        assertTrue(text.contains("name=appVersion"))
     }
 
     @Test
@@ -110,7 +137,7 @@ class KtorUploadApiTest {
         val api = KtorUploadApi(engine = engine)
         val progressValues = mutableListOf<Float>()
 
-        api.uploadSession(zip, installationId, sessionId, zipSha256) { progressValues += it }
+        api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) { progressValues += it }
 
         assertTrue(progressValues.isNotEmpty(), "onUpload should have reported at least one progress value")
         assertTrue(progressValues.all { it in 0f..1f }, "progress must be clamped to 0..1, got $progressValues")
@@ -123,7 +150,7 @@ class KtorUploadApiTest {
         val engine = MockEngine { respondError(HttpStatusCode.Unauthorized) }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         assertTrue(result is UploadResult.Rejected)
     }
@@ -134,27 +161,55 @@ class KtorUploadApiTest {
         val engine = MockEngine { respondError(HttpStatusCode.Forbidden) }
         val api = KtorUploadApi(engine = engine)
 
-        assertTrue(api.uploadSession(zip, installationId, sessionId, zipSha256) {} is UploadResult.Rejected)
+        assertTrue(api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {} is UploadResult.Rejected)
     }
 
     @Test
-    fun `404 maps to Rejected`(@TempDir dir: Path) = runTest {
+    fun `404 quarantine maps to Rejected DeviceNotRegistered`(@TempDir dir: Path) = runTest {
         val zip = tempZip(dir)
-        val engine = MockEngine { respondError(HttpStatusCode.NotFound) }
+        val engine = MockEngine {
+            respond("""{"error":"device_not_registered","quarantined":true}""", HttpStatusCode.NotFound)
+        }
         val api = KtorUploadApi(engine = engine)
 
-        assertTrue(api.uploadSession(zip, installationId, sessionId, zipSha256) {} is UploadResult.Rejected)
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
+
+        assertEquals(UploadResult.Rejected(RejectionReason.DeviceNotRegistered), result)
     }
 
     @Test
-    fun `rejection reason never echoes the installation id`(@TempDir dir: Path) = runTest {
+    fun `409 maps to Conflict, not a retryable ServerError`(@TempDir dir: Path) = runTest {
         val zip = tempZip(dir)
-        val engine = MockEngine { respondError(HttpStatusCode.Unauthorized) }
+        val engine = MockEngine { respond("""{"error":"session_exists"}""", HttpStatusCode.Conflict) }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {} as UploadResult.Rejected
+        assertEquals(UploadResult.Conflict, api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {})
+    }
 
-        assertFalse(result.reason.contains(installationId))
+    @Test
+    fun `413 maps to Rejected TooLarge`(@TempDir dir: Path) = runTest {
+        val zip = tempZip(dir)
+        val engine = MockEngine { respondError(HttpStatusCode.PayloadTooLarge) }
+        val api = KtorUploadApi(engine = engine)
+
+        assertEquals(
+            UploadResult.Rejected(RejectionReason.TooLarge),
+            api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {},
+        )
+    }
+
+    @Test
+    fun `400, 429, 503 and 507 map to ServerError with their status`(@TempDir dir: Path) = runTest {
+        val zip = tempZip(dir)
+        for (status in listOf(400, 429, 503, 507)) {
+            val engine = MockEngine { respondError(HttpStatusCode.fromValue(status)) }
+            val api = KtorUploadApi(engine = engine)
+
+            assertEquals(
+                UploadResult.ServerError(status),
+                api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {},
+            )
+        }
     }
 
     @Test
@@ -163,7 +218,7 @@ class KtorUploadApiTest {
         val engine = MockEngine { respondError(HttpStatusCode.InternalServerError) }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         assertTrue(result is UploadResult.ServerError)
         assertEquals(500, (result as UploadResult.ServerError).status)
@@ -175,7 +230,7 @@ class KtorUploadApiTest {
         val engine = MockEngine { respondError(HttpStatusCode.BadGateway) }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         assertTrue(result is UploadResult.ServerError)
         assertEquals(502, (result as UploadResult.ServerError).status)
@@ -187,7 +242,7 @@ class KtorUploadApiTest {
         val engine = MockEngine { throw IOException("simulated connect failure") }
         val api = KtorUploadApi(engine = engine)
 
-        val result = api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+        val result = api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
         assertTrue(result is UploadResult.NetworkFailure)
     }
@@ -202,13 +257,13 @@ class KtorUploadApiTest {
         val previousLevel = logger.level
         logger.level = Level.ALL
         try {
-            val engine = MockEngine { throw IOException("Connection refused: /api/upload?id=$installationId") }
+            val engine = MockEngine { throw IOException("Connection refused: /api/upload?id=$installationId&t=$siteToken") }
             val api = KtorUploadApi(engine = engine)
 
-            api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+            api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
-            val leaked = appender.list.any { it.formattedMessage.contains(installationId) }
-            assertFalse(leaked, "installation id must never appear in a log line (§11)")
+            val leaked = appender.list.any { it.formattedMessage.contains(installationId) || it.formattedMessage.contains(siteToken) }
+            assertFalse(leaked, "installation id and site token must never appear in a log line (§11)")
         } finally {
             logger.detachAppender(appender)
             logger.level = previousLevel
@@ -228,7 +283,7 @@ class KtorUploadApiTest {
             val engine = MockEngine { throw IOException("boom, path was $zip") }
             val api = KtorUploadApi(engine = engine)
 
-            api.uploadSession(zip, installationId, sessionId, zipSha256) {}
+            api.uploadSession(zip, installationId, sessionId, zipSha256, siteToken, appVersion) {}
 
             // The zip's path embeds the session folder name, which embeds patientCode (§8.2) —
             // participant data that must never reach a log line (§11).

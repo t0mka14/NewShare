@@ -15,6 +15,7 @@ import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.ContinuousSessionRecorder
 import org.example.app.domain.audio.WaveformService
 import org.example.app.domain.config.ConfigApi
+import org.example.app.domain.config.DeviceIdentity
 import org.example.app.domain.config.ExampleAudioCache
 import org.example.app.domain.video.NoOpPtzController
 import org.example.app.domain.video.PtzController
@@ -41,6 +42,8 @@ import org.example.app.domain.session.ProcessSessionUseCase
 import org.example.app.domain.session.RecoverSessionsUseCase
 import org.example.app.domain.session.SessionArchiveService
 import org.example.app.domain.session.StartSessionUseCase
+import org.example.app.domain.upload.DeviceCheckinApi
+import org.example.app.domain.upload.DeviceCheckinUseCase
 import org.example.app.domain.upload.EligibleUploadsQuery
 import org.example.app.domain.upload.FileHashService
 import org.example.app.domain.upload.UploadApi
@@ -52,6 +55,7 @@ import org.example.app.infrastructure.config.JsonConfigurationRepository
 import org.example.app.infrastructure.config.RawConfigCache
 import org.example.app.infrastructure.lock.SingleInstanceLock
 import org.example.app.infrastructure.network.KtorConfigApi
+import org.example.app.infrastructure.network.KtorDeviceCheckinApi
 import org.example.app.infrastructure.network.KtorExampleAudioCache
 import org.example.app.infrastructure.network.KtorUploadApi
 import org.example.app.infrastructure.persistence.JsonAppSettingsRepository
@@ -75,6 +79,8 @@ class AppContainer(
     // full-fake container; production defaults below.
     val configApi: ConfigApi = KtorConfigApi(),
     val uploadApi: UploadApi = KtorUploadApi(),
+    /** `POST /device-checkin` (§13 decision 62). */
+    val deviceCheckinApi: DeviceCheckinApi = KtorDeviceCheckinApi(),
     /** Example-audio downloads (row 13); defaults to a Ktor cache under `configDir`. */
     val exampleAudioCache: ExampleAudioCache = KtorExampleAudioCache(directories),
     val audioInputDeviceProvider: AudioInputDeviceProvider = JvmAudioInputDeviceProvider(),
@@ -140,8 +146,31 @@ class AppContainer(
 
     val localizedStringProvider = LocalizedStringProvider()
 
-    val refreshConfigurationUseCase =
-        RefreshConfigurationUseCase(appSettingsRepository, configApi, configurationRepository, exampleAudioCache)
+    /** Sent with config fetches, uploads and check-ins (§13 decision 62). */
+    private val appVersion: String = BuildInfo.appVersion.toString()
+
+    /** Computes the upload screen's session list on demand (§5.4, §13 decision 34) — no
+     * persisted queue. */
+    val eligibleUploadsQuery = EligibleUploadsQuery(sessionRepository, uploadStatusRepository)
+
+    /** Reports the upload backlog after config refreshes and upload batches (§13 decision 62). */
+    val deviceCheckinUseCase = DeviceCheckinUseCase(
+        settingsRepository = appSettingsRepository,
+        installationIdProvider = installationIdProvider,
+        eligibleUploadsQuery = eligibleUploadsQuery,
+        api = deviceCheckinApi,
+        appVersion = appVersion,
+        dispatchers = dispatchers,
+    )
+
+    val refreshConfigurationUseCase = RefreshConfigurationUseCase(
+        settingsRepository = appSettingsRepository,
+        configApi = configApi,
+        configurationRepository = configurationRepository,
+        exampleAudioCache = exampleAudioCache,
+        deviceIdentity = { DeviceIdentity(installationIdProvider.get(), appVersion) },
+        deviceCheckin = deviceCheckinUseCase,
+    )
 
     val validateParticipantInfoUseCase = ValidateParticipantInfoUseCase()
 
@@ -177,12 +206,11 @@ class AppContainer(
         sessionRepository = sessionRepository,
         uploadStatusRepository = uploadStatusRepository,
         uploadApi = uploadApi,
+        settingsRepository = appSettingsRepository,
+        appVersion = appVersion,
         fileHashService = fileHashService,
         clock = clock,
         dispatchers = dispatchers,
     )
 
-    /** Computes the upload screen's session list on demand (§5.4, §13 decision 34) — no
-     * persisted queue. */
-    val eligibleUploadsQuery = EligibleUploadsQuery(sessionRepository, uploadStatusRepository)
 }

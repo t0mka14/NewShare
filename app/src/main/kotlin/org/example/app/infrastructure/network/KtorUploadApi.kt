@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.HttpTimeoutConfig
 import io.ktor.client.plugins.onUpload
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
@@ -19,6 +20,7 @@ import kotlinx.io.asSource
 import kotlinx.io.buffered
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import org.example.app.domain.upload.RejectionReason
 import org.example.app.domain.upload.UploadApi
 import org.example.app.domain.upload.UploadResult
 import org.example.app.infrastructure.logging.LogPolicy
@@ -32,14 +34,22 @@ private val logger = KotlinLogging.logger {}
  * Ktor-backed [UploadApi] (§8.9).
  *
  * The endpoint is a **single configuration point**: [baseUrl] + [uploadPath] form the request
- * URL, mirroring [KtorConfigApi]. The server contract is pending (§13 open question 1); today
- * this defaults to `POST /api/upload` on the demo mock server (`tools/mock-server`, plain HTTP
- * for the demo). Only the constructor defaults (or the values `AppContainer` passes in) need to
- * change once the real contract lands.
+ * URL, mirroring [KtorConfigApi]. It defaults to `POST /api/upload` on the web backend
+ * (`docs/dev/server-upload-integration.md`, §13 decision 62).
  *
- * Request shape (§8.9, normative): a `multipart/form-data` POST with four parts — the ZIP file
- * (streamed from disk, never fully materialized in memory) plus the `installationId`,
- * `sessionId`, `zipSha256` form fields. Nothing else is ever sent.
+ * Request shape (§8.9, normative): a `multipart/form-data` POST — the `installationId`,
+ * `sessionId`, `zipSha256`, `siteToken` (omitted when none is set) and `appVersion` text parts,
+ * then the ZIP file (streamed from disk, never fully materialized in memory). The server
+ * rejects a text part after the ZIP, so the order matters. Nothing else is ever sent.
+ *
+ * Status mapping (decision 62): 404 is the server's quarantine for a device without a site
+ * ([RejectionReason.DeviceNotRegistered], retryable once an administrator assigns it), 409 an
+ * existing `sessionId` with different bytes ([UploadResult.Conflict]), 401/403/413 other
+ * rejections; anything else non-2xx (400 checksum mismatch, 429, 503, 507, 5xx) is a
+ * [UploadResult.ServerError].
+ *
+ * Timeouts: no cap on the whole request, since a session of hundreds of MB on a slow line takes
+ * minutes; instead a stalled connection fails after [SOCKET_TIMEOUT_MS] without progress.
  *
  * [engine] is constructor-injected so tests can substitute Ktor's `MockEngine`; no custom
  * `TrustManager`/`HostnameVerifier` is installed, so HTTPS certificate validation uses the
@@ -51,7 +61,8 @@ private val logger = KotlinLogging.logger {}
  * faithfully for both the real CIO engine and `MockEngine` in tests. The fraction is clamped to
  * `0f..1f` and reported as `0f` whenever the content length is unknown.
  *
- * **§11 discipline (same as [KtorConfigApi]):** the installation ID must never be logged.
+ * **§11 discipline (same as [KtorConfigApi]):** the installation ID and the site token must
+ * never be logged.
  * Additionally here, the ZIP [Path] itself must never be logged — the session folder name (and
  * therefore the path) embeds the participant's `patientCode` (§8.2), which is participant data.
  * Log lines below reference only `sessionId` and HTTP status codes, and reduce every exception
@@ -61,17 +72,15 @@ private val logger = KotlinLogging.logger {}
  */
 class KtorUploadApi(
     engine: HttpClientEngine = CIO.create(),
-    private val baseUrl: String = DEMO_SERVER_BASE_URL,
+    private val baseUrl: String = WEB_SERVER_BASE_URL,
     private val uploadPath: () -> String = { "/upload" },
 ) : UploadApi {
 
     private val client = HttpClient(engine) {
         expectSuccess = false
         install(HttpTimeout) {
-            // Uploads carry a whole session ZIP rather than a short JSON payload, so the
-            // request timeout is generous compared to KtorConfigApi's 15s (§13 open question
-            // 1 — no server contract yet to confirm this against; revisit once it lands).
-            requestTimeoutMillis = 120_000
+            requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+            socketTimeoutMillis = SOCKET_TIMEOUT_MS
             connectTimeoutMillis = 10_000
         }
     }
@@ -81,6 +90,8 @@ class KtorUploadApi(
         installationId: String,
         sessionId: String,
         zipSha256: String,
+        siteToken: String?,
+        appVersion: String,
         onProgress: (Float) -> Unit,
     ): UploadResult {
         val response: HttpResponse
@@ -92,6 +103,8 @@ class KtorUploadApi(
                     append("installationId", installationId)
                     append("sessionId", sessionId)
                     append("zipSha256", zipSha256)
+                    if (siteToken != null) append("siteToken", siteToken)
+                    append("appVersion", appVersion)
                     appendInput(
                         key = "zip",
                         headers = Headers.build {
@@ -120,12 +133,16 @@ class KtorUploadApi(
             return UploadResult.NetworkFailure
         }
 
+        val rejection = rejectionReason(response.status)
         return when {
             response.status.isSuccess() -> UploadResult.Success(parseServerResponse(response))
-            response.status.isRejection() -> {
-                val reason = rejectionReason(response.status)
+            rejection != null -> {
                 logger.info { "upload rejected for session=$sessionId: HTTP ${response.status.value}" }
-                UploadResult.Rejected(reason)
+                UploadResult.Rejected(rejection)
+            }
+            response.status == HttpStatusCode.Conflict -> {
+                logger.warn { "upload conflict for session=$sessionId: already on the server with different content (HTTP 409)" }
+                UploadResult.Conflict
             }
             else -> {
                 logger.warn { "upload failed for session=$sessionId: HTTP ${response.status.value}" }
@@ -145,12 +162,16 @@ class KtorUploadApi(
 
     private fun buildUrl(): String = baseUrl.trimEnd('/') + uploadPath()
 
-    private fun HttpStatusCode.isRejection(): Boolean =
-        this == HttpStatusCode.Unauthorized || this == HttpStatusCode.Forbidden || this == HttpStatusCode.NotFound
+    private fun rejectionReason(status: HttpStatusCode): RejectionReason? = when (status) {
+        HttpStatusCode.NotFound -> RejectionReason.DeviceNotRegistered
+        HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden -> RejectionReason.NotAuthorized
+        HttpStatusCode.PayloadTooLarge -> RejectionReason.TooLarge
+        else -> null
+    }
 
-    private fun rejectionReason(status: HttpStatusCode): String = when (status) {
-        HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden -> "installation id rejected by server"
-        HttpStatusCode.NotFound -> "installation id or session not recognized by server"
-        else -> "upload rejected by server (HTTP ${status.value})"
+    companion object {
+        /** Idle limit: fails a connection that moves no bytes for this long (the server and its
+         * proxy allow 10 minutes). */
+        const val SOCKET_TIMEOUT_MS: Long = 120_000
     }
 }

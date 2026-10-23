@@ -56,6 +56,7 @@ class RootComponentTest {
             audioInputDeviceProvider = deviceProvider,
             sessionRecorderFactory = { recorder },
             configApi = configApi,
+            deviceCheckinApi = org.example.app.fakes.FakeDeviceCheckinApi(),
         )
 
     private fun buildRoot(container: AppContainer): RootComponent =

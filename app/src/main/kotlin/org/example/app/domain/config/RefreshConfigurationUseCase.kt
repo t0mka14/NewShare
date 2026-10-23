@@ -3,6 +3,7 @@ package org.example.app.domain.config
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.settings.AppSettingsRepository
+import org.example.app.domain.upload.DeviceCheckinUseCase
 
 /**
  * §5.5 `RefreshConfigurationUseCase`: site token (from [AppSettingsRepository]) →
@@ -15,6 +16,10 @@ import org.example.app.domain.settings.AppSettingsRepository
  * localize as an error dialog — [Result.OfflineUsingCache] carries the still-active config so
  * the caller can proceed silently (or show a subtle "using cached configuration" hint) instead
  * of a blocking error. Only "network unreachable with genuinely no cache" is a [ConfigError].
+ *
+ * The fetch identifies this computer ([deviceIdentity]) and a successful refresh is followed by
+ * a device check-in ([deviceCheckin]), both §13 decision 62. The check-in never changes the
+ * result.
  */
 class RefreshConfigurationUseCase(
     private val settingsRepository: AppSettingsRepository,
@@ -22,6 +27,8 @@ class RefreshConfigurationUseCase(
     private val configurationRepository: ConfigurationRepository,
     /** Downloads the new config's example audio before [refresh] reports success (row 13). */
     private val exampleAudioCache: ExampleAudioCache = ExampleAudioCache.None,
+    private val deviceIdentity: () -> DeviceIdentity? = { null },
+    private val deviceCheckin: DeviceCheckinUseCase? = null,
 ) {
     sealed interface Result {
         data class Success(val config: RemoteConfig) : Result
@@ -53,7 +60,7 @@ class RefreshConfigurationUseCase(
             return Result.Failed(ConfigError.SiteTokenMissing)
         }
 
-        return when (val fetch = configApi.fetchConfig(siteToken)) {
+        return when (val fetch = configApi.fetchConfig(siteToken, deviceIdentity())) {
             is ConfigFetchResult.Success -> applyFetched(fetch.json)
 
             ConfigFetchResult.SiteTokenUnknown -> Result.Failed(ConfigError.SiteTokenRejected)
@@ -77,6 +84,7 @@ class RefreshConfigurationUseCase(
         when (val applied = configurationRepository.applyFetched(json)) {
             is ConfigApplyResult.Applied -> {
                 syncExampleAudio(applied.config)
+                deviceCheckin?.checkIn()
                 Result.Success(applied.config)
             }
 

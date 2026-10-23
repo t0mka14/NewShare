@@ -178,6 +178,14 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                     color = if (isSuccess) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
                 )
             }
+            if (state.registeredToAnotherSite) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    localization.resolve("settings.otherSite"),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag(TestTags.Settings.OTHER_SITE_NOTE),
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())

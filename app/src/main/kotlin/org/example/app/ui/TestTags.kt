@@ -209,6 +209,8 @@ object TestTags {
         const val INSTALLATION_ID_FIELD = "settings.installationIdField"
         const val LANGUAGE_SELECT = "settings.languageSelect"
         const val REFRESH_CONFIG_BUTTON = "settings.refreshConfigButton"
+        /** Note shown while the server says this computer belongs to another site (§13 decision 62). */
+        const val OTHER_SITE_NOTE = "settings.otherSiteNote"
         const val BACK_BUTTON = "settings.backButton"
 
         /** One selectable item per enumerated device within [DEVICE_SELECT]'s dropdown. */

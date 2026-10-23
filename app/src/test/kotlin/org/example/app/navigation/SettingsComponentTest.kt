@@ -2,6 +2,7 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.example.app.domain.config.ConfigApplyResult
 import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.ConfigFetchResult
@@ -48,6 +49,7 @@ class SettingsComponentTest {
         ),
         val gainControl: FakeAudioInputGainControl = FakeAudioInputGainControl(),
         refreshUseCase: RefreshConfigurationUseCase? = null,
+        val registeredToAnotherSite: MutableStateFlow<Boolean> = MutableStateFlow(false),
     ) {
         val dispatchers = TestCoroutineDispatchers()
 
@@ -61,10 +63,23 @@ class SettingsComponentTest {
             micGainApplier = MicGainApplier(gainControl, settingsRepository, dispatchers),
             installationIdProvider = InstallationIdProvider(settingsRepository) { "generated-pc-id" },
             dispatchers = dispatchers,
+            registeredToAnotherSite = registeredToAnotherSite,
         )
     }
 
     private val secondaryName = FakeAudioInputDeviceProvider.SECONDARY_DEVICE.name
+
+    @Test
+    fun `the other-site note follows the device check-in`() {
+        val h = Harness()
+        assertFalse(h.component.state.value.registeredToAnotherSite)
+
+        h.registeredToAnotherSite.value = true
+        assertTrue(h.component.state.value.registeredToAnotherSite)
+
+        h.registeredToAnotherSite.value = false
+        assertFalse(h.component.state.value.registeredToAnotherSite)
+    }
 
     @Test
     fun `initial state reflects persisted settings and available devices`() {

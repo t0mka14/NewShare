@@ -27,27 +27,30 @@ Caveat: `logback.xml` resolves the log dir independently (`${LOG_PATH:-${user.di
 
 ## 2. Change API endpoints
 
-Both APIs take the endpoint as constructor parameters (single configuration point). The
-config fetch defaults to the web backend's `GET /site-config/{token}` (`WEB_SERVER_BASE_URL`,
-spec §13 decision 45); the upload contract is still pending:
+All three APIs take the endpoint as constructor parameters (single configuration point) and
+default to the web backend (`WEB_SERVER_BASE_URL`): `GET /site-config/{token}` (spec §13
+decision 45), `POST /upload` and `POST /device-checkin` (decision 62):
 
 ```kotlin
 val container = AppContainer(
     configApi = KtorConfigApi(
         baseUrl = "https://web.clinic.example",
-        configPath = { siteToken -> "/site-config/${siteToken.encodeURLPathPart()}" },
+        // The second argument is the DeviceIdentity; the default closure appends it as
+        // `?installationId=…&appVersion=…`, this override drops it.
+        configPath = { siteToken, _ -> "/site-config/${siteToken.encodeURLPathPart()}" },
     ),
     uploadApi = KtorUploadApi(
         baseUrl = "https://api.clinic.example/v2",
         uploadPath = { "/sessions" },
     ),
+    deviceCheckinApi = KtorDeviceCheckinApi(baseUrl = "https://web.clinic.example"),
 )
 ```
 
 Both also take an injected Ktor `HttpClientEngine` (tests pass `MockEngine`; a custom
 trust store for an internal CA goes in via a configured `CIO.create { ... }`). §11 rule
-when touching these classes: the installation ID and raw exception messages never reach a
-log line — keep using `LogPolicy.safeDescribe`, and keep the `io.ktor` INFO ceiling in
+when touching these classes: the installation ID, the site token and raw exception messages
+never reach a log line — keep using `LogPolicy.safeDescribe`, and keep the `io.ktor` INFO ceiling in
 `logback.xml`.
 
 ## 3. Add a field to the remote config

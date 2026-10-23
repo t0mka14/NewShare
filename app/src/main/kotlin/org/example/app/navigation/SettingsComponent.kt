@@ -7,6 +7,8 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioInputDevice
@@ -62,6 +64,9 @@ interface SettingsComponent {
         /** Localized-string key for the last refresh outcome (`settings.refresh.*` /
          * `error.config.*`); starts as the last failed refresh's key, else `null`. */
         val lastRefreshResultKey: String? = null,
+        /** The last device check-in said this computer belongs to another site than the
+         * entered token's (§13 decision 62); a note is shown under the refresh result. */
+        val registeredToAnotherSite: Boolean = false,
         /**
          * Slider position (§13 decision 44): the level read from the selected device every time
          * the screen opens — so a change made in the OS sound panel shows up here — falling back
@@ -109,6 +114,8 @@ class DefaultSettingsComponent(
     private val micGainApplier: MicGainApplier,
     private val installationIdProvider: InstallationIdProvider,
     private val dispatchers: CoroutineDispatchers,
+    /** `DeviceCheckinUseCase.registeredToAnotherSite`; updated by the check-in after a refresh. */
+    private val registeredToAnotherSite: StateFlow<Boolean> = MutableStateFlow(false),
 ) : SettingsComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -121,6 +128,9 @@ class DefaultSettingsComponent(
 
     init {
         lifecycle.doOnDestroy { scope.cancel() }
+        scope.launch(dispatchers.main) {
+            registeredToAnotherSite.collect { _state.value = _state.value.copy(registeredToAnotherSite = it) }
+        }
         scope.launch(dispatchers.main) {
             configurationRepository.activeConfig.collect { config ->
                 _state.value = _state.value.copy(

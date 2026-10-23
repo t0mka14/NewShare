@@ -9,8 +9,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
+import org.example.app.domain.upload.DeviceCheckinUseCase
 import org.example.app.domain.upload.EligibleUpload
 import org.example.app.domain.upload.EligibleUploadsQuery
+import org.example.app.domain.upload.RejectionReason
 import org.example.app.domain.upload.UploadSessionUseCase
 import org.example.app.domain.upload.UploadStatusValue
 
@@ -20,7 +22,9 @@ import org.example.app.domain.upload.UploadStatusValue
  * current session's own [UploadSessionUseCase] progress callback; a failed session shows its
  * localized reason and does **not** stop the batch (remaining sessions still upload). The list
  * is refreshed from the query after every session so uploaded sessions disappear immediately
- * (terminal, §8.9) and failed ones stay listed with an updated reason for manual retry.
+ * (terminal, §8.9) and failed ones stay listed with an updated reason for manual retry. After
+ * each batch, success or not, the computer checks in with the server ([DeviceCheckinUseCase],
+ * §13 decision 62).
  */
 interface UploadComponent {
     val state: Value<State>
@@ -58,6 +62,7 @@ class DefaultUploadComponent(
     private val uploadSessionUseCase: UploadSessionUseCase,
     private val dispatchers: CoroutineDispatchers,
     private val onBackClicked: () -> Unit,
+    private val deviceCheckin: DeviceCheckinUseCase? = null,
 ) : UploadComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -82,11 +87,16 @@ class DefaultUploadComponent(
         identifiers = upload.participantFields.toSortedMap(),
     )
 
+    /** Maps the last `attempts[].outcome` written by [UploadSessionUseCase] (§13 decision 62). */
     private fun failureReasonKey(reason: String?): String = when {
         reason == null -> "upload.error.generic"
         reason == EligibleUploadsQuery.INTERRUPTED_REASON -> "upload.error.interrupted"
         reason == "NetworkFailure" -> "upload.error.network"
+        reason == UploadSessionUseCase.CONFLICT_OUTCOME -> "upload.error.conflict"
+        reason == "ServerError(429)" || reason == "ServerError(503)" || reason == "ServerError(507)" -> "upload.error.busy"
         reason.startsWith("ServerError") -> "upload.error.server"
+        reason == "Rejected(${RejectionReason.DeviceNotRegistered.name})" -> "upload.error.notRegistered"
+        reason == "Rejected(${RejectionReason.TooLarge.name})" -> "upload.error.tooLarge"
         reason.startsWith("Rejected") -> "upload.error.rejected"
         else -> "upload.error.generic"
     }
@@ -112,6 +122,7 @@ class DefaultUploadComponent(
                 uploading = false,
                 batchResultKey = if (allUploaded) "upload.successMessage" else null,
             )
+            deviceCheckin?.checkIn()
         }
     }
 

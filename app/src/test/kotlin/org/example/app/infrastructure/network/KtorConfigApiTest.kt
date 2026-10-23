@@ -13,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import org.example.app.domain.config.ConfigFetchResult
+import org.example.app.domain.config.DeviceIdentity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -46,6 +47,31 @@ class KtorConfigApiTest {
         val result = api.fetchConfig(siteToken)
 
         assertEquals(ConfigFetchResult.Success("""{"schemaVersion":1}"""), result)
+    }
+
+    @Test
+    fun `device identity is sent as url-encoded query parameters`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals("/site-config/$siteToken", request.url.encodedPath)
+            assertEquals("6f933f6e-c07a-414f-9800-47b37253d409", request.url.parameters["installationId"])
+            assertEquals("1.4.0 beta&x", request.url.parameters["appVersion"])
+            respond("{}", HttpStatusCode.OK)
+        }
+        val api = KtorConfigApi(engine = engine, baseUrl = "http://web.test")
+
+        val result = api.fetchConfig(siteToken, DeviceIdentity("6f933f6e-c07a-414f-9800-47b37253d409", "1.4.0 beta&x"))
+
+        assertTrue(result is ConfigFetchResult.Success)
+    }
+
+    @Test
+    fun `no query string without a device identity`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals("", request.url.encodedQuery)
+            respond("{}", HttpStatusCode.OK)
+        }
+
+        assertTrue(KtorConfigApi(engine = engine, baseUrl = "http://web.test").fetchConfig(siteToken) is ConfigFetchResult.Success)
     }
 
     @Test

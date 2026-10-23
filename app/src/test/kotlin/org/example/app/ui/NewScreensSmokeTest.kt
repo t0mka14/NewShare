@@ -200,6 +200,8 @@ class NewScreensSmokeTest {
                 sessionRepository = sessionRepository,
                 uploadStatusRepository = uploadStatusRepository,
                 uploadApi = FakeUploadApi().apply { nextResult = UploadResult.Success(null) },
+                settingsRepository = org.example.app.fakes.FakeAppSettingsRepository(),
+                appVersion = "1.2.3",
                 fileHashService = FakeFileHashService(),
                 clock = FakeClock(),
                 dispatchers = dispatchers,

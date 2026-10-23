@@ -88,6 +88,9 @@ class ScenarioHarness(tempDir: Path) {
     /** Scriptable per-session upload outcomes (§10.3 workflow 8) — see [FakeUploadApi.respondTo]. */
     val uploadApi = FakeUploadApi()
 
+    /** Records the check-ins sent after upload batches (§13 decision 62). */
+    val deviceCheckinApi = org.example.app.fakes.FakeDeviceCheckinApi()
+
     val container = AppContainer(
         directories = TestAppDirectories(tempDir),
         clock = clock,
@@ -102,6 +105,7 @@ class ScenarioHarness(tempDir: Path) {
         // real network in tests).
         configApi = FakeConfigApi(),
         uploadApi = uploadApi,
+        deviceCheckinApi = deviceCheckinApi,
         audioInputDeviceProvider = deviceProvider,
         audioClipService = audioClipService,
         waveformService = waveformService,

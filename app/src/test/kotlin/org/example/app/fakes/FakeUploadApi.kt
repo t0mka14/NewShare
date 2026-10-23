@@ -29,12 +29,21 @@ class FakeUploadApi : UploadApi {
         installationId: String,
         sessionId: String,
         zipSha256: String,
+        siteToken: String?,
+        appVersion: String,
         onProgress: (Float) -> Unit,
     ): UploadResult {
-        calls += Call(zip, installationId, sessionId, zipSha256)
+        calls += Call(zip, installationId, sessionId, zipSha256, siteToken, appVersion)
         onProgress(1.0f)
         return scriptedBySessionId[sessionId] ?: nextResult
     }
 
-    data class Call(val zip: Path, val installationId: String, val sessionId: String, val zipSha256: String)
+    data class Call(
+        val zip: Path,
+        val installationId: String,
+        val sessionId: String,
+        val zipSha256: String,
+        val siteToken: String?,
+        val appVersion: String,
+    )
 }

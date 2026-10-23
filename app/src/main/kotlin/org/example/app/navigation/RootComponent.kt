@@ -232,6 +232,7 @@ class DefaultRootComponent(
             micGainApplier = container.micGainApplier,
             installationIdProvider = container.installationIdProvider,
             dispatchers = container.dispatchers,
+            registeredToAnotherSite = container.deviceCheckinUseCase.registeredToAnotherSite,
         )
         val subscription = settingsComponent.state.subscribe { state ->
             val selected = state.selectedLanguage ?: return@subscribe
@@ -374,6 +375,7 @@ class DefaultRootComponent(
                 uploadSessionUseCase = container.uploadSessionUseCase,
                 dispatchers = container.dispatchers,
                 onBackClicked = { navigation.pop() },
+                deviceCheckin = container.deviceCheckinUseCase,
             ),
         )
 

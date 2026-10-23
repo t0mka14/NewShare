@@ -2,6 +2,7 @@ package org.example.app.fakes
 
 import org.example.app.domain.config.ConfigApi
 import org.example.app.domain.config.ConfigFetchResult
+import org.example.app.domain.config.DeviceIdentity
 
 /**
  * Programmable result queue standing in for the real Ktor [ConfigApi] (§10.3):
@@ -18,6 +19,9 @@ class FakeConfigApi : ConfigApi {
 
     /** Every site token passed to [fetchConfig], in call order. */
     val requestedSiteTokens = mutableListOf<String>()
+
+    /** Every [DeviceIdentity] passed to [fetchConfig], in call order. */
+    val requestedDevices = mutableListOf<DeviceIdentity?>()
 
     fun enqueue(result: ConfigFetchResult) {
         queue.addLast(result)
@@ -36,8 +40,9 @@ class FakeConfigApi : ConfigApi {
 
     fun enqueueServerError(httpStatus: Int) = enqueue(ConfigFetchResult.ServerError(httpStatus))
 
-    override suspend fun fetchConfig(siteToken: String): ConfigFetchResult {
+    override suspend fun fetchConfig(siteToken: String, device: DeviceIdentity?): ConfigFetchResult {
         requestedSiteTokens += siteToken
+        requestedDevices += device
         return if (queue.isNotEmpty()) {
             queue.removeFirst()
         } else {

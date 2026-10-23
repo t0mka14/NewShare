@@ -10,8 +10,8 @@ It is written for two readers:
 - **the server:** what to expect in an upload and how to read it.
 
 Out of scope: transport (URL, HTTPS, auth, timeouts, response codes). For those see
-[`packaging-and-deployment.md`](packaging-and-deployment.md) §6 and
-[`tools/mock-server/README.md`](../../tools/mock-server/README.md). The normative sources are
+[`server-upload-integration.md`](server-upload-integration.md) and spec §13 decision 62. The
+normative sources are
 spec §8.8 (processing), §8.9 (upload) and §8.10 (schemas). The code is the source of truth
 wherever the two disagree:
 
@@ -28,17 +28,22 @@ The examples below are trimmed from a real session, `2026-10-13_testx_76a67cd8af
 
 ## 1. The upload unit
 
-**One request per session**, `multipart/form-data`, with exactly four parts and nothing else:
+**One request per session**, `multipart/form-data`, with these parts and nothing else. The
+text parts come before `zip`:
 
 | Part | Type | Value |
 |---|---|---|
 | `installationId` | text | The installation's ID (UUID with dashes), e.g. `6f933f6e-c07a-414f-9800-47b37253d409`. Same value as `examination.json.installationId`. |
 | `sessionId` | text | The session ID: a random UUIDv4 as 32 lowercase hex chars, **no dashes**, e.g. `76a67cd8af73486da13a7c0e1509bd2f`. |
 | `zipSha256` | text | SHA-256 of the whole ZIP file as 64 lowercase hex chars. Recomputed just before every upload attempt. |
+| `siteToken` | text | The site token from Settings (a credential, never logged). Omitted when none is set. |
+| `appVersion` | text | The app's version, e.g. `1.4.0`. |
 | `zip` | file | `Content-Type: application/zip`, `filename="<patientCode>_<sessionId>.zip"`, e.g. `testx_76a67cd8af73486da13a7c0e1509bd2f.zip`. |
 
-- `sessionId` is the **idempotency key**. Each session is uploaded successfully at most once, and
-  the server should reject a `sessionId` it has already accepted.
+- `sessionId` is the **idempotency key**. The app uploads each session successfully at most
+  once. The server answers a re-send with identical bytes with 200 and the original receipt, and
+  only a re-send with different bytes with 409, so an app that lost `upload_status.json` can
+  safely upload again.
 - The file name embeds the participant's `patient_code`, so it is participant data. Don't
   log it on the server.
 - Sizes: a session with video can be hundreds of MB. The example is about 239 MB uncompressed, almost

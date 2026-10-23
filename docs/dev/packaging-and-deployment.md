@@ -142,9 +142,10 @@ implement top to bottom and delete this table's "placeholder" column from realit
 
 | Contract item | Seam (the only place to touch) | Placeholder today |
 |---|---|---|
-| Config fetch URL | `AppContainer(configApi = KtorConfigApi(baseUrl=…, configPath=…))` — composition-root arg | `https://localhost/api` + `/config/{id}` |
-| Upload URL + multipart shape | `KtorUploadApi(baseUrl=…, uploadPath=…)`; form-field names + response parsing inside `KtorUploadApi.uploadSession` | `/upload`, fields `installationId`/`sessionId`/`zipSha256` |
-| Installation ID in path vs `Authorization` header | the `configPath` closure (drop the ID from the path) + an added header in both `KtorConfigApi`/`KtorUploadApi`. §11 still applies: the ID never reaches logs either way | ID in URL path / form field |
+| Config fetch URL | `AppContainer(configApi = KtorConfigApi(baseUrl=…, configPath=…))` — composition-root arg | `WEB_SERVER_BASE_URL` + `/site-config/{token}?installationId=…&appVersion=…` (decisions 45, 62) |
+| Upload URL + multipart shape | `KtorUploadApi(baseUrl=…, uploadPath=…)`; form-field names + response mapping inside `KtorUploadApi.uploadSession` | `/upload`, text parts `installationId`/`sessionId`/`zipSha256`/`siteToken`/`appVersion`, then `zip` (decision 62) |
+| Device check-in | `KtorDeviceCheckinApi(baseUrl=…, checkinPath=…)` | `/device-checkin`, JSON body (decision 62) |
+| Credentials in path/body vs `Authorization` header | the `configPath` closure + the form fields / JSON body in `KtorUploadApi`/`KtorDeviceCheckinApi`. §11 still applies: the token and the ID never reach logs either way | token in URL path and body; ID in query, form field and body |
 | Updater version endpoint | `updater.properties` beside the install dir or `--endpoint=` CLI arg (`UpdaterConfig.kt`); server must serve `VersionCheckResponse` JSON (`:shared`) | none configured ⇒ updater launches app without checking |
 | Config authenticity / signing | `JsonConfigurationRepository.applyFetched` — the single ingestion point; verify a signature before the cache write | none |
 | Internal CA / cert pinning | build a configured engine and inject it: `KtorConfigApi(engine = CIO.create { https { … } })` — no class changes needed | JVM default trust store |

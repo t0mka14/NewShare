@@ -198,6 +198,7 @@ AudioInputDeviceProvider  enumerate/select input devices
 AudioPlaybackService      example-audio and editor playback
 ConfigApi                 fetch configuration JSON by site token (Ktor)
 UploadApi                 multipart session upload (Ktor)
+DeviceCheckinApi          report this computer's upload backlog (Ktor, §13 decision 62)
 ```
 
 #### 5.3.1 ContinuousSessionRecorder
@@ -279,12 +280,14 @@ RecoverSessionsUseCase        startup crash recovery (§8.4)
    credential (it traces uploads to a device and is the `${installationId}` filename variable).
 2. On startup, on manual "refresh" in Settings, and when leaving Settings back to the
    configuration-required screen while there is still no config (§13 decision 50), the app sends
-   `GET {WEB_SERVER_BASE_URL}/site-config/{siteToken}`. **The server validates the token during
+   `GET {WEB_SERVER_BASE_URL}/site-config/{siteToken}?installationId={id}&appVersion={version}`
+   (the query identifies the computer, §13 decision 62). **The server validates the token during
    this request** — there is no separate registration step. Errors, surfaced on the Settings
    screen / configuration-required screen: 404 unknown token → `SiteTokenRejected`, 403 site
    deactivated → `SiteDeactivated`, 429 too many failed lookups → `RateLimited`, anything else
-   → `ServerError`. Only the status code is interpreted (bodies are `{"error": "…"}`). The app
-   sends nothing back after a fetch.
+   → `ServerError`. Only the status code is interpreted (bodies are `{"error": "…"}`). After a
+   successful fetch the app sends a best-effort device check-in (§13 decision 62); nothing
+   else is sent back.
 3. The response JSON is validated against `schemaVersion`, persisted **atomically** (write to
    `config.json.tmp`, fsync, rename over `data/config/config.json`), and becomes the active
    configuration.
@@ -598,13 +601,15 @@ regenerates local artifacts, but re-upload is blocked.
 ### 8.9 Upload
 
 - **The upload payload is the session ZIP only** (plus form fields: `installationId`,
-  `sessionId`, ZIP SHA-256). Nothing else is sent; the master is inside the ZIP (once).
-- Authorization: **possession of the app and a valid installation ID** — the server validates
-  the ID on upload exactly as on config fetch. No separate token/secret is provisioned.
-  HTTPS required.
+  `sessionId`, ZIP SHA-256, `siteToken`, `appVersion`; §13 decision 62). Nothing else is sent;
+  the master is inside the ZIP (once).
+- Authorization: the **site token** attributes the upload to a site; a device the server
+  already knows may upload without it. An upload the server cannot attribute is quarantined
+  (404) until an administrator assigns the device (§13 decision 62). HTTPS required.
 - Idempotency: `sessionId` is the idempotency key. **A successfully uploaded session cannot
-  be uploaded again** — the server rejects a `sessionId` it has already accepted, and the
-  app treats `Uploaded` as terminal (upload actions disabled in the UI).
+  be uploaded again** — the app treats `Uploaded` as terminal (upload actions disabled in the
+  UI). The server answers a re-send with identical bytes with 200 and the original receipt,
+  and a re-send with different bytes with 409 (decision 62).
 - Statuses in `metadata/upload_status.json`: `NotUploaded`, `Uploading`, `Uploaded`
   (terminal), `Failed` (the single-ZIP payload removes `PartiallyUploaded`). Failed uploads
   are retried only when the examiner presses Upload again (§5.4, decision 34);
@@ -1274,7 +1279,7 @@ Error taxonomy (normative, inlined from the old plan):
     older version is kept) and Settings shows it read-only. Session start reads it through the
     provider, so it lands in `examination.json`, the upload form and filenames. Uploads still go
     to the mock server (`DEMO_SERVER_BASE_URL`) keyed by `installationId` until the web has an
-    upload endpoint (phase B, which will also send the site token). `ConfigError`
+    upload endpoint (phase B, which will also send the site token — done in decision 62). `ConfigError`
     `InstallationIdMissing/Rejected` became `SiteTokenMissing/Rejected`, plus `SiteDeactivated`
     and `RateLimited`. Closes the config half of open question 1.
 46. **Protocols carry their `project` (2026-09-27, config alignment row 3).** The web lists
@@ -1457,11 +1462,38 @@ Error taxonomy (normative, inlined from the old plan):
     The canvas keeps the calibration bar's outline and adds a zero line plus ticks on its left
     edge every 0.2 of full scale up to 0.8, mirrored above and below (the outline marks 1.0).
 
+62. **Upload, config fetch and check-in on the web backend (2026-10-23, phase B,
+    `docs/dev/server-upload-integration.md`).** Uploads go to the web backend
+    (`POST {WEB_SERVER_BASE_URL}/upload`; `DEMO_SERVER_BASE_URL` is removed).
+    - **Upload parts:** `siteToken` (omitted while none is set) and `appVersion` are added to the
+      text parts, which still precede the `zip` part. A token adopts a device with no site and
+      never moves a device that belongs to another site.
+    - **Timeouts:** no cap on the whole upload; a 120 s idle (socket) timeout fails a stalled
+      connection; connect stays 10 s.
+    - **Response mapping:** 404 (`device_not_registered`, quarantined) →
+      `Rejected(DeviceNotRegistered)`. It stays `Failed` and retryable, because once an
+      administrator assigns the device the same bytes get 200 with the original receipt. 409
+      (same `sessionId`, different bytes) → `UploadResult.Conflict`, recorded as a `Failed`
+      attempt with outcome `Conflict`. The §8.9 status set is unchanged, so the session stays
+      listed, but the upload screen tells the examiner to contact an administrator instead of
+      inviting a retry. 413 → `Rejected(TooLarge)`. 400/429/503/507/5xx → `ServerError`, with
+      429/503/507 shown as "server busy, try later".
+    - **Config fetch** carries `installationId` and `appVersion` as query parameters, so a
+      computer appears on the admin "Devices" page before its first upload.
+    - **Device check-in:** `DeviceCheckinUseCase` posts `{siteToken, installationId,
+      appVersion, pending, failed}` (counts from `EligibleUploadsQuery`) to `/device-checkin`
+      after every successful config refresh and after every upload batch. It never throws and
+      never changes the caller's result. It is awaited inside `refresh()` (15 s cap), so the
+      Settings refresh result and the check-in's answer arrive together. A 409 ("registered to
+      another site") shows a note in Settings until a later check-in is recorded. It is skipped
+      while no site token is set.
+    - The site token, like the installation ID, never reaches a log line (§11).
+
 **Still open:**
 
-1. Concrete server API contracts: upload endpoint shape, and transport hardening (config
-   authenticity/signing, HTTPS). The config endpoint is settled by decision 45 (token in the URL
-   path; the web rate-limits failed lookups). The old Mars
+1. Transport hardening (config authenticity/signing, HTTPS). The config endpoint is settled by
+   decision 45 (token in the URL path; the web rate-limits failed lookups), the upload and
+   check-in endpoints by decision 62. The old Mars
    endpoints (`/recordings/`, `/task/`, `/log/` on `speech.fel.cvut.cz`) used secret+userid
    form fields; the new contract is pending.
 2. Data retention / erasure: local data is never auto-deleted — is a manual

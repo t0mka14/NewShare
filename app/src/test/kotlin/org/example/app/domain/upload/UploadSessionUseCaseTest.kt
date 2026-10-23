@@ -3,6 +3,8 @@ package org.example.app.domain.upload
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonPrimitive
 import org.example.app.domain.session.Examination
+import org.example.app.domain.settings.AppSettings
+import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeFileHashService
 import org.example.app.fakes.FakeSessionRepository
@@ -22,12 +24,15 @@ class UploadSessionUseCaseTest {
         val sessionRepository = FakeSessionRepository()
         val uploadStatusRepository = FakeUploadStatusRepository()
         val uploadApi = FakeUploadApi()
+        val settingsRepository = FakeAppSettingsRepository()
         val fileHashService = FakeFileHashService(default = "abc123")
         val clock = FakeClock()
         val useCase = UploadSessionUseCase(
             sessionRepository = sessionRepository,
             uploadStatusRepository = uploadStatusRepository,
             uploadApi = uploadApi,
+            settingsRepository = settingsRepository,
+            appVersion = "1.2.3",
             fileHashService = fileHashService,
             clock = clock,
             dispatchers = ImmediateCoroutineDispatchers(),
@@ -99,16 +104,56 @@ class UploadSessionUseCaseTest {
     }
 
     @Test
-    fun `server rejection transitions to Failed with the rejection reason`() {
+    fun `sends the site token from settings and the app version`() {
         val f = Fixture()
         f.setUpProcessedSession(folderName)
-        f.uploadApi.nextResult = UploadResult.Rejected("unknown installation id")
+        f.settingsRepository.write(AppSettings(siteToken = "  paris000paris000  "))
+
+        runBlocking { f.useCase.upload(folderName) }
+
+        val call = f.uploadApi.calls.single()
+        assertEquals("paris000paris000", call.siteToken)
+        assertEquals("1.2.3", call.appVersion)
+    }
+
+    @Test
+    fun `a blank site token is not sent`() {
+        val f = Fixture()
+        f.setUpProcessedSession(folderName)
+        f.settingsRepository.write(AppSettings(siteToken = "   "))
+
+        runBlocking { f.useCase.upload(folderName) }
+
+        assertNull(f.uploadApi.calls.single().siteToken)
+    }
+
+    @Test
+    fun `a 409 conflict is a Failed attempt recorded as Conflict`() {
+        val f = Fixture()
+        f.setUpProcessedSession(folderName)
+        f.uploadApi.nextResult = UploadResult.Conflict
 
         val outcome = runBlocking { f.useCase.upload(folderName) }
 
         assertTrue(outcome is UploadSessionUseCase.Outcome.Failed)
-        assertEquals("unknown installation id", (outcome as UploadSessionUseCase.Outcome.Failed).reason)
-        assertEquals(UploadStatusValue.Failed, f.uploadStatusRepository.read(folderName)!!.status)
+        val status = f.uploadStatusRepository.read(folderName)!!
+        assertEquals(UploadStatusValue.Failed, status.status)
+        assertEquals(UploadSessionUseCase.CONFLICT_OUTCOME, status.attempts.last().outcome)
+    }
+
+    @Test
+    fun `server rejection transitions to Failed with the rejection reason`() {
+        val f = Fixture()
+        f.setUpProcessedSession(folderName)
+        f.uploadApi.nextResult = UploadResult.Rejected(RejectionReason.DeviceNotRegistered)
+
+        val outcome = runBlocking { f.useCase.upload(folderName) }
+
+        assertTrue(outcome is UploadSessionUseCase.Outcome.Failed)
+        assertEquals("rejected: DeviceNotRegistered", (outcome as UploadSessionUseCase.Outcome.Failed).reason)
+        val status = f.uploadStatusRepository.read(folderName)!!
+        assertEquals(UploadStatusValue.Failed, status.status)
+        assertEquals("Rejected(DeviceNotRegistered)", status.attempts.last().outcome)
     }
 
     @Test
@@ -140,6 +185,8 @@ class UploadSessionUseCaseTest {
                 installationId: String,
                 sessionId: String,
                 zipSha256: String,
+                siteToken: String?,
+                appVersion: String,
                 onProgress: (Float) -> Unit,
             ): UploadResult = throw java.io.IOException("connection reset")
         }
@@ -147,6 +194,8 @@ class UploadSessionUseCaseTest {
             sessionRepository = f.sessionRepository,
             uploadStatusRepository = f.uploadStatusRepository,
             uploadApi = throwingApi,
+            settingsRepository = f.settingsRepository,
+            appVersion = "1.2.3",
             fileHashService = f.fileHashService,
             clock = f.clock,
             dispatchers = ImmediateCoroutineDispatchers(),

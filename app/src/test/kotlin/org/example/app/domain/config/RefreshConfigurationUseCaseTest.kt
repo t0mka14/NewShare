@@ -2,10 +2,17 @@ package org.example.app.domain.config
 
 import kotlinx.coroutines.test.runTest
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.InstallationIdProvider
+import org.example.app.domain.upload.DeviceCheckinUseCase
+import org.example.app.domain.upload.EligibleUploadsQuery
 import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeConfigApi
 import org.example.app.fakes.FakeConfigurationRepository
+import org.example.app.fakes.FakeDeviceCheckinApi
 import org.example.app.fakes.FakeExampleAudioCache
+import org.example.app.fakes.FakeSessionRepository
+import org.example.app.fakes.FakeUploadStatusRepository
+import org.example.app.fakes.ImmediateCoroutineDispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNull
@@ -60,6 +67,40 @@ class RefreshConfigurationUseCaseTest {
         val result = useCase.refresh()
 
         assertEquals(RefreshConfigurationUseCase.Result.Success(sampleConfig), result)
+    }
+
+    @Test
+    fun `sends the device identity and checks in after a successful refresh only`() = runTest {
+        val settings = FakeAppSettingsRepository()
+        settings.write(AppSettings(siteToken = "token-42", installationId = "install-1"))
+        val checkinApi = FakeDeviceCheckinApi()
+        val repo = FakeConfigurationRepository(initialConfig = sampleConfig)
+        val api = FakeConfigApi()
+        val useCase = RefreshConfigurationUseCase(
+            settingsRepository = settings,
+            configApi = api,
+            configurationRepository = repo,
+            deviceIdentity = { DeviceIdentity("install-1", "1.4.0") },
+            deviceCheckin = DeviceCheckinUseCase(
+                settingsRepository = settings,
+                installationIdProvider = InstallationIdProvider(settings),
+                eligibleUploadsQuery = EligibleUploadsQuery(FakeSessionRepository(), FakeUploadStatusRepository()),
+                api = checkinApi,
+                appVersion = "1.4.0",
+                dispatchers = ImmediateCoroutineDispatchers(),
+            ),
+        )
+
+        api.enqueueNetworkUnavailable()
+        useCase.refresh()
+        assertTrue(checkinApi.calls.isEmpty(), "offline fallback is not a successful refresh")
+
+        repo.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig))
+        api.enqueueSuccess("""{"schemaVersion":1}""")
+        useCase.refresh()
+
+        assertEquals(listOf(DeviceIdentity("install-1", "1.4.0"), DeviceIdentity("install-1", "1.4.0")), api.requestedDevices)
+        assertEquals(1, checkinApi.calls.size)
     }
 
     @Test

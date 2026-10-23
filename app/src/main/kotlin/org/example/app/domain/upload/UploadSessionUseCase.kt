@@ -5,6 +5,7 @@ import org.example.app.domain.Clock
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.session.SessionArchivePaths
 import org.example.app.domain.session.SessionRepository
+import org.example.app.domain.settings.AppSettingsRepository
 
 /**
  * §5.5/§8.9 `UploadSessionUseCase`: uploads one already-processed session's archive ZIP,
@@ -12,7 +13,8 @@ import org.example.app.domain.session.SessionRepository
  * (`NotUploaded`/`Failed` → `Uploading` → `Uploaded`/`Failed`, §8.9/§8.10). The ZIP's SHA-256 is
  * recomputed fresh on every call (never trusted from a previous run — a session could have been
  * reprocessed since, §8.8) and passed to [UploadApi] alongside the form fields; nothing else is
- * ever sent (§8.9).
+ * ever sent (§8.9). The site token is read from Settings at upload time, so the server can
+ * attribute a first upload from a new computer to its site (§13 decision 62).
  *
  * Idempotency (§8.9 decision 11): a session whose status is already `Uploaded` is refused
  * before any network call and before touching `upload_status.json` at all — `Uploaded` is
@@ -22,6 +24,9 @@ class UploadSessionUseCase(
     private val sessionRepository: SessionRepository,
     private val uploadStatusRepository: UploadStatusRepository,
     private val uploadApi: UploadApi,
+    private val settingsRepository: AppSettingsRepository,
+    /** `BuildInfo.appVersion` as text, sent as the `appVersion` part. */
+    private val appVersion: String,
     private val fileHashService: FileHashService,
     private val clock: Clock,
     private val dispatchers: CoroutineDispatchers,
@@ -53,6 +58,7 @@ class UploadSessionUseCase(
 
         val zipFile = SessionArchivePaths.zipFile(sessionRepository, folderName, examination)
         val zipSha256 = fileHashService.sha256(zipFile)
+        val siteToken = settingsRepository.read()?.siteToken?.trim()?.takeIf { it.isNotEmpty() }
 
         val result = try {
             uploadApi.uploadSession(
@@ -60,6 +66,8 @@ class UploadSessionUseCase(
                 installationId = examination.installationId,
                 sessionId = examination.sessionId,
                 zipSha256 = zipSha256,
+                siteToken = siteToken,
+                appVersion = appVersion,
                 onProgress = onProgress,
             )
         } catch (e: Exception) {
@@ -77,7 +85,16 @@ class UploadSessionUseCase(
                 )
                 Outcome.Success(status)
             }
-            is UploadResult.Rejected -> failedOutcome(uploading, attemptAt, zipSha256, "Rejected: ${result.reason}", result.reason)
+            is UploadResult.Rejected -> failedOutcome(
+                uploading,
+                attemptAt,
+                zipSha256,
+                "Rejected(${result.reason.name})",
+                "rejected: ${result.reason.name}",
+            )
+            // Stays `Failed` (the §8.9 status set has no other non-terminal state); the upload
+            // screen shows it as needing an administrator rather than another try.
+            UploadResult.Conflict -> failedOutcome(uploading, attemptAt, zipSha256, CONFLICT_OUTCOME, "session exists with different content")
             UploadResult.NetworkFailure -> failedOutcome(uploading, attemptAt, zipSha256, "NetworkFailure", "network failure")
             is UploadResult.ServerError -> failedOutcome(
                 uploading,
@@ -113,4 +130,9 @@ class UploadSessionUseCase(
 
     private fun UploadStatus.recordAttempt(at: String, outcome: String): UploadStatus =
         copy(attempts = attempts + UploadAttempt(at, outcome), attemptCount = attemptCount + 1)
+
+    companion object {
+        /** `attempts[].outcome` of a 409; the upload screen maps it to its own message. */
+        const val CONFLICT_OUTCOME = "Conflict"
+    }
 }

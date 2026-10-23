@@ -56,6 +56,7 @@ object BuiltinStrings {
         "settings.siteToken.label" to "Site token",
         "settings.server.title" to "Server",
         "settings.installationId.label" to "Installation ID",
+        "settings.otherSite" to "This computer is registered to another site. Contact your administrator.",
         "settings.language.label" to "Language",
         "settings.indicator.label" to "Recording indicator",
         "settings.indicator.CIRCLE" to "Circle",
@@ -92,6 +93,10 @@ object BuiltinStrings {
         "upload.error.network" to "network failure",
         "upload.error.server" to "server error",
         "upload.error.rejected" to "the server rejected the upload",
+        "upload.error.notRegistered" to "this computer is not registered to a site; contact your administrator",
+        "upload.error.conflict" to "the session is already on the server with different content; contact your administrator",
+        "upload.error.tooLarge" to "the session is too large",
+        "upload.error.busy" to "the server is busy, try again later",
         "upload.error.generic" to "an unknown error occurred",
 
         // Session browser (§8.11).
@@ -256,6 +261,7 @@ object BuiltinStrings {
         "settings.siteToken.label" to "Token pracoviště",
         "settings.server.title" to "Server",
         "settings.installationId.label" to "ID instalace",
+        "settings.otherSite" to "Tento počítač je registrován k jinému pracovišti. Kontaktujte správce.",
         "settings.language.label" to "Jazyk",
         "settings.indicator.label" to "Indikátor nahrávání",
         "settings.indicator.CIRCLE" to "Kruh",
@@ -289,6 +295,10 @@ object BuiltinStrings {
         "upload.error.network" to "chyba sítě",
         "upload.error.server" to "chyba serveru",
         "upload.error.rejected" to "server odeslání odmítl",
+        "upload.error.notRegistered" to "tento počítač není přiřazen k žádnému pracovišti; kontaktujte správce",
+        "upload.error.conflict" to "sezení už je na serveru s jiným obsahem; kontaktujte správce",
+        "upload.error.tooLarge" to "sezení je příliš velké",
+        "upload.error.busy" to "server je přetížený, zkuste to později",
         "upload.error.generic" to "nastala neznámá chyba",
 
         "sessionBrowser.title" to "Sezení",
