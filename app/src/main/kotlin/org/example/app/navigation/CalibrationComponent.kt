@@ -19,6 +19,9 @@ interface CalibrationComponent {
     fun onDeviceSelected(device: AudioInputDevice)
     fun onConfirm()
 
+    /** Re-opens the selected device after [State.micFailed]. */
+    fun onRetry()
+
     data class State(
         val titleKey: String,
         val instructionKeys: List<String>,
@@ -29,6 +32,15 @@ interface CalibrationComponent {
         val availableDevices: List<AudioInputDevice> = emptyList(),
         val selectedDevice: AudioInputDevice? = null,
         val deviceLost: Boolean = false,
+        /** The recorder is [RecorderState.Failed]: the selected microphone could not be opened. */
+        val micFailed: Boolean = false,
+        /**
+         * A Retry or device re-select failed again. Windows/JavaSound keeps the old microphone
+         * access state for the JVM's lifetime, so the examiner is told to restart the app.
+         */
+        val micRetryFailed: Boolean = false,
+        /** Only a [RecorderState.Monitoring] recorder can start writing, so Continue needs it. */
+        val canConfirm: Boolean = true,
     )
 }
 
@@ -60,9 +72,14 @@ class DefaultCalibrationComponent(
             maxLoudness = loudness.endInclusive,
             availableDevices = availableDevices,
             selectedDevice = initialDevice,
+            micFailed = recorder.state.value is RecorderState.Failed,
+            canConfirm = recorder.state.value is RecorderState.Monitoring,
         ),
     )
     override val state: Value<CalibrationComponent.State> = _state
+
+    /** Set when the examiner asked to reopen the mic; cleared once it opens (Monitoring). */
+    private var reopenRequested = false
 
     init {
         lifecycle.doOnDestroy { scope.cancel() }
@@ -75,26 +92,48 @@ class DefaultCalibrationComponent(
         }
         scope.launch(dispatchers.main) {
             recorder.state.collect { rs ->
-                if (rs is RecorderState.Interrupted) {
-                    _state.value = _state.value.copy(deviceLost = true)
-                } else if (rs is RecorderState.Monitoring) {
-                    _state.value = _state.value.copy(deviceLost = false)
-                }
+                if (rs is RecorderState.Monitoring) reopenRequested = false
+                _state.value = _state.value.copy(
+                    deviceLost = if (rs is RecorderState.Interrupted) true
+                    else if (rs is RecorderState.Monitoring) false
+                    else _state.value.deviceLost,
+                    // Failed is a failed open (§11 AudioError), distinct from losing a working device.
+                    micFailed = rs is RecorderState.Failed,
+                    micRetryFailed = rs is RecorderState.Failed && reopenRequested,
+                    canConfirm = rs is RecorderState.Monitoring,
+                )
             }
         }
     }
 
     override fun onDeviceSelected(device: AudioInputDevice) {
         _state.value = _state.value.copy(selectedDevice = device, deviceLost = false)
+        reopen(device)
+    }
+
+    override fun onRetry() {
+        val device = _state.value.selectedDevice ?: return
+        reopen(device)
+    }
+
+    private fun reopen(device: AudioInputDevice) {
+        reopenRequested = true
         scope.launch(dispatchers.main) {
-            // Bootstrap already left the recorder Monitoring (or Interrupted after device loss);
-            // startMonitoring only accepts Idle/Stopped/Failed, so close the current line first.
+            // Bootstrap already left the recorder Monitoring (or Interrupted after device loss, or
+            // Failed after a failed open); startMonitoring only accepts Idle/Stopped/Failed, so
+            // close the current line first.
             recorder.stop()
             recorder.startMonitoring(device)
+            // A repeated Failed equals the previous one, so the state collector may not see it.
+            if (recorder.state.value is RecorderState.Failed) {
+                _state.value = _state.value.copy(micFailed = true, micRetryFailed = true)
+            }
         }
     }
 
     override fun onConfirm() {
+        // Writing can only start from Monitoring; a failed or lost mic is handled on this screen.
+        if (!_state.value.canConfirm) return
         onConfirmed()
     }
 }

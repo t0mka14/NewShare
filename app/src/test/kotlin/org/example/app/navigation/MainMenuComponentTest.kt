@@ -4,7 +4,14 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
+import org.example.app.domain.session.RecoverSessionsUseCase
+import org.example.app.domain.session.RecoveryOutcome
+import org.example.app.domain.session.StartupRecovery
+import org.example.app.domain.session.StorageError
+import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeConfigurationRepository
+import org.example.app.fakes.FakeSessionRepository
+import org.example.app.fakes.FakeTimelineRepository
 import org.example.app.fakes.TestCoroutineDispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -19,7 +26,17 @@ class MainMenuComponentTest {
         defaultLanguage = "en",
     )
 
-    private class Harness(configurationRepository: FakeConfigurationRepository, appVersion: String? = null) {
+    private fun startupRecovery(vararg outcomes: RecoveryOutcome): StartupRecovery =
+        StartupRecovery(
+            RecoverSessionsUseCase(FakeSessionRepository(), FakeTimelineRepository(), FakeClock()),
+            FakeSessionRepository(),
+        ).also { it.publish(outcomes.toList()) }
+
+    private class Harness(
+        configurationRepository: FakeConfigurationRepository,
+        appVersion: String? = null,
+        startupRecovery: StartupRecovery? = null,
+    ) {
         val dispatchers = TestCoroutineDispatchers()
         var startClicks = 0
         var uploadClicks = 0
@@ -37,6 +54,7 @@ class MainMenuComponentTest {
             onSessionBrowserClicked = { browserClicks++ },
             onLanguageSelectedClicked = { selectedLanguages += it },
             appVersion = appVersion,
+            startupRecovery = startupRecovery,
         )
     }
 
@@ -153,4 +171,56 @@ class MainMenuComponentTest {
         protocolInstructionsPdfUrl = pdfUrl,
         recordingsFileName = "\${taskIndex}",
     )
+
+    @Test
+    fun `recovery dialog state is present when a session was recovered or failed`() {
+        val recovered = RecoveryOutcome.Recovered("2026-10-23_P01_s1", "s1", 100L)
+        val failed = RecoveryOutcome.Failed("2026-10-23_P02_s2", StorageError.CorruptSessionMetadata("x"))
+
+        val onlyRecovered = Harness(FakeConfigurationRepository(sampleConfig()), startupRecovery = startupRecovery(recovered))
+        assertEquals(listOf("2026-10-23_P01_s1"), onlyRecovered.component.state.value.recovery?.recovered?.map { it.folderName })
+
+        val onlyFailed = Harness(FakeConfigurationRepository(sampleConfig()), startupRecovery = startupRecovery(failed))
+        val summary = onlyFailed.component.state.value.recovery
+        assertTrue(summary != null && summary.recovered.isEmpty())
+        assertEquals(listOf("2026-10-23_P02_s2"), summary?.failed?.map { it.folderName })
+    }
+
+    @Test
+    fun `recovery dialog state is absent for no outcomes or only NotRecovered`() {
+        val none = Harness(FakeConfigurationRepository(sampleConfig()), startupRecovery = startupRecovery())
+        assertEquals(null, none.component.state.value.recovery)
+
+        val clean = Harness(
+            FakeConfigurationRepository(sampleConfig()),
+            startupRecovery = startupRecovery(RecoveryOutcome.NotRecovered("a"), RecoveryOutcome.NotRecovered("b")),
+        )
+        assertEquals(null, clean.component.state.value.recovery)
+    }
+
+    @Test
+    fun `OK dismisses the recovery dialog and it does not return when the menu is recreated`() {
+        val recovery = startupRecovery(RecoveryOutcome.Recovered("2026-10-23_P01_s1", "s1", null))
+        val first = Harness(FakeConfigurationRepository(sampleConfig()), startupRecovery = recovery)
+        assertTrue(first.component.state.value.recovery != null)
+
+        first.component.onRecoveryDismissed()
+        assertEquals(null, first.component.state.value.recovery)
+        assertEquals(0, first.browserClicks)
+
+        val second = Harness(FakeConfigurationRepository(sampleConfig()), startupRecovery = recovery)
+        assertEquals(null, second.component.state.value.recovery)
+    }
+
+    @Test
+    fun `Open Sessions dismisses the recovery dialog and opens the session browser`() {
+        val recovery = startupRecovery(RecoveryOutcome.Recovered("2026-10-23_P01_s1", "s1", null))
+        val h = Harness(FakeConfigurationRepository(sampleConfig()), startupRecovery = recovery)
+
+        h.component.onRecoveryOpenSessions()
+
+        assertEquals(1, h.browserClicks)
+        assertEquals(null, h.component.state.value.recovery)
+        assertEquals(null, recovery.pending.value)
+    }
 }

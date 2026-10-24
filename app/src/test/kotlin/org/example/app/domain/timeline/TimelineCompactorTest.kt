@@ -77,4 +77,51 @@ class TimelineCompactorTest {
         assertEquals(events, result.events)
         assertTrue(result.events.none { it.type == TimelineEventType.SESSION_RECORDING_STOPPED })
     }
+
+    private fun takeEvent(type: TimelineEventType, sample: Long, take: Int = 1) = TimelineEvent(
+        type = type, sampleOffset = sample, wallClock = "2026-07-01T09:30:00Z", taskIndex = 2, repetition = 1, take = take,
+    )
+
+    @Test
+    fun `recovery closes a take left open at lastWrittenSample, flagged, before the synthetic stop`() {
+        val events = listOf(
+            event(TimelineEventType.SESSION_RECORDING_STARTED, 0),
+            takeEvent(TimelineEventType.START_BUTTON_PRESSED, 345_600),
+        )
+
+        val result = TimelineCompactor.compact("s", 48000, events, lastWrittenSample = 508_800, syntheticWallClock = "2026-07-01T09:35:00Z")
+
+        assertEquals(4, result.events.size)
+        val close = result.events[2]
+        assertEquals(TimelineEventType.STOP_BUTTON_PRESSED, close.type)
+        assertEquals(508_800L, close.sampleOffset)
+        assertEquals(Triple(2, 1, 1), Triple(close.taskIndex, close.repetition, close.take))
+        assertEquals(TimelineCompactor.REASON_RECOVERED_INTERRUPTED, close.reason)
+        assertEquals(TimelineEventType.SESSION_RECORDING_STOPPED, result.events[3].type)
+        assertEquals(345_600L until 508_800L, TakeSelector.takeSampleRange(result.events, 2, 1, 1))
+    }
+
+    @Test
+    fun `recovery leaves already ended and rejected takes untouched`() {
+        val events = listOf(
+            takeEvent(TimelineEventType.START_BUTTON_PRESSED, 100, take = 1),
+            takeEvent(TimelineEventType.STOP_BUTTON_PRESSED, 200, take = 1),
+            takeEvent(TimelineEventType.TAKE_REJECTED, 200, take = 1),
+            takeEvent(TimelineEventType.START_BUTTON_PRESSED, 300, take = 2),
+            takeEvent(TimelineEventType.STOP_BUTTON_PRESSED, 400, take = 2),
+        )
+
+        val result = TimelineCompactor.compact("s", 48000, events, lastWrittenSample = 1000, syntheticWallClock = "2026-07-01T09:35:00Z")
+
+        assertEquals(events + event(TimelineEventType.SESSION_RECORDING_STOPPED, 1000).copy(wallClock = "2026-07-01T09:35:00Z"), result.events)
+    }
+
+    @Test
+    fun `recovery does not close a take that started at or after the last written sample`() {
+        val events = listOf(takeEvent(TimelineEventType.START_BUTTON_PRESSED, 1000))
+
+        val result = TimelineCompactor.compact("s", 48000, events, lastWrittenSample = 1000, syntheticWallClock = "2026-07-01T09:35:00Z")
+
+        assertTrue(result.events.none { it.type == TimelineEventType.STOP_BUTTON_PRESSED })
+    }
 }

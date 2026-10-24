@@ -63,6 +63,8 @@ object ClipExportPlanner {
         masterParts: List<MasterPart>,
         recordingsFileNameTemplate: String,
         installationId: String,
+        /** The config snapshot's `siteName`, for `${siteName}`. */
+        siteName: String?,
         /** `participant.json` values, keyed by field name, for `${field.<name>}`. */
         fieldValues: Map<String, String>,
     ): ClipPlanningResult {
@@ -107,6 +109,7 @@ object ClipExportPlanner {
             val clipBaseName = RecordingsFileNameRenderer.render(
                 template = recordingsFileNameTemplate,
                 installationId = installationId,
+                siteName = siteName,
                 fieldValues = fieldValues,
                 taskIndex = record.taskIndex,
                 subtype = subtype,

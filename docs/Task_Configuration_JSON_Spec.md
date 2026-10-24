@@ -53,7 +53,7 @@ The configuration fully describes:
 |---|---|---|
 | `schemaVersion` | int | Parser compatibility; app rejects unknown major versions |
 | `configVersion` | string | Server-side revision identifier, stored in session snapshots |
-| `siteName` | string | Optional. The site's display name, shown under the main menu title ("Site: …"). Absent or blank shows no line. Display only — no app behaviour depends on it |
+| `siteName` | string | Optional. The site's display name, shown under the main menu title ("Site: …"). Absent or blank shows no line. Also the `${siteName}` clip-filename variable (sanitized; empty when absent or blank) |
 | `defaultLanguage` | string | Fallback language |
 | `languages` | string[] | Languages selectable in the UI |
 | `defaultMicName` | string | The microphone **model** the session records from when Settings has no saved device (a device saved in Settings wins), and the target of `defaultMicGain`. Give the device's product string as the sound panel shows it, e.g. `USB audio CODEC` — the same physical device is named `Microphone (USB audio CODEC)` on Windows, `USB audio CODEC` on macOS and `CODEC [plughw:3,0]` on Linux, so the value is matched case-insensitively as a substring of the device's name + description, which all three contain. It identifies a model, not a unit. Java on Windows cuts device names to 31 characters (JDK-7116070); a name cut through the model string still matches while at least half of it (and six characters) remain |
@@ -103,13 +103,15 @@ A protocol is a named, ordered list of configured tasks. Task numbering ("task 3
   still sending `manualFilePath` decodes without error but leaves the button disabled — servers
   must emit the new key (and a real URL) for the button to appear.
 - `recordingsFileName` — clip filename template, the authoritative source of clip names.
-  Supported variables: `${installationId}`, `${taskIndex}` (0-based position in the expanded
+  Supported variables: `${installationId}`, `${siteName}` (the config's top-level `siteName`,
+  sanitized to `[A-Za-z0-9_-]`; empty when absent or blank), `${taskIndex}` (0-based position in the expanded
   task list; the first task is 0, calibration is not a task), `${task.subtype}`,
   `${repetition}`, and `${field.<name>}` — the value entered for this protocol's patient field
   `<name>`, sanitized to `[A-Za-z0-9_-]` (empty when not filled in). The template **must include
   `${taskIndex}`** so that two tasks with the same subtype cannot produce colliding filenames,
   and every `${field.<name>}` must name one of the protocol's `patientFields`; config
-  validation rejects templates that break either rule. (`${patientCode}` no longer exists.)
+  validation rejects templates that break either rule, and rejects any other `${...}` (for example
+  a misspelt variable or `${patientCode}`, which no longer exists).
 - `patientFields` — the participant fields shown after this protocol is picked (§5).
 - Recordings are always stored under the app data directory
   (`data/sessions/<session>/…`); the config never contains filesystem paths for output

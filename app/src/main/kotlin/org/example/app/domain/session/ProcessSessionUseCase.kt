@@ -65,7 +65,7 @@ class ProcessSessionUseCase(
     enum class Step { SELECTING_TIMELINE, CUTTING_CLIPS, CONVERTING_VIDEO, BUILDING_ARCHIVE, UPDATING_METADATA }
 
     /** What clip and video names are rendered from: the protocol's template and the entered field values. */
-    private data class Naming(val template: String, val fieldValues: Map<String, String>)
+    private data class Naming(val template: String, val siteName: String?, val fieldValues: Map<String, String>)
 
     sealed interface Outcome {
         data class Success(val examination: Examination, val archiveFile: Path) : Outcome
@@ -153,7 +153,7 @@ class ProcessSessionUseCase(
                 val participant = sessionRepository.readParticipant(folderName)
                     ?: return fail(examination, ProcessingError.MissingParticipant(folderName))
 
-                naming = Naming(protocol.recordingsFileName, participant.fields)
+                naming = Naming(protocol.recordingsFileName, decoded.config.siteName, participant.fields)
             }
 
             onStep(Step.CUTTING_CLIPS, 0.1f)
@@ -166,6 +166,7 @@ class ProcessSessionUseCase(
                     masterParts = masterParts,
                     recordingsFileNameTemplate = naming.template,
                     installationId = examination.installationId,
+                    siteName = naming.siteName,
                     fieldValues = naming.fieldValues,
                 )
                 if (planningResult.errors.isNotEmpty()) {
@@ -201,6 +202,7 @@ class ProcessSessionUseCase(
                     originalEvents = originalTimeline.events,
                     recordingsFileNameTemplate = naming.template,
                     installationId = examination.installationId,
+                    siteName = naming.siteName,
                     fieldValues = naming.fieldValues,
                 )
                 val clipsDir = sessionRepository.clipsDir(folderName)
@@ -226,6 +228,13 @@ class ProcessSessionUseCase(
                     videoByKey[task.taskIndex to task.repetition]?.let { task.copy(videoFile = it) } ?: task
                 }
             }
+
+            // A recording that yielded nothing (e.g. a crash before any take finished) is not an
+            // examination to upload. No-master sessions are exempt: they have no audio to cut.
+            val keptSomething = updatedTasks.any {
+                it.clipFile != null || it.videoFile != null || (!it.skipped && it.questionnaireAnswers != null)
+            }
+            if (hasMaster && !keptSomething) return fail(examination, ProcessingError.NothingToProcess)
 
             // Written before the ZIP is built, so the archived examination.json is the final one
             // (clip/video paths, Done). Should the build throw, the catch below marks it Failed.

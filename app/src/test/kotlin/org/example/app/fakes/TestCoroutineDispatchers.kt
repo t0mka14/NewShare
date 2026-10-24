@@ -18,12 +18,17 @@ import org.example.app.domain.CoroutineDispatchers
  * view); [default] and [io] are `StandardTestDispatcher`s so background work is
  * only executed when the test explicitly advances the scheduler — this is what
  * catches "forgot to await a coroutine" bugs instead of hiding them.
+ *
+ * [queuedMain] makes [main] a `StandardTestDispatcher` too, like the real Swing dispatcher,
+ * which queues work instead of running it in place — needed to catch work launched on main
+ * and then cancelled before it gets to run.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TestCoroutineDispatchers(
     val scheduler: TestCoroutineScheduler = TestCoroutineScheduler(),
+    queuedMain: Boolean = false,
 ) : CoroutineDispatchers {
-    override val main = UnconfinedTestDispatcher(scheduler)
+    override val main = if (queuedMain) StandardTestDispatcher(scheduler) else UnconfinedTestDispatcher(scheduler)
     override val default = StandardTestDispatcher(scheduler)
     override val io = StandardTestDispatcher(scheduler)
 }

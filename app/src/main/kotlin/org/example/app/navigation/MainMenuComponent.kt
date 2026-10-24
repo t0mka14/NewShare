@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.config.ConfigurationRepository
 import org.example.app.domain.config.RemoteConfig
+import org.example.app.domain.session.StartupRecovery
 import java.awt.Desktop
 import java.net.URI
 
@@ -27,6 +28,12 @@ interface MainMenuComponent {
 
     /** Opens one protocol's instruction manual (§3 "Get protocol PDF"). */
     fun onOpenProtocolPdf(url: String)
+
+    /** "OK" on the crash-recovery dialog: dismisses it for the rest of this run. */
+    fun onRecoveryDismissed()
+
+    /** "Open Sessions" on the crash-recovery dialog: dismisses it and opens the session browser. */
+    fun onRecoveryOpenSessions()
 
     /** Language switch from the top-right flag; persists and re-resolves every screen's text. */
     fun onLanguageSelected(language: String)
@@ -51,6 +58,8 @@ interface MainMenuComponent {
         val siteName: String? = null,
         /** This build's version; null (no line shown) when unknown, e.g. a dev run without `version.json`. */
         val appVersion: String? = null,
+        /** §8.4: interrupted sessions found at startup; non-null only until the examiner dismisses the dialog. */
+        val recovery: StartupRecovery.Summary? = null,
     )
 }
 
@@ -65,6 +74,8 @@ class DefaultMainMenuComponent(
     private val onLanguageSelectedClicked: (String) -> Unit,
     /** `BuildInfo.appVersion`, or null when unknown; passed in so the component stays testable. */
     private val appVersion: String? = null,
+    /** Holds the startup-recovery notice across menu recreations; null when there is none (tests). */
+    private val startupRecovery: StartupRecovery? = null,
 ) : MainMenuComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -83,6 +94,7 @@ class DefaultMainMenuComponent(
         startEnabled = config != null,
         siteName = config?.siteName?.trim()?.ifBlank { null },
         appVersion = appVersion,
+        recovery = startupRecovery?.pending?.value,
         protocolPdfs = config?.protocols.orEmpty()
             .filter { !it.protocolInstructionsPdfUrl.isNullOrBlank() }
             .groupBy { it.name to it.protocolInstructionsPdfUrl!! }
@@ -113,6 +125,16 @@ class DefaultMainMenuComponent(
             }
             Desktop.getDesktop().browse(URI(url))
         }.onFailure { logger.warn(it) { "could not open the protocol instructions PDF" } }
+    }
+
+    override fun onRecoveryDismissed() {
+        startupRecovery?.dismiss()
+        _state.value = _state.value.copy(recovery = null)
+    }
+
+    override fun onRecoveryOpenSessions() {
+        onRecoveryDismissed()
+        onSessionBrowserClicked()
     }
 
     override fun onLanguageSelected(language: String) = onLanguageSelectedClicked(language)

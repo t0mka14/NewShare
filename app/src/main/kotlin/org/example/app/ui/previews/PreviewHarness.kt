@@ -31,6 +31,8 @@ fun main() = singleWindowApplication(title = "Calibration — preview harness") 
         "Too quiet" to { CalibrationTooQuietPreview() },
         "Too loud" to { CalibrationTooLoudPreview() },
         "Device lost" to { CalibrationDeviceLostPreview() },
+        "Mic failed" to { CalibrationMicFailedPreview() },
+        "Mic retry failed" to { CalibrationMicRetryFailedPreview() },
     )
 }
 

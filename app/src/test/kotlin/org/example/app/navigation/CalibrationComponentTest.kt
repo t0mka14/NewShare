@@ -2,6 +2,7 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import org.example.app.domain.audio.AudioError
 import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.InterruptionReason
 import org.example.app.fakes.FakeAudioInputDeviceProvider
@@ -81,5 +82,94 @@ class CalibrationComponentTest {
         assertFalse(h.component.state.value.deviceLost)
         assertEquals(h.secondary, h.component.state.value.selectedDevice)
         assertEquals(listOf(h.device, h.secondary), h.recorder.monitoringStarts)
+    }
+
+    @Test
+    fun `a failed mic open shows the mic error, not the device-lost state, and blocks Continue`() {
+        val h = Harness()
+
+        h.recorder.simulateFailure(AudioError.NoSupportedPcmFormat(h.device.id))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val state = h.component.state.value
+        assertTrue(state.micFailed)
+        assertFalse(state.deviceLost)
+        assertFalse(state.canConfirm)
+
+        h.component.onConfirm()
+        assertEquals(0, h.confirmed)
+    }
+
+    @Test
+    fun `retry reopens the selected device and clears the mic error`() {
+        val h = Harness()
+        h.recorder.simulateFailure(AudioError.NoSupportedPcmFormat(h.device.id))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onRetry()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertFalse(h.component.state.value.micFailed)
+        assertTrue(h.component.state.value.canConfirm)
+        assertEquals(listOf(h.device, h.device), h.recorder.monitoringStarts)
+
+        h.component.onConfirm()
+        assertEquals(1, h.confirmed)
+    }
+
+    @Test
+    fun `selecting another device after a failed open clears the mic error`() {
+        val h = Harness()
+        h.recorder.simulateFailure(AudioError.DeviceUnavailable(h.device.id))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(h.component.state.value.micFailed)
+
+        h.component.onDeviceSelected(h.secondary)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertFalse(h.component.state.value.micFailed)
+        assertEquals(h.secondary, h.recorder.monitoringStarts.last())
+    }
+
+    @Test
+    fun `first mic failure shows no restart hint`() {
+        val h = Harness()
+        h.recorder.simulateFailure(AudioError.DeviceUnavailable(h.device.id))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(h.component.state.value.micFailed)
+        assertFalse(h.component.state.value.micRetryFailed)
+    }
+
+    @Test
+    fun `retry that fails again shows the restart hint`() {
+        val h = Harness()
+        h.recorder.simulateFailure(AudioError.DeviceUnavailable(h.device.id))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.recorder.failNextMonitoring = true
+        h.component.onRetry()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(h.component.state.value.micFailed)
+        assertTrue(h.component.state.value.micRetryFailed)
+    }
+
+    @Test
+    fun `retry that succeeds clears the error and the restart hint`() {
+        val h = Harness()
+        h.recorder.simulateFailure(AudioError.DeviceUnavailable(h.device.id))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.recorder.failNextMonitoring = true
+        h.component.onRetry()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(h.component.state.value.micRetryFailed)
+
+        h.recorder.failNextMonitoring = false
+        h.component.onRetry()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertFalse(h.component.state.value.micFailed)
+        assertFalse(h.component.state.value.micRetryFailed)
     }
 }

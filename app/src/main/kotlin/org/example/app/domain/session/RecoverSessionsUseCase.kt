@@ -2,7 +2,12 @@ package org.example.app.domain.session
 
 import org.example.app.domain.Clock
 import org.example.app.domain.audio.CaptureFormat
+import org.example.app.domain.config.ConfigDecoder
+import org.example.app.domain.config.VocalTask
+import org.example.app.domain.config.findProtocol
+import org.example.app.domain.timeline.TaskInstanceExpander
 import org.example.app.domain.timeline.TimelineCompactor
+import org.example.app.domain.timeline.TimelineEvent
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.domain.timeline.TimelineRepository
 import java.nio.file.Path
@@ -97,13 +102,49 @@ class RecoverSessionsUseCase(
                 compacted
             }
 
-            sessionRepository.writeExamination(folderName, examination.copy(recovered = true))
+            val withInterruptedTakes = examination.copy(
+                recovered = true,
+                tasks = examination.tasks + interruptedTaskRecords(folderName, examination, original.events),
+            )
+            sessionRepository.writeExamination(folderName, withInterruptedTakes)
 
             val lastSample = original.events.lastOrNull { it.sampleOffset != null }?.sampleOffset
             RecoveryOutcome.Recovered(folderName, examination.sessionId, lastSample)
         } catch (e: Exception) {
             RecoveryOutcome.Failed(folderName, StorageError.CorruptSessionMetadata(e.message ?: e::class.simpleName.orEmpty()))
         }
+    }
+
+    /**
+     * `examination.tasks[]` is only written when a task finishes, so a VOCAL take that was open at
+     * the crash (closed in [original] by [TimelineCompactor], flagged `RECOVERED_INTERRUPTED`) has
+     * no record and processing would never cut it. Builds the missing records from the config
+     * snapshot; an instance that cannot be resolved there gets none (best effort — the take stays
+     * in the timeline).
+     */
+    private fun interruptedTaskRecords(folderName: String, examination: Examination, events: List<TimelineEvent>): List<TaskRecord> {
+        val interrupted = events
+            .filter { it.type == TimelineEventType.STOP_BUTTON_PRESSED && it.reason == TimelineCompactor.REASON_RECOVERED_INTERRUPTED }
+            .filter { stop -> examination.tasks.none { it.taskIndex == stop.taskIndex && it.repetition == stop.repetition } }
+        if (interrupted.isEmpty()) return emptyList()
+        return runCatching {
+            val raw = sessionRepository.readConfigSnapshot(folderName) ?: return emptyList()
+            val protocol = ConfigDecoder.decode(raw).config.findProtocol(examination.protocolName, examination.protocolProject)
+                ?: return emptyList()
+            val instances = TaskInstanceExpander.expand(protocol.tasks).instances
+            interrupted.mapNotNull { stop ->
+                val task = instances.firstOrNull { it.taskIndex == stop.taskIndex && it.repetition == stop.repetition }?.task
+                (task as? VocalTask)?.let {
+                    TaskRecord(
+                        taskIndex = stop.taskIndex!!,
+                        type = "VOCAL",
+                        subtype = it.subtype.name,
+                        repetition = stop.repetition!!,
+                        takes = stop.take ?: 1,
+                    )
+                }
+            }
+        }.getOrDefault(emptyList())
     }
 
     /**

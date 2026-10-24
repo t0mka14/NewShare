@@ -63,6 +63,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
+            siteName = null,
             fieldValues = mapOf("patient_code" to "HC001"),
         )
 
@@ -84,6 +85,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
+            siteName = null,
             fieldValues = mapOf("patient_code" to "HC001"),
         )
 
@@ -102,6 +104,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
+            siteName = null,
             fieldValues = mapOf("patient_code" to "HC001"),
         )
 
@@ -119,6 +122,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
+            siteName = null,
             fieldValues = mapOf("patient_code" to "HC001"),
         )
 
@@ -140,6 +144,7 @@ class ClipExportPlannerTest {
             masterParts = parts,
             recordingsFileNameTemplate = template,
             installationId = "install1",
+            siteName = null,
             fieldValues = mapOf("patient_code" to "HC001"),
         )
 
@@ -158,6 +163,7 @@ class ClipExportPlannerTest {
             masterParts = singlePart,
             recordingsFileNameTemplate = template,
             installationId = "install1",
+            siteName = null,
             fieldValues = mapOf("patient_code" to "HC001"),
         )
 

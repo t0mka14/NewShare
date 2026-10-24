@@ -34,6 +34,12 @@ object TestTags {
         const val PROTOCOL_PDF_BUTTON = "mainMenu.protocolPdfButton"
         const val LANGUAGE_SELECTOR = "mainMenu.languageSelector"
 
+        /** §8.4 one-time "interrupted sessions were recovered" dialog. */
+        const val RECOVERY_DIALOG = "mainMenu.recovery.dialog"
+        const val RECOVERY_LIST = "mainMenu.recovery.list"
+        const val RECOVERY_OPEN_SESSIONS_BUTTON = "mainMenu.recovery.openSessionsButton"
+        const val RECOVERY_OK_BUTTON = "mainMenu.recovery.okButton"
+
         /** One entry of the protocol-PDF picker, shown only when several protocols declare one. */
         fun protocolPdfOption(protocolName: String, project: String? = null) =
             "mainMenu.protocolPdfOption." + (project?.let { "$it/" } ?: "") + protocolName
@@ -65,6 +71,9 @@ object TestTags {
         const val LEVEL_INDICATOR = "calibration.levelIndicator"
         const val DEVICE_LOST_ERROR = "calibration.deviceLostError"
         const val DEVICE_SELECT = "calibration.deviceSelect"
+        const val MIC_ERROR = "calibration.micError"
+        const val MIC_ERROR_RESTART = "calibration.micErrorRestart"
+        const val RETRY_BUTTON = "calibration.retryButton"
     }
 
     /** Task screen state machine (§8.6): Idle/Capturing/Stopped/Failed button set. */

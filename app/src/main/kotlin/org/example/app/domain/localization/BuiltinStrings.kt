@@ -44,6 +44,8 @@ object BuiltinStrings {
         "calibration.title" to "Calibration screen",
         "calibration.instructions" to "Please calibrate the microphone position. Make sure that the microphone is placed according to the picture below. Then ask the participant to perform a phonation of the vowel /a/ in a natural voice. If the signal is outside the bounds of the green area move the microphone closer to mouth or otherwise. Then, continue to the first task.",
         "calibration.continueButton" to "Continue",
+        "calibration.micError" to "The microphone could not be opened. Check that it is connected and that Windows microphone access (\"Let apps access your microphone\") is allowed, then press Retry or choose another device.",
+        "calibration.micErrorRestart" to "Still can\'t open the microphone. If you just allowed microphone access in Windows, close and restart the app, then start the examination again.",
 
         "settings.title" to "Settings",
         "settings.device.label" to "Microphone",
@@ -77,6 +79,12 @@ object BuiltinStrings {
         "mainMenu.settingsButton" to "Settings",
         "mainMenu.sessionBrowserButton" to "Sessions",
         "mainMenu.protocolPdfButton" to "Get protocol PDF",
+        "mainMenu.recovery.title" to "Interrupted sessions recovered",
+        "mainMenu.recovery.message" to "The application closed unexpectedly during a previous session. The interrupted sessions were found and their recordings were recovered.",
+        "mainMenu.recovery.recoveredHeading" to "Recovered:",
+        "mainMenu.recovery.failedHeading" to "Could not be recovered:",
+        "mainMenu.recovery.entry" to "{patient} ({date})",
+        "mainMenu.recovery.openSessions" to "Open Sessions",
 
         // Patient info screen.
         "patientInfo.title" to "Patient information",
@@ -250,6 +258,8 @@ object BuiltinStrings {
         "calibration.title" to "Kalibrační obrazovka",
         "calibration.instructions" to "Tato obrazovka slouží ke kalibraci nasazeného mikrofonu. Přesvědčte se, že mikrofon je umístěn stejně jako na obrázku níže. Poté požádejte účastníka, ať provede fonaci hlásky /a/ v pro něj přirozené hlasitosti. Pokud je signál mimo zelenou oblast, posuňte mikrofon blíže k ústům, případně dál. Poté pokračujte na první úlohu.",
         "calibration.continueButton" to "Pokračovat",
+        "calibration.micError" to "Mikrofon se nepodařilo otevřít. Zkontrolujte, že je připojen a že je ve Windows povolen přístup k mikrofonu (\"Povolit aplikacím přístup k mikrofonu\"), a poté stiskněte Zkusit znovu nebo zvolte jiné zařízení.",
+        "calibration.micErrorRestart" to "Mikrofon se stále nepodařilo otevřít. Pokud jste právě ve Windows povolili přístup k mikrofonu, zavřete aplikaci a spusťte ji znovu, poté zahajte vyšetření znovu.",
 
         "settings.title" to "Nastavení",
         "settings.device.label" to "Mikrofon",
@@ -281,6 +291,12 @@ object BuiltinStrings {
         "mainMenu.settingsButton" to "Nastavení",
         "mainMenu.sessionBrowserButton" to "Sezení",
         "mainMenu.protocolPdfButton" to "PDF manuál protokolu",
+        "mainMenu.recovery.title" to "Obnovená přerušená sezení",
+        "mainMenu.recovery.message" to "Aplikace byla při předchozím sezení neočekávaně ukončena. Přerušená sezení byla nalezena a jejich nahrávky byly obnoveny.",
+        "mainMenu.recovery.recoveredHeading" to "Obnoveno:",
+        "mainMenu.recovery.failedHeading" to "Nepodařilo se obnovit:",
+        "mainMenu.recovery.entry" to "{patient} ({date})",
+        "mainMenu.recovery.openSessions" to "Otevřít sezení",
 
         "patientInfo.title" to "Údaje o pacientovi",
         "patientInfo.continueButton" to "Pokračovat",

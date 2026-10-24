@@ -43,10 +43,13 @@ class ProcessSessionUseCaseTest {
     private val configVersion = "2026-07-01.1"
     private val template = "\${installationId}_\${field.patient_code}_\${taskIndex}_\${task.subtype}_\${repetition}"
 
-    private fun rawConfigJson(protocolName: String) = """
-        {"schemaVersion":1,"configVersion":"$configVersion","defaultLanguage":"en",
-         "protocols":[{"name":"$protocolName","recordingsFileName":"$template","tasks":[]}]}
-    """.trimIndent()
+    private fun rawConfigJson(protocolName: String, fileNameTemplate: String = template, siteName: String? = null): String {
+        val siteNameJson = siteName?.let { """"siteName":"$it",""" }.orEmpty()
+        return """
+        {"schemaVersion":1,"configVersion":"$configVersion","defaultLanguage":"en",$siteNameJson
+         "protocols":[{"name":"$protocolName","recordingsFileName":"$fileNameTemplate","tasks":[]}]}
+        """.trimIndent()
+    }
 
     private fun event(type: TimelineEventType, taskIndex: Int?, repetition: Int?, take: Int?, sample: Long) = TimelineEvent(
         type = type, sampleOffset = sample, wallClock = "2026-07-01T09:00:00Z",
@@ -83,10 +86,12 @@ class ProcessSessionUseCaseTest {
             tasks: List<TaskRecord>,
             protocolName: String = "Share",
             videoTakes: List<VideoTakeRecord> = emptyList(),
+            fileNameTemplate: String = template,
+            siteName: String? = null,
         ): Examination {
             sessionRepository.createSessionDirectory(folderName)
             sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
-            sessionRepository.writeConfigSnapshot(folderName, rawConfigJson(protocolName))
+            sessionRepository.writeConfigSnapshot(folderName, rawConfigJson(protocolName, fileNameTemplate, siteName))
             val examination = Examination(
                 sessionId = sessionId,
                 installationId = "install1",
@@ -317,6 +322,43 @@ class ProcessSessionUseCaseTest {
     }
 
     @Test
+    fun `a recovered session whose interrupted take was closed by recovery produces one clip`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+        )
+        val closed = event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 508_800).copy(reason = "RECOVERED_INTERRUPTED")
+        f.writeOriginal(
+            listOf(
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 345_600), closed,
+                event(TimelineEventType.SESSION_RECORDING_STOPPED, null, null, null, 508_800),
+            ),
+        )
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+        assertEquals(1, f.audioClipService.cutClipCalls.size)
+        assertEquals(345_600L, f.audioClipService.cutClipCalls[0].startSample)
+        assertEquals(508_800L, f.audioClipService.cutClipCalls[0].stopSample)
+    }
+
+    @Test
+    fun `a session with a master but nothing kept is Failed, not Done, and gets no ZIP or upload status`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(captureFormat = format48k, tasks = emptyList())
+        f.writeOriginal(listOf(event(TimelineEventType.SESSION_RECORDING_STOPPED, null, null, null, 508_800)))
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        assertEquals(ProcessSessionUseCase.Outcome.Failed(ProcessingError.NothingToProcess), outcome)
+        assertEquals(ProcessingStatus.Failed, f.sessionRepository.readExamination(f.folderName)!!.processing?.status)
+        assertTrue(f.archiveService.buildCalls.isEmpty())
+        assertNull(f.uploadStatusRepository.read(f.folderName))
+    }
+
+    @Test
     fun `reprocessing resets NotUploaded-eligible status but leaves Uploaded terminal`(@TempDir tempDir: Path) {
         val f = Fixture(tempDir)
         f.setUpSession(captureFormat = null, tasks = emptyList())
@@ -454,6 +496,25 @@ class ProcessSessionUseCaseTest {
     }
 
     /** No master, so no clip cutting — the template and field values are still needed for video. */
+    @Test
+    fun `clips are named with the config snapshot's siteName for the siteName variable`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+            fileNameTemplate = "\${siteName}_\${taskIndex}_\${task.subtype}",
+            siteName = "Brno Clinic",
+        )
+        f.writeOriginal(
+            listOf(event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 0), event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 1000)),
+        )
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+        assertEquals(listOf("BrnoClinic_0_PHONATION.wav"), f.audioClipService.cutClipCalls.map { it.output.fileName.toString() })
+    }
+
     @Test
     fun `a video-only session is remuxed too`(@TempDir tempDir: Path) {
         val f = Fixture(tempDir)

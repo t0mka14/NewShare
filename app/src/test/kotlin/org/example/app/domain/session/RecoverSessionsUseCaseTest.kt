@@ -191,4 +191,31 @@ class RecoverSessionsUseCaseTest {
         assertTrue(outcomes.any { it is RecoveryOutcome.NotRecovered })
         assertTrue(outcomes.any { it is RecoveryOutcome.Recovered })
     }
+
+    @Test
+    fun `a take open at the crash is closed at the last written sample and gets a task record`() {
+        val sessionRepository = FakeSessionRepository()
+        val timelineRepository = FakeTimelineRepository()
+        sessionRepository.createSessionDirectory("s1")
+        sessionRepository.writeExamination("s1", examination("s1"))
+        sessionRepository.writeConfigSnapshot(
+            "s1",
+            """{"schemaVersion":1,"configVersion":"1","defaultLanguage":"en","protocols":[{"name":"Share","recordingsFileName":"x",
+               "tasks":[{"type":"VOCAL","subtype":"PHONATION","titleKey":"t"},{"type":"VOCAL","subtype":"PATAKA","titleKey":"t"}]}]}""",
+        )
+        timelineRepository.appendEvent("s1", event(TimelineEventType.SESSION_RECORDING_STARTED, 0, taskIndex = null, take = null))
+        timelineRepository.appendEvent("s1", event(TimelineEventType.START_BUTTON_PRESSED, 345_600, taskIndex = 1))
+        sessionRepository.seedPartialMasterFile("s1", Paths.get("fake-sessions-root/s1/master/session_master.partial.wav"), frameCount = 508_800L)
+
+        newUseCase(sessionRepository, timelineRepository).recoverOne("s1")
+
+        val events = timelineRepository.readOriginal("s1")!!.events
+        val close = events.single { it.type == TimelineEventType.STOP_BUTTON_PRESSED }
+        assertEquals(508_800L, close.sampleOffset)
+        assertEquals("RECOVERED_INTERRUPTED", close.reason)
+        assertTrue(events.indexOf(close) < events.indexOfFirst { it.type == TimelineEventType.SESSION_RECORDING_STOPPED })
+
+        val record = sessionRepository.readExamination("s1")!!.tasks.single()
+        assertEquals(TaskRecord(taskIndex = 1, type = "VOCAL", subtype = "PATAKA", repetition = 1, takes = 1), record)
+    }
 }

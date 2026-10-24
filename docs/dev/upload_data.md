@@ -155,7 +155,7 @@ Suggested server checks, in order:
 ### 4.4 Clip file names
 
 Clip names come from the protocol's `recordingsFileName` template in the config snapshot. The
-variables are `${installationId}`, `${taskIndex}`, `${task.subtype}`, `${repetition}`, and
+variables are `${installationId}`, `${siteName}`, `${taskIndex}`, `${task.subtype}`, `${repetition}`, and
 `${field.<name>}` (from `participant.json`), but the list can include other, custom variables. The `.wav` and `.mp4` files of one instance share a base name. For
 example, the template `${installationId}_${field.patient_code}_${taskIndex}_${task.subtype}_${repetition}` gives
 `6f933f6e-c07a-414f-9800-47b37253d409_testx_4_READING_1.wav` and `…_READING_1.mp4`. The

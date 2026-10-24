@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +35,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.example.app.domain.session.StartupRecovery
 import org.example.app.navigation.MainMenuComponent
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * §3 main menu, in the original's three-band layout (§4 "keep... look and layout",
@@ -51,6 +57,8 @@ import org.example.app.navigation.MainMenuComponent
 @Composable
 fun MainMenuContent(component: MainMenuComponent, localization: UiLocalization) {
     val state by component.state.subscribeAsState()
+
+    state.recovery?.let { RecoveryDialog(it, component, localization) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(20.dp),
@@ -77,6 +85,67 @@ fun MainMenuContent(component: MainMenuComponent, localization: UiLocalization) 
         }
     }
 }
+
+/**
+ * §8.4: one-time notice that sessions interrupted by a crash were found at startup. Compose-level
+ * (§5.2); the component clears it for the rest of the run on either button.
+ */
+@Composable
+private fun RecoveryDialog(summary: StartupRecovery.Summary, component: MainMenuComponent, localization: UiLocalization) {
+    AlertDialog(
+        onDismissRequest = component::onRecoveryDismissed,
+        modifier = Modifier.testTag(TestTags.MainMenu.RECOVERY_DIALOG),
+        title = { Text(localization.resolve("mainMenu.recovery.title")) },
+        text = {
+            Column(
+                modifier = Modifier.testTag(TestTags.MainMenu.RECOVERY_LIST).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(localization.resolve("mainMenu.recovery.message"), style = MaterialTheme.typography.bodyMedium)
+                RecoveryEntries("mainMenu.recovery.recoveredHeading", summary.recovered, localization)
+                RecoveryEntries("mainMenu.recovery.failedHeading", summary.failed, localization)
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = component::onRecoveryOpenSessions,
+                modifier = Modifier.testTag(TestTags.MainMenu.RECOVERY_OPEN_SESSIONS_BUTTON),
+            ) {
+                Text(localization.resolve("mainMenu.recovery.openSessions"))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = component::onRecoveryDismissed,
+                modifier = Modifier.testTag(TestTags.MainMenu.RECOVERY_OK_BUTTON),
+            ) {
+                Text(localization.resolve("error.dialog.dismiss"))
+            }
+        },
+    )
+}
+
+@Composable
+private fun RecoveryEntries(headingKey: String, entries: List<StartupRecovery.Entry>, localization: UiLocalization) {
+    if (entries.isEmpty()) return
+    Text(localization.resolve(headingKey), style = MaterialTheme.typography.titleSmall)
+    entries.forEach { entry ->
+        val date = entry.startedAt?.let(::formatRecoveryDate)
+        val style = MaterialTheme.typography.bodyMedium
+        if (entry.patientCode != null && date != null) {
+            Text(localization.resolve("mainMenu.recovery.entry", mapOf("patient" to entry.patientCode, "date" to date)), style = style)
+        } else {
+            // Whatever is known, ending at the folder name when nothing is.
+            Text(listOfNotNull(entry.patientCode, date).joinToString(" ").ifBlank { entry.folderName }, style = style)
+        }
+    }
+}
+
+private val RECOVERY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd. MM. yyyy HH:mm")
+
+/** ISO instant to local `dd. MM. yyyy HH:mm`, as the session browser shows it; raw string if unparsable. */
+private fun formatRecoveryDate(iso: String): String =
+    runCatching { RECOVERY_DATE_FORMAT.format(Instant.parse(iso).atZone(ZoneId.systemDefault())) }.getOrDefault(iso)
 
 @Composable
 private fun TitleBar(component: MainMenuComponent, localization: UiLocalization) {

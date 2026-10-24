@@ -21,7 +21,7 @@ class ConfigValidatorTest {
         strings = strings,
     )
 
-    private fun validProtocol(recordingsFileName: String = "\${installationId}_\${patientCode}_\${taskIndex}_\${task.subtype}") =
+    private fun validProtocol(recordingsFileName: String = "\${installationId}_\${taskIndex}_\${task.subtype}") =
         Protocol(
             name = "Share",
             recordingsFileName = recordingsFileName,
@@ -107,5 +107,29 @@ class ConfigValidatorTest {
         val result = ConfigValidator.validate(baseConfig(protocols = listOf(protocol)))
 
         assertEquals(listOf(ConfigValidationError.UnknownTemplateField("Fields", "visit")), result.errors)
+    }
+
+    @Test
+    fun `an unknown template variable is rejected`() {
+        val protocol = validProtocol(recordingsFileName = "\${patientCode}_\${siteNam}_\${patientCode}_\${taskIndex}")
+        val result = ConfigValidator.validate(baseConfig(protocols = listOf(protocol)))
+
+        assertEquals(
+            listOf(
+                ConfigValidationError.UnknownTemplateVariable("Share", "patientCode"),
+                ConfigValidationError.UnknownTemplateVariable("Share", "siteNam"),
+            ),
+            result.errors,
+        )
+    }
+
+    @Test
+    fun `every supported template variable is accepted, including siteName`() {
+        val protocol = Protocol(
+            name = "All",
+            recordingsFileName = "\${siteName}_\${installationId}_\${field.patient_code}_\${taskIndex}_\${task.subtype}_Rep\${repetition}",
+            patientFields = listOf(PatientField(name = "patient_code", labelKey = "code")),
+        )
+        assertTrue(ConfigValidator.validate(baseConfig(protocols = listOf(protocol))).isValid)
     }
 }

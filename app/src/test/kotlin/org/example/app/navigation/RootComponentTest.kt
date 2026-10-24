@@ -113,6 +113,24 @@ class RootComponentTest {
     }
 
     @Test
+    fun `recovery dialog Open Sessions routes to the session browser and the menu stays clean on return`(@TempDir tempDir: Path) {
+        val container = buildContainer(tempDir)
+        container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)
+        container.configurationRepository.loadCached()
+        container.startupRecovery.publish(listOf(org.example.app.domain.session.RecoveryOutcome.Recovered("2026-10-23_P01_s1", "s1", null)))
+        val root = buildRoot(container)
+
+        val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+        assertTrue(menu.state.value.recovery != null)
+        menu.onRecoveryOpenSessions()
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+
+        (root.stack.value.active.instance as RootComponent.Child.SessionBrowser).component.onBack()
+        val backMenu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+        assertEquals(null, backMenu.state.value.recovery)
+    }
+
+    @Test
     fun `start protocol opens patient info and back returns to the main menu`(@TempDir tempDir: Path) {
         val container = buildContainer(tempDir)
         container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)

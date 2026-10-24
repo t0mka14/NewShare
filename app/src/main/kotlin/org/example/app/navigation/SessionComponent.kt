@@ -10,6 +10,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -204,10 +205,14 @@ class DefaultSessionComponent(
 
     init {
         lifecycle.doOnDestroy {
-            recorder?.let { r -> scope.launch(dispatchers.main) { r.stop() } }
-            // Idempotent safety net: the screen that opened the camera normally closes it.
-            videoRecorder?.let { v -> scope.launch(dispatchers.main) { v.stop() } }
             scope.cancel()
+            // Not [scope]: a job launched into it here would be cancelled before the main
+            // dispatcher got to run it, leaving the line open so the next session cannot open
+            // the device (F-051). Stopped devices are released even though the component is gone.
+            val releaseScope = CoroutineScope(dispatchers.main + NonCancellable)
+            recorder?.let { r -> releaseScope.launch { r.stop() } }
+            // Idempotent safety net: the screen that opened the camera normally closes it.
+            videoRecorder?.let { v -> releaseScope.launch { v.stop() } }
         }
         scope.launch(dispatchers.main) { bootstrap() }
     }
@@ -265,7 +270,8 @@ class DefaultSessionComponent(
 
                 when {
                     hasVocal && useCalibration -> navigation.replaceAll(Config.Calibration)
-                    hasVocal -> startRecording()
+                    // A mic that failed to open still gets the calibration screen: it carries the error and Retry.
+                    hasVocal -> if (!startRecording()) navigation.replaceAll(Config.Calibration)
                     else -> navigation.replaceAll(Config.TaskScreen(0))
                 }
             }
@@ -512,13 +518,23 @@ class DefaultSessionComponent(
         scope.launch(dispatchers.main) { startRecording() }
     }
 
-    /** The master recording starts here: on calibration confirm, or straight after bootstrap without it. */
-    private suspend fun startRecording() {
-        val r = recorder ?: return
+    /**
+     * The master recording starts here: on calibration confirm, or straight after bootstrap without it.
+     * Returns false (nothing started, no navigation) when the recorder is not [RecorderState.Monitoring].
+     */
+    private suspend fun startRecording(): Boolean {
+        val r = recorder ?: return false
+        if (r.state.value != RecorderState.Monitoring) {
+            // The mic never opened (or was lost); startWriting would throw. Calibration shows the
+            // error with Retry, so the caller sends the examiner there instead.
+            logger.warn { "not starting the master recording: recorder is ${r.state.value}" }
+            return false
+        }
         val master = sessionRepository.defaultMasterFile(requireNotNull(folderName))
         r.startWriting(master)
         logEvent(TimelineEventType.SESSION_RECORDING_STARTED, null, null, null)
         navigation.replaceAll(Config.TaskScreen(0))
+        return true
     }
 
     private fun onTaskInstanceFinished(listIndex: Int, record: TaskRecord) {

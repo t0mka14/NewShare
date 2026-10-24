@@ -29,6 +29,7 @@ private class PreviewCalibrationComponent(state: CalibrationComponent.State) : C
     override val state: Value<CalibrationComponent.State> = MutableValue(state)
     override fun onDeviceSelected(device: AudioInputDevice) = Unit
     override fun onConfirm() = Unit
+    override fun onRetry() = Unit
 }
 
 private val previewMic = AudioInputDevice(id = "mic-1", name = "USB microphone", eligible = true)
@@ -60,6 +61,8 @@ private val previewLocalization = UiLocalization(
 private fun previewState(
     level: Float = 0.35f,
     deviceLost: Boolean = false,
+    micFailed: Boolean = false,
+    micRetryFailed: Boolean = false,
 ) = CalibrationComponent.State(
     titleKey = "calibration.title",
     instructionKeys = listOf("calibration_instructions"),
@@ -70,6 +73,9 @@ private fun previewState(
     availableDevices = listOf(previewMic, previewMicUnusable),
     selectedDevice = previewMic,
     deviceLost = deviceLost,
+    micFailed = micFailed,
+    micRetryFailed = micRetryFailed,
+    canConfirm = !micFailed && !deviceLost,
 )
 
 /**
@@ -108,3 +114,14 @@ fun CalibrationTooLoudPreview() = CalibrationPreview(previewState(level = 0.85f)
 @Preview
 @Composable
 fun CalibrationDeviceLostPreview() = CalibrationPreview(previewState(deviceLost = true))
+
+/** The microphone could not be opened: error message with Retry, Continue disabled. */
+@Preview
+@Composable
+fun CalibrationMicFailedPreview() = CalibrationPreview(previewState(level = 0f, micFailed = true))
+
+/** A Retry failed again: the error plus the restart-the-app hint. */
+@Preview
+@Composable
+fun CalibrationMicRetryFailedPreview() =
+    CalibrationPreview(previewState(level = 0f, micFailed = true, micRetryFailed = true))

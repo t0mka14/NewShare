@@ -17,9 +17,15 @@ data class TimelineOriginal(
  * compaction is a straight wrap. During crash recovery (§8.4) the log may have no such event
  * (torn last line / abrupt termination); pass [lastWrittenSample] and [syntheticWallClock] to
  * append a synthetic `SESSION_RECORDING_STOPPED` at the last written sample, as required by
- * `RecoverSessionsUseCase`.
+ * `RecoverSessionsUseCase`. Any take still open at that point (a `START_BUTTON_PRESSED` with
+ * neither a `STOP_BUTTON_PRESSED` nor a `TAKE_REJECTED`) is first closed at the same sample with a
+ * `STOP_BUTTON_PRESSED` whose `reason` is [REASON_RECOVERED_INTERRUPTED], so it is cut as a normal
+ * (partial) clip.
  */
 object TimelineCompactor {
+    /** `reason` of a `STOP_BUTTON_PRESSED` synthesized by recovery for a take open at the crash. */
+    const val REASON_RECOVERED_INTERRUPTED = "RECOVERED_INTERRUPTED"
+
     fun compact(
         sessionId: String,
         sampleRate: Int,
@@ -29,7 +35,7 @@ object TimelineCompactor {
     ): TimelineOriginal {
         val alreadyStopped = events.any { it.type == TimelineEventType.SESSION_RECORDING_STOPPED }
         val finalEvents = if (!alreadyStopped && lastWrittenSample != null && syntheticWallClock != null) {
-            events + TimelineEvent(
+            events + closeOpenTakes(events, lastWrittenSample, syntheticWallClock) + TimelineEvent(
                 type = TimelineEventType.SESSION_RECORDING_STOPPED,
                 sampleOffset = lastWrittenSample,
                 wallClock = syntheticWallClock,
@@ -41,5 +47,28 @@ object TimelineCompactor {
             events
         }
         return TimelineOriginal(sessionId = sessionId, sampleRate = sampleRate, events = finalEvents)
+    }
+
+    private fun closeOpenTakes(events: List<TimelineEvent>, lastWrittenSample: Long, wallClock: String): List<TimelineEvent> {
+        fun key(e: TimelineEvent) = Triple(e.taskIndex, e.repetition, e.take)
+        val ended = events
+            .filter { it.type == TimelineEventType.STOP_BUTTON_PRESSED || it.type == TimelineEventType.TAKE_REJECTED }
+            .map(::key)
+            .toSet()
+        return events
+            .filter { it.type == TimelineEventType.START_BUTTON_PRESSED && it.taskIndex != null && key(it) !in ended }
+            // A take that started at or after the last written sample holds no audio.
+            .filter { (it.sampleOffset ?: Long.MAX_VALUE) < lastWrittenSample }
+            .map {
+                TimelineEvent(
+                    type = TimelineEventType.STOP_BUTTON_PRESSED,
+                    sampleOffset = lastWrittenSample,
+                    wallClock = wallClock,
+                    taskIndex = it.taskIndex,
+                    repetition = it.repetition,
+                    take = it.take,
+                    reason = REASON_RECOVERED_INTERRUPTED,
+                )
+            }
     }
 }

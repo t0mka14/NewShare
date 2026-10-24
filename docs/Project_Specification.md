@@ -318,7 +318,7 @@ traceability against the original draft:
 | `QUESTIONAIRE` | `QUESTIONNAIRE` | Spelling; lenient alias while the server migrates |
 | `taskNumber: "1/10"` stored per task | **Removed** — derived from position in the protocol | Redundant, guaranteed to drift |
 | `recordingsFilePath` (absolute path) | Removed; recordings always go under `AppDirectories.sessions` | Config is machine-independent |
-| `recordingsFileName` template | Kept as the **authoritative** clip-name source; must include `${taskIndex}` (validated at config load) so names are unique | Two tasks with the same subtype must not collide |
+| `recordingsFileName` template | Kept as the **authoritative** clip-name source; must include `${taskIndex}` (validated at config load) so names are unique; any `${...}` that is not a supported variable is rejected at load | Two tasks with the same subtype must not collide |
 | Legacy `_b`/`/b` markup in strings | `<bold>`/`<italic>` tags only; legacy markers are not recognized and render as literal text (§13 decision 26) | Single RichText parser |
 | `manualFilePath` (install-relative path) | `protocolInstructionsPdfUrl` (URL), 2026-08-22 | Nothing resolved the path; a URL keeps the config machine-independent and drives the main screen's "Get protocol PDF" button |
 | `clinicID` | `installationId` everywhere | One name for one concept |
@@ -339,8 +339,8 @@ overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.levels`
 task with `recordVideo` also shows a small live camera preview: beside the indicator with
 `showIndicator`, alone without it (§13 decision 60).
 
-Config-level fields: `schemaVersion`, `configVersion`, `siteName` (display only, main menu;
-§13 decision 54), `defaultLanguage`, `languages`,
+Config-level fields: `schemaVersion`, `configVersion`, `siteName` (main menu line, §13 decision 54, and the
+`${siteName}` filename variable, §8.8), `defaultLanguage`, `languages`,
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
 wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
 the Settings slider; decision 44), `enableEditor`, `indicatorType` (overridden by Settings;
@@ -485,8 +485,12 @@ Both safeguards are mandatory (not alternatives):
    compacted into
    `timeline_original.json` (a synthetic `SESSION_RECORDING_STOPPED` is appended at the last
    written sample), and the session is marked `recovered: true` / incomplete in
-   `examination.json`. Recovered sessions appear in the session browser and can be processed
-   and uploaded like any other.
+   `examination.json`. A take open at the crash (start, no stop) is closed first, at that same
+   sample, by a `STOP_BUTTON_PRESSED` with `reason: "RECOVERED_INTERRUPTED"`, and gets its
+   `examination.tasks[]` record (VOCAL, from the config snapshot): it is kept as a partial clip.
+   Recovered sessions appear in the session browser and can be processed and uploaded like any
+   other, except that a session with a master but no clip, video or questionnaire answer fails
+   processing (`NothingToProcess`) instead of producing an empty ZIP.
 
 ### 8.5 Device disconnection mid-session — continue with gap
 
@@ -571,7 +575,7 @@ VOCAL task instance; the editor shows one segment at a time.
 2. Cut the **last take** of each VOCAL task instance from the master (sample-accurate,
    resampling to target format if the capture format differs).
 3. Write clips to `clips/` named by the protocol's `recordingsFileName` template
-   (variables: `${installationId}`, `${taskIndex}`, `${task.subtype}`, `${repetition}`,
+   (variables: `${installationId}`, `${siteName}` from the config snapshot, `${taskIndex}`, `${task.subtype}`, `${repetition}`,
    `${field.<name>}` with values read from `participant.json`).
 4. Remux the last take's video of each filming instance (VIDEO, or VOCAL with `recordVideo`)
    into `clips/` as `<same name>.mp4`, by stream copy with every frame kept (§13 decision 23).

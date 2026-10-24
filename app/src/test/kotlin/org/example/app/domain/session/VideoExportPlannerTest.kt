@@ -22,7 +22,7 @@ class VideoExportPlannerTest {
     )
 
     private fun plan(records: List<TaskRecord>, takes: List<VideoTakeRecord>, events: List<TimelineEvent>) =
-        VideoExportPlanner.plan(records, takes, events, template, "inst", mapOf("patient_code" to "HC001"))
+        VideoExportPlanner.plan(records, takes, events, template, "inst", null, mapOf("patient_code" to "HC001"))
 
     @Test
     fun `the last stopped take is kept, named like the audio clip`() {

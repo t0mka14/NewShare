@@ -2,6 +2,9 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.create
+import com.arkivanov.essenty.lifecycle.destroy
+import org.example.app.domain.audio.AudioError
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.InterruptionReason
 import org.example.app.domain.config.IndicatorType
@@ -29,6 +32,7 @@ import org.example.app.fakes.FakeSessionVideoRecorder
 import org.example.app.fakes.FakeVideoInputDeviceProvider
 import org.example.app.fakes.FakeTimelineRepository
 import org.example.app.fakes.TestAppDirectories
+import org.example.app.domain.audio.RecorderState
 import org.example.app.fakes.TestCoroutineDispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -98,21 +102,28 @@ class SessionComponentTest {
         /** Applied at construction: the recorder is created during bootstrap, so a test cannot
          *  reach in and set this afterwards. */
         private val negotiatedVideoFormat: VideoCaptureFormat = VideoCaptureFormat.PREFERRED,
+        queuedMain: Boolean = false,
     ) {
         val videoDeviceProvider = FakeVideoInputDeviceProvider(
             cameras ?: if (withCamera) listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA) else emptyList(),
         )
 
         val clock = FakeClock(Instant.parse("2026-07-03T09:00:00Z"))
-        val dispatchers = TestCoroutineDispatchers()
+        val dispatchers = TestCoroutineDispatchers(queuedMain = queuedMain)
+        val lifecycle = LifecycleRegistry()
         val sessionRepository = FakeSessionRepository()
         val timelineRepository = FakeTimelineRepository()
         val directories = TestAppDirectories(java.nio.file.Files.createTempDirectory("session-component-test"))
         val diskSpaceProvider = FakeDiskSpaceProvider()
         val idGenerator = FakeIdGenerator()
         var recorder: FakeContinuousSessionRecorder? = null
+        /** Applied when the recorder is created during bootstrap: its first startMonitoring fails. */
+        var micFailsToOpen = false
         val recorderFactory: () -> org.example.app.domain.audio.ContinuousSessionRecorder = {
-            FakeContinuousSessionRecorder(clock).also { recorder = it }
+            FakeContinuousSessionRecorder(clock).also {
+                it.failNextMonitoring = micFailsToOpen
+                recorder = it
+            }
         }
         var videoRecorder: FakeSessionVideoRecorder? = null
         val ptzControllers = mutableListOf<FakePtzController>()
@@ -134,7 +145,7 @@ class SessionComponentTest {
             useCalibration: Boolean = true,
             indicatorType: IndicatorType = IndicatorType.CIRCLE,
         ): SessionComponent = DefaultSessionComponent(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
+            componentContext = DefaultComponentContext(lifecycle),
             installationId = "install-1",
             protocol = protocol,
             configVersion = "v1",
@@ -194,6 +205,62 @@ class SessionComponentTest {
         val events = h.timelineRepository.readEventLog(folderName).events
         assertTrue(events.any { it.type == TimelineEventType.SESSION_RECORDING_STARTED })
 
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+    }
+
+    @Test
+    fun `confirming calibration while the recorder is Failed does not start writing or navigate`() {
+        val h = Harness()
+        val component = h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+
+        h.recorder!!.simulateFailure(AudioError.NoSupportedPcmFormat("default"))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(0, h.recorder!!.writingStarts.size)
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.Calibration)
+        val folderName = h.sessionRepository.listSessionFolderNames().single()
+        assertFalse(h.timelineRepository.readEventLog(folderName).events.any { it.type == TimelineEventType.SESSION_RECORDING_STARTED })
+    }
+
+    @Test
+    fun `without useCalibration a failed mic open still lands on Calibration with micFailed and never writes`() {
+        val h = Harness()
+        h.micFailsToOpen = true
+        val component = h.build(vocalProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        assertTrue(calibration.state.value.micFailed)
+        assertFalse(calibration.state.value.canConfirm)
+        assertEquals(0, h.recorder!!.writingStarts.size)
+    }
+
+    @Test
+    fun `a failed open shows micFailed on Calibration and Retry then Continue starts the recording`() {
+        val h = Harness()
+        h.micFailsToOpen = true
+        val component = h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        assertTrue(calibration.state.value.micFailed)
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(0, h.recorder!!.writingStarts.size)
+
+        h.recorder!!.failNextMonitoring = false
+        calibration.onRetry()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertFalse(calibration.state.value.micFailed)
+        assertTrue(calibration.state.value.canConfirm)
+
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(1, h.recorder!!.writingStarts.size)
         assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
     }
 
@@ -313,6 +380,22 @@ class SessionComponentTest {
         val original = h.timelineRepository.readOriginal(folderName)
         assertNotNull(original)
         assertTrue(original!!.events.any { it.type == TimelineEventType.SESSION_RECORDING_STOPPED })
+    }
+
+    /** F-051: Back on calibration destroys the session; the microphone must be released. */
+    @Test
+    fun `destroying the session stops the recorder even when main dispatches later`() {
+        val h = Harness(queuedMain = true)
+        h.lifecycle.create() // destroy() is a no-op on a lifecycle that was never created
+        h.build(mixedProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(RecorderState.Monitoring, h.recorder!!.state.value)
+
+        h.lifecycle.destroy()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.recorder!!.stopCallCount)
+        assertEquals(RecorderState.Stopped, h.recorder!!.state.value)
     }
 
     @Test

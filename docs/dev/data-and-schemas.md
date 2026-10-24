@@ -56,7 +56,9 @@ Ten event types (`SESSION_RECORDING_STARTED` … `SESSION_RECORDING_STOPPED`). E
 `type`, `sampleOffset` (from the recorder's continuous `writtenSamples` counter; `null` in
 no-master sessions), `wallClock` (metadata only), `taskIndex` (0-based, position in the
 expanded instance list), `repetition`, `take` (1-based per instance), optional `reason`
-on `TAKE_REJECTED` (`EXAMINER_REPEAT` | `DEVICE_LOST`). A task with `nrepetition: N` is N
+on `TAKE_REJECTED` (`EXAMINER_REPEAT` | `DEVICE_LOST`) and on a recovery-synthesized
+`STOP_BUTTON_PRESSED` (`RECOVERED_INTERRUPTED`: the take was open at the crash and is closed at the
+last written sample, same as the synthetic `SESSION_RECORDING_STOPPED`). A task with `nrepetition: N` is N
 instances; only the last take per instance is exported; everything stays in the master +
 log as audit trail. The JSONL reader tolerates a torn final line (power loss).
 

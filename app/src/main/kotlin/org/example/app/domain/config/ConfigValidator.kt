@@ -10,6 +10,9 @@ sealed interface ConfigValidationError {
     /** Row 8: `recordingsFileName` references `${field.<name>}` but the protocol has no such field. */
     data class UnknownTemplateField(val protocolName: String, val fieldName: String) : ConfigValidationError
 
+    /** `recordingsFileName` contains a `${...}` that is neither a supported variable nor `${field.<name>}`. */
+    data class UnknownTemplateVariable(val protocolName: String, val variable: String) : ConfigValidationError
+
     /** §6.2/§13 decision 44: `defaultMicGain` is a percentage, 0..100. */
     data class InvalidDefaultMicGain(val value: Int) : ConfigValidationError
 }
@@ -52,6 +55,11 @@ object ConfigValidator {
                 .filterNot { it in fieldNames }
                 .distinct()
                 .forEach { errors += ConfigValidationError.UnknownTemplateField(protocol.name, it) }
+            RecordingsFileNameRenderer.ANY_VARIABLE.findAll(protocol.recordingsFileName)
+                .map { it.groupValues[1] }
+                .filterNot { it in RecordingsFileNameRenderer.PLAIN_VARIABLES || it.startsWith("field.") }
+                .distinct()
+                .forEach { errors += ConfigValidationError.UnknownTemplateVariable(protocol.name, it) }
         }
 
         return ConfigValidationResult(errors)

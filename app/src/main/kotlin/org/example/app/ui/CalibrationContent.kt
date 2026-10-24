@@ -71,6 +71,39 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                     }
                 }
             }
+            if (state.micFailed) {
+                Card {
+                    Row(
+                        modifier = Modifier.padding(all = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                localization.resolve("calibration.micError"),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag(TestTags.Calibration.MIC_ERROR),
+                            )
+                            if (state.micRetryFailed) {
+                                Text(
+                                    localization.resolve("calibration.micErrorRestart"),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.testTag(TestTags.Calibration.MIC_ERROR_RESTART),
+                                )
+                            }
+                        }
+                        Button(
+                            shape = MaterialTheme.shapes.large,
+                            onClick = component::onRetry,
+                            modifier = Modifier.testTag(TestTags.Calibration.RETRY_BUTTON),
+                        ) {
+                            Text(localization.resolve("action.retry"), style = actionButtonTextStyle())
+                        }
+                    }
+                }
+            }
             //Spacer(Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),//.weight(1f),
@@ -111,6 +144,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                 )
                 Button(
                     onClick = component::onConfirm,
+                    enabled = state.canConfirm,
                     modifier = Modifier
                         .testTag(TestTags.Calibration.CONFIRM_BUTTON),
                 ) {

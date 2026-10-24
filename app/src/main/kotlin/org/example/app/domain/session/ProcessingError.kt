@@ -13,5 +13,8 @@ sealed interface ProcessingError {
     data class ClipPlanning(val errors: List<ClipPlanningError>) : ProcessingError
     /** A kept take's video could not be turned into an MP4 holding all of its frames. */
     data class VideoRemux(val taskIndex: Int, val repetition: Int, val detail: String) : ProcessingError
+    /** Nothing was kept: no clip, no video and no answered questionnaire (e.g. a crash before any
+     * take finished). Not worth a ZIP, and not uploadable. */
+    object NothingToProcess : ProcessingError
     data class IoFailure(val detail: String) : ProcessingError
 }

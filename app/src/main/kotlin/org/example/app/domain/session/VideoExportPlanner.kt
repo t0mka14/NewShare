@@ -38,6 +38,7 @@ object VideoExportPlanner {
         originalEvents: List<TimelineEvent>,
         recordingsFileNameTemplate: String,
         installationId: String,
+        siteName: String?,
         fieldValues: Map<String, String>,
     ): List<VideoExportPlan> = taskRecords
         .filter { !it.skipped && (it.type == "VIDEO" || it.type == "VOCAL") }
@@ -51,6 +52,7 @@ object VideoExportPlanner {
             val baseName = RecordingsFileNameRenderer.render(
                 template = recordingsFileNameTemplate,
                 installationId = installationId,
+                siteName = siteName,
                 fieldValues = fieldValues,
                 taskIndex = record.taskIndex,
                 // A VIDEO task's subtype is optional, but `${task.subtype}` must render as something.

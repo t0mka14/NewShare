@@ -61,6 +61,9 @@ class FakeContinuousSessionRecorder(
     /** Format negotiated on the *next* startMonitoring/resume call (§5.3.1 fallback tests). */
     var negotiatedFormat: CaptureFormat = initialNegotiatedFormat
 
+    /** While true, startMonitoring leaves the recorder Failed(DeviceUnavailable) instead of Monitoring (mic cannot be opened). */
+    var failNextMonitoring: Boolean = false
+
     // ---- test-observable call records ----
     val monitoringStarts = mutableListOf<AudioInputDevice>()
     val writingStarts = mutableListOf<Path>()
@@ -81,6 +84,10 @@ class FakeContinuousSessionRecorder(
             "startMonitoring is only valid from Idle/Stopped/Failed, was $s"
         }
         monitoringStarts += device
+        if (failNextMonitoring) {
+            _state.value = RecorderState.Failed(AudioError.DeviceUnavailable(device.id))
+            return
+        }
         lastAccountedInstant = clock.now()
         _captureFormat.value = negotiatedFormat
         _state.value = RecorderState.Monitoring

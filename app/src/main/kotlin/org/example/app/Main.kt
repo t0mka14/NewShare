@@ -49,8 +49,9 @@ fun main() {
     // route (blocking vs. main menu) is correct from the very first render.
     container.configurationRepository.loadCached()
 
-    // §8.4: crash recovery runs once at startup, before the menu shows.
-    runCatching { container.recoverSessionsUseCase.recoverAll() }
+    // §8.4: crash recovery runs once at startup, before the menu shows; the menu then
+    // tells the examiner about it (one-time dialog).
+    container.startupRecovery.run()
 
     // §6.1 pt 3: a background refresh keeps the cache current without blocking first paint; uses
     // the injected dispatchers (§5.2), not an ad-hoc scope tied to nothing.

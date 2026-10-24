@@ -169,6 +169,7 @@ class DefaultRootComponent(
                     onSessionBrowserClicked = { navigation.pushNew(Config.SessionBrowser) },
                     onLanguageSelectedClicked = ::selectLanguage,
                     appVersion = BuildInfo.appVersion.takeIf { it != BuildInfo.UNKNOWN }?.toString(),
+                    startupRecovery = container.startupRecovery,
                 ),
             )
 

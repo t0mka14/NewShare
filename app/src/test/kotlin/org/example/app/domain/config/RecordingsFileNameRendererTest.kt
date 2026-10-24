@@ -5,10 +5,15 @@ import org.junit.jupiter.api.Test
 
 class RecordingsFileNameRendererTest {
 
-    private fun render(template: String, fields: Map<String, String> = mapOf("patient_code" to "HC001")) =
+    private fun render(
+        template: String,
+        fields: Map<String, String> = mapOf("patient_code" to "HC001"),
+        siteName: String? = null,
+    ) =
         RecordingsFileNameRenderer.render(
             template = template,
             installationId = "clinic-01",
+            siteName = siteName,
             fieldValues = fields,
             taskIndex = 3,
             subtype = "PHONATION",
@@ -47,5 +52,17 @@ class RecordingsFileNameRendererTest {
     @Test
     fun `patientCode is no longer a variable`() {
         assertEquals("\${patientCode}_3", render("\${patientCode}_\${taskIndex}"))
+    }
+
+    @Test
+    fun `siteName is substituted and sanitized`() {
+        assertEquals("NemocniceBrno-Stred_3", render("\${siteName}_\${taskIndex}", siteName = "Nemocnice Brno-Střed"))
+        assertEquals("CentreHopitalLyon_3", render("\${siteName}_\${taskIndex}", siteName = "Centre Hôpital/Lyon"))
+    }
+
+    @Test
+    fun `absent or blank siteName renders empty`() {
+        assertEquals("_3", render("\${siteName}_\${taskIndex}", siteName = null))
+        assertEquals("_3", render("\${siteName}_\${taskIndex}", siteName = "   "))
     }
 }
