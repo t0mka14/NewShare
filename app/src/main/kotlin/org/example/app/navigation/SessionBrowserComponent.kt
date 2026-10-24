@@ -3,6 +3,7 @@ package org.example.app.navigation
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import org.example.app.domain.session.ProcessingStatus
 import org.example.app.domain.session.SessionRepository
 import org.example.app.domain.upload.UploadStatusRepository
@@ -23,8 +24,8 @@ interface SessionBrowserComponent {
     fun onGoToUpload()
     fun onBack()
 
-    /** Called by `RootComponent` when navigation returns here from the editor/processing
-     * screens, so the list reflects whatever just changed. */
+    /** Re-reads the rows. Runs by itself whenever navigation returns here from the editor,
+     * processing or upload screens, so the list reflects whatever just changed. */
     fun refresh()
 
     data class Row(
@@ -52,6 +53,12 @@ class DefaultSessionBrowserComponent(
 
     private val _state = MutableValue(SessionBrowserComponent.State(rows = loadRows()))
     override val state: Value<SessionBrowserComponent.State> = _state
+
+    init {
+        // The browser stays on the stack under Editor/Processing/Upload; coming back to it resumes
+        // it, which is when processing or upload status may have changed.
+        lifecycle.doOnResume { refresh() }
+    }
 
     private fun loadRows(): List<SessionBrowserComponent.Row> =
         sessionRepository.listSessions()

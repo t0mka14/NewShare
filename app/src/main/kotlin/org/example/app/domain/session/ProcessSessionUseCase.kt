@@ -84,6 +84,9 @@ class ProcessSessionUseCase(
 
     private suspend fun runProcess(folderName: String, onStep: suspend (Step, Float) -> Unit): Outcome {
         fun fail(examination: Examination?, error: ProcessingError): Outcome.Failed {
+            // Error type and sessionId only (§11): the folder name embeds the patient code and the
+            // error details can carry paths.
+            logger.warn { "processing failed: ${error::class.simpleName} (session ${examination?.sessionId ?: "unknown"})" }
             if (examination != null) {
                 val now = clock.now().toString()
                 runCatching {

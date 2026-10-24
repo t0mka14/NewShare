@@ -7,6 +7,7 @@ import org.example.app.domain.config.ConfigApplyResult
 import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.ConfigFetchResult
 import org.example.app.domain.config.RefreshConfigurationUseCase
+import org.example.app.domain.audio.MicChoice
 import org.example.app.domain.audio.MicGainApplier
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
@@ -97,6 +98,55 @@ class SettingsComponentTest {
     }
 
     @Test
+    fun `with no saved microphone the config's defaultMicName is preselected but not persisted`() {
+        val h = Harness(configurationRepository = FakeConfigurationRepository(initialConfig = configWithMicGain()))
+
+        val state = h.component.state.value
+        assertEquals("secondary", state.selectedDeviceId)
+
+        // Another edit must not turn the preselection into a saved choice.
+        h.component.onLanguageSelected("cs")
+        assertNull(h.settingsRepository.read()!!.micDeviceId)
+    }
+
+    @Test
+    fun `with no saved microphone and no config match the first usable device is preselected as the system default`() {
+        val h = Harness(configurationRepository = FakeConfigurationRepository(initialConfig = sampleConfig()))
+
+        assertEquals("default", h.component.state.value.selectedDeviceId)
+        assertEquals(MicChoice.Source.SYSTEM_DEFAULT, h.component.state.value.micSource)
+    }
+
+    @Test
+    fun `a saved microphone wins over the default and a pick becomes the saved choice`() {
+        val settingsRepository = FakeAppSettingsRepository().apply { write(AppSettings(micDeviceId = "default")) }
+        val h = Harness(
+            settingsRepository = settingsRepository,
+            configurationRepository = FakeConfigurationRepository(initialConfig = configWithMicGain()),
+        )
+        assertEquals("default", h.component.state.value.selectedDeviceId)
+        assertEquals(MicChoice.Source.SAVED, h.component.state.value.micSource)
+
+        h.component.onDeviceSelected("secondary")
+
+        assertEquals(MicChoice.Source.SAVED, h.component.state.value.micSource)
+        assertEquals("secondary", settingsRepository.read()!!.micDeviceId)
+    }
+
+    @Test
+    fun `the preselected default follows a config that arrives later`() {
+        val repo = FakeConfigurationRepository(initialConfig = null)
+        val h = Harness(configurationRepository = repo)
+        assertEquals("default", h.component.state.value.selectedDeviceId)
+
+        repo.setActiveConfig(configWithMicGain())
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals("secondary", h.component.state.value.selectedDeviceId)
+        assertEquals(MicChoice.Source.CONFIG, h.component.state.value.micSource)
+    }
+
+    @Test
     fun `the language dropdown shows the config's default when the saved language is not offered`() {
         val h = Harness(
             settingsRepository = FakeAppSettingsRepository().apply { write(AppSettings(language = "en")) },
@@ -177,6 +227,21 @@ class SettingsComponentTest {
 
         assertEquals("settings.refresh.success", h.component.state.value.lastRefreshResultKey)
         assertEquals(listOf("en", "cs"), h.component.state.value.availableLanguages)
+    }
+
+    @Test
+    fun `a successful refresh whose check-in says another site is one warning status, not an OK line`() {
+        val h = Harness()
+        h.settingsRepository.write(AppSettings(siteToken = "token-1"))
+        h.configApi.enqueueSuccess("""{"schemaVersion":1}""")
+        h.configurationRepository.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig()))
+        h.registeredToAnotherSite.value = true // what DeviceCheckinUseCase sets on a 409 during refresh()
+
+        h.component.onRefreshClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals("settings.refresh.otherSite", h.component.state.value.lastRefreshResultKey)
+        assertTrue(h.component.state.value.registeredToAnotherSite)
     }
 
     @Test

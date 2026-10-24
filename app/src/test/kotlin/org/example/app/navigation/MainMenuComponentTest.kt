@@ -2,6 +2,8 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.session.RecoverSessionsUseCase
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 class MainMenuComponentTest {
 
@@ -36,6 +39,7 @@ class MainMenuComponentTest {
         configurationRepository: FakeConfigurationRepository,
         appVersion: String? = null,
         startupRecovery: StartupRecovery? = null,
+        usingCachedConfig: StateFlow<Boolean> = MutableStateFlow(false),
     ) {
         val dispatchers = TestCoroutineDispatchers()
         var startClicks = 0
@@ -55,6 +59,7 @@ class MainMenuComponentTest {
             onLanguageSelectedClicked = { selectedLanguages += it },
             appVersion = appVersion,
             startupRecovery = startupRecovery,
+            usingCachedConfig = usingCachedConfig,
         )
     }
 
@@ -67,6 +72,28 @@ class MainMenuComponentTest {
         repo.setActiveConfig(sampleConfig().copy(siteName = "  "))
         h.dispatchers.scheduler.advanceUntilIdle()
         assertEquals(null, h.component.state.value.siteName)
+    }
+
+    @Test
+    fun `the offline notice carries the cache date while a refresh fell back to the cache and clears after a success`() {
+        val savedAt = Instant.parse("2026-10-20T08:00:00Z")
+        val repo = FakeConfigurationRepository(sampleConfig()).apply { cachedAtInstant = savedAt }
+        val offline = MutableStateFlow(false)
+        val h = Harness(repo, usingCachedConfig = offline)
+        assertEquals(null, h.component.state.value.offlineConfigSavedAt)
+
+        offline.value = true
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(savedAt, h.component.state.value.offlineConfigSavedAt)
+
+        // a config change while offline keeps the notice
+        repo.setActiveConfig(sampleConfig().copy(siteName = "Paris"))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(savedAt, h.component.state.value.offlineConfigSavedAt)
+
+        offline.value = false
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(null, h.component.state.value.offlineConfigSavedAt)
     }
 
     @Test

@@ -91,7 +91,7 @@ class DefaultUploadComponent(
     private fun failureReasonKey(reason: String?): String = when {
         reason == null -> "upload.error.generic"
         reason == EligibleUploadsQuery.INTERRUPTED_REASON -> "upload.error.interrupted"
-        reason == "NetworkFailure" -> "upload.error.network"
+        reason == "NetworkFailure" -> "upload.error.unreachable"
         reason == UploadSessionUseCase.CONFLICT_OUTCOME -> "upload.error.conflict"
         reason == "ServerError(429)" || reason == "ServerError(503)" || reason == "ServerError(507)" -> "upload.error.busy"
         reason.startsWith("ServerError") -> "upload.error.server"

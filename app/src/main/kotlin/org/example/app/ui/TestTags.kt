@@ -31,6 +31,8 @@ object TestTags {
         /** Info lines under the title (§13 decision 54); absent when there is no value. */
         const val SITE_NAME = "mainMenu.siteName"
         const val APP_VERSION = "mainMenu.appVersion"
+        /** "Offline - using the configuration saved on <date>" (F-048); absent while online. */
+        const val OFFLINE_NOTICE = "mainMenu.offlineNotice"
         const val PROTOCOL_PDF_BUTTON = "mainMenu.protocolPdfButton"
         const val LANGUAGE_SELECTOR = "mainMenu.languageSelector"
 
@@ -83,6 +85,12 @@ object TestTags {
         const val REPEAT_BUTTON = "task.repeatButton"
         const val NEXT_BUTTON = "task.nextButton"
         const val SKIP_BUTTON = "task.skipButton"
+        /** "Skip this task?" confirmation (F-022). */
+        const val SKIP_DIALOG = "task.skipDialog"
+        const val SKIP_CONFIRM_BUTTON = "task.skipConfirmButton"
+        const val SKIP_CANCEL_BUTTON = "task.skipCancelButton"
+        /** Notice that the previous task was skipped, on the screen after it. */
+        const val PREVIOUS_SKIPPED_NOTICE = "task.previousSkippedNotice"
         const val LEVEL_INDICATOR = "task.levelIndicator"
         /** READING only: the passage panel, shown on every repetition. */
         const val READING_PASSAGE = "task.readingPassage"
@@ -206,6 +214,8 @@ object TestTags {
         const val DEVICE_SELECT = "settings.deviceSelect"
         /** Re-enumerates the devices listed in [DEVICE_SELECT]. */
         const val DEVICE_REFRESH_BUTTON = "settings.deviceRefreshButton"
+        /** Where a preselected (not yet saved) microphone came from; absent once the examiner picked one. */
+        const val DEVICE_DEFAULT_HINT = "settings.deviceDefaultHint"
         /** Microphone level slider under the device dropdown (§13 decision 44). */
         const val MIC_GAIN_SLIDER = "settings.micGainSlider"
         const val MIC_GAIN_VALUE = "settings.micGainValue"

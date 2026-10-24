@@ -79,7 +79,11 @@ but is retired for these reasons:
    configuration. In the rewrite, Settings contains only: audio input device selection, the
    microphone level slider (§13 decision 44; the device list has a refresh button, decision 52), site token (plus the read-only installation ID), language, the live recording indicator
    (a local override of the config's `indicatorType`, decision 53), and a "refresh
-   configuration" action.
+   configuration" action. With no microphone saved, the dropdown preselects the device a
+   session would use (the §6.2 chain) with a hint where it came from ("Default from the site
+   configuration" / "System default"); nothing is saved until the examiner picks a device. The
+   refresh result is one status line: when the check-in says the computer belongs to another
+   site, that line is the warning, not "Everything looks OK".
 2. **Localization mismatch.** It specifies bundled `strings_*.xml` files; the new model ships
    all strings inside the configuration JSON (§7).
 3. **Missing concepts.** It has no notion of *protocols* (named ordered task lists selectable
@@ -293,7 +297,10 @@ RecoverSessionsUseCase        startup crash recovery (§8.4)
    configuration.
 4. **Offline fallback:** if the server is unreachable, the last cached config is used. If no
    cache exists (first run offline), the app shows a blocking "configuration required" screen
-   (rendered from the bundled fallback strings, §7).
+   (rendered from the bundled fallback strings, §7). While the last refresh failed on the
+   network and the cached config is in use, the main menu shows a muted line under the site
+   name, "Offline – using the configuration saved on <date>" (the cache file's save date); it
+   clears when a later refresh succeeds and never blocks anything.
 5. **Refresh semantics:** a fetched config takes effect for the **next session**. A running
    or recorded session always uses its own snapshot
    (`task_configuration_snapshot.json`) — later pushes never affect it.
@@ -490,7 +497,9 @@ Both safeguards are mandatory (not alternatives):
    `examination.tasks[]` record (VOCAL, from the config snapshot): it is kept as a partial clip.
    Recovered sessions appear in the session browser and can be processed and uploaded like any
    other, except that a session with a master but no clip, video or questionnaire answer fails
-   processing (`NothingToProcess`) instead of producing an empty ZIP.
+   processing (`NothingToProcess`) instead of producing an empty ZIP. The processing screen
+   then says nothing was recorded, and every processing failure is logged at WARN with the
+   error type and `sessionId` only (§11).
 
 ### 8.5 Device disconnection mid-session — continue with gap
 
@@ -538,6 +547,10 @@ Failed      Start ✓   Stop ✗   Repeat ✗   Next ✗   (+ error dialog)
 ```
 
 (`Capturing` = an open take; the mic itself runs continuously.)
+
+Skip is its own outlined "Skip task" button, apart from the forward "Next task" button. Pressing
+it opens a "Skip this task?" confirmation (Skip / Cancel); only Skip logs `TASK_SKIPPED`. The
+next task screen shows a "Previous task skipped" notice.
 
 `QUESTIONNAIRE` tasks render their `questions[]` (OPEN with regex validation,
 SINGLE_CHOICE, MULTIPLE_CHOICE); answers are stored in `examination.json` (§8.10). `INFO`
@@ -617,7 +630,8 @@ regenerates local artifacts, but re-upload is blocked.
 - Statuses in `metadata/upload_status.json`: `NotUploaded`, `Uploading`, `Uploaded`
   (terminal), `Failed` (the single-ZIP payload removes `PartiallyUploaded`). Failed uploads
   are retried only when the examiner presses Upload again (§5.4, decision 34);
-  `attempts[]`/`attemptCount` remain as the audit trail.
+  `attempts[]`/`attemptCount` remain as the audit trail. A network failure reads "the server
+  could not be reached. The session is kept and can be uploaded later" (§11).
 - **Primary session data is never deleted after upload** (master, timelines, JSONs,
   participant data). Derived artifacts may be regenerated (§8.8).
 
@@ -691,7 +705,8 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
 
 Lists previous sessions (id, patient code, date, processing/upload status, recovered flag);
 actions: open editor, reprocess, upload/retry. Metadata must remain loadable at any time;
-any session is reprocessable from master + timeline.
+any session is reprocessable from master + timeline. The rows re-read their status whenever the
+screen is returned to (after the editor, processing or upload), so they are never stale.
 
 ### 8.12 Main screen
 
@@ -1101,8 +1116,9 @@ Error taxonomy (normative, inlined from the old plan):
     `ShareLegacyM3Theme` (legacy colors/typography/shapes literally) until 2026-08-22 — see
     the second addendum below. The legacy 3-button task row is kept by mapping this app's state machine
     onto it: the Start→Stop→Again button carries the testTag of its current role, and the
-    next-task button doubles as Skip (tag `task.skipButton`) on an unrecorded skippable task
-    (the legacy app had no skip). The legacy post-stop take waveform is not reproduced from
+    next-task button doubled as Skip (tag `task.skipButton`) on an unrecorded skippable task
+    (the legacy app had no skip); Skip is now a separate outlined button in the empty prev slot,
+    with a confirmation (§8.6). The legacy post-stop take waveform is not reproduced from
     take audio — that isn't available to the UI during a session (single master WAV; takes
     are cut in processing). Since decision 61 the indicator's level trace stands in for it.
     The legacy prev-task button (default-hidden behind its `showBackButton` preference) is

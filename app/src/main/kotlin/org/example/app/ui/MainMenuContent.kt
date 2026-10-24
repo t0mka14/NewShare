@@ -147,6 +147,10 @@ private val RECOVERY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd. MM. yyyy HH:
 private fun formatRecoveryDate(iso: String): String =
     runCatching { RECOVERY_DATE_FORMAT.format(Instant.parse(iso).atZone(ZoneId.systemDefault())) }.getOrDefault(iso)
 
+private val CACHE_DATE_FORMAT = DateTimeFormatter.ofPattern("dd. MM. yyyy")
+
+private fun formatCacheDate(savedAt: Instant): String = CACHE_DATE_FORMAT.format(savedAt.atZone(ZoneId.systemDefault()))
+
 @Composable
 private fun TitleBar(component: MainMenuComponent, localization: UiLocalization) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -166,6 +170,14 @@ private fun TitleBar(component: MainMenuComponent, localization: UiLocalization)
                     localization.resolve("mainMenu.site", mapOf("name" to name)),
                     style = infoStyle,
                     modifier = Modifier.testTag(TestTags.MainMenu.SITE_NAME),
+                )
+            }
+            state.offlineConfigSavedAt?.let { savedAt ->
+                Text(
+                    localization.resolve("mainMenu.offlineNotice", mapOf("date" to formatCacheDate(savedAt))),
+                    style = infoStyle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag(TestTags.MainMenu.OFFLINE_NOTICE),
                 )
             }
             state.appVersion?.let { version ->

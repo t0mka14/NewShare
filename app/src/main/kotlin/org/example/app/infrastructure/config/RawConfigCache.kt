@@ -32,6 +32,10 @@ class RawConfigCache(directories: AppDirectories) {
         return Files.readString(configFile, StandardCharsets.UTF_8)
     }
 
+    /** When the cached config was last written, or `null` if no cache exists yet. */
+    fun lastModified(): java.time.Instant? =
+        if (Files.exists(configFile)) Files.getLastModifiedTime(configFile).toInstant() else null
+
     /**
      * Atomically replaces the cached config with [json]. On success, `config.json.tmp`
      * never exists on disk (it is removed by the rename step).

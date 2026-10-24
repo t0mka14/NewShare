@@ -8,6 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.config.ConfigurationRepository
@@ -15,6 +17,7 @@ import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.session.StartupRecovery
 import java.awt.Desktop
 import java.net.URI
+import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
@@ -60,12 +63,14 @@ interface MainMenuComponent {
         val appVersion: String? = null,
         /** §8.4: interrupted sessions found at startup; non-null only until the examiner dismisses the dialog. */
         val recovery: StartupRecovery.Summary? = null,
+        /** When the cached config now in use was saved; non-null only while the last refresh could not reach the server (§3, F-048). */
+        val offlineConfigSavedAt: Instant? = null,
     )
 }
 
 class DefaultMainMenuComponent(
     componentContext: ComponentContext,
-    configurationRepository: ConfigurationRepository,
+    private val configurationRepository: ConfigurationRepository,
     dispatchers: CoroutineDispatchers,
     private val onStartProtocolClicked: () -> Unit,
     private val onUploadClicked: () -> Unit,
@@ -76,6 +81,8 @@ class DefaultMainMenuComponent(
     private val appVersion: String? = null,
     /** Holds the startup-recovery notice across menu recreations; null when there is none (tests). */
     private val startupRecovery: StartupRecovery? = null,
+    /** `RefreshConfigurationUseCase.usingCachedConfig`: the last refresh failed on the network and the cached config is in use. */
+    private val usingCachedConfig: StateFlow<Boolean> = MutableStateFlow(false),
 ) : MainMenuComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -88,6 +95,9 @@ class DefaultMainMenuComponent(
         scope.launch(dispatchers.main) {
             configurationRepository.activeConfig.collect { config -> _state.value = stateOf(config) }
         }
+        scope.launch(dispatchers.main) {
+            usingCachedConfig.collect { _state.value = _state.value.copy(offlineConfigSavedAt = offlineSavedAt(it)) }
+        }
     }
 
     private fun stateOf(config: RemoteConfig?) = MainMenuComponent.State(
@@ -95,6 +105,7 @@ class DefaultMainMenuComponent(
         siteName = config?.siteName?.trim()?.ifBlank { null },
         appVersion = appVersion,
         recovery = startupRecovery?.pending?.value,
+        offlineConfigSavedAt = offlineSavedAt(usingCachedConfig.value),
         protocolPdfs = config?.protocols.orEmpty()
             .filter { !it.protocolInstructionsPdfUrl.isNullOrBlank() }
             .groupBy { it.name to it.protocolInstructionsPdfUrl!! }
@@ -106,6 +117,8 @@ class DefaultMainMenuComponent(
                 )
             },
     )
+
+    private fun offlineSavedAt(offline: Boolean): Instant? = if (offline) configurationRepository.cachedAt() else null
 
     override fun onStartProtocol() {
         if (_state.value.startEnabled) onStartProtocolClicked()

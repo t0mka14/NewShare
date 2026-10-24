@@ -338,6 +338,7 @@ class DefaultSessionComponent(
             positionInProtocol = listIndex + 1,
             totalInstanceCount = navigableInstances.size,
             nextTaskTitleKey = navigableInstances.getOrNull(listIndex + 1)?.task?.titleKey,
+            previousTaskSkipped = listIndex > 0 && examination?.tasks?.lastOrNull()?.skipped == true,
             availableDevices = availableDevices,
             currentDevice = currentDevice,
             resolvedAudioExamplePath = resolvedAudioExamplePath,

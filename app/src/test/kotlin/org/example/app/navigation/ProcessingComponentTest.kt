@@ -2,9 +2,12 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.session.Examination
 import org.example.app.domain.session.ProcessSessionUseCase
+import org.example.app.domain.timeline.TimelineEvent
 import org.example.app.domain.timeline.TimelineOriginal
+import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.fakes.FakeAudioClipService
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeSessionArchiveService
@@ -98,6 +101,46 @@ class ProcessingComponentTest {
         assertTrue(state.failed)
         assertFalse(state.running)
         assertEquals(null, h.doneCalledWith)
+    }
+
+    @Test
+    fun `a session with a recording but nothing kept fails with its own nothing-to-process message`(@TempDir tempDir: Path) {
+        val h = Harness(tempDir, seedSession = false)
+        h.sessionRepository.writeExamination(
+            folderName,
+            Examination(
+                sessionId = "session-1",
+                installationId = "install-1",
+                protocolName = "Speech",
+                configVersion = "v1",
+                startedAt = "2026-07-03T09:00:00Z",
+                captureFormat = CaptureFormat(48_000, 16, 1),
+            ),
+        )
+        h.timelineRepository.writeOriginal(
+            folderName,
+            TimelineOriginal(
+                sessionId = "session-1",
+                sampleRate = 48_000,
+                events = listOf(
+                    TimelineEvent(TimelineEventType.SESSION_RECORDING_STOPPED, 508_800, "2026-07-03T09:00:00Z", null, null, null),
+                ),
+            ),
+        )
+        val component = h.build()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(component.state.value.failed)
+        assertEquals("processing.error.nothingToProcess", component.state.value.errorKey)
+    }
+
+    @Test
+    fun `other failures keep the generic message`(@TempDir tempDir: Path) {
+        val h = Harness(tempDir, seedSession = false)
+        val component = h.build()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals("processing.error.generic", component.state.value.errorKey)
     }
 
     @Test

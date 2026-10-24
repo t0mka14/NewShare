@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.example.app.AppContainer
 import org.example.app.BuildInfo
+import org.example.app.domain.audio.MicChoice
 import org.example.app.domain.audio.MicGainReapplyingRecorder
-import org.example.app.domain.audio.MicNames
 import org.example.app.domain.config.ConfigError
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
@@ -170,6 +170,7 @@ class DefaultRootComponent(
                     onLanguageSelectedClicked = ::selectLanguage,
                     appVersion = BuildInfo.appVersion.takeIf { it != BuildInfo.UNKNOWN }?.toString(),
                     startupRecovery = container.startupRecovery,
+                    usingCachedConfig = container.refreshConfigurationUseCase.usingCachedConfig,
                 ),
             )
 
@@ -277,10 +278,7 @@ class DefaultRootComponent(
         val devices = container.audioInputDeviceProvider.availableDevices()
         // §6.2: the device saved in Settings wins; the config's `defaultMicName` is the fallback
         // (matched tolerantly, §13 decision 44); then any usable device.
-        val initialDevice = devices.firstOrNull { it.id == savedSettings?.micDeviceId }
-            ?: devices.firstOrNull { it.eligible && MicNames.matches(activeConfig.defaultMicName, it) }
-            ?: devices.firstOrNull { it.eligible }
-            ?: devices.firstOrNull()
+        val initialDevice = MicChoice.choose(devices, savedSettings?.micDeviceId, activeConfig.defaultMicName)?.device
 
         val sessionComponent = DefaultSessionComponent(
             componentContext = childContext,

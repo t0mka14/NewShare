@@ -35,6 +35,9 @@ interface ConfigurationRepository {
      * touches the cache or [activeConfig].
      */
     fun applyFetched(json: String): ConfigApplyResult
+
+    /** When the cached config was last saved (the last successful fetch); `null` when unknown. */
+    fun cachedAt(): java.time.Instant? = null
 }
 
 /** Outcome of [ConfigurationRepository.applyFetched]. */

@@ -2,6 +2,8 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.pause
+import com.arkivanov.essenty.lifecycle.resume
 import org.example.app.domain.session.Examination
 import org.example.app.domain.session.ProcessingInfo
 import org.example.app.domain.session.ProcessingStatus
@@ -41,8 +43,8 @@ class SessionBrowserComponentTest {
             )
         }
 
-        fun build(): SessionBrowserComponent = DefaultSessionBrowserComponent(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
+        fun build(lifecycle: LifecycleRegistry = LifecycleRegistry()): SessionBrowserComponent = DefaultSessionBrowserComponent(
+            componentContext = DefaultComponentContext(lifecycle),
             sessionRepository = sessionRepository,
             uploadStatusRepository = uploadStatusRepository,
             onOpenEditorClicked = { folderName -> openedEditorFor = folderName },
@@ -92,6 +94,27 @@ class SessionBrowserComponentTest {
         assertEquals("folder-a", h.reprocessedFolder)
         assertEquals(1, h.goToUploadCalled)
         assertEquals(1, h.backCalled)
+    }
+
+    @Test
+    fun `rows refresh by themselves when the screen is resumed after processing or an upload`() {
+        val h = Harness()
+        h.seed("folder-a", "session-a", processing = ProcessingStatus.NotProcessed)
+        h.uploadStatusRepository.write("folder-a", UploadStatus(status = UploadStatusValue.Failed))
+        val lifecycle = LifecycleRegistry()
+        val component = h.build(lifecycle)
+        lifecycle.resume()
+        assertEquals(UploadStatusValue.Failed, component.state.value.rows.single().uploadStatus)
+
+        // Another screen is pushed on top; the browser pauses while processing / upload run.
+        lifecycle.pause()
+        h.uploadStatusRepository.write("folder-a", UploadStatus(status = UploadStatusValue.Uploaded))
+        h.seed("folder-a", "session-a", processing = ProcessingStatus.Done)
+        lifecycle.resume() // Back pops to the browser
+
+        val row = component.state.value.rows.single()
+        assertEquals(UploadStatusValue.Uploaded, row.uploadStatus)
+        assertEquals(ProcessingStatus.Done, row.processingStatus)
     }
 
     @Test

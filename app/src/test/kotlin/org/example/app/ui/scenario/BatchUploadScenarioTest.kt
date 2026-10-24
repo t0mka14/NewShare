@@ -103,7 +103,7 @@ class BatchUploadScenarioTest {
         onNodeWithTag(TestTags.Upload.sessionRow(failingSessionId)).assertIsDisplayed()
         onNodeWithTag(TestTags.Upload.sessionErrorText(failingSessionId))
             .assertIsDisplayed()
-            .assertTextEquals("Odeslání selhalo: chyba sítě")
+            .assertTextEquals("Odeslání selhalo: server není dostupný. Sezení zůstává uloženo a lze je odeslat později - zkuste to znovu tlačítkem Odeslat")
         onNodeWithTag(TestTags.Upload.sessionRow(succeedingSessionId)).assertDoesNotExist()
         onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("Sezení připravená k odeslání: 1")
 

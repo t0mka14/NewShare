@@ -143,6 +143,11 @@ interface TaskComponent {
 
     // Common
     fun onNext()
+    /** The Skip button: opens the confirmation ([State.skipConfirmationOpen]) when skipping is allowed. */
+    fun onSkipRequested()
+    fun onSkipCancelled()
+
+    /** The confirmation accepted: logs TASK_SKIPPED and finishes the task as skipped. */
     fun onSkip()
 
     // QUESTIONNAIRE
@@ -230,6 +235,10 @@ interface TaskComponent {
          * `SessionComponent` like [positionInProtocol]. */
         val nextTaskTitleKey: String?,
         val canSkip: Boolean,
+        /** The "Skip this task?" confirmation is showing. */
+        val skipConfirmationOpen: Boolean = false,
+        /** The task before this one was skipped; the screen says so (F-022). */
+        val previousTaskSkipped: Boolean = false,
         val content: Content,
         val buttons: TaskButtonState,
         /** Device list + the device in use when this task screen was created, for the
@@ -262,6 +271,8 @@ class DefaultTaskComponent(
     /** Title key of the next navigable task instance (`null` on the last), for the legacy
      * next-task button (§13 decision 36); computed by [SessionComponent] like [positionInProtocol]. */
     private val nextTaskTitleKey: String? = null,
+    /** The task instance before this one was skipped, so the screen says so (F-022). */
+    private val previousTaskSkipped: Boolean = false,
     /** Device list + the device in use when this task screen was created (§8.5), so the
      * device-lost dialog needs nothing from the UI layer beyond this component's own state. */
     private val availableDevices: List<AudioInputDevice>,
@@ -305,6 +316,7 @@ class DefaultTaskComponent(
     private var level = 0f
     private var deviceLost = false
     private var exampleAudioPlaying = false
+    private var skipConfirmationOpen = false
     private var answers: Map<String, AnswerState> = initialAnswers()
     private var videoError: VideoError? = null
     private var videoReady = false
@@ -515,9 +527,25 @@ class DefaultTaskComponent(
         }
     }
 
+    /** Skip is possible: the task allows it and no take is running or kept. */
+    private val skipAllowed: Boolean
+        get() = task.canSkip && !(isCapturingType && screenState !is TaskScreenState.Idle)
+
+    override fun onSkipRequested() {
+        if (!skipAllowed) return
+        skipConfirmationOpen = true
+        publish()
+    }
+
+    override fun onSkipCancelled() {
+        skipConfirmationOpen = false
+        publish()
+    }
+
     override fun onSkip() {
-        if (!task.canSkip) return
-        if (isCapturingType && screenState !is TaskScreenState.Idle) return
+        if (!skipAllowed) return
+        skipConfirmationOpen = false
+        publish()
         eventLogger(TimelineEventType.TASK_SKIPPED, null, null)
         onTaskFinished(
             TaskRecord(
@@ -708,6 +736,8 @@ class DefaultTaskComponent(
             taskLengthSeconds = (task as? VocalTask)?.length ?: (task as? VideoTask)?.length ?: 0,
             nextTaskTitleKey = nextTaskTitleKey,
             canSkip = task.canSkip,
+            skipConfirmationOpen = skipConfirmationOpen,
+            previousTaskSkipped = previousTaskSkipped,
             content = content,
             buttons = buttons,
             availableDevices = availableDevices,

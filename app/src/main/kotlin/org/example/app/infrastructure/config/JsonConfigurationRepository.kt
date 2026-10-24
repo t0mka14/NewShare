@@ -76,6 +76,8 @@ class JsonConfigurationRepository(
         return ConfigApplyResult.Applied(decodeResult.config)
     }
 
+    override fun cachedAt(): java.time.Instant? = cache.lastModified()
+
     /** Returns [raw] unchanged if its schemaVersion is already >= the supported floor (an
      * out-of-range-above or in-range version is left for [decodeAndValidate]/[ConfigValidator]
      * to judge); migrates it otherwise; `null` if migration is required but not possible. */

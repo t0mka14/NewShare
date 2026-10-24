@@ -52,7 +52,7 @@ fun ProcessingContent(component: ProcessingComponent, localization: UiLocalizati
                 Text(localization.resolve("processing.error.title"), style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    localization.resolve("processing.error.generic"),
+                    localization.resolve(state.errorKey ?: "processing.error.generic"),
                     modifier = Modifier.testTag(TestTags.Processing.ERROR_TEXT),
                 )
                 Spacer(modifier = Modifier.height(24.dp))

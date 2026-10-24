@@ -1,5 +1,6 @@
 package org.example.app.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -68,8 +70,9 @@ import org.example.app.navigation.TaskScreenState
  * only its scaling bugs are fixed (fixed 350dp button widths → weighted slots,
  * `fillMaxSize(0.5f)` canvas → a weighted middle area). Deliberate mappings onto this app's
  * state machine: the legacy Start→Stop→Again cycling button carries the
- * `START/STOP/REPEAT_BUTTON` testTag of its current role, and the next-task button doubles as
- * Skip (tag `SKIP_BUTTON`) on an unrecorded skippable task — the legacy app had no skip.
+ * `START/STOP/REPEAT_BUTTON` testTag of its current role, and a skippable task gets
+ * a separate outlined Skip button (tag `SKIP_BUTTON`, with a confirmation) in the otherwise
+ * empty prev slot — the legacy app had no skip.
  * QUESTIONNAIRE content has no legacy counterpart and renders in the same visual language.
  */
 @Composable
@@ -170,6 +173,8 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         )
     }
 
+    if (state.skipConfirmationOpen) SkipConfirmDialog(component, localization)
+
     val screenState = vocal?.screenState
     if (screenState is TaskScreenState.Failed) {
         var dismissed by remember(screenState) { mutableStateOf(false) }
@@ -216,6 +221,18 @@ private fun TaskTitle(state: TaskComponent.State, localization: UiLocalization) 
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(bottom = 50.dp),
     ) {
+        if (state.previousTaskSkipped) {
+            Text(
+                localization.resolve("task.previousSkipped"),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.shapes.small)
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                    .testTag(TestTags.Task.PREVIOUS_SKIPPED_NOTICE),
+            )
+        }
         Text(
             numberLabel,
             style = MaterialTheme.typography.bodyLarge,
@@ -362,8 +379,11 @@ private fun BottomButtonRow(component: TaskComponent, state: TaskComponent.State
     ) {
         // Legacy prev-task slot: the legacy button was gated behind a `showBackButton`
         // preference defaulting to false, so the 1:1 default look is an empty slot that
-        // keeps the state button centered. There is no back navigation in this app.
-        Spacer(modifier = Modifier.weight(1f))
+        // keeps the state button centered. There is no back navigation in this app; the slot
+        // holds the secondary Skip button of a skippable task instead.
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            if (state.canSkip) SkipTaskButton(component, state, localization)
+        }
 
         when (val content = state.content) {
             is TaskComponent.Content.Vocal ->
@@ -455,22 +475,53 @@ private fun StartStateButton(
     }
 }
 
-/** The legacy `nextTaskButton` (small "Next task" line over the upcoming task's name). On an
- * unrecorded skippable task it performs Skip and carries the `SKIP_BUTTON` tag instead. */
+/** A skippable task's own secondary button: an outlined "Skip task", asking before it skips. */
+@Composable
+private fun SkipTaskButton(component: TaskComponent, state: TaskComponent.State, localization: UiLocalization) {
+    OutlinedButton(
+        onClick = component::onSkipRequested,
+        enabled = state.buttons.skipEnabled,
+        modifier = Modifier.padding(top = 16.dp).testTag(TestTags.Task.SKIP_BUTTON),
+    ) {
+        Text(localization.resolve("task.skipLabel"), style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+/** The "Skip this task?" confirmation, inside the main window like every dialog. */
+@Composable
+private fun SkipConfirmDialog(component: TaskComponent, localization: UiLocalization) {
+    AlertDialog(
+        onDismissRequest = component::onSkipCancelled,
+        modifier = Modifier.testTag(TestTags.Task.SKIP_DIALOG),
+        title = { Text(localization.resolve("task.skipConfirm.title")) },
+        text = { Text(localization.resolve("task.skipConfirm.message")) },
+        confirmButton = {
+            Button(onClick = component::onSkip, modifier = Modifier.testTag(TestTags.Task.SKIP_CONFIRM_BUTTON)) {
+                Text(localization.resolve("task.skipConfirm.confirm"))
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = component::onSkipCancelled, modifier = Modifier.testTag(TestTags.Task.SKIP_CANCEL_BUTTON)) {
+                Text(localization.resolve("action.cancel"))
+            }
+        },
+    )
+}
+
+/** The legacy `nextTaskButton` (small "Next task" line over the upcoming task's name). */
 @Composable
 private fun NextTaskButton(component: TaskComponent, state: TaskComponent.State, localization: UiLocalization) {
     val buttons = state.buttons
-    val actsAsSkip = !buttons.nextEnabled && buttons.skipEnabled
     val nextTitle = state.nextTaskTitleKey?.let { localization.resolve(it) }
         ?: localization.resolve("task.endOfProtocol")
 
     Button(
-        onClick = { if (actsAsSkip) component.onSkip() else component.onNext() },
-        enabled = buttons.nextEnabled || buttons.skipEnabled,
+        onClick = component::onNext,
+        enabled = buttons.nextEnabled,
         modifier = Modifier
             .widthIn(max = 350.dp)
             .padding(top = 16.dp)
-            .testTag(if (actsAsSkip) TestTags.Task.SKIP_BUTTON else TestTags.Task.NEXT_BUTTON),
+            .testTag(TestTags.Task.NEXT_BUTTON),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f, fill = false).padding(horizontal = 16.dp)) {

@@ -34,6 +34,7 @@ class TaskComponentTest {
         repetition: Int = 1,
         withRecorder: Boolean = true,
         audioExamplePath: Path? = null,
+        previousTaskSkipped: Boolean = false,
     ) {
         val clock = FakeClock()
         val dispatchers = TestCoroutineDispatchers()
@@ -59,6 +60,7 @@ class TaskComponentTest {
             dispatchers = dispatchers,
             positionInProtocol = taskIndex + 1,
             totalInstanceCount = taskIndex + 1,
+            previousTaskSkipped = previousTaskSkipped,
             availableDevices = devices,
             currentDevice = devices.first(),
             resolvedAudioExamplePath = resolvedAudioExamplePath,
@@ -181,6 +183,55 @@ class TaskComponentTest {
         assertTrue(h.finished.single().skipped)
         assertEquals(0, h.finished.single().takes)
         assertTrue(h.events.any { it.type == TimelineEventType.TASK_SKIPPED })
+    }
+
+    @Test
+    fun `the Skip button asks first and nothing is skipped until it is confirmed`() {
+        val h = Harness(vocalTask)
+
+        h.component.onSkipRequested()
+        assertTrue(h.component.state.value.skipConfirmationOpen)
+        assertEquals(0, h.finished.size)
+        assertTrue(h.events.none { it.type == TimelineEventType.TASK_SKIPPED })
+
+        h.component.onSkipCancelled()
+        assertFalse(h.component.state.value.skipConfirmationOpen)
+        assertEquals(0, h.finished.size)
+
+        h.component.onSkipRequested()
+        h.component.onSkip() // "Skip" in the dialog
+        assertFalse(h.component.state.value.skipConfirmationOpen)
+        assertTrue(h.finished.single().skipped)
+    }
+
+    @Test
+    fun `the Skip button does nothing while a take is running or kept, or when the task is not skippable`() {
+        val h = Harness(vocalTask)
+        h.component.onStart()
+        h.component.onSkipRequested()
+        assertFalse(h.component.state.value.skipConfirmationOpen)
+        h.component.onStop()
+        h.component.onSkipRequested()
+        assertFalse(h.component.state.value.skipConfirmationOpen)
+
+        val notSkippable = Harness(vocalTask.copy(canSkip = false))
+        notSkippable.component.onSkipRequested()
+        assertFalse(notSkippable.component.state.value.skipConfirmationOpen)
+    }
+
+    @Test
+    fun `Next stays disabled on an unrecorded skippable task, so Skip cannot be mistaken for it`() {
+        val h = Harness(vocalTask)
+
+        assertTrue(h.component.state.value.canSkip)
+        assertFalse(h.component.state.value.buttons.nextEnabled)
+        assertTrue(h.component.state.value.buttons.skipEnabled)
+    }
+
+    @Test
+    fun `a task after a skipped one carries the skipped notice`() {
+        assertFalse(Harness(vocalTask).component.state.value.previousTaskSkipped)
+        assertTrue(Harness(vocalTask, previousTaskSkipped = true).component.state.value.previousTaskSkipped)
     }
 
     @Test

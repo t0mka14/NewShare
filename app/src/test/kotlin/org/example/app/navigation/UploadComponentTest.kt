@@ -2,6 +2,7 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import org.example.app.domain.localization.BuiltinStrings
 import org.example.app.domain.session.Examination
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.InstallationIdProvider
@@ -158,9 +159,16 @@ class UploadComponentTest {
         val remaining = state.rows.single()
         assertEquals("session-a", remaining.sessionId)
         assertEquals(UploadStatusValue.Failed, remaining.status)
-        assertEquals("upload.error.network", remaining.failureReasonKey)
+        assertEquals("upload.error.unreachable", remaining.failureReasonKey)
 
         assertEquals(UploadStatusValue.Uploaded, h.uploadStatusRepository.read("folder-b")!!.status)
+    }
+
+    @Test
+    fun `the unreachable-server reason says the session is kept and can be retried later`() {
+        assertTrue("kept" in BuiltinStrings.en.getValue("upload.error.unreachable"))
+        assertTrue("later" in BuiltinStrings.en.getValue("upload.error.unreachable"))
+        assertTrue("zůstává uloženo" in BuiltinStrings.cs.getValue("upload.error.unreachable"))
     }
 
     @Test

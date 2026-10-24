@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.example.app.domain.audio.MicChoice
 import org.example.app.domain.config.IndicatorType
 import org.example.app.navigation.SettingsComponent
 import kotlin.math.roundToInt
@@ -69,6 +70,15 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 ) {
                     Icon(Icons.Filled.Refresh, contentDescription = localization.resolvePlain("settings.device.refresh"))
                 }
+            }
+            state.micSource?.takeIf { it != MicChoice.Source.SAVED }?.let { source ->
+                Text(
+                    localization.resolve(
+                        if (source == MicChoice.Source.CONFIG) "settings.device.default.config" else "settings.device.default.system",
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.testTag(TestTags.Settings.DEVICE_DEFAULT_HINT),
+                )
             }
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -176,9 +186,11 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                 Text(
                     localization.resolve(key),
                     color = if (isSuccess) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                    // The other-site warning is this status line when the refresh itself worked.
+                    modifier = if (key == "settings.refresh.otherSite") Modifier.testTag(TestTags.Settings.OTHER_SITE_NOTE) else Modifier,
                 )
             }
-            if (state.registeredToAnotherSite) {
+            if (state.registeredToAnotherSite && state.lastRefreshResultKey != "settings.refresh.otherSite") {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     localization.resolve("settings.otherSite"),

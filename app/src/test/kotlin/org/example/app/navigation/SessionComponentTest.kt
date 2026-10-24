@@ -330,6 +330,29 @@ class SessionComponentTest {
     }
 
     @Test
+    fun `the screen after a skipped task says the previous task was skipped`() {
+        val h = Harness()
+        val component = h.build(
+            Protocol(
+                name = "SkipThenInfo",
+                recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
+                tasks = listOf(QuestionnaireTask(titleKey = "q", canSkip = true), InfoTask(titleKey = "info")),
+            ),
+        )
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val first = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertFalse(first.state.value.previousTaskSkipped)
+        first.onSkip()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val second = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertTrue(second.state.value.previousTaskSkipped)
+        val folderName = h.sessionRepository.listSessionFolderNames().single()
+        assertTrue(h.sessionRepository.readExamination(folderName)!!.tasks.single().skipped)
+    }
+
+    @Test
     fun `no-master protocol skips calibration entirely and never creates a recorder`() {
         val h = Harness()
         val component = h.build(questionnaireOnlyProtocol)

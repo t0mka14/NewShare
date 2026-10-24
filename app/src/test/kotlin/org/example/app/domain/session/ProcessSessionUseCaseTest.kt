@@ -1,5 +1,9 @@
 package org.example.app.domain.session
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.example.app.domain.audio.CaptureFormat
@@ -26,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -356,6 +361,29 @@ class ProcessSessionUseCaseTest {
         assertEquals(ProcessingStatus.Failed, f.sessionRepository.readExamination(f.folderName)!!.processing?.status)
         assertTrue(f.archiveService.buildCalls.isEmpty())
         assertNull(f.uploadStatusRepository.read(f.folderName))
+    }
+
+    @Test
+    fun `a processing failure is logged at WARN with the error type and sessionId, never the folder name or patient code`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(captureFormat = format48k, tasks = emptyList())
+        f.writeOriginal(listOf(event(TimelineEventType.SESSION_RECORDING_STOPPED, null, null, null, 508_800)))
+        val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+        val previousLevel = logger.level
+        logger.level = Level.ALL
+        try {
+            f.runProcess()
+
+            val failures = appender.list.filter { it.level == Level.WARN && "NothingToProcess" in it.formattedMessage }
+            assertEquals(1, failures.size)
+            assertTrue("s1" in failures.single().formattedMessage)
+            assertTrue(appender.list.none { f.folderName in it.formattedMessage || "HC001" in it.formattedMessage })
+        } finally {
+            logger.detachAppender(appender)
+            logger.level = previousLevel
+        }
     }
 
     @Test

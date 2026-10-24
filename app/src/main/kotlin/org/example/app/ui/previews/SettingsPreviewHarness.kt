@@ -6,6 +6,7 @@ import androidx.compose.ui.window.singleWindowApplication
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import org.example.app.domain.audio.AudioInputDevice
+import org.example.app.domain.audio.MicChoice
 import org.example.app.domain.localization.LocalizedStringProvider
 import org.example.app.domain.config.IndicatorType
 import org.example.app.navigation.SettingsComponent
@@ -29,6 +30,9 @@ fun main() = singleWindowApplication(title = "Settings — preview harness") {
             SettingsPreview(previewState(micGain = 40, override = 40, configGain = 63, controllable = true))
         },
         "Level unreadable" to { SettingsPreview(previewState(micGain = null, controllable = false)) },
+        "Default microphone" to {
+            SettingsPreview(previewState(micGain = 70, controllable = true).copy(micSource = MicChoice.Source.CONFIG))
+        },
     )
 }
 

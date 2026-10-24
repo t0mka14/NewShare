@@ -50,6 +50,8 @@ object BuiltinStrings {
         "settings.title" to "Settings",
         "settings.device.label" to "Microphone",
         "settings.device.refresh" to "Refresh microphones",
+        "settings.device.default.config" to "Default from the site configuration",
+        "settings.device.default.system" to "System default",
         "settings.micGain.label" to "Microphone level",
         "settings.micGain.reset" to "Use configured default ({value})",
         "settings.micGain.unavailable" to "Microphone level can not be set for this device.",
@@ -66,6 +68,7 @@ object BuiltinStrings {
         "settings.indicator.reset" to "Use configured default ({value})",
         "settings.refresh.button" to "Refresh configuration",
         "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
+        "settings.refresh.otherSite" to "Configuration refreshed, but this computer is registered to another site. Contact your administrator.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
         "settings.refresh.offline" to "Could not reach the server. Using the saved configuration.",
         "settings.backButton" to "Save and go back",
@@ -74,6 +77,7 @@ object BuiltinStrings {
         "mainMenu.title" to "Speech examination",
         "mainMenu.site" to "Site: {name}",
         "mainMenu.appVersion" to "App version: {version}",
+        "mainMenu.offlineNotice" to "Offline – using the configuration saved on {date}",
         "mainMenu.startButton" to "New examination",
         "mainMenu.uploadButton" to "Upload",
         "mainMenu.settingsButton" to "Settings",
@@ -98,7 +102,7 @@ object BuiltinStrings {
         "upload.successMessage" to "Files successfully uploaded.",
         "upload.failureMessage" to "Upload failed: {reason}",
         "upload.error.interrupted" to "the previous attempt was interrupted",
-        "upload.error.network" to "network failure",
+        "upload.error.unreachable" to "the server could not be reached. The session is kept and can be uploaded later - press Upload to try again",
         "upload.error.server" to "server error",
         "upload.error.rejected" to "the server rejected the upload",
         "upload.error.notRegistered" to "this computer is not registered to a site; contact your administrator",
@@ -146,6 +150,7 @@ object BuiltinStrings {
         "processing.step.updatingMetadata" to "Finishing up…",
         "processing.error.title" to "Processing failed",
         "processing.error.generic" to "This session could not be processed. You can retry or go back.",
+        "processing.error.nothingToProcess" to "Nothing was recorded in this session, so there is nothing to process.",
 
         // Protocol picker (§3 follow-up) — shown on the main menu only when the config defines
         // more than one protocol; a single-protocol config skips straight to patient info.
@@ -205,6 +210,12 @@ object BuiltinStrings {
         // task name; `task.endOfProtocol` replaces the next task's name on the last task.
         "task.nextLabel" to "Next task",
         "task.prevLabel" to "Previous task",
+        // Skip (F-022): its own secondary button, a confirmation, and a notice on the next task.
+        "task.skipLabel" to "Skip task",
+        "task.skipConfirm.title" to "Skip this task?",
+        "task.skipConfirm.message" to "Nothing will be recorded for it, and it will be marked as skipped.",
+        "task.skipConfirm.confirm" to "Skip",
+        "task.previousSkipped" to "Previous task skipped",
         "task.endOfProtocol" to "Finish",
 
         // Questionnaire task rendering (§8.6 OPEN/SINGLE_CHOICE/MULTIPLE_CHOICE).
@@ -264,6 +275,8 @@ object BuiltinStrings {
         "settings.title" to "Nastavení",
         "settings.device.label" to "Mikrofon",
         "settings.device.refresh" to "Obnovit seznam mikrofonů",
+        "settings.device.default.config" to "Výchozí podle konfigurace pracoviště",
+        "settings.device.default.system" to "Výchozí v systému",
         "settings.micGain.label" to "Úroveň mikrofonu",
         "settings.micGain.reset" to "Použít nastavenou výchozí hodnotu ({value})",
         "settings.micGain.unavailable" to "Úroveň mikrofonu nelze pro toto zařízení nastavit.",
@@ -279,6 +292,7 @@ object BuiltinStrings {
         "settings.indicator.reset" to "Použít nastavenou výchozí hodnotu ({value})",
         "settings.refresh.button" to "Aktualizovat konfiguraci",
         "settings.refresh.success" to "Konfigurace byla aktualizována. Vše je v pořádku.",
+        "settings.refresh.otherSite" to "Konfigurace byla aktualizována, ale tento počítač je registrován k jinému pracovišti. Kontaktujte správce.",
         "settings.refresh.failed" to "Konfiguraci se nepodařilo aktualizovat.",
         "settings.refresh.offline" to "Server není dostupný. Používá se uložená konfigurace.",
         "settings.backButton" to "Uložit a vrátit se",
@@ -286,6 +300,7 @@ object BuiltinStrings {
         "mainMenu.title" to "Vyšetření řeči",
         "mainMenu.site" to "Pracoviště: {name}",
         "mainMenu.appVersion" to "Verze aplikace: {version}",
+        "mainMenu.offlineNotice" to "Offline – používá se konfigurace uložená {date}",
         "mainMenu.startButton" to "Nové vyšetření",
         "mainMenu.uploadButton" to "Odeslání nahrávek",
         "mainMenu.settingsButton" to "Nastavení",
@@ -308,7 +323,7 @@ object BuiltinStrings {
         "upload.successMessage" to "Soubory byly úspěšně odeslány.",
         "upload.failureMessage" to "Odeslání selhalo: {reason}",
         "upload.error.interrupted" to "předchozí pokus byl přerušen",
-        "upload.error.network" to "chyba sítě",
+        "upload.error.unreachable" to "server není dostupný. Sezení zůstává uloženo a lze je odeslat později - zkuste to znovu tlačítkem Odeslat",
         "upload.error.server" to "chyba serveru",
         "upload.error.rejected" to "server odeslání odmítl",
         "upload.error.notRegistered" to "tento počítač není přiřazen k žádnému pracovišti; kontaktujte správce",
@@ -352,6 +367,7 @@ object BuiltinStrings {
         "processing.step.updatingMetadata" to "Dokončování…",
         "processing.error.title" to "Zpracování selhalo",
         "processing.error.generic" to "Toto sezení se nepodařilo zpracovat. Můžete to zkusit znovu, nebo se vrátit zpět.",
+        "processing.error.nothingToProcess" to "V tomto sezení nebylo nic nahráno, takže není co zpracovat.",
 
         "protocolPicker.title" to "Vyberte protokol",
         "protocolPicker.instructions" to "Zvolte protokol pro toto vyšetření.",
@@ -394,6 +410,11 @@ object BuiltinStrings {
         "task.takeLabel" to "Pokus {n}",
         "task.nextLabel" to "Další úloha",
         "task.prevLabel" to "Předchozí úloha",
+        "task.skipLabel" to "Přeskočit úlohu",
+        "task.skipConfirm.title" to "Přeskočit tuto úlohu?",
+        "task.skipConfirm.message" to "Nic se pro ni nenahraje a bude označena jako přeskočená.",
+        "task.skipConfirm.confirm" to "Přeskočit",
+        "task.previousSkipped" to "Předchozí úloha přeskočena",
         "task.endOfProtocol" to "Konec",
 
         "questionnaire.error.invalid" to "Zadejte prosím platnou odpověď.",

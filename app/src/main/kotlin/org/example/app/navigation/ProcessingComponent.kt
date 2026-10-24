@@ -11,6 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.session.ProcessSessionUseCase
+import org.example.app.domain.session.ProcessingError
 
 /**
  * §8.8 processing progress screen: blocks navigation while [ProcessSessionUseCase] runs,
@@ -29,6 +30,8 @@ interface ProcessingComponent {
         val fraction: Float = 0f,
         val running: Boolean = true,
         val failed: Boolean = false,
+        /** Localized-string key for why the last run failed; `null` unless [failed]. */
+        val errorKey: String? = null,
     )
 }
 
@@ -69,7 +72,7 @@ class DefaultProcessingComponent(
                             }
 
                             is ProcessSessionUseCase.Outcome.Failed -> {
-                                _state.value = _state.value.copy(running = false, failed = true)
+                                _state.value = _state.value.copy(running = false, failed = true, errorKey = errorKey(progress.outcome.error))
                             }
                         }
                     }
@@ -81,6 +84,11 @@ class DefaultProcessingComponent(
     override fun onRetry() {
         if (_state.value.running) return
         start()
+    }
+
+    private fun errorKey(error: ProcessingError): String = when (error) {
+        ProcessingError.NothingToProcess -> "processing.error.nothingToProcess"
+        else -> "processing.error.generic"
     }
 
     override fun onBack() = onBackClicked()

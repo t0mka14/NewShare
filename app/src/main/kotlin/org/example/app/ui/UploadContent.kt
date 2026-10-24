@@ -117,7 +117,7 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
                         Text(
                             localization.resolve("upload.failureMessage", mapOf("reason" to localization.resolvePlain(key))),
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.testTag(TestTags.Upload.sessionErrorText(row.sessionId)),
                         )
                     }

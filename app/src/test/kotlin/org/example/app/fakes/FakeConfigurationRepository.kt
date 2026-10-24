@@ -35,6 +35,11 @@ class FakeConfigurationRepository(initialConfig: RemoteConfig? = null) : Configu
 
     override fun loadCached(): RemoteConfig? = _activeConfig.value
 
+    /** What [cachedAt] reports; tests set it to simulate the cache file's save time. */
+    var cachedAtInstant: java.time.Instant? = null
+
+    override fun cachedAt(): java.time.Instant? = cachedAtInstant
+
     override fun applyFetched(json: String): ConfigApplyResult {
         appliedJson += json
         val result = queue.removeFirstOrNull()
