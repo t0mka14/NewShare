@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -55,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
+import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
 import org.example.app.navigation.AnswerState
@@ -95,13 +98,28 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         TaskTitle(state, localization)
 
         // Instructions field, with the example-audio utility row between the two cards
-        InstructionsField(component, state, localization, Modifier.contentWidth(1500.dp))
+        // The cards take only the height their text needs and scroll when the window is too short;
+        // a VOCAL task's middle area keeps its full size (the other task types fill the rest).
+        val fixedMiddle = vocal != null
+        InstructionsField(
+            component, state, localization,
+            if (fixedMiddle) Modifier.weight(1f, fill = false).contentWidth(1500.dp) else Modifier.contentWidth(1500.dp),
+            scrollable = fixedMiddle,
+        )
 
         // Middle area: recording circle / live waveform (VOCAL), the camera preview (VIDEO, or
         // VOCAL with `recordVideo` — shown even without `showIndicator`, since the examiner
         // frames the shot by it) or the questionnaire.
         // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
-        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val indicatorHeight = if (vocal?.indicatorType == IndicatorType.WAVEFORM) 250.dp else 160.dp
+        val middleModifier = if (vocal != null) {
+            // Never squeezed, but no taller than needed: the indicator (the waveform is 250 tall) or the 150 preview
+            val minHeight = maxOf(if (vocal.showIndicator) indicatorHeight else 0.dp, if (vocal.video != null) 150.dp else 0.dp)
+            Modifier.fillMaxWidth().heightIn(min = minHeight)
+        } else {
+            Modifier.weight(1f).fillMaxWidth()
+        }
+        Box(modifier = middleModifier, contentAlignment = Alignment.Center) {
             when (val content = state.content) {
                 is TaskComponent.Content.Vocal -> if (content.video != null) {
                     // Legacy: a small ~200x150 preview beside the recording circle
@@ -109,7 +127,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                         if (content.showIndicator) {
                             // Reserve the waveform's footprint from the start (it replaces the circle
                             // after Stop), which would otherwise shift the preview.
-                            Box(Modifier.size(500.dp, 250.dp), contentAlignment = Alignment.Center) {
+                            Box(Modifier.weight(1f, fill = false).widthIn(max = 500.dp).height(indicatorHeight), contentAlignment = Alignment.Center) {
                                 TaskLevelIndicator(
                                     indicatorType = content.indicatorType,
                                     level = content.level,
@@ -219,7 +237,7 @@ private fun TaskTitle(state: TaskComponent.State, localization: UiLocalization) 
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(bottom = 50.dp),
+        modifier = Modifier.padding(bottom = 16.dp),
     ) {
         if (state.previousTaskSkipped) {
             Text(
@@ -248,6 +266,7 @@ private fun InstructionsField(
     state: TaskComponent.State,
     localization: UiLocalization,
     modifier: Modifier,
+    scrollable: Boolean,
 ) {
     val firstKey = state.instructionKeys.firstOrNull()
     val remainingKeys = state.instructionKeys.drop(1)
@@ -255,32 +274,46 @@ private fun InstructionsField(
     // task hide the utility row and the second instructions card
     val showSecond = state.repetition <= 1
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        // The legacy replaced its `xx` marker with the task length; this config's instruction
-        // strings use the named `{length}` placeholder (§7)
-        val placeholders = mapOf("length" to state.taskLengthSeconds.toString())
-        if (firstKey != null) InstructionsCard(listOf(firstKey), placeholders, localization)
-        if (showSecond) {
-            UtilitiesRowBelowInstructions(component, state, localization)
-            if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
-        }
-        // READING's passage is what the participant reads aloud, so unlike the second card it
-        // stays on every repetition; upright and larger than the italic instructions.
-        state.readingPassageKey?.let { key ->
-            Card(modifier = Modifier.fillMaxWidth().testTag(TestTags.Task.READING_PASSAGE)) {
-                Text(
-                    localization.resolve(key, placeholders),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .heightIn(max = 320.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                )
+    // At least ~110dp of the cards stay readable; the scrollbar shows only when they overflow
+    val scrollState = rememberScrollState()
+    Box(modifier = if (scrollable && firstKey != null) modifier.heightIn(min = 110.dp) else modifier) {
+        Column(
+            modifier = if (scrollable) {
+                Modifier.fillMaxWidth().testTag(TestTags.Task.INSTRUCTIONS).verticalScroll(scrollState)
+            } else {
+                Modifier.fillMaxWidth()
+            },
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // The legacy replaced its `xx` marker with the task length; this config's instruction
+            // strings use the named `{length}` placeholder (§7)
+            val placeholders = mapOf("length" to state.taskLengthSeconds.toString())
+            if (firstKey != null) InstructionsCard(listOf(firstKey), placeholders, localization)
+            if (showSecond) {
+                UtilitiesRowBelowInstructions(component, state, localization)
+                if (remainingKeys.isNotEmpty()) InstructionsCard(remainingKeys, placeholders, localization)
             }
+            // READING's passage is what the participant reads aloud, so unlike the second card it
+            // stays on every repetition; upright and larger than the italic instructions.
+            state.readingPassageKey?.let { key ->
+                Card(modifier = Modifier.fillMaxWidth().testTag(TestTags.Task.READING_PASSAGE)) {
+                    Text(
+                        localization.resolve(key, placeholders),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier
+                            .heightIn(max = 320.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                    )
+                }
+            }
+        }
+        if (scrollable && scrollState.maxValue > 0) {
+            VerticalScrollbar(
+                adapter = rememberScrollbarAdapter(scrollState),
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().testTag(TestTags.Task.INSTRUCTIONS_SCROLLBAR),
+            )
         }
     }
 }

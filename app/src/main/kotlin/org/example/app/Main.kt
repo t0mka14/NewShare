@@ -10,12 +10,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowExceptionHandler
 import androidx.compose.ui.window.WindowExceptionHandlerFactory
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
@@ -98,6 +100,7 @@ fun main() {
                     exitApplication()
                 },
                 title = "SHARE (v$version)",
+                state = rememberWindowState(size = DpSize(1000.dp, 820.dp)),
                 // Window/taskbar icon: the SAMI logo (also the main screen's bottom-right logo).
                 icon = painterResource(APP_ICON_RESOURCE),
             ) {

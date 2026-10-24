@@ -92,6 +92,9 @@ object TestTags {
         /** Notice that the previous task was skipped, on the screen after it. */
         const val PREVIOUS_SKIPPED_NOTICE = "task.previousSkippedNotice"
         const val LEVEL_INDICATOR = "task.levelIndicator"
+        /** VOCAL only: the instruction cards, which scroll when the window is too short. */
+        const val INSTRUCTIONS = "task.instructions"
+        const val INSTRUCTIONS_SCROLLBAR = "task.instructionsScrollbar"
         /** READING only: the passage panel, shown on every repetition. */
         const val READING_PASSAGE = "task.readingPassage"
         const val ERROR_DIALOG = "task.errorDialog"
