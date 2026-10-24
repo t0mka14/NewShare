@@ -22,8 +22,6 @@ import org.example.app.domain.audio.RecorderState
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
-import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.DataLine
 import javax.sound.sampled.LineUnavailableException
 import javax.sound.sampled.TargetDataLine
 
@@ -47,6 +45,7 @@ private val logger = KotlinLogging.logger {}
  */
 class JvmContinuousSessionRecorder(
     private val dispatchers: CoroutineDispatchers,
+    private val lineOpener: CaptureLineOpener = SystemCaptureLineOpener,
 ) : ContinuousSessionRecorder {
 
     private val _state = MutableStateFlow<RecorderState>(RecorderState.Idle)
@@ -365,38 +364,33 @@ class JvmContinuousSessionRecorder(
         }
     }
 
+    /**
+     * Opens the first negotiated format the device actually accepts (§5.3.1). `isLineSupported`
+     * only pre-filters (DirectSound says yes to everything), so each candidate gets exactly one
+     * open attempt and a format rejection moves on to the next. A denied microphone also shows up
+     * as "unsupported" for every format on Windows, so a full pass ending in DeviceUnavailable is
+     * expected there.
+     */
     private fun openLine(device: AudioInputDevice): Pair<TargetDataLine, CaptureFormat> {
-        val mixerInfo = MixerIds.findByStableId(device.id)
-            ?: throw AudioException(AudioError.DeviceUnavailable(device.id))
-        val mixer = try {
-            AudioSystem.getMixer(mixerInfo)
-        } catch (e: Exception) {
-            throw AudioException(AudioError.DeviceUnavailable(device.id), e)
-        }
+        if (!lineOpener.deviceExists(device.id)) throw AudioException(AudioError.DeviceUnavailable(device.id))
 
-        val negotiated = CaptureFormatNegotiator.negotiate(isSupported = { candidate ->
+        var lastRejection: Exception? = null
+        for (candidate in CaptureFormatNegotiator.candidates(isSupported = { lineOpener.isLineSupported(device.id, it) })) {
             try {
-                mixer.isLineSupported(DataLine.Info(TargetDataLine::class.java, candidate.toJavaAudioFormat()))
+                val line = lineOpener.open(device.id, candidate, LINE_BUFFER_MS)
+                logger.info { "capture format chosen: $candidate" }
+                return line to candidate
             } catch (e: Exception) {
-                false
+                // LineUnavailableException is also "busy"/denied; all candidates failing is DeviceUnavailable.
+                if (e !is LineUnavailableException && e !is IllegalArgumentException) {
+                    throw AudioException(AudioError.RecordingStartFailed(e.message ?: "failed to open line"), e)
+                }
+                logger.info { "capture format rejected: $candidate (${e::class.simpleName})" }
+                lastRejection = e
             }
-        }) ?: throw AudioException(AudioError.NoSupportedPcmFormat(device.id))
-
-        val javaFormat = negotiated.toJavaAudioFormat()
-        val info = DataLine.Info(TargetDataLine::class.java, javaFormat)
-        val line = try {
-            (mixer.getLine(info) as TargetDataLine).apply {
-                open(javaFormat, negotiated.bytesForMillis(LINE_BUFFER_MS))
-                start()
-            }
-        } catch (e: LineUnavailableException) {
-            // Typically "Device or resource busy": another process holds the device â€” on Linux
-            // PipeWire/PulseAudio keep `hw`/`plughw` devices open, so only their "default" device works.
-            throw AudioException(AudioError.DeviceUnavailable(device.id), e)
-        } catch (e: Exception) {
-            throw AudioException(AudioError.RecordingStartFailed(e.message ?: "failed to open line"), e)
         }
-        return line to negotiated
+        throw lastRejection?.let { AudioException(AudioError.DeviceUnavailable(device.id), it) }
+            ?: AudioException(AudioError.NoSupportedPcmFormat(device.id))
     }
 
     // endregion

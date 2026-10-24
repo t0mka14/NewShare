@@ -29,7 +29,7 @@ object CaptureFormatNegotiator {
 
     /**
      * Returns the negotiated [CaptureFormat], or `null` if [isSupported] rejects
-     * every candidate (device reported ineligible, ยง5.3.1).
+     * every candidate (device reported ineligible, ง5.3.1).
      */
     fun negotiate(
         preferred: CaptureFormat = CaptureFormat.PREFERRED,
@@ -37,8 +37,22 @@ object CaptureFormatNegotiator {
         candidateBits: List<Int> = STANDARD_BIT_DEPTHS,
         candidateChannels: List<Int> = STANDARD_CHANNEL_COUNTS,
         isSupported: (CaptureFormat) -> Boolean,
-    ): CaptureFormat? {
-        if (isSupported(preferred)) return preferred
+    ): CaptureFormat? =
+        candidates(preferred, candidateRates, candidateBits, candidateChannels, isSupported).firstOrNull()
+
+    /**
+     * All candidates that pass [isSupported], in negotiation order ([preferred] first), evaluated
+     * lazily. [isSupported] is only a pre-filter: DirectSound claims support for every format, so
+     * the caller must confirm a candidate by actually opening it and move on to the next on failure.
+     */
+    fun candidates(
+        preferred: CaptureFormat = CaptureFormat.PREFERRED,
+        candidateRates: List<Int> = STANDARD_SAMPLE_RATES,
+        candidateBits: List<Int> = STANDARD_BIT_DEPTHS,
+        candidateChannels: List<Int> = STANDARD_CHANNEL_COUNTS,
+        isSupported: (CaptureFormat) -> Boolean,
+    ): Sequence<CaptureFormat> = sequence {
+        if (isSupported(preferred)) yield(preferred)
 
         val ratesByDistanceThenHigher = candidateRates.distinct()
             .sortedWith(compareBy({ abs(it - preferred.sampleRate) }, { -it }))
@@ -48,10 +62,9 @@ object CaptureFormatNegotiator {
                 for (channels in candidateChannels) {
                     val candidate = CaptureFormat(rate, bits, channels)
                     if (candidate == preferred) continue
-                    if (isSupported(candidate)) return candidate
+                    if (isSupported(candidate)) yield(candidate)
                 }
             }
         }
-        return null
     }
 }

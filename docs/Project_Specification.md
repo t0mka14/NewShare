@@ -237,7 +237,12 @@ The recorder is the **single source of truth for audio time**. Requirements:
   sample-exact with respect to recorded offsets; this bounded skew is accepted clinically.
 - **Format negotiation:** preferred format is PCM 48 kHz / 16-bit / mono. If the selected
   device does not support it, the recorder picks the nearest supported PCM format (higher
-  sample rate preferred; stereo if mono is unavailable — processing downmixes). The actual
+  sample rate preferred; stereo if mono is unavailable — processing downmixes). A candidate is
+  confirmed only by actually opening the line in that format, never by `isLineSupported` (Windows
+  DirectSound answers yes to every format): when `open()` rejects a candidate the recorder tries
+  the next one in the same order, one attempt per format, and reports `DeviceUnavailable` only after
+  all failed (on Windows a denied microphone looks the same). The format that opened is the one
+  recorded, also on resume after device loss (§8.5). The actual
   capture format is stored in `examination.json` at session start (§8.10). If no PCM format
   is available, the device is reported ineligible in Settings. Resampling/downmixing happens
   only during processing (§8.8), never live in the recorder.
