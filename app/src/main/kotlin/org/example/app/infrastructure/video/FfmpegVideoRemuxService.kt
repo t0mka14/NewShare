@@ -28,10 +28,10 @@ class FfmpegVideoRemuxService(
 
     override fun remuxToMp4(source: Path, fps: Int, output: Path) {
         val ffmpeg = locator.locate() ?: throw VideoRemuxException("no ffmpeg found")
-        if (fps <= 0) throw VideoRemuxException("invalid frame rate $fps for $source")
+        if (fps <= 0) throw VideoRemuxException("invalid frame rate $fps for ${source.fileName}")
 
         val sourceFrames = countSourceFrames(source)
-        if (sourceFrames == 0) throw VideoRemuxException("$source holds no complete frame")
+        if (sourceFrames == 0) throw VideoRemuxException("${source.fileName} holds no complete frame")
 
         Files.createDirectories(output.toAbsolutePath().parent)
         // `.tmp.mp4` rather than `.tmp`: ffmpeg picks the muxer from the extension.
@@ -48,22 +48,27 @@ class FfmpegVideoRemuxService(
                 "video remux of ${source.fileName}",
             )
             if (!Files.isRegularFile(temp) || Files.size(temp) == 0L) {
-                throw VideoRemuxException("ffmpeg wrote no output for $source: ${remuxLog.takeLast(LOG_TAIL)}")
+                throw VideoRemuxException("ffmpeg wrote no output for ${source.fileName}: ${scrubClipName(remuxLog.takeLast(LOG_TAIL), output)}")
             }
 
             val mp4Frames = countMp4Frames(ffmpeg, temp)
             if (mp4Frames != sourceFrames) {
                 throw VideoRemuxException(
-                    "frame count mismatch for $source: source $sourceFrames, mp4 ${mp4Frames ?: "unreadable"}",
+                    "frame count mismatch for ${source.fileName}: source $sourceFrames, mp4 ${mp4Frames ?: "unreadable"}",
                 )
             }
 
             Files.move(temp, output, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-            logger.info { "remuxed ${source.fileName} -> ${output.fileName}: $sourceFrames frames at $fps fps" }
+            // The output is the rendered clip name: patient fields, installation ID, site. Never log it.
+            logger.info { "remuxed ${source.fileName}: $sourceFrames frames at $fps fps" }
         } finally {
             Files.deleteIfExists(temp)
         }
     }
+
+    /** [text] with the clip's file name (and its temp sibling) replaced: ffmpeg echoes the output path. */
+    private fun scrubClipName(text: String, output: Path): String =
+        text.replace(output.fileName.toString(), "<clip>")
 
     /** Complete JPEGs in [source], streamed through the same splitter capture uses. */
     private fun countSourceFrames(source: Path): Int {
@@ -91,7 +96,7 @@ class FfmpegVideoRemuxService(
         val log = readWithTimeout(
             listOf(ffmpeg.toString(), "-hide_banner", "-nostdin", "-i", mp4.toString(), "-map", "0:v", "-c", "copy", "-f", "null", "-"),
             timeoutFor(mp4),
-            "frame count of ${mp4.fileName}",
+            "frame count of the remuxed clip",
         )
         return FRAME_PROGRESS.findAll(log).lastOrNull()?.groupValues?.get(1)?.toIntOrNull()
     }

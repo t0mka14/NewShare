@@ -140,7 +140,10 @@ screen (success or not). It is fire-and-forget. A failure must never block the U
 it should be logged without the token or the installation ID (§11).
 
 What is logged (INFO for normal outcomes, WARN for failures; never the token, the installation ID,
-a session folder name or a response body):
+a session folder name, a clip or archive name or a response body). Clip names are rendered from
+`recordingsFileName` (patient fields, installation ID, site name) and the ZIP is `<PatientCode>_<SessionId>.zip`,
+so they are participant data: log the source take file name (`task00_rep01_take01.mjpeg`) and the task
+index / repetition instead. `ProcessSessionLogPrivacyTest` enforces it:
 
 | Where | Line |
 |---|---|

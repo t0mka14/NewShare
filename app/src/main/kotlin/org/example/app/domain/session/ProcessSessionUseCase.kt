@@ -223,6 +223,7 @@ class ProcessSessionUseCase(
                         } catch (e: VideoRemuxException) {
                             return fail(examination, ProcessingError.VideoRemux(plan.taskIndex, plan.repetition, e.detail))
                         }
+                        logger.info { "video of task ${plan.taskIndex} rep ${plan.repetition} converted" }
                         videoByKey[plan.taskIndex to plan.repetition] = "clips/${plan.fileName}"
                     }
                     onStep(Step.CONVERTING_VIDEO, 0.5f + 0.15f * (index + 1) / total)
