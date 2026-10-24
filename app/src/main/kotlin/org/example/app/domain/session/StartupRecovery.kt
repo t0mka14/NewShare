@@ -1,5 +1,6 @@
 package org.example.app.domain.session
 
+import org.example.app.domain.video.redacted
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +38,7 @@ class StartupRecovery(
     /** Never throws: a failing scan must not keep the app from starting. */
     fun run() {
         val outcomes = runCatching { recoverSessionsUseCase.recoverAll() }
-            .onFailure { logger.warn(it) { "crash recovery scan failed" } }
+            .onFailure { logger.warn(redacted(it)) { "crash recovery scan failed" } }
             .getOrNull() ?: return
         // After recovery, and only for what it left alone: a crashed session with audio is
         // Recovered by now and is never a candidate. Startup has no active session.

@@ -848,7 +848,9 @@ This is a first-class requirement. Approach:
 Structured sealed error types per subsystem, mapped to localized user messages; technical
 detail goes to `logs/app.log` (kotlin-logging + Logback). **Log lines must never contain
 participant data** (patient code, field values, questionnaire answers) **or the installation
-ID** (it acts as a bearer credential) — sessions are referenced by `sessionId` only. Never surface raw keys, stack traces, or placeholder text in
+ID** (it acts as a bearer credential) — sessions are referenced by `sessionId` only. Nor session folder names or
+paths (they embed the patient code): log file names or `sessionId`s, and exceptions as class + path-redacted message
+(`describeError`). Network paths log one line per call (listed in §5 of `docs/dev/server-upload-integration.md`). Never surface raw keys, stack traces, or placeholder text in
 the UI.
 
 Error taxonomy (normative, inlined from the old plan):

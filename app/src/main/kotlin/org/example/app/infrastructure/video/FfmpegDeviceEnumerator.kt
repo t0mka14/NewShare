@@ -1,5 +1,6 @@
 package org.example.app.infrastructure.video
 
+import org.example.app.domain.video.redacted
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoInputDeviceProvider
@@ -44,7 +45,7 @@ class FfmpegDeviceEnumerator(
         }
 
         val output = runCatching { capture(command) }.getOrElse { e ->
-            logger.warn(e) { "camera enumeration failed" }
+            logger.warn(redacted(e)) { "camera enumeration failed" }
             return emptyList()
         }
 

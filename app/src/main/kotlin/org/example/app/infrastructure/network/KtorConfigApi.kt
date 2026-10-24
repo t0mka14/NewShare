@@ -79,13 +79,16 @@ class KtorConfigApi(
         }
 
         return when {
-            response.status.isSuccess() -> ConfigFetchResult.Success(response.bodyAsText())
+            response.status.isSuccess() -> {
+                logger.info { "config fetch: HTTP ${response.status.value}" }
+                ConfigFetchResult.Success(response.bodyAsText())
+            }
             response.status == HttpStatusCode.NotFound -> {
-                logger.info { "config fetch: site token not recognized (HTTP 404)" }
+                logger.warn { "config fetch: site token not recognized (HTTP 404)" }
                 ConfigFetchResult.SiteTokenUnknown
             }
             response.status == HttpStatusCode.Forbidden -> {
-                logger.info { "config fetch: site deactivated (HTTP 403)" }
+                logger.warn { "config fetch: site deactivated (HTTP 403)" }
                 ConfigFetchResult.SiteDeactivated
             }
             response.status == HttpStatusCode.TooManyRequests -> {

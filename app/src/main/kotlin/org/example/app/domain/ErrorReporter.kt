@@ -1,5 +1,6 @@
 package org.example.app.domain
 
+import org.example.app.domain.video.redacted
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +28,7 @@ class ErrorReporter {
 
     fun report(throwable: Throwable) {
         val fatal = throwable is Error
-        logger.error(throwable) { "unhandled ${if (fatal) "fatal" else "recoverable"} error" }
+        logger.error(redacted(throwable)) { "unhandled ${if (fatal) "fatal" else "recoverable"} error" }
         // A fatal error stays on screen until the user exits — never downgraded by a later one.
         if (_current.value?.fatal == true) return
         _current.value = ReportedError(throwable, fatal)

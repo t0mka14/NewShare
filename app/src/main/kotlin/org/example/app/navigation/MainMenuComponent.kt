@@ -1,5 +1,6 @@
 package org.example.app.navigation
 
+import org.example.app.domain.video.redacted
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -137,7 +138,7 @@ class DefaultMainMenuComponent(
                 "browsing is not supported on this desktop"
             }
             Desktop.getDesktop().browse(URI(url))
-        }.onFailure { logger.warn(it) { "could not open the protocol instructions PDF" } }
+        }.onFailure { logger.warn(redacted(it)) { "could not open the protocol instructions PDF" } }
     }
 
     override fun onRecoveryDismissed() {

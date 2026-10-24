@@ -6,6 +6,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
 import org.example.app.domain.CoroutineDispatchers
+import org.example.app.infrastructure.logging.captureLogs
+import org.example.app.infrastructure.logging.fullText
 import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.video.VideoError
 import org.example.app.domain.video.VideoInputDevice
@@ -175,6 +177,36 @@ class FfmpegSessionVideoRecorderTest {
         } finally {
             recorder.stop()
         }
+    }
+
+    @Test
+    fun `recording logs the file name only, never the session folder or the patient code`(@TempDir tempDir: Path) = runBlocking {
+        assumeFfmpegAvailable()
+        val folder = "2026-10-24_PATIENT-XY7_sess1"
+        val file = tempDir.resolve("sessions").resolve(folder).resolve("video").resolve("task00_rep01_take01.mjpeg")
+        val blocker = tempDir.resolve("blocker").also { Files.writeString(it, "x") }
+        val recorder = recorder(fps = 15)
+
+        val logs = captureLogs {
+            runBlocking {
+                try {
+                    recorder.startPreview(device)
+                    recorder.startRecording(file)
+                    withTimeout(15_000) { while (recorder.framesWritten.value < 3) delay(50) }
+                    recorder.stopRecording()
+                    // A take that cannot be opened: the I/O exception message names the path.
+                    recorder.startRecording(blocker.resolve(folder).resolve("video").resolve("take.mjpeg"))
+                } finally {
+                    recorder.stop()
+                }
+            }
+        }
+
+        assertTrue(logs.any { it.formattedMessage.contains("task00_rep01_take01.mjpeg") }, "the file name is still logged")
+        val leaked = logs.filter {
+            it.fullText.contains("PATIENT-XY7") || it.fullText.contains(folder) || it.fullText.contains(tempDir.toString())
+        }
+        assertTrue(leaked.isEmpty(), "log lines leak the session path: ${leaked.map { it.fullText }}")
     }
 
     @Test

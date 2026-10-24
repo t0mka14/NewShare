@@ -1,5 +1,6 @@
 package org.example.app.infrastructure.audio
 
+import org.example.app.domain.video.redacted
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,7 +54,7 @@ class JvmAudioPlaybackService(
         val header = try {
             WavIo.readHeader(file)
         } catch (e: Exception) {
-            logger.warn(e) { "cannot start playback for $file" }
+            logger.warn(redacted(e)) { "cannot start playback for ${file.fileName}" }
             return
         }
         val totalFrames = header.format.framesIn(header.dataSize)
@@ -71,7 +72,7 @@ class JvmAudioPlaybackService(
             }
             startPlayback(file, header.format, startSample, stopSample)
         } catch (e: Exception) {
-            logger.warn(e) { "cannot start range playback for $file" }
+            logger.warn(redacted(e)) { "cannot start range playback for ${file.fileName}" }
         }
     }
 
@@ -121,13 +122,13 @@ class JvmAudioPlaybackService(
         } catch (e: InterruptedException) {
             // expected on stop() — the blocking line.write()/read may throw this
         } catch (e: Exception) {
-            logger.warn(e) { "playback failed for $file" }
+            logger.warn(redacted(e)) { "playback failed for ${file.fileName}" }
         } finally {
             try {
                 line.stop()
                 line.close()
             } catch (e: Exception) {
-                logger.warn(e) { "error closing playback line" }
+                logger.warn(redacted(e)) { "error closing playback line" }
             }
             _isPlaying.value = false
         }
@@ -176,7 +177,7 @@ class JvmAudioPlaybackService(
             line?.stop()
             line?.close()
         } catch (e: Exception) {
-            logger.warn(e) { "error closing playback line on stop" }
+            logger.warn(redacted(e)) { "error closing playback line on stop" }
         }
         thread?.interrupt()
         try {

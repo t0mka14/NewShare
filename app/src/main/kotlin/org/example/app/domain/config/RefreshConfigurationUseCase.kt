@@ -1,9 +1,12 @@
 package org.example.app.domain.config
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.upload.DeviceCheckinUseCase
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * §5.5 `RefreshConfigurationUseCase`: site token (from [AppSettingsRepository]) →
@@ -48,11 +51,37 @@ class RefreshConfigurationUseCase(
      * ([Result.OfflineUsingCache]) — Settings says so instead of reporting success. */
     val usingCachedConfig: StateFlow<Boolean> = _usingCachedConfig
 
-    suspend fun refresh(): Result =
-        fetchAndApply().also {
+    suspend fun refresh(): Result {
+        val previousVersion = configurationRepository.activeConfig.value?.configVersion
+        return fetchAndApply().also {
+            logOutcome(it, previousVersion)
             _lastError.value = (it as? Result.Failed)?.error
             _usingCachedConfig.value = it is Result.OfflineUsingCache
         }
+    }
+
+    /** One line per refresh: the outcome, the config version and the site name; never the token
+     * (§11) and never a server error body. */
+    private fun logOutcome(result: Result, previousVersion: String?) {
+        when (result) {
+            is Result.Success -> {
+                val outcome = if (result.config.configVersion == previousVersion) "unchanged" else "applied"
+                logger.info { "config refresh: $outcome configVersion=${result.config.configVersion} site=${result.config.siteName}" }
+            }
+            is Result.OfflineUsingCache -> logger.warn {
+                "config refresh: network failure, using cached configVersion=${result.config.configVersion} site=${result.config.siteName}"
+            }
+            is Result.Failed -> logger.warn { "config refresh: rejected, ${result.error.logDescription()}" }
+        }
+    }
+
+    private fun ConfigError.logDescription(): String = when (this) {
+        is ConfigError.ValidationFailed -> "validation errors: ${errors.joinToString { it::class.simpleName ?: "?" }}"
+        is ConfigError.ServerError -> "HTTP $httpStatus"
+        is ConfigError.SchemaUnsupported -> "unsupported schemaVersion=$schemaVersion"
+        is ConfigError.Malformed -> "malformed config"
+        else -> this::class.simpleName ?: "?"
+    }
 
     private suspend fun fetchAndApply(): Result {
         val siteToken = settingsRepository.read()?.siteToken

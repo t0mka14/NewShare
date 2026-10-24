@@ -1,5 +1,6 @@
 package org.example.app.infrastructure.audio
 
+import org.example.app.domain.video.redacted
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -111,7 +112,7 @@ class JvmContinuousSessionRecorder(
             _state.value = RecorderState.Monitoring
             startCaptureThread(line, format)
         } catch (e: AudioException) {
-            logger.warn(e) { "startMonitoring failed for device=${device.id}" }
+            logger.warn(redacted(e)) { "startMonitoring failed for device=${device.id}" }
             _state.value = RecorderState.Failed(e.error)
         }
     }
@@ -130,7 +131,7 @@ class JvmContinuousSessionRecorder(
             currentWriter = writer
             _state.value = RecorderState.Writing
         } catch (e: Exception) {
-            logger.warn(e) { "startWriting failed for masterFile=$masterFile" }
+            logger.warn(redacted(e)) { "startWriting failed for masterFile=${masterFile.fileName}" }
             _state.value = RecorderState.Failed(AudioError.RecordingStartFailed(e.message ?: "failed to open master file"))
         }
     }
@@ -155,7 +156,7 @@ class JvmContinuousSessionRecorder(
             _state.value = RecorderState.Writing
             startCaptureThread(line, format)
         } catch (e: AudioException) {
-            logger.warn(e) { "resume failed for device=${device.id}" }
+            logger.warn(redacted(e)) { "resume failed for device=${device.id}" }
             _state.value = RecorderState.Failed(e.error)
         }
     }
@@ -169,7 +170,7 @@ class JvmContinuousSessionRecorder(
             try {
                 writer.finalizeAndRename()
             } catch (e: Exception) {
-                logger.error(e) { "failed to finalize master file on stop" }
+                logger.error(redacted(e)) { "failed to finalize master file on stop" }
                 resetSessionState()
                 _state.value = RecorderState.Failed(AudioError.DiskWriteFailed(e.message ?: "finalize failed"))
                 return@withContext
@@ -199,7 +200,7 @@ class JvmContinuousSessionRecorder(
                 val n = try {
                     line.read(buffer, 0, buffer.size)
                 } catch (e: Exception) {
-                    logger.warn(e) { "capture line read failed" }
+                    logger.warn(redacted(e)) { "capture line read failed" }
                     onLineFailure(InterruptionReason.DEVICE_LOST)
                     return
                 }
@@ -223,7 +224,7 @@ class JvmContinuousSessionRecorder(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "capture loop terminated unexpectedly" }
+            logger.error(redacted(e)) { "capture loop terminated unexpectedly" }
             onLineFailure(InterruptionReason.DEVICE_LOST)
         }
     }
@@ -235,7 +236,7 @@ class JvmContinuousSessionRecorder(
                 writer.patchHeader()
                 lastHeaderPatchAtMillis = now
             } catch (e: Exception) {
-                logger.error(e) { "header patch failed" }
+                logger.error(redacted(e)) { "header patch failed" }
                 onWriteFailure(e)
             }
         }
@@ -286,7 +287,7 @@ class JvmContinuousSessionRecorder(
         try {
             line?.close()
         } catch (e: Exception) {
-            logger.warn(e) { "error closing line after interruption" }
+            logger.warn(redacted(e)) { "error closing line after interruption" }
         }
 
         val writer = currentWriter
@@ -295,7 +296,7 @@ class JvmContinuousSessionRecorder(
             try {
                 writer.finalizeAndRename()
             } catch (e: Exception) {
-                logger.error(e) { "failed to finalize part file after interruption" }
+                logger.error(redacted(e)) { "failed to finalize part file after interruption" }
             }
         }
 
@@ -354,7 +355,7 @@ class JvmContinuousSessionRecorder(
             line?.stop()
             line?.close()
         } catch (e: Exception) {
-            logger.warn(e) { "error closing line on stop" }
+            logger.warn(redacted(e)) { "error closing line on stop" }
         }
         thread?.interrupt()
         try {

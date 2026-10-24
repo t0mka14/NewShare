@@ -24,3 +24,23 @@ fun lastDiagnosticLine(lines: List<String>): String {
     }
     return redactPaths(line?.trim() ?: "the capture process ended").take(300)
 }
+
+/** A copy of a throwable for logging: see [redacted]. */
+class RedactedThrowable(message: String, cause: Throwable?) : Throwable(message, cause)
+
+/**
+ * [t] as a throwable that is safe to log: the original class name, the original stack frames
+ * (class, method, file, line; no session paths), and the messages of the throwable, its causes and
+ * its suppressed exceptions run through [redactPaths]. Log this instead of [t] itself.
+ */
+fun redacted(t: Throwable): Throwable = redacted(t, HashSet())
+
+private fun redacted(t: Throwable, seen: MutableSet<Throwable>): Throwable {
+    val name = t::class.qualifiedName ?: t::class.simpleName ?: "Throwable"
+    val message = name + (t.message?.let { ": ${redactPaths(it).take(500)}" } ?: "")
+    val cause = t.cause?.takeIf { seen.add(it) }?.let { redacted(it, seen) }
+    return RedactedThrowable(message, cause).also { copy ->
+        copy.stackTrace = t.stackTrace
+        t.suppressed.filter { seen.add(it) }.forEach { copy.addSuppressed(redacted(it, seen)) }
+    }
+}

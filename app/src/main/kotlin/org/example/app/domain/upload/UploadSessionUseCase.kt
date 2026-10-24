@@ -1,11 +1,14 @@
 package org.example.app.domain.upload
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.withContext
 import org.example.app.domain.Clock
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.session.SessionArchivePaths
 import org.example.app.domain.session.SessionRepository
 import org.example.app.domain.settings.AppSettingsRepository
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * §5.5/§8.9 `UploadSessionUseCase`: uploads one already-processed session's archive ZIP,
@@ -111,7 +114,23 @@ class UploadSessionUseCase(
             is Outcome.Refused -> uploading // unreachable here, but keeps `when` exhaustive
         }
         uploadStatusRepository.write(folderName, finalStatus)
+        logAttempt(examination.sessionId, finalStatus, outcome)
         outcome
+    }
+
+    /** One line per attempt: session id, attempt number, outcome and the retry decision. The HTTP
+     * status is logged by [UploadApi]; never the site token or the installation ID (§11). */
+    private fun logAttempt(sessionId: String, status: UploadStatus, outcome: Outcome) {
+        val attempt = status.attemptCount
+        when (outcome) {
+            is Outcome.Success -> logger.info { "upload attempt: session=$sessionId attempt=$attempt outcome=Success" }
+            is Outcome.Failed -> {
+                val last = status.attempts.lastOrNull()?.outcome
+                val retry = if (last == CONFLICT_OUTCOME) "none, needs an administrator" else "manual, no automatic retry"
+                logger.warn { "upload attempt: session=$sessionId attempt=$attempt outcome=$last retry=$retry" }
+            }
+            is Outcome.Refused -> Unit
+        }
     }
 
     private fun failedOutcome(

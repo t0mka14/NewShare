@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -15,6 +16,8 @@ import org.example.app.domain.upload.EligibleUploadsQuery
 import org.example.app.domain.upload.RejectionReason
 import org.example.app.domain.upload.UploadSessionUseCase
 import org.example.app.domain.upload.UploadStatusValue
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * §8.9/§13 decision 34 upload screen: manual-only, sequential batch upload of every eligible
@@ -109,14 +112,17 @@ class DefaultUploadComponent(
         _state.value = _state.value.copy(uploading = true, batchResultKey = null)
         scope.launch(dispatchers.main) {
             val total = batch.size
+            var succeeded = 0
             batch.forEachIndexed { index, row ->
-                uploadSessionUseCase.upload(row.folderName) { fraction ->
+                val outcome = uploadSessionUseCase.upload(row.folderName) { fraction ->
                     val overall = (index + fraction) / total
                     _state.value = _state.value.copy(overallProgress = overall)
                 }
+                if (outcome is UploadSessionUseCase.Outcome.Success) succeeded++
                 val refreshed = loadRows()
                 _state.value = _state.value.copy(rows = refreshed, overallProgress = (index + 1f) / total)
             }
+            logger.info { "upload batch: $total session(s), $succeeded ok, ${total - succeeded} failed" }
             val allUploaded = _state.value.rows.isEmpty()
             _state.value = _state.value.copy(
                 uploading = false,

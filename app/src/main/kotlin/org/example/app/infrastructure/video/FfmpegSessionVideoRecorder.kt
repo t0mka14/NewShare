@@ -1,5 +1,7 @@
 package org.example.app.infrastructure.video
 
+import org.example.app.domain.video.redacted
+import org.example.app.domain.video.redactPaths
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -157,9 +159,9 @@ class FfmpegSessionVideoRecorder internal constructor(
             _framesWritten.value = 0L
             sink.set(RecordingSink(file, stream))
             _state.value = VideoRecorderState.Recording
-            logger.info { "recording video to $file" }
+            logger.info { "recording video to ${file.fileName}" }
         } catch (e: Exception) {
-            logger.error(e) { "could not open $file for video" }
+            logger.error(redacted(e)) { "could not open ${file.fileName} for video" }
             _state.value = VideoRecorderState.Failed(VideoError.DiskWriteFailed(e.message ?: e.toString()))
         }
     }
@@ -167,7 +169,7 @@ class FfmpegSessionVideoRecorder internal constructor(
     override suspend fun stopRecording() = withContext(dispatchers.io) {
         val closed = sink.getAndSet(null) ?: return@withContext
         closed.close()
-        logger.info { "stopped recording ${closed.file} after ${_framesWritten.value} frames" }
+        logger.info { "stopped recording ${closed.file.fileName} after ${_framesWritten.value} frames" }
         if (_state.value == VideoRecorderState.Recording) _state.value = VideoRecorderState.Previewing
     }
 
@@ -185,7 +187,7 @@ class FfmpegSessionVideoRecorder internal constructor(
         val started = try {
             ProcessBuilder(command).start()
         } catch (e: Exception) {
-            logger.warn(e) { "could not spawn ffmpeg" }
+            logger.warn(redacted(e)) { "could not spawn ffmpeg" }
             return false
         }
         process = started
@@ -223,7 +225,7 @@ class FfmpegSessionVideoRecorder internal constructor(
             return true
         }
 
-        logger.debug { "no frames for ${attempt.describe}: ${stderrTail.snapshot()}" }
+        logger.debug { "no frames for ${attempt.describe}: ${redactPaths(stderrTail.snapshot())}" }
         teardown()
         return false
     }
@@ -281,7 +283,7 @@ class FfmpegSessionVideoRecorder internal constructor(
             )
             captureInput.parseModes(output)
         } catch (e: Exception) {
-            logger.warn(e) { "could not probe capture modes for '${device.name}'" }
+            logger.warn(redacted(e)) { "could not probe capture modes for '${device.name}'" }
             emptyList()
         }
     }
@@ -357,7 +359,7 @@ class FfmpegSessionVideoRecorder internal constructor(
                     open.stream.write(buffer, offset, length)
                     _framesWritten.value = ++open.frames
                 } catch (e: Exception) {
-                    logger.error(e) { "video write failed for ${open.file}" }
+                    logger.error(redacted(e)) { "video write failed for ${open.file.fileName}" }
                     sink.compareAndSet(open, null)
                     runCatching { open.close() }
                     _state.value = VideoRecorderState.Failed(
@@ -381,7 +383,7 @@ class FfmpegSessionVideoRecorder internal constructor(
             }
         } catch (e: Exception) {
             if (!Thread.currentThread().isInterrupted && closingProcess !== started) {
-                logger.warn(e) { "capture stream ended unexpectedly" }
+                logger.warn(redacted(e)) { "capture stream ended unexpectedly" }
             }
         }
 
@@ -456,7 +458,7 @@ class FfmpegSessionVideoRecorder internal constructor(
                                 lines.addLast(line)
                                 while (lines.size > MAX_LINES) lines.removeFirst()
                             }
-                            logger.debug { "ffmpeg: $line" }
+                            logger.debug { "ffmpeg: ${redactPaths(line)}" }
                         }
                     }
                 }

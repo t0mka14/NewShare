@@ -216,7 +216,7 @@ class ProcessSessionUseCase(
                     // A camera that died before its first frame leaves an empty file, or none. There
                     // is no video to keep, and the audio take is still good.
                     if (!Files.isRegularFile(source) || Files.size(source) == 0L) {
-                        logger.warn { "skipping video of task ${plan.taskIndex} rep ${plan.repetition}: ${plan.source} is missing or empty" }
+                        logger.warn { "skipping video of task ${plan.taskIndex} rep ${plan.repetition}: ${plan.source.substringAfterLast('/')} is missing or empty" }
                     } else {
                         try {
                             videoRemuxService.remuxToMp4(source, plan.fps, clipsDir.resolve(plan.fileName))

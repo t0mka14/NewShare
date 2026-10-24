@@ -69,9 +69,12 @@ class KtorDeviceCheckinApi(
         }
 
         return when {
-            response.status.isSuccess() -> DeviceCheckinResult.Recorded
+            response.status.isSuccess() -> {
+                logger.info { "device check-in: HTTP ${response.status.value}" }
+                DeviceCheckinResult.Recorded
+            }
             response.status == HttpStatusCode.NotFound -> {
-                logger.info { "device check-in: site token not recognized (HTTP 404)" }
+                logger.warn { "device check-in: site token not recognized (HTTP 404)" }
                 DeviceCheckinResult.InvalidToken
             }
             response.status == HttpStatusCode.Conflict -> {

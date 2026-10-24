@@ -139,6 +139,21 @@ When to call it: after every successful config refresh, and after every upload b
 screen (success or not). It is fire-and-forget. A failure must never block the UI or an upload, and
 it should be logged without the token or the installation ID (§11).
 
+What is logged (INFO for normal outcomes, WARN for failures; never the token, the installation ID,
+a session folder name or a response body):
+
+| Where | Line |
+|---|---|
+| config fetch (`KtorConfigApi`) | `config fetch: HTTP 200`, or the failure with its HTTP status or `transport error: <exception class>` |
+| config refresh (`RefreshConfigurationUseCase`) | `config refresh: applied\|unchanged configVersion=… site=…`; WARN `network failure, using cached …`; WARN `rejected, <error class \| validation error class names \| HTTP n>` |
+| check-in (`KtorDeviceCheckinApi`) | `device check-in: HTTP 200`, or `site token not recognized (HTTP 404)`, `registered to another site (HTTP 409)`, `failed: HTTP n`, `transport error` |
+| check-in (`DeviceCheckinUseCase`) | `device check-in: ok \| registered to another site \| site token rejected \| failed \| skipped` |
+| upload call (`KtorUploadApi`) | `upload ok for session=…: HTTP 200`, or `rejected` / `conflict` / `failed` / `transport error` with the HTTP status |
+| upload attempt (`UploadSessionUseCase`) | `upload attempt: session=… attempt=n outcome=… retry=…` (WARN on failure; a 409 says `retry=none, needs an administrator`, other failures `retry=manual, no automatic retry`) |
+| upload batch (`UploadComponent`) | `upload batch: n session(s), n ok, n failed` |
+
+Uploads are manual, so the retry decision is always "manual" and there is no delay.
+
 Implementation sketch: a `DeviceCheckinApi` interface in `domain/`, a `KtorDeviceCheckinApi` in
 `infrastructure/network/` next to the other two, with its own short timeout (15 s like the config
 fetch). The counts come from `EligibleUploadsQuery`.

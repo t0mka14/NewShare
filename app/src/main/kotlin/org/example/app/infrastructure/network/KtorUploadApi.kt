@@ -135,9 +135,12 @@ class KtorUploadApi(
 
         val rejection = rejectionReason(response.status)
         return when {
-            response.status.isSuccess() -> UploadResult.Success(parseServerResponse(response))
+            response.status.isSuccess() -> {
+                logger.info { "upload ok for session=$sessionId: HTTP ${response.status.value}" }
+                UploadResult.Success(parseServerResponse(response))
+            }
             rejection != null -> {
-                logger.info { "upload rejected for session=$sessionId: HTTP ${response.status.value}" }
+                logger.warn { "upload rejected for session=$sessionId: HTTP ${response.status.value}" }
                 UploadResult.Rejected(rejection)
             }
             response.status == HttpStatusCode.Conflict -> {
