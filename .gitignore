@@ -46,3 +46,6 @@ bin/
 ### Runtime data (never in VCS — clinical data, logs, lock files)
 app/data/
 data/
+
+# E2E test run secrets (site tokens)
+docs/testing/e2e/reports/*-secrets.json

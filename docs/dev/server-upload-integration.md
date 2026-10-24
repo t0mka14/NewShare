@@ -132,10 +132,10 @@ the place where the installation ID goes). Add the query string there and URL-en
 | 200 | `{"status":"ok"}` | recorded |
 | 400 | `{"error":"invalid_request"}` | a field is missing or out of range |
 | 404 | `{"error":"invalid_token"}` | unknown or deactivated site token |
-| 409 | `{"error":"device_belongs_to_another_site"}` | this computer is registered to a different site than the token's. Nothing is recorded. Worth showing in Settings: "This computer is registered to another site." |
+| 409 | `{"error":"device_belongs_to_another_site"}` | this computer is registered to a different site than the token's. Nothing is recorded. Settings says "This computer is registered to another site"; after a config fetch the fetched config is then not applied (F-041). |
 | 429 | message | rate limit (120 / 15 min per IP) |
 
-When to call it: after every successful config refresh, and after every upload batch on the upload
+When to call it: after every successful config fetch (before the config is persisted; a 409 there means the fetched config is discarded, F-041), and after every upload batch on the upload
 screen (success or not). It is fire-and-forget. A failure must never block the UI or an upload, and
 it should be logged without the token or the installation ID (§11).
 

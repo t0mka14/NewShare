@@ -1,0 +1,81 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:5 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Starting a Gradle Daemon, 32 busy and 1 incompatible Daemons could not be reused, use --status for details
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+22:19:24.021 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=8ca08e502379476d8b2cadc7bfe64cab
+22:19:24.029 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=f90e842b19924fa1b1bec62265e5c2d9
+22:19:24.035 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=4dbda135a60d415e91e8f30b25a1b7a5
+22:19:24.041 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=e5343ae2edf448a68f784faa562c1ef0
+22:19:24.050 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=356b1cd569ff44c5b0ff0edc8f202e14
+22:19:24.063 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=72002a9e207c497d83e086892d6c593f
+22:19:24.068 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=bfa8c0b207b74542a01687d20797dbec
+22:19:24.074 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=0a7316ec1b294e879ebf29f8a5f9bc1c
+22:19:24.080 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=1730e619e47d4dff87e287ef57e813a7
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+22:19:29.248 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+22:19:29.466 [DefaultDispatcher-worker-2] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+22:19:29.472 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+22:19:29.475 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+22:20:10.484 [DefaultDispatcher-worker-2] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:20:10.500 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'Primary Sound Capture Driver' (Primary Sound Capture Driver|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:20:38.902 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:20:38.905 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:20:46.101 [AWT-EventQueue-0] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=c2b5b6fce4da43a5aba912f592e93456
+22:21:03.482 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:21:03.485 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'Primary Sound Capture Driver' (Primary Sound Capture Driver|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:21:15.442 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:21:15.444 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:21:28.246 [AWT-EventQueue-0] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=055e7f8e542c4cb4abd43f4b7fabd630

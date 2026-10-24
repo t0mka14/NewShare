@@ -18,10 +18,15 @@ class FakeVideoRemuxService : VideoRemuxService {
     /** If set, every call throws this detail instead of writing — tests the failure path. */
     var failWith: String? = null
 
-    override fun remuxToMp4(source: Path, fps: Int, output: Path) {
+    /** Frames reported per source file name; anything unlisted reports [defaultFrames]. */
+    val framesBySource = mutableMapOf<String, Int>()
+    var defaultFrames = 30
+
+    override fun remuxToMp4(source: Path, fps: Int, output: Path): Int {
         failWith?.let { throw VideoRemuxException(it) }
         calls += Call(source, fps, output)
         Files.createDirectories(output.toAbsolutePath().parent)
         Files.write(output, byteArrayOf(0, 0, 0, 8, 'f'.code.toByte(), 't'.code.toByte(), 'y'.code.toByte(), 'p'.code.toByte()))
+        return framesBySource[source.fileName.toString()] ?: defaultFrames
     }
 }

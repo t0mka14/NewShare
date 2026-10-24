@@ -52,6 +52,11 @@ object BuiltinStrings {
         "settings.device.refresh" to "Refresh microphones",
         "settings.device.default.config" to "Default from the site configuration",
         "settings.device.default.system" to "System default",
+        "settings.camera.label" to "Camera",
+        "settings.camera.automatic" to "Automatic (first available camera)",
+        "settings.camera.loading" to "Looking for cameras…",
+        "settings.camera.none" to "No camera found",
+        "settings.camera.unavailable" to "{name} (not connected)",
         "settings.micGain.label" to "Microphone level",
         "settings.micGain.reset" to "Use configured default ({value})",
         "settings.micGain.unavailable" to "Microphone level can not be set for this device.",
@@ -68,7 +73,7 @@ object BuiltinStrings {
         "settings.indicator.reset" to "Use configured default ({value})",
         "settings.refresh.button" to "Refresh configuration",
         "settings.refresh.success" to "Configuration refreshed. Everything looks OK.",
-        "settings.refresh.otherSite" to "Configuration refreshed, but this computer is registered to another site. Contact your administrator.",
+        "settings.refresh.otherSite" to "The new configuration was not applied: this computer is registered to another site. Contact your administrator.",
         "settings.refresh.failed" to "Could not refresh the configuration.",
         "settings.refresh.offline" to "Could not reach the server. Using the saved configuration.",
         "settings.backButton" to "Save and go back",
@@ -140,6 +145,11 @@ object BuiltinStrings {
         "editor.durationLabel" to "Length",
         "editor.positionLabel" to "Position",
         "action.accept" to "Accept",
+        "editor.reset" to "Reset segment",
+        "editor.discard" to "Discard changes",
+        "editor.discardConfirm.title" to "Discard edits?",
+        "editor.discardConfirm.message" to "Your changes to the recordings will be lost.",
+        "editor.discardConfirm.confirm" to "Discard",
 
         // Processing progress screen (§8.8) — blocks navigation while the session is processed.
         "processing.title" to "Processing",
@@ -238,6 +248,10 @@ object BuiltinStrings {
         // with the processing/upload chunk).
         "sessionSummary.title" to "Examination complete",
         "sessionSummary.message" to "The examination has finished. Thank you.",
+        "sessionSummary.processed" to "Session processed – ready to upload.",
+        "sessionSummary.processed.one" to "Session processed (1 clip) – ready to upload.",
+        "sessionSummary.processed.few" to "Session processed ({count} clips) – ready to upload.", // same as other; CS distinguishes
+        "sessionSummary.processed.other" to "Session processed ({count} clips) – ready to upload.",
 
         // Blocking "configuration required" screen's way back into Settings (§6.1).
         "blocking.openSettingsButton" to "Open settings",
@@ -277,6 +291,11 @@ object BuiltinStrings {
         "settings.device.refresh" to "Obnovit seznam mikrofonů",
         "settings.device.default.config" to "Výchozí podle konfigurace pracoviště",
         "settings.device.default.system" to "Výchozí v systému",
+        "settings.camera.label" to "Kamera",
+        "settings.camera.automatic" to "Automaticky (první dostupná kamera)",
+        "settings.camera.loading" to "Hledám kamery…",
+        "settings.camera.none" to "Nebyla nalezena žádná kamera",
+        "settings.camera.unavailable" to "{name} (nepřipojena)",
         "settings.micGain.label" to "Úroveň mikrofonu",
         "settings.micGain.reset" to "Použít nastavenou výchozí hodnotu ({value})",
         "settings.micGain.unavailable" to "Úroveň mikrofonu nelze pro toto zařízení nastavit.",
@@ -292,7 +311,7 @@ object BuiltinStrings {
         "settings.indicator.reset" to "Použít nastavenou výchozí hodnotu ({value})",
         "settings.refresh.button" to "Aktualizovat konfiguraci",
         "settings.refresh.success" to "Konfigurace byla aktualizována. Vše je v pořádku.",
-        "settings.refresh.otherSite" to "Konfigurace byla aktualizována, ale tento počítač je registrován k jinému pracovišti. Kontaktujte správce.",
+        "settings.refresh.otherSite" to "Nová konfigurace nebyla použita: tento počítač je registrován k jinému pracovišti. Kontaktujte správce.",
         "settings.refresh.failed" to "Konfiguraci se nepodařilo aktualizovat.",
         "settings.refresh.offline" to "Server není dostupný. Používá se uložená konfigurace.",
         "settings.backButton" to "Uložit a vrátit se",
@@ -358,6 +377,11 @@ object BuiltinStrings {
         "editor.durationLabel" to "Délka",
         "editor.positionLabel" to "Pozice",
         "action.accept" to "Potvrdit",
+        "editor.reset" to "Obnovit úsek",
+        "editor.discard" to "Zahodit změny",
+        "editor.discardConfirm.title" to "Zahodit úpravy?",
+        "editor.discardConfirm.message" to "Vaše změny nahrávek budou ztraceny.",
+        "editor.discardConfirm.confirm" to "Zahodit",
 
         "processing.title" to "Zpracování",
         "processing.step.selectingTimeline" to "Příprava…",
@@ -432,6 +456,10 @@ object BuiltinStrings {
 
         "sessionSummary.title" to "Vyšetření dokončeno",
         "sessionSummary.message" to "Vyšetření skončilo. Děkujeme.",
+        "sessionSummary.processed" to "Sezení zpracováno – připraveno k odeslání.",
+        "sessionSummary.processed.one" to "Sezení zpracováno (1 nahrávka) – připraveno k odeslání.",
+        "sessionSummary.processed.few" to "Sezení zpracováno ({count} nahrávky) – připraveno k odeslání.",
+        "sessionSummary.processed.other" to "Sezení zpracováno ({count} nahrávek) – připraveno k odeslání.",
 
         "blocking.openSettingsButton" to "Otevřít nastavení",
 

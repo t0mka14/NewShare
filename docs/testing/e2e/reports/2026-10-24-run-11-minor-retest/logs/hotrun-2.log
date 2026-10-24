@@ -1,0 +1,163 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At C:\Users\koubato2\AppData\Local\Temp\3\claude\C--Users-koubato2-IdeaProjects-NewShare\ee0b7184-f127-400a-9a41-bd0e02
+2d07cb\scratchpad\start.ps1:5 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Starting a Gradle Daemon, 34 busy and 1 incompatible Daemons could not be reused, use --status for details
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+22:22:14.808 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+22:22:14.973 [DefaultDispatcher-worker-7] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+22:22:15.045 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+22:22:15.048 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+22:22:42.543 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=1) (LineUnavailableException)
+22:22:42.556 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=2) (LineUnavailableException)
+22:22:42.575 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=1) (LineUnavailableException)
+22:22:42.589 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=2) (LineUnavailableException)
+22:22:42.616 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=1) (LineUnavailableException)
+22:22:42.625 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=2) (LineUnavailableException)
+22:22:42.639 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=1) (LineUnavailableException)
+22:22:42.656 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=2) (LineUnavailableException)
+22:22:42.699 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=1) (LineUnavailableException)
+22:22:42.722 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=2) (LineUnavailableException)
+22:22:42.736 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=1) (LineUnavailableException)
+22:22:42.757 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=2) (LineUnavailableException)
+22:22:42.769 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=1) (LineUnavailableException)
+22:22:42.788 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=2) (LineUnavailableException)
+22:22:42.796 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=1) (LineUnavailableException)
+22:22:42.810 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=2) (LineUnavailableException)
+22:22:42.825 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=1) (LineUnavailableException)
+22:22:42.837 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=2) (LineUnavailableException)
+22:22:42.846 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=1) (LineUnavailableException)
+22:22:42.854 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=2) (LineUnavailableException)
+22:22:42.871 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=1) (LineUnavailableException)
+22:22:42.878 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=2) (LineUnavailableException)
+22:22:42.883 [DefaultDispatcher-worker-5] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=Primary Sound Capture Driver|Unknown Vendor|Unknown Version
+org.example.app.domain.video.RedactedThrowable: org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.AudioException: DeviceUnavailable: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:392)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:46)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: org.example.app.domain.video.RedactedThrowable: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.SystemCaptureLineOpener.open(CaptureLineOpener.kt:49)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:380)
+	... 10 common frames omitted
+22:23:01.019 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=1) (LineUnavailableException)
+22:23:01.038 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=2) (LineUnavailableException)
+22:23:01.044 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=1) (LineUnavailableException)
+22:23:01.052 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=2) (LineUnavailableException)
+22:23:01.088 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=1) (LineUnavailableException)
+22:23:01.100 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=2) (LineUnavailableException)
+22:23:01.118 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=1) (LineUnavailableException)
+22:23:01.138 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=2) (LineUnavailableException)
+22:23:01.152 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=1) (LineUnavailableException)
+22:23:01.164 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=2) (LineUnavailableException)
+22:23:01.172 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=1) (LineUnavailableException)
+22:23:01.186 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=2) (LineUnavailableException)
+22:23:01.195 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=1) (LineUnavailableException)
+22:23:01.208 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=2) (LineUnavailableException)
+22:23:01.214 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=1) (LineUnavailableException)
+22:23:01.230 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=2) (LineUnavailableException)
+22:23:01.235 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=1) (LineUnavailableException)
+22:23:01.244 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=2) (LineUnavailableException)
+22:23:01.249 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=1) (LineUnavailableException)
+22:23:01.260 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=2) (LineUnavailableException)
+22:23:01.265 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=1) (LineUnavailableException)
+22:23:01.275 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=2) (LineUnavailableException)
+22:23:01.276 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=Primary Sound Capture Driver|Unknown Vendor|Unknown Version
+org.example.app.domain.video.RedactedThrowable: org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.AudioException: DeviceUnavailable: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:392)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:46)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: org.example.app.domain.video.RedactedThrowable: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.SystemCaptureLineOpener.open(CaptureLineOpener.kt:49)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:380)
+	... 10 common frames omitted
+
+> Task :app:hotRun FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:hotRun'.
+> Process 'command 'C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe'' finished with non
+-zero exit value -1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 18s
+13 actionable tasks: 3 executed, 10 up-to-date

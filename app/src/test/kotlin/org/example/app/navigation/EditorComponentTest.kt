@@ -4,7 +4,11 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.session.Examination
+import org.example.app.domain.session.ProcessingInfo
+import org.example.app.domain.session.ProcessingStatus
 import org.example.app.domain.session.TaskRecord
+import org.example.app.domain.timeline.TimelineEdited
+import org.example.app.domain.timeline.TimelineEditedSegment
 import org.example.app.domain.timeline.TimelineEvent
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.domain.timeline.TimelineOriginal
@@ -28,6 +32,7 @@ class EditorComponentTest {
     private class Harness(
         folderName: String,
         format: CaptureFormat,
+        priorEdited: TimelineEdited? = null,
         configureExamination: (Examination) -> Examination = { it },
     ) {
         val dispatchers = TestCoroutineDispatchers()
@@ -36,6 +41,9 @@ class EditorComponentTest {
         val waveformService = FakeWaveformService()
         val audioPlaybackService = FakeAudioPlaybackService()
         var doneCalledWith: String? = null
+        var doneChanged: Boolean? = null
+        var discardedWith: String? = null
+        var discardedCount = 0
 
         init {
             // Two VOCAL instances: task 0 rep 1 take [100,300), task 1 rep 1 take [400,600) — the
@@ -69,7 +77,13 @@ class EditorComponentTest {
                 ),
             )
             sessionRepository.writeExamination(folderName, examination)
+            priorEdited?.let { timelineRepository.writeEdited(folderName, it) }
         }
+
+        private val seededWrites = timelineRepository.writeEditedCount
+
+        /** F-027: nothing was written or deleted since the editor was set up. */
+        fun editedUntouched() = timelineRepository.writeEditedCount == seededWrites && timelineRepository.deleteEditedCount == 0
 
         val component: EditorComponent = DefaultEditorComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -79,7 +93,8 @@ class EditorComponentTest {
             waveformService = waveformService,
             audioPlaybackService = audioPlaybackService,
             dispatchers = dispatchers,
-            onDone = { folder -> doneCalledWith = folder },
+            onDone = { folder, changed -> doneCalledWith = folder; doneChanged = changed },
+            onDiscarded = { folder -> discardedWith = folder; discardedCount++ },
         )
 
         private fun event(type: TimelineEventType, offset: Long, taskIndex: Int?, repetition: Int?, take: Int?) =
@@ -297,5 +312,232 @@ class EditorComponentTest {
         h.component.onAccept()
         assertFalse(h.timelineRepository.editedExists(folderName))
         assertEquals(folderName, h.doneCalledWith)
+    }
+
+    private fun editedWith(start0: Long) = TimelineEdited(
+        sessionId = "session-1",
+        sampleRate = 1000,
+        segments = listOf(
+            TimelineEditedSegment(0, 1, start0, 300),
+            TimelineEditedSegment(1, 1, 400, 600),
+        ),
+    )
+
+    @Test
+    fun `accept reports changed when a first edit is written (F-066)`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(150L)
+
+        h.component.onAccept()
+
+        assertEquals(true, h.doneChanged)
+    }
+
+    @Test
+    fun `accept reports unchanged for an untouched pass with no earlier edit (F-066)`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onAccept()
+
+        assertEquals(false, h.doneChanged)
+    }
+
+    @Test
+    fun `accept reports unchanged when the same edit is already on disk (F-066)`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onAccept()
+
+        assertEquals(false, h.doneChanged)
+        assertEquals(editedWith(150L), h.timelineRepository.readEdited(folderName))
+    }
+
+    @Test
+    fun `accept reports changed when boundaries go back to original and an edit existed (F-066)`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(100L)
+
+        h.component.onAccept()
+
+        assertFalse(h.timelineRepository.editedExists(folderName))
+        assertEquals(true, h.doneChanged)
+    }
+
+    @Test
+    fun `accept reports changed when an existing edit is replaced by a different one (F-066)`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(200L)
+
+        h.component.onAccept()
+
+        assertEquals(true, h.doneChanged)
+    }
+
+    @Test
+    fun `same edit on disk but last processing used original reports needsReprocess (F-066 stale session)`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L)) {
+            it.copy(processing = ProcessingInfo(ProcessingStatus.Done, timelineUsed = "original"))
+        }
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onAccept()
+
+        assertEquals(true, h.doneChanged)
+    }
+
+    @Test
+    fun `same edit on disk and last processing used edited reports no reprocess (F-066)`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L)) {
+            it.copy(processing = ProcessingInfo(ProcessingStatus.Done, timelineUsed = "edited"))
+        }
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onAccept()
+
+        assertEquals(false, h.doneChanged)
+    }
+
+    // ---- F-027: reset segment / discard changes
+
+    @Test
+    fun `F-027 reset restores the take boundaries and clears moved when there was no prior edit`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(150L)
+        h.component.onDragStop(250L)
+        assertTrue(h.component.state.value.segments[0].moved)
+        assertTrue(h.component.state.value.segments[0].changedSinceOpened)
+
+        h.component.onResetSegment()
+
+        val segment = h.component.state.value.segments[0]
+        assertEquals(100L, segment.startSample)
+        assertEquals(300L, segment.stopSample)
+        assertFalse(segment.moved)
+        assertFalse(segment.changedSinceOpened)
+    }
+
+    @Test
+    fun `F-027 reset restores the previously accepted edit, not the take, and keeps moved set`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(150L, h.component.state.value.segments[0].startSample)
+        assertFalse(h.component.state.value.segments[0].changedSinceOpened)
+
+        h.component.onDragStart(200L)
+        assertTrue(h.component.state.value.segments[0].changedSinceOpened)
+        h.component.onResetSegment()
+
+        val segment = h.component.state.value.segments[0]
+        assertEquals(150L, segment.startSample)
+        assertEquals(300L, segment.stopSample)
+        assertTrue(segment.moved) // still differs from the take's own boundaries
+        assertFalse(segment.changedSinceOpened)
+    }
+
+    @Test
+    fun `F-027 reset touches only the current segment`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(150L)
+        h.component.onNext()
+        h.component.onDragStop(550L)
+
+        h.component.onResetSegment()
+
+        assertEquals(150L, h.component.state.value.segments[0].startSample)
+        assertEquals(600L, h.component.state.value.segments[1].stopSample)
+    }
+
+    @Test
+    fun `F-027 discard with no moves exits at once without a dialog`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onDiscard()
+
+        assertEquals(folderName, h.discardedWith)
+        assertFalse(h.component.state.value.discardConfirmationOpen)
+        assertNull(h.doneCalledWith)
+        assertTrue(h.editedUntouched())
+        assertEquals(1, h.audioPlaybackService.stopCallCount)
+    }
+
+    @Test
+    fun `F-027 discard after moving a boundary back to its start value exits at once`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(200L)
+        h.component.onDragStart(150L)
+
+        h.component.onDiscard()
+
+        assertEquals(1, h.discardedCount)
+    }
+
+    @Test
+    fun `F-027 discard with moves asks first and confirm exits leaving the edited file untouched`() {
+        val h = Harness(folderName, format, priorEdited = editedWith(150L))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(200L)
+
+        h.component.onDiscard()
+        assertTrue(h.component.state.value.discardConfirmationOpen)
+        assertEquals(0, h.discardedCount)
+
+        h.component.onDiscardConfirmed()
+
+        assertEquals(folderName, h.discardedWith)
+        assertTrue(h.editedUntouched())
+        assertEquals(editedWith(150L), h.timelineRepository.readEdited(folderName))
+        assertNull(h.doneCalledWith)
+    }
+
+    @Test
+    fun `F-027 discard confirm with no prior edit writes nothing`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(150L)
+        h.component.onDiscard()
+
+        h.component.onDiscardConfirmed()
+
+        assertEquals(1, h.discardedCount)
+        assertTrue(h.editedUntouched())
+        assertFalse(h.timelineRepository.editedExists(folderName))
+    }
+
+    @Test
+    fun `F-027 cancelling the discard keeps all edits on screen and does not exit`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onDragStart(150L)
+        h.component.onDiscard()
+
+        h.component.onDiscardCancelled()
+
+        assertFalse(h.component.state.value.discardConfirmationOpen)
+        assertEquals(150L, h.component.state.value.segments[0].startSample)
+        assertEquals(0, h.discardedCount)
+        assertNull(h.doneCalledWith)
+        assertTrue(h.editedUntouched())
+    }
+
+    @Test
+    fun `F-027 a change on another segment also needs confirmation`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onNext()
+        h.component.onDragStop(550L)
+        h.component.onPrevious()
+
+        h.component.onDiscard()
+
+        assertTrue(h.component.state.value.discardConfirmationOpen)
     }
 }

@@ -1,0 +1,117 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At C:\Users\koubato2\AppData\Local\Temp\3\claude\C--Users-koubato2-IdeaProjects-NewShare\ee0b7184-f127-400a-9a41-bd0e02
+2d07cb\scratchpad\start.ps1:5 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+08:05:26.989 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=5257cffa310843e1bd9bebb8e1f19917
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+08:05:40.747 [AWT-EventQueue-0] ERROR o.example.app.domain.ErrorReporter - unhandled recoverable error
+java.lang.IllegalStateException: Reentry into ignoringRedrawRequests is not allowed
+	at androidx.compose.ui.viewinterop.SwingInteropContainer.postponingExecutingScheduledUpdates(SwingInteropContainer.desktop.kt:285)
+	at androidx.compose.ui.scene.ComposeSceneMediator.onRender(ComposeSceneMediator.desktop.kt:675)
+	at org.jetbrains.skiko.SkiaLayer.update$skiko(SkiaLayer.awt.kt:591)
+	at org.jetbrains.skiko.redrawer.AWTRedrawer.update(AWTRedrawer.kt:54)
+	at org.jetbrains.skiko.redrawer.Redrawer$DefaultImpls.update$default(Redrawer.kt:12)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer.renderImmediately(Direct3DRedrawer.kt:73)
+	at org.jetbrains.skiko.SkiaLayer.reshape(SkiaLayer.awt.kt:397)
+	at java.desktop/java.awt.Component.setBounds(Component.java:2336)
+	at java.desktop/java.awt.Component.resize(Component.java:2251)
+	at java.desktop/java.awt.Component.setSize(Component.java:2236)
+	at androidx.compose.ui.scene.ComposeContainer.setBounds(ComposeContainer.desktop.kt:317)
+	at androidx.compose.ui.awt.ComposeWindowPanel.setBounds(ComposeWindowPanel.desktop.kt:112)
+	at java.desktop/java.awt.BorderLayout.layoutContainer(BorderLayout.java:851)
+	at java.desktop/java.awt.Container.layout(Container.java:1537)
+	at java.desktop/java.awt.Container.doLayout(Container.java:1526)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1719)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1728)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1728)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1728)
+	at java.desktop/java.awt.Container.validate(Container.java:1654)
+	at org.jetbrains.compose.reload.jvm.WindowResizeHandlerKt.handleWindowResizeRequest(windowResizeHandler.kt:28)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$3.emit(DevelopmentEntryPoint.kt:149)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$3.emit(DevelopmentEntryPoint.kt:148)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$2$2.emit(Emitters.kt:50)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$1$2.emit(Emitters.kt:50)
+	at kotlinx.coroutines.flow.FlowKt__ChannelsKt.emitAllImpl$FlowKt__ChannelsKt(Channels.kt:33)
+	at kotlinx.coroutines.flow.FlowKt__ChannelsKt.access$emitAllImpl$FlowKt__ChannelsKt(Channels.kt:1)
+	at kotlinx.coroutines.flow.FlowKt__ChannelsKt$emitAllImpl$1.invokeSuspend(Channels.kt)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at androidx.compose.ui.platform.FlushCoroutineDispatcher.flush$lambda$0(FlushCoroutineDispatcher.skiko.kt:96)
+	at androidx.compose.ui.platform.FlushCoroutineDispatcher.performRun(FlushCoroutineDispatcher.skiko.kt:105)
+	at androidx.compose.ui.platform.FlushCoroutineDispatcher.flush(FlushCoroutineDispatcher.skiko.kt:83)
+	at androidx.compose.ui.scene.ComposeSceneRecomposer.performScheduledEffects(ComposeSceneRecomposer.skiko.kt:91)
+	at androidx.compose.ui.scene.BaseComposeScene.render(BaseComposeScene.skiko.kt:176)
+	at androidx.compose.ui.scene.ComposeSceneMediator.onRender$lambda$0$0(ComposeSceneMediator.desktop.kt:677)
+	at androidx.compose.ui.viewinterop.SwingInteropContainer.postponingExecutingScheduledUpdates(SwingInteropContainer.desktop.kt:251)
+	at androidx.compose.ui.scene.ComposeSceneMediator.onRender(ComposeSceneMediator.desktop.kt:675)
+	at org.jetbrains.skiko.SkiaLayer.update$skiko(SkiaLayer.awt.kt:591)
+	at org.jetbrains.skiko.redrawer.AWTRedrawer.update(AWTRedrawer.kt:54)
+	at org.jetbrains.skiko.redrawer.Redrawer$DefaultImpls.update$default(Redrawer.kt:12)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer$frameDispatcher$1.invokeSuspend(Direct3DRedrawer.kt:49)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer$frameDispatcher$1.invoke(Direct3DRedrawer.kt)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer$frameDispatcher$1.invoke(Direct3DRedrawer.kt)
+	at org.jetbrains.skiko.FrameDispatcher$job$1.invokeSuspend(FrameDispatcher.kt:33)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:323)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:732)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:711)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:207)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:128)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:117)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:105)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:92)

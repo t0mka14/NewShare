@@ -1,0 +1,13 @@
+clips/:
+total 884
+-rw-r--r-- 1 koubato2 197121 902444 Oct 24 08:16 E2E-1023-Site-A_0_PHONATION_Rep1.wav
+zip entries:
+Name
+----
+master/session_master.wav
+clips/E2E-1023-Site-A_0_PHONATION_Rep1.wav
+examination.json
+participant.json
+task_configuration_snapshot.json
+timeline_original.json
+manifest.json

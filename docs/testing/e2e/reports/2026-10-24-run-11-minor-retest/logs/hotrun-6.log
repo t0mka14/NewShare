@@ -1,0 +1,99 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At C:\Users\koubato2\AppData\Local\Temp\3\claude\C--Users-koubato2-IdeaProjects-NewShare\ee0b7184-f127-400a-9a41-bd0e02
+2d07cb\scratchpad\start.ps1:5 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+22:31:18.058 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=105853c09aa64a18860e44cfe3f9f551
+22:31:18.563 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+22:31:18.854 [DefaultDispatcher-worker-5] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+22:31:21.975 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+22:31:21.978 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+22:32:11.412 [DefaultDispatcher-worker-13] WARN  o.e.a.d.s.ProcessSessionUseCase - processing failed: NothingToProcess (session 1d20c3d2fb724c8cb92d724f79a22da3)
+22:32:51.875 [DefaultDispatcher-worker-7] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:32:51.886 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:33:52.955 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+22:33:53.000 [DefaultDispatcher-worker-3] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+22:33:53.003 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: registered to another site
+22:33:53.003 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-B
+22:34:04.300 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+22:34:04.354 [DefaultDispatcher-worker-6] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+22:34:04.355 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+22:34:04.355 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+22:34:35.127 [DefaultDispatcher-worker-4] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=9e664a2544b542a7b2c79e31a16ae8f1: HTTP 200
+22:34:35.177 [DefaultDispatcher-worker-4] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=9e664a2544b542a7b2c79e31a16ae8f1 attempt=1 outcome=Success
+22:34:35.192 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 1 ok, 0 failed
+22:34:35.217 [DefaultDispatcher-worker-3] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+22:34:35.217 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+22:35:16.540 [DefaultDispatcher-worker-12] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:35:16.542 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+
+> Task :app:hotRun FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:hotRun'.
+> Process 'command 'C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe'' finished with non
+-zero exit value -1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4m 40s
+13 actionable tasks: 3 executed, 10 up-to-date

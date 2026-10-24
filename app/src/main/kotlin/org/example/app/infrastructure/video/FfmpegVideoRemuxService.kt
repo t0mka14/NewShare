@@ -26,7 +26,7 @@ class FfmpegVideoRemuxService(
     private val locator: FfmpegBinaryLocator = FfmpegBinaryLocator(),
 ) : VideoRemuxService {
 
-    override fun remuxToMp4(source: Path, fps: Int, output: Path) {
+    override fun remuxToMp4(source: Path, fps: Int, output: Path): Int {
         val ffmpeg = locator.locate() ?: throw VideoRemuxException("no ffmpeg found")
         if (fps <= 0) throw VideoRemuxException("invalid frame rate $fps for ${source.fileName}")
 
@@ -61,6 +61,7 @@ class FfmpegVideoRemuxService(
             Files.move(temp, output, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
             // The output is the rendered clip name: patient fields, installation ID, site. Never log it.
             logger.info { "remuxed ${source.fileName}: $sourceFrames frames at $fps fps" }
+            return sourceFrames
         } finally {
             Files.deleteIfExists(temp)
         }

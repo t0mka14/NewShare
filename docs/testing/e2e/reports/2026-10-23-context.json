@@ -1,0 +1,486 @@
+{
+  "date": "2026-10-23",
+  "prefix": "E2E 1023",
+  "patientPrefix": "E2E1023",
+  "nextFindingId": "F-066",
+  "sites": {
+    "A": {
+      "id": 12,
+      "name": "E2E-1023-Site-A",
+      "tokenRef": "<token:E2E-1023-Site-A>",
+      "configVersion": "2026-10-23.215209",
+      "projects": [
+        "speech",
+        "video"
+      ],
+      "languages": [
+        "en",
+        "cs"
+      ],
+      "enableEditor": true,
+      "useCalibration": true,
+      "note": "spaces are not allowed in site names (F-01-4), hyphens used",
+      "configVersionRun10": "2026-10-24.061507"
+    },
+    "B": {
+      "id": 13,
+      "name": "E2E-1023-Site-B",
+      "tokenRef": "<token:E2E-1023-Site-B>",
+      "configVersion": "2026-10-23.215213",
+      "projects": [
+        "speech"
+      ],
+      "languages": [
+        "en",
+        "cs"
+      ],
+      "enableEditor": true,
+      "useCalibration": true
+    }
+  },
+  "projects": {
+    "speech": {
+      "id": 13,
+      "name": "E2E 1023 Speech project"
+    },
+    "video": {
+      "id": 14,
+      "name": "E2E 1023 Video project"
+    }
+  },
+  "protocols": {
+    "speech": {
+      "id": 13,
+      "name": "E2E 1023 Speech protocol",
+      "configVersion": "2026-10-23.215209",
+      "variantIds": {
+        "en": 17,
+        "cs": 18
+      },
+      "project": "E2E 1023 Speech project",
+      "tasks": "PHONATION x2 (5 s, repeat, indicator, example audio), PATAKA (5 s), READING (150 s), MONOLOGUE (20 s, canSkip), QUESTIONNAIRE (4 q)",
+      "patientFields": [
+        "patient_code (required, [A-Za-z0-9_-]+)",
+        "year_of_birth (optional, \\d{4})"
+      ],
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}"
+    },
+    "video": {
+      "id": 14,
+      "name": "E2E 1023 Video protocol",
+      "configVersion": "2026-10-23.215209",
+      "variantIds": {
+        "en": 19,
+        "cs": 20
+      },
+      "project": "E2E 1023 Video project",
+      "tasks": "PHONATION video (5 s), MONOLOGUE video x2 (15 s, repeat), PATAKA no video (5 s)",
+      "patientFields": [
+        "patient_code",
+        "year_of_birth"
+      ],
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}"
+    },
+    "siteName": {
+      "name": "E2E 1024 SiteName protocol",
+      "project": "E2E 1023 Speech project",
+      "variantIds": null,
+      "configVersion": "2026-10-24.061507",
+      "tasks": "PHONATION x1 (5 s)",
+      "patientFields": [],
+      "recordingsFileName": "${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "note": "created in run 10 (web default template, EN only, Create Protocol gives no identifiers, F-006); config version on site A is 2026-10-24.061507"
+    }
+  },
+  "device": {
+    "installationIdRef": "<installationId>",
+    "serverDeviceId": 27,
+    "appVersion": "1.0.0",
+    "settings": {
+      "micDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "language": "en",
+      "cameraSelection": "none in Settings UI (spec: saved cameraDeviceId, falls back to first eligible)"
+    },
+    "afterRestart": {
+      "lastConfigAt": "2026-10-23T22:04:05Z",
+      "lastSeenAt": "2026-10-23T22:04:08Z",
+      "pending": 0,
+      "failed": 0
+    },
+    "afterUpload": {
+      "lastSeenAt": "2026-10-23T22:34:30Z",
+      "pending": 0,
+      "failed": 0,
+      "uploads30": 5,
+      "lastUpload": "2026-10-23T22:34:29Z",
+      "health": "ok (Healthy)"
+    }
+  },
+  "sessions": [
+    {
+      "run": "03",
+      "patient": "E2E1023-03-1",
+      "sessionId": "60cf6e0af3ed40c599d15d65e5765b51",
+      "folder": "app/data/sessions/2026-10-24_E2E1023-03-1_60cf6e0af3ed40c599d15d65e5765b51",
+      "zip": "archive/E2E1023-03-1_60cf6e0af3ed40c599d15d65e5765b51.zip",
+      "zipSha256": "0a1cdd07f162657f04146818c2de99394650b20d37ea880ca36e5601213febe5",
+      "processed": true,
+      "uploaded": true,
+      "note": "phonation rep1 2 takes, monologue skipped; reopened in editor and accepted untouched in run 04: ZIP, mtimes and processedAt unchanged",
+      "server": {
+        "uploadId": "60cf6e0af3ed40c599d15d65e5765b51",
+        "siteId": 12,
+        "status": "valid",
+        "bytes": 13374949,
+        "receivedAt": "2026-10-23T22:34:26.453Z",
+        "httpCode": 200,
+        "receipt": {
+          "status": "ok",
+          "sessionId": "60cf6e0af3ed40c599d15d65e5765b51",
+          "bytes": 13374949,
+          "sha256": "0a1cdd07f162657f04146818c2de99394650b20d37ea880ca36e5601213febe5",
+          "receivedAt": "2026-10-23T22:34:26.453Z"
+        },
+        "downloadedSha256Matches": true
+      }
+    },
+    {
+      "run": "04",
+      "patient": "E2E1023-04-1",
+      "sessionId": "fb60e12fb4124064b8ba83c3543ee003",
+      "folder": "app/data/sessions/2026-10-24_E2E1023-04-1_fb60e12fb4124064b8ba83c3543ee003",
+      "zip": "archive/E2E1023-04-1_fb60e12fb4124064b8ba83c3543ee003.zip",
+      "zipSha256": "4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c",
+      "zipSha256BeforeReprocess": "a49670ed693e79c861941c04edfac21369767dd6e7882da3d8d3b49bfa11ea5d",
+      "processed": true,
+      "uploaded": true,
+      "timelineUsed": "edited",
+      "note": "5 tasks recorded (PHONATION x2, PATAKA 3 takes, READING, MONOLOGUE 22.9 s) + questionnaire; PATAKA start moved 42.1 -> 43.5 s (clip 3.6 s -> 2.10 s); reprocessed once from Sessions",
+      "server": {
+        "uploadId": "fb60e12fb4124064b8ba83c3543ee003",
+        "siteId": 12,
+        "status": "valid",
+        "bytes": 10294736,
+        "receivedAt": "2026-10-23T22:34:26.798Z",
+        "httpCode": 200,
+        "receipt": {
+          "status": "ok",
+          "sessionId": "fb60e12fb4124064b8ba83c3543ee003",
+          "bytes": 10294736,
+          "sha256": "4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c",
+          "receivedAt": "2026-10-23T22:34:26.798Z"
+        },
+        "downloadedSha256Matches": true,
+        "resent": "step 8: re-post 200 outcome=resent (original receipt), different-bytes zip 409 session_exists; server issues now include 'duplicate'"
+      }
+    },
+    {
+      "run": "05",
+      "patient": "E2E1023-05-1",
+      "sessionId": "c54d0d83b29245cbbc08c44ae830a633",
+      "folder": "app/data/sessions/2026-10-24_E2E1023-05-1_c54d0d83b29245cbbc08c44ae830a633",
+      "zip": "archive/E2E1023-05-1_c54d0d83b29245cbbc08c44ae830a633.zip",
+      "zipSha256": "894254a6ddd217291dfdd9e34e1f25bc9998177d853eb286969bcef4d1fbaf26",
+      "processed": true,
+      "uploaded": true,
+      "hasVideo": true,
+      "note": "video protocol: PHONATION, MONOLOGUE rep1 (2 takes), MONOLOGUE rep2 (filmed), PATAKA (audio only); 3 MP4s, 4 videoTakes; ZIP about 133 MB (OBS camera encoded to mjpeg at about 22 Mbit/s)",
+      "server": {
+        "uploadId": "c54d0d83b29245cbbc08c44ae830a633",
+        "siteId": 12,
+        "status": "valid",
+        "bytes": 132913303,
+        "receivedAt": "2026-10-23T22:34:27.551Z",
+        "httpCode": 200,
+        "receipt": {
+          "status": "ok",
+          "sessionId": "c54d0d83b29245cbbc08c44ae830a633",
+          "bytes": 132913303,
+          "sha256": "894254a6ddd217291dfdd9e34e1f25bc9998177d853eb286969bcef4d1fbaf26",
+          "receivedAt": "2026-10-23T22:34:27.551Z"
+        },
+        "downloadedSha256Matches": true
+      }
+    },
+    {
+      "run": "05",
+      "patient": "E2E1023-05-2",
+      "sessionId": "edb79f0539504d788ae1675b279b76bb",
+      "folder": "app/data/sessions/2026-10-24_E2E1023-05-2_edb79f0539504d788ae1675b279b76bb",
+      "zip": "archive/E2E1023-05-2_edb79f0539504d788ae1675b279b76bb.zip",
+      "zipSha256": "b1e5b86628bfb5f9a6e72924100d87dd89581c7b74def7260b04ed333fef35a8",
+      "processed": true,
+      "uploaded": true,
+      "hasVideo": true,
+      "note": "OBS virtual camera stopped before start, but OBS still serves a placeholder image, so the app filmed the placeholder (3 MP4s of the OBS logo); not an audio-only session; ZIP about 7.8 MB",
+      "server": {
+        "uploadId": "edb79f0539504d788ae1675b279b76bb",
+        "siteId": 12,
+        "status": "valid",
+        "bytes": 7814984,
+        "receivedAt": "2026-10-23T22:34:28.563Z",
+        "httpCode": 200,
+        "receipt": {
+          "status": "ok",
+          "sessionId": "edb79f0539504d788ae1675b279b76bb",
+          "bytes": 7814984,
+          "sha256": "b1e5b86628bfb5f9a6e72924100d87dd89581c7b74def7260b04ed333fef35a8",
+          "receivedAt": "2026-10-23T22:34:28.563Z"
+        },
+        "downloadedSha256Matches": true
+      }
+    },
+    {
+      "run": "05",
+      "patient": "E2E1023-05-3",
+      "sessionId": "fbd7b3f6eafe46b58e016769f47cc325",
+      "folder": "app/data/sessions/2026-10-24_E2E1023-05-3_fbd7b3f6eafe46b58e016769f47cc325",
+      "zip": "archive/E2E1023-05-3_fbd7b3f6eafe46b58e016769f47cc325.zip",
+      "zipSha256": "5613f944c1dc3a67ff006eef97d8e10295d29c52b9c3de9678af8ea7eb98b33a",
+      "processed": true,
+      "uploaded": true,
+      "hasVideo": true,
+      "note": "OBS stopped mid-take (placeholder filmed, no failure detected); then app's ffmpeg killed mid-take in monologue rep2: video ends at 5.2 s, audio take 12.2 s kept, 'camera stopped unexpectedly' shown; ZIP about 66 MB",
+      "server": {
+        "uploadId": "fbd7b3f6eafe46b58e016769f47cc325",
+        "siteId": 12,
+        "status": "valid",
+        "bytes": 66044799,
+        "receivedAt": "2026-10-23T22:34:29.114Z",
+        "httpCode": 200,
+        "receipt": {
+          "status": "ok",
+          "sessionId": "fbd7b3f6eafe46b58e016769f47cc325",
+          "bytes": 66044799,
+          "sha256": "5613f944c1dc3a67ff006eef97d8e10295d29c52b9c3de9678af8ea7eb98b33a",
+          "receivedAt": "2026-10-23T22:34:29.114Z"
+        },
+        "downloadedSha256Matches": true
+      }
+    },
+    {
+      "run": "07",
+      "patient": "E2E1023-07-1",
+      "sessionId": "d1edf0b1b2384d2b9b0f1912d8b481a1",
+      "folder": "app/data/sessions/2026-10-24_E2E1023-07-1_d1edf0b1b2384d2b9b0f1912d8b481a1",
+      "zip": "archive/E2E1023-07-1_d1edf0b1b2384d2b9b0f1912d8b481a1.zip",
+      "zipSha256": "d47871bfb0bbed6dc6bafa0fd7c88e705494c0149310bd173ae2bf2194cfc304",
+      "processed": true,
+      "uploaded": true,
+      "device": "device2",
+      "yearOfBirth": "1965",
+      "note": "4 audio clips + questionnaire, monologue skipped; recorded with device2 (no token); first upload 404 quarantined, then device assigned to Site A, then re-upload 200 resent",
+      "server": {
+        "uploadId": "d1edf0b1b2384d2b9b0f1912d8b481a1",
+        "siteId": 12,
+        "status": "valid",
+        "bytes": 8147184,
+        "receivedAt": "2026-10-23T22:47:25.265Z",
+        "httpCode": 200,
+        "attempts": [
+          {
+            "id": 14,
+            "at": "2026-10-23T22:47:25.265Z",
+            "code": 404,
+            "outcome": "quarantined"
+          },
+          {
+            "id": 15,
+            "at": "2026-10-23T22:51:10.385Z",
+            "code": 200,
+            "outcome": "resent"
+          }
+        ],
+        "receipt": {
+          "status": "ok",
+          "bytes": 8147184,
+          "receivedAt": "2026-10-23T22:47:25.265Z"
+        }
+      }
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-1",
+      "sessionId": "bfa8c0b207b74542a01687d20797dbec",
+      "folder": "app/data/sessions/*_E2E1024-10-1_bfa8c0b207b74542a01687d20797dbec",
+      "processed": false,
+      "uploaded": false,
+      "note": "Part A step 1: calibration, then Back; no take, not processed"
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-2",
+      "sessionId": "32b59ee1f8994fecac49e0dfeb6fa0de",
+      "folder": "app/data/sessions/*_E2E1024-10-2_32b59ee1f8994fecac49e0dfeb6fa0de",
+      "processed": false,
+      "uploaded": false,
+      "note": "Part A step 2-3: calibration, one take, then the app was stopped with TaskStop; recovered at next start (recovery dialog shown), not processed"
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-3",
+      "sessionId": "0a7316ec1b294e879ebf29f8a5f9bc1c",
+      "folder": "app/data/sessions/*_E2E1024-10-3_0a7316ec1b294e879ebf29f8a5f9bc1c",
+      "processed": false,
+      "uploaded": false,
+      "note": "Part B: mic Denied, calibration shows mic error; no recording"
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-3",
+      "sessionId": "1730e619e47d4dff87e287ef57e813a7",
+      "folder": "app/data/sessions/*_E2E1024-10-3_1730e619e47d4dff87e287ef57e813a7",
+      "processed": false,
+      "uploaded": false,
+      "note": "Part B: restart with Allow, calibration OK; app stopped on calibration; no recording"
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-4",
+      "sessionId": "5257cffa310843e1bd9bebb8e1f19917",
+      "folder": "app/data/sessions/*_E2E1024-10-4_5257cffa310843e1bd9bebb8e1f19917",
+      "processed": true,
+      "uploaded": false,
+      "note": "Part C: JVM killed about 3.2 s into the first PHONATION take; recovered, reprocessed to one 3.25 s clip + ZIP; offered on Upload; NOT uploaded"
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-5",
+      "sessionId": "1d20c3d2fb724c8cb92d724f79a22da3",
+      "folder": "app/data/sessions/*_E2E1024-10-5_1d20c3d2fb724c8cb92d724f79a22da3",
+      "processed": false,
+      "uploaded": false,
+      "note": "Part C: JVM killed before Start; recovered; processing fails, no ZIP; not offered for upload"
+    },
+    {
+      "run": "10",
+      "patient": "E2E1024-10-5",
+      "sessionId": "7476a4b953614c8b968f5fe9b2d1d9c5",
+      "folder": "app/data/sessions/*_E2E1024-10-5_7476a4b953614c8b968f5fe9b2d1d9c5",
+      "processed": false,
+      "uploaded": false,
+      "note": "Part C: second zero-take kill to see the recovery dialog; recovered, not processed"
+    },
+    {
+      "run": "10",
+      "patient": "(none: protocol has no patient fields)",
+      "sessionId": "61c76fc8010b498c9ef3f79b251cf2ba",
+      "folder": "app/data/sessions/2026-10-24__61c76fc8010b498c9ef3f79b251cf2ba",
+      "zip": "archive/_61c76fc8010b498c9ef3f79b251cf2ba.zip",
+      "processed": true,
+      "uploaded": false,
+      "note": "Part D: E2E 1024 SiteName protocol, one 9.4 s phonation take; clip E2E-1023-Site-A_0_PHONATION_Rep1.wav; NOT uploaded"
+    },
+    {
+      "run": "11",
+      "uploaded": true,
+      "patient": "E2E1024-11-4",
+      "note": "speech, monologue skipped; uploaded alone in run 11 part 9 (HTTP 200)",
+      "sessionId": "9e664a2544b542a7b2c79e31a16ae8f1",
+      "processed": true
+    },
+    {
+      "run": "11",
+      "uploaded": false,
+      "patient": "E2E1024-11-5",
+      "note": "video, 3 MP4 + PATAKA wav; not uploaded; folder held in scratchpad until end of run 11",
+      "sessionId": "7d0624643604470dbc784fe88fa03aaf",
+      "processed": true
+    },
+    {
+      "run": "11",
+      "uploaded": false,
+      "patient": "E2E1024-11-6",
+      "note": "video; app ffmpeg killed mid first take; capture_failed event; not uploaded; held in scratchpad",
+      "sessionId": "1d43881390fa4858a18605d4e6ff0b6d",
+      "processed": true
+    },
+    {
+      "run": "11",
+      "uploaded": false,
+      "patient": "E2E1024-11-7",
+      "note": "JVM killed ~5 s after Start; recovered; reprocessed to 1 clip; not uploaded; held in scratchpad",
+      "sessionId": "105853c09aa64a18860e44cfe3f9f551",
+      "processed": true
+    },
+    {
+      "run": "11",
+      "uploaded": false,
+      "patient": "(none: SiteName protocol)",
+      "note": "F-005 check, clip E2E-1023-Site-A_0_PHONATION_Rep1.wav; not uploaded; held in scratchpad",
+      "sessionId": "174472eb295a4a6180bcba54550d56ea",
+      "processed": true
+    },
+    {
+      "run": "11",
+      "uploaded": true,
+      "patient": "(none: SiteName protocol)",
+      "note": "part 10: first upload failed offline (NetworkFailure), retry after unblock succeeded (attempt 2, HTTP 200)",
+      "sessionId": "875547bdc7bc447286971336c1d61cae",
+      "processed": true
+    }
+  ],
+  "environment": {
+    "appCommit": "59bb063",
+    "appDataBackup": "app/data.pre-e2e-20261023",
+    "playwrightPython": "C:\\Users\\koubato2\\AppData\\Local\\Temp\\3\\claude\\C--Users-koubato2-IdeaProjects-NewShare\\4fd5c7c1-eeac-425c-b167-e3b5c1c2fd6f\\scratchpad\\e2e-venv\\Scripts\\python.exe",
+    "secretsFile": "docs/testing/e2e/reports/2026-10-23-secrets.json",
+    "zipsScratch": "scratchpad/e2e/zips (05-1, 05-2, 05-3 copies)",
+    "appDataRun06Backup": "app/data.e2e-1023-run06",
+    "appDataNow": "fresh app/data from run 07 (device2); token A set, mic CABLE Output chosen",
+    "run10": {
+      "appCommit": "59bb063 + uncommitted fixes",
+      "appDataNow": "app/data with run 10 sessions added to the run 07-08 data; mic privacy Allow",
+      "playwrightProfile": "scratchpad/pw/profile (logged in as master)",
+      "startScript": "scratchpad/start.ps1"
+    }
+  },
+  "adminApi": {
+    "loginPath": "/api/auth/admin/login",
+    "siteConfigPath": "/api/site-config/<token>"
+  },
+  "app": {
+    "languageSwitch": "main menu top-right (mainMenu.languageSelector) and Settings radios; protocolPicker shown with project headers",
+    "window": "resized to 984x861 content for readable Settings",
+    "windowSizeRemembered": false,
+    "editor": "Review recordings; testTags editor.waveformCanvas, editor.startBoundaryHandle, editor.stopBoundaryHandle, editor.previousSegmentButton/playSegmentButton/nextSegmentButton/acceptButton, editor.segmentLabel; Accept on last segment finishes",
+    "editorNotes": "no Back/Cancel in the editor; Accept on last segment ends it (from Sessions it returns to the Sessions list). Drag-InWindow.ps1 with default steps works: -FromX <handle centre x> -FromY 420 -ToX <x+98>. Scale about 65 px/s at 3.6 s segments. Semantic node IDs change after every navigation: re-read the tree.",
+    "camera": {
+      "device": "OBS Virtual Camera (dshow:0), captured as 1280x720@30 encoded to mjpeg (OBS rejects mjpeg passthrough)",
+      "stoppedObsCameraStillDeliversPlaceholder": true,
+      "obsToggle": "Controls dock button at OBS client (1051,587); first call after SHARE had focus may only focus the window, so verify with Capture-Screen before clicking again; use a harmless click at (600,400) first",
+      "appFfmpegPid": "find with Get-CimInstance Win32_Process Name=ffmpeg.exe; killing it simulates camera loss"
+    }
+  },
+  "run06": {
+    "uploadedAt": "2026-10-23T22:34:26Z..22:34:30Z (5 sessions sequential, about 4 s)",
+    "scratchDownloads": "scratchpad/e2e/downloads",
+    "step8Scratch": "scratchpad/e2e/step8 (orig.zip, modified.zip)",
+    "uiNotes": "Upload screen: progress bar value = sessions done/total (0.6 seen), upload.uploadButton disabled while uploading, success banner 'Files successfully uploaded.'; web list search param is q; hasVideo=1; detail route #/admin/uploads/<sessionId>"
+  },
+  "device2": {
+    "installationIdRef": "<installationId2>",
+    "serverDeviceId": 37,
+    "appVersion": "1.0.0",
+    "settings": {
+      "micDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "language": "en"
+    },
+    "note": "fresh install for run 07 (no settings.json, cached config only); first seen by the server at the quarantined upload 2026-10-23T22:47:25Z (siteId null); assigned to Site A in admin UI at about 22:51Z; token A set again at end of run 07",
+    "afterRun07": {
+      "siteId": 12,
+      "lastConfigAt": "2026-10-23T22:52:51Z",
+      "lastSeenAt": "2026-10-23T22:52:51Z",
+      "uploads30": 1
+    }
+  },
+  "run07": {
+    "serverDevices": {
+      "27": "Site A (run 02-06 device, installation id <installationId>)",
+      "37": "Site A (run 07 device, <installationId2>)",
+      "4": "no site (verify-unknown-1)"
+    },
+    "adminUi": "devices page: 'Assign to site' row button, select, 'Assign to site', then a confirm banner 'Yes, assign'; masked participant fields: 'Show values' button calls POST /uploads/:id/reveal; no audit-log read surface",
+    "app": "Settings needs about 861 px content height; at 1000x820 'Save and go back' is clipped when a status line is shown; used 1000x900"
+  }
+}

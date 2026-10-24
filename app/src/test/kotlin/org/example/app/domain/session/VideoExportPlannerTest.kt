@@ -32,7 +32,7 @@ class VideoExportPlannerTest {
             listOf(stop(4, 1), stop(4, 2)),
         )
 
-        assertEquals(listOf(VideoExportPlan(4, 1, "video/task04_rep01_take02.mjpeg", 25, "HC001_4_MONOLOGUE_Rep1.mp4")), plans)
+        assertEquals(listOf(VideoExportPlan(4, 1, 2, "video/task04_rep01_take02.mjpeg", 25, "HC001_4_MONOLOGUE_Rep1.mp4")), plans)
     }
 
     /** The audio-only fallback of a filming VOCAL task: the kept take has no video. */

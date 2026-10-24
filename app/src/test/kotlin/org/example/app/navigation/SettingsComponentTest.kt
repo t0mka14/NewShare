@@ -17,12 +17,14 @@ import org.example.app.fakes.FakeAudioInputDeviceProvider
 import org.example.app.fakes.FakeAudioInputGainControl
 import org.example.app.fakes.FakeConfigApi
 import org.example.app.fakes.FakeConfigurationRepository
+import org.example.app.fakes.FakeVideoInputDeviceProvider
 import org.example.app.fakes.TestCoroutineDispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.example.app.domain.video.VideoInputDevice
 
 class SettingsComponentTest {
 
@@ -34,6 +36,41 @@ class SettingsComponentTest {
         defaultMicName = defaultMicName,
         defaultMicGain = defaultMicGain,
     )
+
+    @Test
+    fun `F-041 a refresh whose check-in answers 409 shows the other-site key and keeps the old config`() {
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(siteToken = "token-B", installationId = "install-1")) }
+        val oldConfig = sampleConfig()
+        val repo = FakeConfigurationRepository(initialConfig = oldConfig)
+        val api = FakeConfigApi().apply { enqueueSuccess("""{"schemaVersion":1}""") }
+        repo.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig().copy(configVersion = "site-b")))
+        val checkinApi = org.example.app.fakes.FakeDeviceCheckinApi().apply {
+            nextResult = org.example.app.domain.upload.DeviceCheckinResult.RegisteredToAnotherSite
+        }
+        val useCase = RefreshConfigurationUseCase(
+            settingsRepository = settings,
+            configApi = api,
+            configurationRepository = repo,
+            deviceCheckin = org.example.app.domain.upload.DeviceCheckinUseCase(
+                settingsRepository = settings,
+                installationIdProvider = InstallationIdProvider(settings),
+                eligibleUploadsQuery = org.example.app.domain.upload.EligibleUploadsQuery(
+                    org.example.app.fakes.FakeSessionRepository(),
+                    org.example.app.fakes.FakeUploadStatusRepository(),
+                ),
+                api = checkinApi,
+                appVersion = "1.4.0",
+                dispatchers = org.example.app.fakes.ImmediateCoroutineDispatchers(),
+            ),
+        )
+        val h = Harness(settingsRepository = settings, configurationRepository = repo, refreshUseCase = useCase)
+
+        h.component.onRefreshClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals("settings.refresh.otherSite", h.component.state.value.lastRefreshResultKey)
+        assertEquals(oldConfig, repo.activeConfig.value)
+    }
 
     /** A config whose `defaultMicName` is the fake secondary device ("USB Headset Mic"), level 63. */
     private fun configWithMicGain() = sampleConfig(
@@ -49,6 +86,7 @@ class SettingsComponentTest {
             listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
         ),
         val gainControl: FakeAudioInputGainControl = FakeAudioInputGainControl(),
+        val videoProvider: FakeVideoInputDeviceProvider = FakeVideoInputDeviceProvider(),
         refreshUseCase: RefreshConfigurationUseCase? = null,
         val registeredToAnotherSite: MutableStateFlow<Boolean> = MutableStateFlow(false),
     ) {
@@ -64,11 +102,78 @@ class SettingsComponentTest {
             micGainApplier = MicGainApplier(gainControl, settingsRepository, dispatchers),
             installationIdProvider = InstallationIdProvider(settingsRepository) { "generated-pc-id" },
             dispatchers = dispatchers,
+            videoDeviceProvider = videoProvider,
             registeredToAnotherSite = registeredToAnotherSite,
         )
     }
 
     private val secondaryName = FakeAudioInputDeviceProvider.SECONDARY_DEVICE.name
+
+    private val cam2 = VideoInputDevice("cam-2", "Second Camera", 0, 1, true)
+
+    @Test
+    fun `F-019 cameras are listed off the main thread and fill the state`() {
+        val h = Harness(videoProvider = FakeVideoInputDeviceProvider(listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA, cam2)))
+
+        // Constructing the component must not enumerate (it spawns ffmpeg).
+        assertEquals(0, h.videoProvider.enumerationCount)
+        assertTrue(h.component.state.value.camerasLoading)
+
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.videoProvider.enumerationCount)
+        assertFalse(h.component.state.value.camerasLoading)
+        assertEquals(listOf("fake-camera-1", "cam-2"), h.component.state.value.availableCameras.map { it.id })
+    }
+
+    @Test
+    fun `F-019 picking a camera writes cameraDeviceId and Automatic writes null`() {
+        val h = Harness(videoProvider = FakeVideoInputDeviceProvider(listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA, cam2)))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.component.onCameraSelected("cam-2")
+        assertEquals("cam-2", h.settingsRepository.read()!!.cameraDeviceId)
+        assertEquals("cam-2", h.component.state.value.selectedCameraId)
+
+        h.component.onCameraSelected(null)
+        assertNull(h.settingsRepository.read()!!.cameraDeviceId)
+        assertNull(h.component.state.value.selectedCameraId)
+    }
+
+    @Test
+    fun `F-019 no cameras gives an empty list state`() {
+        val h = Harness(videoProvider = FakeVideoInputDeviceProvider(emptyList()))
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertFalse(h.component.state.value.camerasLoading)
+        assertTrue(h.component.state.value.availableCameras.isEmpty())
+    }
+
+    @Test
+    fun `F-019 opening Settings keeps a saved camera that is not connected`() {
+        val settingsRepository = FakeAppSettingsRepository().apply { write(AppSettings(cameraDeviceId = "gone-cam")) }
+        val h = Harness(settingsRepository = settingsRepository)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onRefreshDevicesClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals("gone-cam", h.component.state.value.selectedCameraId)
+        assertEquals("gone-cam", settingsRepository.read()!!.cameraDeviceId)
+        // An unrelated edit keeps it too.
+        h.component.onLanguageSelected("cs")
+        assertEquals("gone-cam", settingsRepository.read()!!.cameraDeviceId)
+    }
+
+    @Test
+    fun `F-019 refresh devices lists the cameras again`() {
+        val h = Harness()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onRefreshDevicesClicked()
+        assertTrue(h.component.state.value.camerasLoading)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(2, h.videoProvider.enumerationCount)
+        assertFalse(h.component.state.value.camerasLoading)
+    }
 
     @Test
     fun `the other-site note follows the device check-in`() {

@@ -1,0 +1,35 @@
+[
+    {
+        "id": 13,
+        "at": "2026-10-23T22:40:15.384Z",
+        "code": 409,
+        "outcome": "conflict",
+        "bytes": 10294876,
+        "shaDeclared": "5c5d55ff59ee4afd6885152fd33798adf21bfcf48c4a589147d17d3358e50ce3",
+        "shaComputed": "5c5d55ff59ee4afd6885152fd33798adf21bfcf48c4a589147d17d3358e50ce3",
+        "deviceReported": false,
+        "installationId": "<installationId>"
+    },
+    {
+        "id": 12,
+        "at": "2026-10-23T22:40:15.045Z",
+        "code": 200,
+        "outcome": "resent",
+        "bytes": 10294736,
+        "shaDeclared": "4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c",
+        "shaComputed": "4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c",
+        "deviceReported": false,
+        "installationId": "<installationId>"
+    },
+    {
+        "id": 8,
+        "at": "2026-10-23T22:34:26.798Z",
+        "code": 200,
+        "outcome": "accepted",
+        "bytes": 10294736,
+        "shaDeclared": "4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c",
+        "shaComputed": "4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c",
+        "deviceReported": false,
+        "installationId": "<installationId>"
+    }
+]

@@ -1,0 +1,339 @@
+2026-10-24 00:45:40.077 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 00:47:25.362 [DefaultDispatcher-worker-3] INFO  o.e.a.i.network.KtorUploadApi - upload rejected for session=d1edf0b1b2384d2b9b0f1912d8b481a1: HTTP 404
+2026-10-24 00:52:22.488 [DefaultDispatcher-worker-8] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+2026-10-24 01:23:53.412 [DefaultDispatcher-worker-13] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 01:24:01.765 [AWT-EventQueue-0] ERROR o.example.app.domain.ErrorReporter - unhandled recoverable error
+java.lang.IllegalStateException: startWriting is only valid from Monitoring, was Failed(error=DeviceUnavailable(deviceId=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version))
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startWriting$2.invokeSuspend(JvmContinuousSessionRecorder.kt:120)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: null
+2026-10-24 01:25:41.677 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 01:30:52.434 [AWT-EventQueue-0] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.net.SocketException
+2026-10-24 01:31:33.555 [AWT-EventQueue-0] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.net.SocketException
+2026-10-24 01:32:13.966 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 01:32:31.973 [DefaultDispatcher-worker-7] WARN  o.e.a.i.network.KtorUploadApi - upload failed, transport error for session=6a6ab5c942ed4a0ca0ef63086cd59b7d: java.net.SocketException
+2026-10-24 01:32:32.055 [DefaultDispatcher-worker-1] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in failed, transport error: java.net.SocketException
+2026-10-24 01:37:32.576 [DefaultDispatcher-worker-9] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 01:37:39.077 [AWT-EventQueue-0] ERROR o.example.app.domain.ErrorReporter - unhandled recoverable error
+java.lang.IllegalStateException: startWriting is only valid from Monitoring, was Failed(error=DeviceUnavailable(deviceId=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version))
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startWriting$2.invokeSuspend(JvmContinuousSessionRecorder.kt:120)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: null
+2026-10-24 01:38:27.165 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 01:40:27.642 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 01:51:02.330 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 01:51:30.574 [DefaultDispatcher-worker-6] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 08:01:25.548 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:01:53.279 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:02:46.620 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=32b59ee1f8994fecac49e0dfeb6fa0de
+2026-10-24 08:03:16.986 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 08:03:23.336 [DefaultDispatcher-worker-9] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 08:03:35.954 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 08:04:17.353 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:04:54.859 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:05:26.989 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=5257cffa310843e1bd9bebb8e1f19917
+2026-10-24 08:05:40.747 [AWT-EventQueue-0] ERROR o.example.app.domain.ErrorReporter - unhandled recoverable error
+java.lang.IllegalStateException: Reentry into ignoringRedrawRequests is not allowed
+	at androidx.compose.ui.viewinterop.SwingInteropContainer.postponingExecutingScheduledUpdates(SwingInteropContainer.desktop.kt:285)
+	at androidx.compose.ui.scene.ComposeSceneMediator.onRender(ComposeSceneMediator.desktop.kt:675)
+	at org.jetbrains.skiko.SkiaLayer.update$skiko(SkiaLayer.awt.kt:591)
+	at org.jetbrains.skiko.redrawer.AWTRedrawer.update(AWTRedrawer.kt:54)
+	at org.jetbrains.skiko.redrawer.Redrawer$DefaultImpls.update$default(Redrawer.kt:12)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer.renderImmediately(Direct3DRedrawer.kt:73)
+	at org.jetbrains.skiko.SkiaLayer.reshape(SkiaLayer.awt.kt:397)
+	at java.desktop/java.awt.Component.setBounds(Component.java:2336)
+	at java.desktop/java.awt.Component.resize(Component.java:2251)
+	at java.desktop/java.awt.Component.setSize(Component.java:2236)
+	at androidx.compose.ui.scene.ComposeContainer.setBounds(ComposeContainer.desktop.kt:317)
+	at androidx.compose.ui.awt.ComposeWindowPanel.setBounds(ComposeWindowPanel.desktop.kt:112)
+	at java.desktop/java.awt.BorderLayout.layoutContainer(BorderLayout.java:851)
+	at java.desktop/java.awt.Container.layout(Container.java:1537)
+	at java.desktop/java.awt.Container.doLayout(Container.java:1526)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1719)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1728)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1728)
+	at java.desktop/java.awt.Container.validateTree(Container.java:1728)
+	at java.desktop/java.awt.Container.validate(Container.java:1654)
+	at org.jetbrains.compose.reload.jvm.WindowResizeHandlerKt.handleWindowResizeRequest(windowResizeHandler.kt:28)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$3.emit(DevelopmentEntryPoint.kt:149)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$3.emit(DevelopmentEntryPoint.kt:148)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$2$2.emit(Emitters.kt:50)
+	at org.jetbrains.compose.reload.jvm.JvmDevelopmentEntryPoint$DevelopmentEntryPoint$$inlined$handleWindowRequests-nrmuPsc$4$1$2.emit(Emitters.kt:50)
+	at kotlinx.coroutines.flow.FlowKt__ChannelsKt.emitAllImpl$FlowKt__ChannelsKt(Channels.kt:33)
+	at kotlinx.coroutines.flow.FlowKt__ChannelsKt.access$emitAllImpl$FlowKt__ChannelsKt(Channels.kt:1)
+	at kotlinx.coroutines.flow.FlowKt__ChannelsKt$emitAllImpl$1.invokeSuspend(Channels.kt)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at androidx.compose.ui.platform.FlushCoroutineDispatcher.flush$lambda$0(FlushCoroutineDispatcher.skiko.kt:96)
+	at androidx.compose.ui.platform.FlushCoroutineDispatcher.performRun(FlushCoroutineDispatcher.skiko.kt:105)
+	at androidx.compose.ui.platform.FlushCoroutineDispatcher.flush(FlushCoroutineDispatcher.skiko.kt:83)
+	at androidx.compose.ui.scene.ComposeSceneRecomposer.performScheduledEffects(ComposeSceneRecomposer.skiko.kt:91)
+	at androidx.compose.ui.scene.BaseComposeScene.render(BaseComposeScene.skiko.kt:176)
+	at androidx.compose.ui.scene.ComposeSceneMediator.onRender$lambda$0$0(ComposeSceneMediator.desktop.kt:677)
+	at androidx.compose.ui.viewinterop.SwingInteropContainer.postponingExecutingScheduledUpdates(SwingInteropContainer.desktop.kt:251)
+	at androidx.compose.ui.scene.ComposeSceneMediator.onRender(ComposeSceneMediator.desktop.kt:675)
+	at org.jetbrains.skiko.SkiaLayer.update$skiko(SkiaLayer.awt.kt:591)
+	at org.jetbrains.skiko.redrawer.AWTRedrawer.update(AWTRedrawer.kt:54)
+	at org.jetbrains.skiko.redrawer.Redrawer$DefaultImpls.update$default(Redrawer.kt:12)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer$frameDispatcher$1.invokeSuspend(Direct3DRedrawer.kt:49)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer$frameDispatcher$1.invoke(Direct3DRedrawer.kt)
+	at org.jetbrains.skiko.redrawer.Direct3DRedrawer$frameDispatcher$1.invoke(Direct3DRedrawer.kt)
+	at org.jetbrains.skiko.FrameDispatcher$job$1.invokeSuspend(FrameDispatcher.kt:33)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:323)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:732)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:711)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:207)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:128)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:117)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:105)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:92)
+2026-10-24 08:07:07.173 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:07:29.539 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=1d20c3d2fb724c8cb92d724f79a22da3
+2026-10-24 08:09:32.046 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:09:54.960 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=7476a4b953614c8b968f5fe9b2d1d9c5
+2026-10-24 08:16:21.451 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:19:24.021 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=8ca08e502379476d8b2cadc7bfe64cab
+2026-10-24 22:19:24.029 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=f90e842b19924fa1b1bec62265e5c2d9
+2026-10-24 22:19:24.035 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=4dbda135a60d415e91e8f30b25a1b7a5
+2026-10-24 22:19:24.041 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=e5343ae2edf448a68f784faa562c1ef0
+2026-10-24 22:19:24.050 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=356b1cd569ff44c5b0ff0edc8f202e14
+2026-10-24 22:19:24.063 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=72002a9e207c497d83e086892d6c593f
+2026-10-24 22:19:24.068 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=bfa8c0b207b74542a01687d20797dbec
+2026-10-24 22:19:24.074 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=0a7316ec1b294e879ebf29f8a5f9bc1c
+2026-10-24 22:19:24.080 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=1730e619e47d4dff87e287ef57e813a7
+2026-10-24 22:19:29.248 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-24 22:19:29.466 [DefaultDispatcher-worker-2] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-24 22:19:29.472 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-24 22:19:29.475 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+2026-10-24 22:20:10.484 [DefaultDispatcher-worker-2] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:20:10.500 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'Primary Sound Capture Driver' (Primary Sound Capture Driver|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:20:38.902 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:20:38.905 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:20:46.101 [AWT-EventQueue-0] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=c2b5b6fce4da43a5aba912f592e93456
+2026-10-24 22:21:03.482 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:21:03.485 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'Primary Sound Capture Driver' (Primary Sound Capture Driver|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:21:15.442 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:21:15.444 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 22:21:28.246 [AWT-EventQueue-0] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=055e7f8e542c4cb4abd43f4b7fabd630
+2026-10-24 22:22:14.808 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-24 22:22:14.973 [DefaultDispatcher-worker-7] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-24 22:22:15.045 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-24 22:22:15.048 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+2026-10-24 22:22:42.543 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.556 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.575 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.589 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.616 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.625 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.639 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.656 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.699 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.722 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.736 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.757 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.769 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.788 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.796 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.810 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.825 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.837 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.846 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.854 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.871 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:22:42.878 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:22:42.883 [DefaultDispatcher-worker-5] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=Primary Sound Capture Driver|Unknown Vendor|Unknown Version
+org.example.app.domain.video.RedactedThrowable: org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.AudioException: DeviceUnavailable: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:392)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:46)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: org.example.app.domain.video.RedactedThrowable: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.SystemCaptureLineOpener.open(CaptureLineOpener.kt:49)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:380)
+	... 10 common frames omitted
+2026-10-24 22:23:01.019 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.038 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.044 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.052 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.088 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.100 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.118 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.138 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.152 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.164 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.172 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.186 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.195 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.208 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.214 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.230 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.235 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.244 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.249 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.260 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.265 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=1) (LineUnavailableException)
+2026-10-24 22:23:01.275 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=2) (LineUnavailableException)
+2026-10-24 22:23:01.276 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=Primary Sound Capture Driver|Unknown Vendor|Unknown Version
+org.example.app.domain.video.RedactedThrowable: org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.AudioException: DeviceUnavailable: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:392)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:46)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: org.example.app.domain.video.RedactedThrowable: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.SystemCaptureLineOpener.open(CaptureLineOpener.kt:49)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:380)
+	... 10 common frames omitted

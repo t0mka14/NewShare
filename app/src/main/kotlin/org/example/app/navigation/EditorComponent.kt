@@ -14,7 +14,9 @@ import org.example.app.domain.audio.WaveformPeaks
 import org.example.app.domain.audio.WaveformService
 import org.example.app.domain.session.MasterPart
 import org.example.app.domain.session.MasterPartMap
+import org.example.app.domain.session.ProcessingStatus
 import org.example.app.domain.session.SessionRepository
+import org.example.app.domain.session.TimelineSource
 import org.example.app.domain.timeline.TakeSelector
 import org.example.app.domain.timeline.TimelineEditedSegment
 import org.example.app.domain.timeline.TimelineEdited
@@ -65,6 +67,17 @@ interface EditorComponent {
      */
     fun onAccept()
 
+    /** F-027: puts the current segment's boundaries back to what they were when the editor opened. */
+    fun onResetSegment()
+
+    /**
+     * F-027: leaves without writing or deleting anything. Exits at once when nothing differs from
+     * the opening state, otherwise opens the confirmation ([State.discardConfirmationOpen]).
+     */
+    fun onDiscard()
+    fun onDiscardConfirmed()
+    fun onDiscardCancelled()
+
     data class Segment(
         val taskIndex: Int,
         val repetition: Int,
@@ -76,8 +89,15 @@ interface EditorComponent {
         /** Total frame count of this segment's own source part file — the file-range clamp
          * (§8.7). */
         val fileTotalSamples: Long,
+        /** Boundaries this segment had when the editor opened (a loaded prior edit, else the
+         * take's own); what Reset and Discard go back to. */
+        val openedStartSample: Long = startSample,
+        val openedStopSample: Long = stopSample,
     ) {
         val moved: Boolean get() = startSample != initialStartSample || stopSample != initialStopSample
+
+        /** Differs from the opening state in this editor session (F-027). */
+        val changedSinceOpened: Boolean get() = startSample != openedStartSample || stopSample != openedStopSample
     }
 
     data class State(
@@ -97,6 +117,7 @@ interface EditorComponent {
         /** Capture sample rate — the UI needs it to label the time ruler (§8.7). */
         val sampleRate: Int = 0,
         val accepted: Boolean = false,
+        val discardConfirmationOpen: Boolean = false,
     ) {
         val currentSegment: Segment? get() = segments.getOrNull(currentIndex)
     }
@@ -115,7 +136,14 @@ class DefaultEditorComponent(
     private val waveformService: WaveformService,
     private val audioPlaybackService: AudioPlaybackService,
     private val dispatchers: CoroutineDispatchers,
-    private val onDone: (folderName: String) -> Unit,
+    /**
+     * [needsReprocess] is true when Accept altered the edit state on disk (different or deleted
+     * `timeline_edited.json`), or when the last successful processing used a different timeline
+     * than the one now in effect (a session left stale by an earlier edit).
+     */
+    private val onDone: (folderName: String, needsReprocess: Boolean) -> Unit,
+    /** F-027: the examiner left via Discard; nothing was written or deleted. */
+    private val onDiscarded: (folderName: String) -> Unit,
 ) : EditorComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -194,6 +222,8 @@ class DefaultEditorComponent(
                     initialStartSample = localRange.first,
                     initialStopSample = localRange.last + 1,
                     fileTotalSamples = fileTotal,
+                    openedStartSample = edited?.first ?: localRange.first,
+                    openedStopSample = edited?.second ?: (localRange.last + 1),
                 ),
                 part = part,
             )
@@ -238,13 +268,20 @@ class DefaultEditorComponent(
     override fun onDragStop(newLocalSample: Long) = dragBoundary(isStart = false, newLocalSample)
 
     private fun dragBoundary(isStart: Boolean, newLocalSample: Long) {
+        val current = loaded.getOrNull(_state.value.currentIndex) ?: return
+        applyCandidate(
+            if (isStart) current.segment.copy(startSample = newLocalSample) else current.segment.copy(stopSample = newLocalSample),
+        )
+    }
+
+    override fun onResetSegment() {
+        val current = loaded.getOrNull(_state.value.currentIndex) ?: return
+        applyCandidate(current.segment.copy(startSample = current.segment.openedStartSample, stopSample = current.segment.openedStopSample))
+    }
+
+    private fun applyCandidate(candidate: EditorComponent.Segment) {
         val index = _state.value.currentIndex
         val current = loaded.getOrNull(index) ?: return
-        val candidate = if (isStart) {
-            current.segment.copy(startSample = newLocalSample)
-        } else {
-            current.segment.copy(stopSample = newLocalSample)
-        }
 
         val previous = previousInSamePart(index)
         val next = nextInSamePart(index)
@@ -314,6 +351,9 @@ class DefaultEditorComponent(
 
     override fun onAccept() {
         val anyMoved = loaded.any { it.segment.moved }
+        val previousEdited = timelineRepository.readEdited(folderName)
+        val examination = sessionRepository.readExamination(folderName)
+        var needsReprocess: Boolean
         if (anyMoved) {
             val segments = loaded.map { entry ->
                 TimelineEditedSegment(
@@ -325,7 +365,7 @@ class DefaultEditorComponent(
                     stopSample = entry.segment.stopSample + entry.part.globalStart,
                 )
             }
-            val examination = sessionRepository.readExamination(folderName)
+            needsReprocess = previousEdited?.segments != segments
             timelineRepository.writeEdited(
                 folderName,
                 TimelineEdited(
@@ -335,13 +375,42 @@ class DefaultEditorComponent(
                 ),
             )
         } else {
+            needsReprocess = previousEdited != null
             // Everything is back at the original position: drop any earlier edit so processing
             // uses the original timeline again.
             timelineRepository.deleteEdited(folderName)
         }
+        val processing = examination?.processing
+        if (processing?.status == ProcessingStatus.Done) {
+            val nowUsed = if (anyMoved) TimelineSource.EDITED else TimelineSource.ORIGINAL
+            if ((processing.timelineUsed ?: TimelineSource.ORIGINAL) != nowUsed) needsReprocess = true
+        }
         audioPlaybackService.stop()
         _state.value = _state.value.copy(accepted = true)
-        onDone(folderName)
+        onDone(folderName, needsReprocess)
+    }
+
+    override fun onDiscard() {
+        if (loaded.none { it.segment.changedSinceOpened }) {
+            exitDiscarded()
+        } else {
+            _state.value = _state.value.copy(discardConfirmationOpen = true)
+        }
+    }
+
+    override fun onDiscardConfirmed() {
+        if (!_state.value.discardConfirmationOpen) return
+        exitDiscarded()
+    }
+
+    override fun onDiscardCancelled() {
+        _state.value = _state.value.copy(discardConfirmationOpen = false)
+    }
+
+    private fun exitDiscarded() {
+        audioPlaybackService.stop()
+        _state.value = _state.value.copy(discardConfirmationOpen = false)
+        onDiscarded(folderName)
     }
 
     private fun refreshVisibleWindow() {

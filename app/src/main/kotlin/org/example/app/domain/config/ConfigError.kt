@@ -32,6 +32,12 @@ sealed interface ConfigError {
     /** Response body did not parse/decode as configuration JSON at all. */
     data class Malformed(val detail: String) : ConfigError
 
+    /**
+     * The fetch succeeded but the device check-in said this computer belongs to another site
+     * (HTTP 409): the fetched config was NOT persisted or activated (F-041).
+     */
+    data object RegisteredToAnotherSite : ConfigError
+
     /** Any other non-success HTTP response. */
     data class ServerError(val httpStatus: Int) : ConfigError
 }
@@ -50,5 +56,6 @@ fun ConfigError.messageKey(): String = when (this) {
     is ConfigError.SchemaUnsupported -> "error.config.schemaUnsupported"
     is ConfigError.ValidationFailed -> "error.config.validationFailed"
     is ConfigError.Malformed -> "error.config.malformed"
+    ConfigError.RegisteredToAnotherSite -> "settings.refresh.otherSite"
     is ConfigError.ServerError -> "settings.refresh.failed"
 }

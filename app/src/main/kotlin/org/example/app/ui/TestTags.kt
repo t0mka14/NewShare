@@ -151,6 +151,7 @@ object TestTags {
     /** Minimal post-protocol summary shown before returning to the main menu. */
     object SessionSummary {
         const val DONE_BUTTON = "sessionSummary.doneButton"
+        const val PROCESSED_TEXT = "sessionSummary.processedText"
     }
 
     /** Waveform boundary editor (§8.7), shown when `enableEditor` is true. */
@@ -163,6 +164,11 @@ object TestTags {
         const val NEXT_SEGMENT_BUTTON = "editor.nextSegmentButton"
         const val ACCEPT_BUTTON = "editor.acceptButton"
         const val SEGMENT_LABEL = "editor.segmentLabel"
+        const val RESET_SEGMENT_BUTTON = "editor.resetSegmentButton"
+        const val DISCARD_BUTTON = "editor.discardButton"
+        const val DISCARD_DIALOG = "editor.discardDialog"
+        const val DISCARD_CONFIRM_BUTTON = "editor.discardConfirmButton"
+        const val DISCARD_CANCEL_BUTTON = "editor.discardCancelButton"
     }
 
     /** Processing progress screen (§8.8) — blocks navigation while `ProcessSessionUseCase` runs. */
@@ -218,6 +224,13 @@ object TestTags {
         /** Re-enumerates the devices listed in [DEVICE_SELECT]. */
         const val DEVICE_REFRESH_BUTTON = "settings.deviceRefreshButton"
         /** Where a preselected (not yet saved) microphone came from; absent once the examiner picked one. */
+        /** Camera dropdown next to the microphone one (F-019). */
+        const val CAMERA_SELECT = "settings.cameraSelect"
+        /** Shown instead of the dropdown while cameras are being listed. */
+        const val CAMERA_LOADING = "settings.cameraLoading"
+        const val CAMERA_NONE_NOTE = "settings.cameraNoneNote"
+        const val CAMERA_AUTOMATIC_OPTION = "settings.cameraOption.automatic"
+        fun cameraOption(deviceId: String) = "settings.cameraOption.$deviceId"
         const val DEVICE_DEFAULT_HINT = "settings.deviceDefaultHint"
         /** Microphone level slider under the device dropdown (§13 decision 44). */
         const val MIC_GAIN_SLIDER = "settings.micGainSlider"

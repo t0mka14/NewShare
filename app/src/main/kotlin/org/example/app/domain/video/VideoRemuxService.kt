@@ -16,10 +16,12 @@ interface VideoRemuxService {
      * Writes [output] (atomically) holding exactly the frames of [source], timed at [fps] — the
      * take's `videoTakes[].captureFormat.fps`, since the stream itself carries no timestamps.
      *
+     * @return the number of frames in the written MP4 (verified equal to the source's), so the
+     *   caller can derive the clip's duration as `frames / fps` without probing the file.
      * @throws VideoRemuxException when no ffmpeg is available, ffmpeg fails, or the MP4 does not
      *   hold the same number of frames as [source].
      */
-    fun remuxToMp4(source: Path, fps: Int, output: Path)
+    fun remuxToMp4(source: Path, fps: Int, output: Path): Int
 }
 
 class VideoRemuxException(val detail: String) : Exception(detail)

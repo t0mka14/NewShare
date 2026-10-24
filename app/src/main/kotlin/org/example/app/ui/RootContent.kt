@@ -57,6 +57,7 @@ fun RootContent(
             is RootComponent.Child.Processing -> ProcessingContent(instance.component, localization)
 
             is RootComponent.Child.SessionSummary -> SessionSummaryContent(
+                result = instance.component.result,
                 localization = localization,
                 onDone = component::onSessionSummaryDone,
             )

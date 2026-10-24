@@ -149,6 +149,8 @@ class DefaultSessionComponent(
     private val savedMicDeviceId: String? = null,
     /** The OS input level of a device right now (`MicGainApplier.read`); null when unreadable. */
     private val readMicGain: suspend (AudioInputDevice) -> Int? = { null },
+    /** The examiner picked a microphone on the calibration screen: persist it as the default (F-062). */
+    private val onMicDevicePicked: (AudioInputDevice) -> Unit = {},
 ) : SessionComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -302,6 +304,7 @@ class DefaultSessionComponent(
                     initialDevice = initialDevice,
                     availableDevices = availableDevices,
                     onConfirmed = ::onCalibrationConfirmed,
+                    onDevicePicked = onMicDevicePicked,
                 ),
             )
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.navigation.SessionBrowserComponent
+import org.example.app.domain.upload.UploadStatusValue
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -92,6 +93,7 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(
                                     onClick = { component.onOpenEditor(row.folderName) },
+                                    enabled = row.uploadStatus != UploadStatusValue.Uploaded,
                                     modifier = Modifier.testTag(TestTags.SessionBrowser.openEditorButton(row.sessionId)),
                                 ) {
                                     Text(localization.resolve("sessionBrowser.openEditorButton"))

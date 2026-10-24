@@ -93,6 +93,7 @@ class ProcessSessionUseCaseTest {
             videoTakes: List<VideoTakeRecord> = emptyList(),
             fileNameTemplate: String = template,
             siteName: String? = null,
+            hardware: SessionHardware? = null,
         ): Examination {
             sessionRepository.createSessionDirectory(folderName)
             sessionRepository.writeParticipant(folderName, ParticipantRecord(fields = mapOf("patient_code" to "HC001"), createdAt = "2026-07-01T09:00:00Z"))
@@ -107,6 +108,7 @@ class ProcessSessionUseCaseTest {
                 interruptions = interruptions,
                 tasks = tasks,
                 videoTakes = videoTakes,
+                hardware = hardware,
             )
             sessionRepository.writeExamination(folderName, examination)
             return examination
@@ -575,6 +577,116 @@ class ProcessSessionUseCaseTest {
         assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
         assertEquals(listOf(1), f.videoRemuxService.calls.map { it.output.fileName.toString().split('_')[2].toInt() })
         assertNull(f.sessionRepository.readExamination(f.folderName)!!.tasks.first { it.taskIndex == 0 }.videoFile)
+    }
+
+    // endregion
+
+    // region F-034: partial video is marked in examination.json
+
+    private fun timedEvent(type: TimelineEventType, take: Int, sample: Long, at: String) = TimelineEvent(
+        type = type, sampleOffset = sample, wallClock = at, taskIndex = 0, repetition = 1, take = take,
+    )
+
+    /** One filming VOCAL take, 1 s of 48 kHz audio between 09:00:10 and 09:00:11. */
+    private fun Fixture.setUpOneFilmedTake(hardware: SessionHardware?) {
+        setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+            videoTakes = listOf(videoTake(0, 1)),
+            hardware = hardware,
+        )
+        writeStray("video/task00_rep01_take01.mjpeg")
+        writeOriginal(
+            listOf(
+                timedEvent(TimelineEventType.START_BUTTON_PRESSED, 1, 0, "2026-07-01T09:00:10Z"),
+                timedEvent(TimelineEventType.STOP_BUTTON_PRESSED, 1, 48_000, "2026-07-01T09:00:11Z"),
+            ),
+        )
+    }
+
+    private fun cameraFailedAt(at: String) = SessionHardware(events = listOf(HardwareEvent(at, "camera", "capture_failed", "capture interrupted")))
+
+    private fun Fixture.processedTask(): TaskRecord {
+        val outcome = (runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+        return sessionRepository.readExamination(folderName)!!.tasks.single()
+    }
+
+    @Test
+    fun `F-034 a normal filmed take is marked complete with video and audio durations within one frame`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpOneFilmedTake(hardware = null)
+
+        val task = f.processedTask()
+
+        assertEquals(true, task.videoComplete)
+        assertEquals(1000L, task.audioDurationMs)
+        assertEquals(1000L, task.videoDurationMs)
+        assertTrue(kotlin.math.abs(task.audioDurationMs!! - task.videoDurationMs!!) <= 1000 / 30)
+    }
+
+    @Test
+    fun `F-034 a camera that failed inside the kept take marks the video partial and shorter`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpOneFilmedTake(hardware = cameraFailedAt("2026-07-01T09:00:10.500Z"))
+        f.videoRemuxService.defaultFrames = 15
+
+        val task = f.processedTask()
+
+        assertEquals(false, task.videoComplete)
+        assertEquals(500L, task.videoDurationMs)
+        assertEquals(1000L, task.audioDurationMs)
+        assertEquals("clips/install1_HC001_0_PHONATION_1.mp4", task.videoFile, "the take is kept")
+    }
+
+    @Test
+    fun `F-034 a camera failure outside the kept take does not mark it partial`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpOneFilmedTake(hardware = cameraFailedAt("2026-07-01T09:05:00Z"))
+
+        assertEquals(true, f.processedTask().videoComplete)
+    }
+
+    @Test
+    fun `F-034 an audio-only fallback instance gets none of the video fields`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+            hardware = cameraFailedAt("2026-07-01T09:00:10.500Z"),
+        )
+        f.writeOriginal(
+            listOf(
+                timedEvent(TimelineEventType.START_BUTTON_PRESSED, 1, 0, "2026-07-01T09:00:10Z"),
+                timedEvent(TimelineEventType.STOP_BUTTON_PRESSED, 1, 48_000, "2026-07-01T09:00:11Z"),
+            ),
+        )
+
+        val task = f.processedTask()
+
+        assertNull(task.videoFile)
+        assertNull(task.videoComplete)
+        assertNull(task.videoDurationMs)
+        assertNull(task.audioDurationMs)
+    }
+
+    @Test
+    fun `F-034 a legacy examination without the fields still loads with them null`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(captureFormat = format48k, tasks = emptyList())
+        val file = f.sessionRepository.sessionDir(f.folderName).resolve("examination.json")
+        Files.writeString(
+            file,
+            """{"version":1,"sessionId":"s1","installationId":"i","protocolName":"Share","configVersion":"v","startedAt":"2026-07-01T09:00:00Z",""" +
+                """"tasks":[{"taskIndex":0,"type":"VIDEO","repetition":1,"takes":1,"videoFile":"clips/a.mp4"}]}""",
+        )
+
+        val task = f.sessionRepository.readExamination(f.folderName)!!.tasks.single()
+
+        assertEquals("clips/a.mp4", task.videoFile)
+        assertNull(task.videoComplete)
+        assertNull(task.videoDurationMs)
+        assertNull(task.audioDurationMs)
     }
 
     // endregion

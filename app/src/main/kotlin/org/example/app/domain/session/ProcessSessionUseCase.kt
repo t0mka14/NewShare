@@ -64,6 +64,9 @@ class ProcessSessionUseCase(
 ) {
     enum class Step { SELECTING_TIMELINE, CUTTING_CLIPS, CONVERTING_VIDEO, BUILDING_ARCHIVE, UPDATING_METADATA }
 
+    /** F-034: what processing learned about one kept video, copied onto its [TaskRecord]. */
+    private data class VideoOutcome(val file: String, val complete: Boolean, val durationMs: Long, val audioDurationMs: Long?)
+
     /** What clip and video names are rendered from: the protocol's template and the entered field values. */
     private data class Naming(val template: String, val siteName: String?, val fieldValues: Map<String, String>)
 
@@ -138,6 +141,7 @@ class ProcessSessionUseCase(
             val hasVideo = examination.videoTakes.isNotEmpty()
 
             var updatedTasks = examination.tasks
+            val audioDurationByKey = mutableMapOf<Pair<Int, Int>, Long>()
 
             // Clip and video names both come from the protocol's `recordingsFileName` and the
             // participant's values — needed even without a master, by a video-only protocol.
@@ -189,6 +193,11 @@ class ProcessSessionUseCase(
                     onStep(Step.CUTTING_CLIPS, 0.1f + 0.4f * (index + 1) / total)
                 }
 
+                planningResult.plans.forEach {
+                    // Source samples / source rate: the clip is resampled, not stretched.
+                    audioDurationByKey[it.taskIndex to it.repetition] =
+                        (it.localRange.last + 1 - it.localRange.first) * 1000L / it.sourcePart.format.sampleRate
+                }
                 val clipByKey = planningResult.plans.associateBy { it.taskIndex to it.repetition }
                 updatedTasks = updatedTasks.map { task ->
                     val plan = clipByKey[task.taskIndex to task.repetition]
@@ -210,7 +219,7 @@ class ProcessSessionUseCase(
                 )
                 val clipsDir = sessionRepository.clipsDir(folderName)
                 val total = plans.size.coerceAtLeast(1)
-                val videoByKey = mutableMapOf<Pair<Int, Int>, String>()
+                val videoByKey = mutableMapOf<Pair<Int, Int>, VideoOutcome>()
                 plans.forEachIndexed { index, plan ->
                     val source = sessionDir.resolve(plan.source)
                     // A camera that died before its first frame leaves an empty file, or none. There
@@ -218,18 +227,34 @@ class ProcessSessionUseCase(
                     if (!Files.isRegularFile(source) || Files.size(source) == 0L) {
                         logger.warn { "skipping video of task ${plan.taskIndex} rep ${plan.repetition}: ${plan.source.substringAfterLast('/')} is missing or empty" }
                     } else {
+                        val frames: Int
                         try {
-                            videoRemuxService.remuxToMp4(source, plan.fps, clipsDir.resolve(plan.fileName))
+                            frames = videoRemuxService.remuxToMp4(source, plan.fps, clipsDir.resolve(plan.fileName))
                         } catch (e: VideoRemuxException) {
                             return fail(examination, ProcessingError.VideoRemux(plan.taskIndex, plan.repetition, e.detail))
                         }
                         logger.info { "video of task ${plan.taskIndex} rep ${plan.repetition} converted" }
-                        videoByKey[plan.taskIndex to plan.repetition] = "clips/${plan.fileName}"
+                        videoByKey[plan.taskIndex to plan.repetition] = VideoOutcome(
+                            file = "clips/${plan.fileName}",
+                            complete = VideoCompleteness.isComplete(
+                                originalTimeline.events, examination.hardware?.events.orEmpty(),
+                                plan.taskIndex, plan.repetition, plan.take,
+                            ),
+                            durationMs = frames * 1000L / plan.fps,
+                            audioDurationMs = audioDurationByKey[plan.taskIndex to plan.repetition],
+                        )
                     }
                     onStep(Step.CONVERTING_VIDEO, 0.5f + 0.15f * (index + 1) / total)
                 }
                 updatedTasks = updatedTasks.map { task ->
-                    videoByKey[task.taskIndex to task.repetition]?.let { task.copy(videoFile = it) } ?: task
+                    videoByKey[task.taskIndex to task.repetition]?.let {
+                        task.copy(
+                            videoFile = it.file,
+                            videoComplete = it.complete,
+                            videoDurationMs = it.durationMs,
+                            audioDurationMs = it.audioDurationMs,
+                        )
+                    } ?: task
                 }
             }
 

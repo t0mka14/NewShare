@@ -56,6 +56,8 @@ class QuestionnaireOnlyScenarioTest {
         waitForIdle()
 
         onNodeWithTag(TestTags.SessionSummary.DONE_BUTTON).assertIsDisplayed()
+        // F-026: the auto-advanced summary states that processing succeeded.
+        onNodeWithTag(TestTags.SessionSummary.PROCESSED_TEXT).assertIsDisplayed()
 
         // The recorder is never constructed at all for a no-master protocol (§6.2) — stronger
         // than "saw no startMonitoring/startWriting calls", and matches the assertion pattern

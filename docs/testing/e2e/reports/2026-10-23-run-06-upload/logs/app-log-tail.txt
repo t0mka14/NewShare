@@ -1,0 +1,5 @@
+# app.log tail at end of run 06 (last write 00:30:01, i.e. nothing logged for the 00:34 upload or check-in); redacted
+2026-10-24 00:29:32.474 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - camera failed: CaptureInterrupted(detail=frame= 2974 fps= 30 q=3.0 size=  163925KiB time=00:01:39.13 bitrate=13546.1kbits/s speed=   1x     | frame= 2989 fps= 30 q=3.0 size=
+2026-10-24 00:30:00.638 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg -> E2E1023-05-3_<installationId>_0_PHONATION_Rep1.mp4: 168 frames at 30 fps
+2026-10-24 00:30:01.136 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take01.mjpeg -> E2E1023-05-3_<installationId>_1_MONOLOGUE_Rep1.mp4: 1439 frames at 30 fps
+2026-10-24 00:30:01.410 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep02_take01.mjpeg -> E2E1023-05-3_<installationId>_2_MONOLOGUE_Rep2.mp4: 157 frames at 30 fps

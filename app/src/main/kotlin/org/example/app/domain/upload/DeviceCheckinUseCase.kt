@@ -33,7 +33,8 @@ class DeviceCheckinUseCase(
      * token's (HTTP 409); Settings shows a note. Cleared by the next recorded check-in. */
     val registeredToAnotherSite: StateFlow<Boolean> = _registeredToAnotherSite
 
-    suspend fun checkIn() {
+    /** The answer, or `null` when nothing was sent (no token) or local metadata failed. */
+    suspend fun checkIn(): DeviceCheckinResult? {
         try {
             val result = withContext(dispatchers.io) {
                 val siteToken = settingsRepository.read()?.siteToken?.trim()?.takeIf { it.isNotEmpty() }
@@ -63,11 +64,13 @@ class DeviceCheckinUseCase(
                 DeviceCheckinResult.Failed -> logger.warn { "device check-in: failed" }
                 null -> logger.info { "device check-in: skipped, no site token" }
             }
+            return result
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             // Reading local metadata failed; skipping the report is all it is worth.
             logger.warn { "device check-in: skipped, ${e::class.simpleName}" }
+            return null
         }
     }
 

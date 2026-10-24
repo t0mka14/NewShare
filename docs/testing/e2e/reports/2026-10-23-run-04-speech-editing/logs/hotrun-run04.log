@@ -1,0 +1,1 @@
+00:14:32.276 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)

@@ -42,13 +42,21 @@ class FakeTimelineRepository : TimelineRepository {
 
     override fun editedExists(folderName: String): Boolean = editeds.containsKey(folderName)
 
+    /** F-027: how many times the edited timeline was written / deleted, to prove Discard touches nothing. */
+    var writeEditedCount = 0
+        private set
+    var deleteEditedCount = 0
+        private set
+
     override fun writeEdited(folderName: String, timeline: TimelineEdited) {
+        writeEditedCount++
         editeds[folderName] = timeline
     }
 
     override fun readEdited(folderName: String): TimelineEdited? = editeds[folderName]
 
     override fun deleteEdited(folderName: String) {
+        deleteEditedCount++
         editeds.remove(folderName)
     }
 }

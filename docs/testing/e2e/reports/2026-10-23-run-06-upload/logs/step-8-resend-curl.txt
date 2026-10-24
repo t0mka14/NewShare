@@ -1,0 +1,9 @@
+POST /api/upload  (form order: installationId=<installationId>, sessionId=fb60e12fb4124064b8ba83c3543ee003, zipSha256, siteToken=<token:E2E-1023-Site-A>, appVersion=1.0.0, zip)
+## post 1: unchanged ZIP of E2E1023-04-1 (sha256 4170852d...185c)
+HTTP/1.1 100 Continue
+HTTP/1.1 200 OK
+{"status":"ok","sessionId":"fb60e12fb4124064b8ba83c3543ee003","bytes":10294736,"sha256":"4170852dc694f928c7906414a968e6a98600810914d20a885abe411e22d8185c","receivedAt":"2026-10-23T22:34:26.798Z"}
+## post 2: ZIP + dummy entry, own sha256 5c5d55ff59ee4afd6885152fd33798adf21bfcf48c4a589147d17d3358e50ce3
+HTTP/1.1 100 Continue
+HTTP/1.1 409 Conflict
+{"error":"session_exists"}

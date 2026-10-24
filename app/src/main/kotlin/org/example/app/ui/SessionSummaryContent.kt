@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import org.example.app.navigation.SessionSummaryComponent
 
 /**
  * Minimal post-protocol summary (§8.6 "session-end/summary stub", chunk 2 scope). The full
@@ -20,16 +22,41 @@ import androidx.compose.ui.unit.dp
  * this only confirms the protocol finished and returns to the main menu.
  */
 @Composable
-fun SessionSummaryContent(localization: UiLocalization, onDone: () -> Unit) {
+fun SessionSummaryContent(result: SessionSummaryComponent.Result, localization: UiLocalization, onDone: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(localization.resolve("sessionSummary.title"), style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(16.dp))
             Text(localization.resolve("sessionSummary.message"), style = MaterialTheme.typography.bodyLarge)
+            sessionSummaryProcessedText(result, localization)?.let { text ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(TestTags.SessionSummary.PROCESSED_TEXT))
+            }
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = onDone, modifier = Modifier.testTag(TestTags.SessionSummary.DONE_BUTTON)) {
                 Text(localization.resolve("action.done"))
             }
         }
     }
+}
+
+/** Localization key for the processed-result line (EN one/other; CS one/few/other); `null` = no claim. */
+internal fun sessionSummaryProcessedKey(result: SessionSummaryComponent.Result, language: String): String? = when (result) {
+    SessionSummaryComponent.Result.NotProcessed -> null
+    SessionSummaryComponent.Result.ProcessedNoClips -> "sessionSummary.processed"
+    is SessionSummaryComponent.Result.ProcessedClips -> {
+        val n = result.count
+        val category = when {
+            n == 1 -> "one"
+            language == "cs" && n in 2..4 -> "few"
+            else -> "other"
+        }
+        "sessionSummary.processed.$category"
+    }
+}
+
+internal fun sessionSummaryProcessedText(result: SessionSummaryComponent.Result, localization: UiLocalization): AnnotatedString? {
+    val key = sessionSummaryProcessedKey(result, localization.language) ?: return null
+    val count = (result as? SessionSummaryComponent.Result.ProcessedClips)?.count ?: 0
+    return localization.resolve(key, mapOf("count" to count.toString()))
 }

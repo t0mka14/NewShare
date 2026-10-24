@@ -213,6 +213,9 @@ Top level:
 | `skipped` | bool | Examiner skipped the instance. Absent means `false`. |
 | `clipFile` | string? | ZIP path of the audio clip, e.g. `clips/….wav`. |
 | `videoFile` | string? | ZIP path of the MP4, e.g. `clips/….mp4`. |
+| `videoComplete` | bool? | Only with `videoFile`. `false` if the camera failed during the kept take (MP4 shorter than the audio; the take is still kept). Additive; the server may ignore it. |
+| `videoDurationMs` | long? | Only with `videoFile`: MP4 duration (frame count / fps). Additive; may be ignored. |
+| `audioDurationMs` | long? | Only with `videoFile`: duration of the kept take's audio clip. Additive; may be ignored. |
 | `questionnaireAnswers` | object? | QUESTIONNAIRE only: `questionKey → [answer, …]` (always a list, even for single-choice). |
 
 `interruptions[]`: `sampleOffset` (global sample where the loss happened), `start`/`end`

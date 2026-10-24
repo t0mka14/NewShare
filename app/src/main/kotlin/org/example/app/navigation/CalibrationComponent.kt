@@ -59,6 +59,8 @@ class DefaultCalibrationComponent(
     initialDevice: AudioInputDevice,
     availableDevices: List<AudioInputDevice>,
     private val onConfirmed: () -> Unit,
+    /** An explicit examiner pick (never the automatic initial selection): saved as the default mic (F-062). */
+    private val onDevicePicked: (AudioInputDevice) -> Unit = {},
 ) : CalibrationComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -108,6 +110,7 @@ class DefaultCalibrationComponent(
 
     override fun onDeviceSelected(device: AudioInputDevice) {
         _state.value = _state.value.copy(selectedDevice = device, deviceLost = false)
+        onDevicePicked(device)
         reopen(device)
     }
 

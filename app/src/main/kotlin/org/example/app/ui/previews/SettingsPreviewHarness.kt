@@ -9,6 +9,7 @@ import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.MicChoice
 import org.example.app.domain.localization.LocalizedStringProvider
 import org.example.app.domain.config.IndicatorType
+import org.example.app.domain.video.VideoInputDevice
 import org.example.app.navigation.SettingsComponent
 import org.example.app.ui.SettingsContent
 import org.example.app.ui.UiLocalization
@@ -46,6 +47,8 @@ private fun previewState(micGain: Int?, controllable: Boolean, override: Int? = 
     SettingsComponent.State(
         availableDevices = previewDevices,
         selectedDeviceId = "usb",
+        availableCameras = listOf(VideoInputDevice("cam1", "Logitech BRIO", 0, 0, true)),
+        camerasLoading = false,
         installationId = "3f2b8c1e-5d4a-4b6f-9e7d-0a1b2c3d4e5f",
         siteToken = "paris000000000000000",
         availableLanguages = listOf("cs", "en"),
@@ -75,6 +78,10 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
     }
 
     override fun onRefreshClicked() = Unit
+
+    override fun onCameraSelected(deviceId: String?) {
+        _state.value = _state.value.copy(selectedCameraId = deviceId)
+    }
 
     override fun onRefreshDevicesClicked() = Unit
 

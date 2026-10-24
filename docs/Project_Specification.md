@@ -77,7 +77,7 @@ but is retired for these reasons:
 1. **It predates the remote-config model.** Its Settings sections (task management UI, local
    `tasks.json` editing, participant field configuration screens) conflict with server-pushed
    configuration. In the rewrite, Settings contains only: audio input device selection, the
-   microphone level slider (§13 decision 44; the device list has a refresh button, decision 52), site token (plus the read-only installation ID), language, the live recording indicator
+   microphone level slider (§13 decision 44; the device list has a refresh button, decision 52), the camera (a dropdown: "Automatic (first available camera)" = `cameraDeviceId` null, then each listed camera; listed in the background because enumeration spawns ffmpeg, re-listed by the same refresh button; a saved camera that is no longer connected stays saved and is shown as not connected; F-019), site token (plus the read-only installation ID), language, the live recording indicator
    (a local override of the config's `indicatorType`, decision 53), and a "refresh
    configuration" action. With no microphone saved, the dropdown preselects the device a
    session would use (the §6.2 chain) with a hint where it came from ("Default from the site
@@ -297,9 +297,15 @@ RecoverSessionsUseCase        startup crash recovery (§8.4)
    → `ServerError`. Only the status code is interpreted (bodies are `{"error": "…"}`). After a
    successful fetch the app sends a best-effort device check-in (§13 decision 62); nothing
    else is sent back.
-3. The response JSON is validated against `schemaVersion`, persisted **atomically** (write to
-   `config.json.tmp`, fsync, rename over `data/config/config.json`), and becomes the active
-   configuration.
+3. The response JSON is validated against `schemaVersion`; then the device check-in runs;
+   only then is it persisted **atomically** (write to `config.json.tmp`, fsync, rename over
+   `data/config/config.json`) and made the active configuration. If the check-in answers
+   409 ("this computer is registered to another site", F-041) the fetched config is
+   **discarded**: the previous active config and its cache file stay exactly as they were, and
+   Settings says the new configuration was not applied (`settings.refresh.otherSite`). With no
+   previous config the app stays on the blocking screen, which shows the same reason (Settings
+   stays reachable to correct the token). Any other check-in outcome (recorded, network failure,
+   no token) applies the config. The startup refresh follows the same rule.
 4. **Offline fallback:** if the server is unreachable, the last cached config is used. If no
    cache exists (first run offline), the app shows a blocking "configuration required" screen
    (rendered from the bundled fallback strings, §7). While the last refresh failed on the
@@ -343,6 +349,7 @@ shows live input level against the local `optimalLoudness` setting (linear RMS, 
 scale, default `[0.2, 0.5]`) and must be confirmed before the master recording starts; without
 `useCalibration` the recording starts as soon as the session is set up. **Protocols with no VOCAL tasks (questionnaire/info-only) skip calibration and do not
 record a master WAV at all.**
+A microphone the examiner picks on the calibration screen is also saved as `AppSettings.micDeviceId` (write-through, same as Settings), so the next session and the Settings screen start on it; the automatic initial selection is never saved (F-062).
 
 `indicatorType` selects the live recording feedback on VOCAL task screens: `CIRCLE` — a
 pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — the take's amplitude
@@ -507,6 +514,9 @@ Both safeguards are mandatory (not alternatives):
    processing (`NothingToProcess`) instead of producing an empty ZIP. The processing screen
    then says nothing was recorded, and every processing failure is logged at WARN with the
    error type and `sessionId` only (§11).
+   The main menu shows a one-time recovery notice listing recovered and failed sessions
+   (Compose-level dialog, "OK" / "Open Sessions"). It is modal and is **dismissed only by its
+   buttons**: a click outside it or Esc does nothing, so the examiner always sees it.
 3. **Empty sessions (`EmptySessionCleanup`):** entering calibration creates the session folder,
    so a session left before `SESSION_RECORDING_STARTED` (Back, or a microphone that never
    opened) is deleted when its session component is destroyed, and the same check runs at
@@ -592,11 +602,23 @@ VOCAL task instance; the editor shows one segment at a time.
   range), **not** a boundary offset — an untouched editor pass must yield clips identical to
   the no-editor path.
 - Interactions: drag start/stop boundary lines, segment playback with a moving position
-  line, previous/next segment navigation, accept.
+  line, previous/next segment navigation, **reset segment** (current segment back to the
+  boundaries it had when the editor opened; enabled only if it differs), **discard changes**,
+  accept.
+- **Discard** leaves without writing or deleting anything (`timeline_edited.json` stays
+  byte-identical). Exits at once if no boundary differs from its opening value, otherwise asks
+  "Discard edits?" first (Compose dialog). Afterwards: from the session browser it returns to
+  it without reprocessing; after a session it continues to processing with whatever is on disk.
 - **`timeline_edited.json` is written only if at least one boundary was actually moved.** An
   untouched pass writes nothing and `timelineUsed` stays `"original"`.
 - Boundary validation: start < stop, within recorded range, no overlap with adjacent
   segments' final boundaries.
+- **Editing from the session browser (§8.11)** reprocesses automatically when Accept changed
+  the edit state on disk (a different `timeline_edited.json` written, or an existing one
+  deleted because all boundaries are back at the original) or when the last `Done` processing
+  used a different timeline (`timelineUsed`) than the one now in effect (a stale session): the editor is replaced by the
+  processing screen, which returns to the browser, so `examination.json` (`timelineUsed`) and
+  the ZIP never lag the edit. An Accept with neither condition just returns to the browser.
 
 ### 8.8 Processing
 
@@ -615,6 +637,13 @@ VOCAL task instance; the editor shows one segment at a time.
 5. Update `examination.json` with clip and video paths (`clipFile`, `videoFile`), processing
    status `Done`, `timelineUsed` — *before* the ZIP is built, so the archived copy is the
    final one (a build failure then rewrites the status to `Failed`).
+   For an instance that got a `videoFile` it also records (F-034, additive, optional; the
+   server may ignore them): `videoComplete` (`false` iff a `camera`/`capture_failed` entry of
+   `hardware.events` falls between the kept take's START and STOP in the original timeline,
+   i.e. the camera died mid-take and the MP4 is shorter than the audio; never inferred from
+   durations), `videoDurationMs` (remuxed frame count / the take's fps) and `audioDurationMs`
+   (kept clip's source samples / source sample rate). Audio-only fallback instances carry none
+   of the three; older files without them still load.
 6. Build `archive/<PatientCode>_<SessionId>.zip` containing: `participant.json`,
    `examination.json`, `task_configuration_snapshot.json`, `timeline_original.json`,
    `timeline_edited.json` (if present), `master/session_master.wav`, `clips/*` (WAV and MP4), and
@@ -626,6 +655,8 @@ VOCAL task instance; the editor shows one segment at a time.
 there is no `master/`; `clips/` exists only if step 4 produced video (a VIDEO-only protocol). The event log still exists (events carry
 `"sampleOffset": null`); processing means building the ZIP + manifest from the JSON files
 only.
+
+On success the processing screen auto-advances to the session summary, which states the result read from `examination.json` (F-026): "Session processed (N clips) – ready to upload." with N = tasks having a clip or video file (plural-aware, EN/CS); without clips (no-master) or when `processing.status` is not `Done`, no count / no processed claim.
 
 Reprocessing (from the session browser) regenerates `clips/` and `archive/` — these are
 **derived artifacts**, exempt from the never-delete rule (§8.9). `waveform_cache/` is also
@@ -726,6 +757,8 @@ Lists previous sessions (id, patient code, date, processing/upload status, recov
 actions: open editor, reprocess, upload/retry. Metadata must remain loadable at any time;
 any session is reprocessable from master + timeline. The rows re-read their status whenever the
 screen is returned to (after the editor, processing or upload), so they are never stale.
+"Open editor" is disabled for sessions whose upload status is `Uploaded` (terminal, §8.9: an
+edit could never reach the server); the component ignores the action for such rows too.
 
 ### 8.12 Main screen
 
@@ -1524,9 +1557,9 @@ Error taxonomy (normative, inlined from the old plan):
     - **Device check-in:** `DeviceCheckinUseCase` posts `{siteToken, installationId,
       appVersion, pending, failed}` (counts from `EligibleUploadsQuery`) to `/device-checkin`
       after every successful config refresh and after every upload batch. It never throws and
-      never changes the caller's result. It is awaited inside `refresh()` (15 s cap), so the
-      Settings refresh result and the check-in's answer arrive together. A 409 ("registered to
-      another site") shows a note in Settings until a later check-in is recorded. It is skipped
+      never changes the caller's result. It is awaited inside `refresh()` before the fetched config is persisted (F-041): a 409
+      ("registered to another site") means the fetched config is not stored or activated and the
+      previous one stays. The note shows in Settings until a later check-in is recorded. It is skipped
       while no site token is set.
     - The site token, like the installation ID, never reaches a log line (§11).
 

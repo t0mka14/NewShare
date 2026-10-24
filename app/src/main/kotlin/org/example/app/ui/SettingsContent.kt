@@ -82,6 +82,41 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             }
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Camera: Automatic (saves null) plus the listed cameras (F-019).
+            Text(localization.resolve("settings.camera.label"), style = MaterialTheme.typography.titleMedium)
+            if (state.camerasLoading) {
+                Text(
+                    localization.resolve("settings.camera.loading"),
+                    modifier = Modifier.testTag(TestTags.Settings.CAMERA_LOADING),
+                )
+            } else {
+                val automatic = localization.resolvePlain("settings.camera.automatic")
+                val saved = state.selectedCameraId
+                val savedCamera = state.availableCameras.firstOrNull { it.id == saved }
+                val choices: List<String?> = listOf<String?>(null) + state.availableCameras.map { it.id }
+                DropdownSelector(
+                    triggerTag = TestTags.Settings.CAMERA_SELECT,
+                    selectedLabel = when {
+                        saved == null -> automatic
+                        savedCamera != null -> savedCamera.name
+                        else -> localization.resolve("settings.camera.unavailable", mapOf("name" to saved)).text
+                    },
+                    items = choices,
+                    itemLabel = { id -> if (id == null) automatic else state.availableCameras.first { it.id == id }.name },
+                    itemEnabled = { id -> id == null || state.availableCameras.first { it.id == id }.eligible },
+                    itemTag = { id -> if (id == null) TestTags.Settings.CAMERA_AUTOMATIC_OPTION else TestTags.Settings.cameraOption(id) },
+                    onSelected = component::onCameraSelected,
+                )
+                if (state.availableCameras.isEmpty()) {
+                    Text(
+                        localization.resolve("settings.camera.none"),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.testTag(TestTags.Settings.CAMERA_NONE_NOTE),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
             // The legacy microphone row: value label + 0..100 slider, disabled until the selected
             // device's level has been read (§13 decision 44).
             Text(localization.resolve("settings.micGain.label"), style = MaterialTheme.typography.titleMedium)

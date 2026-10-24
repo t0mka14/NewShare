@@ -66,7 +66,8 @@ fun EditorLive() {
             waveformService = JvmWaveformService(),
             audioPlaybackService = JvmAudioPlaybackService(),
             dispatchers = DefaultCoroutineDispatchers(),
-            onDone = {},
+            onDone = { _, _ -> },
+            onDiscarded = {},
         )
     }
 

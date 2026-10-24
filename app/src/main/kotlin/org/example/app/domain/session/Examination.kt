@@ -75,6 +75,16 @@ data class TaskRecord(
      * audio only.
      */
     val videoFile: String? = null,
+    /**
+     * F-034, set with [videoFile] only (null otherwise, and in sessions written before it existed):
+     * false when the camera stopped or failed during the kept take, so [videoFile] is shorter than
+     * the audio. The kept take is never dropped for it (§8.9). Additive; the server may ignore it.
+     */
+    val videoComplete: Boolean? = null,
+    /** F-034: duration of [videoFile] in ms (remuxed frame count / the take's fps). Null without a video. */
+    val videoDurationMs: Long? = null,
+    /** F-034: duration of the kept take's audio clip in ms. Null unless the instance has a [videoFile]. */
+    val audioDurationMs: Long? = null,
 )
 
 /**

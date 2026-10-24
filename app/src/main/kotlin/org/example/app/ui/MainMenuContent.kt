@@ -34,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.domain.session.StartupRecovery
 import org.example.app.navigation.MainMenuComponent
@@ -93,8 +94,10 @@ fun MainMenuContent(component: MainMenuComponent, localization: UiLocalization) 
 @Composable
 private fun RecoveryDialog(summary: StartupRecovery.Summary, component: MainMenuComponent, localization: UiLocalization) {
     AlertDialog(
-        onDismissRequest = component::onRecoveryDismissed,
+        // Modal (F-055): outside click and Esc do nothing; only OK / Open Sessions close it.
+        onDismissRequest = { /* blocking: dismissed only by its buttons */ },
         modifier = Modifier.testTag(TestTags.MainMenu.RECOVERY_DIALOG),
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         title = { Text(localization.resolve("mainMenu.recovery.title")) },
         text = {
             Column(

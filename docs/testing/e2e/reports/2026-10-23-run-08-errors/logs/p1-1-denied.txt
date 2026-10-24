@@ -1,0 +1,5 @@
+2026-10-24 01:23:53.412 [DefaultDispatcher-worker-13] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+2026-10-24 01:24:01.765 [AWT-EventQueue-0] ERROR o.example.app.domain.ErrorReporter - unhandled recoverable error
+java.lang.IllegalStateException: startWriting is only valid from Monitoring, was Failed(error=DeviceUnavailable(deviceId=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version))

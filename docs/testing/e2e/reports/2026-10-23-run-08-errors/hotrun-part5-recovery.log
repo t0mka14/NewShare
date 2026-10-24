@@ -1,0 +1,76 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:4 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+01:51:02.330 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+01:51:30.574 [DefaultDispatcher-worker-6] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted

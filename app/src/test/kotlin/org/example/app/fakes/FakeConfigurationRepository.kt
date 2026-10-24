@@ -3,6 +3,7 @@ package org.example.app.fakes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.config.ConfigApplyResult
+import org.example.app.domain.config.ConfigValidateResult
 import org.example.app.domain.config.ConfigurationRepository
 import org.example.app.domain.config.RemoteConfig
 
@@ -39,6 +40,15 @@ class FakeConfigurationRepository(initialConfig: RemoteConfig? = null) : Configu
     var cachedAtInstant: java.time.Instant? = null
 
     override fun cachedAt(): java.time.Instant? = cachedAtInstant
+
+    /** Mirrors the head of the queue without consuming or applying it. */
+    override fun validateFetched(json: String): ConfigValidateResult =
+        when (val head = queue.firstOrNull()) {
+            is ConfigApplyResult.Applied -> ConfigValidateResult.Valid(head.config)
+            is ConfigApplyResult.Malformed -> ConfigValidateResult.Malformed(head.detail)
+            is ConfigApplyResult.Rejected -> ConfigValidateResult.Rejected(head.errors)
+            null -> error("FakeConfigurationRepository: no ConfigApplyResult enqueued for validateFetched")
+        }
 
     override fun applyFetched(json: String): ConfigApplyResult {
         appliedJson += json

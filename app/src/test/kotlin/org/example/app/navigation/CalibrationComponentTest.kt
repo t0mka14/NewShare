@@ -21,6 +21,7 @@ class CalibrationComponentTest {
         val dispatchers = TestCoroutineDispatchers()
         val recorder = FakeContinuousSessionRecorder(clock)
         var confirmed = 0
+        val picked = mutableListOf<AudioInputDevice>()
         val device = FakeAudioInputDeviceProvider.DEFAULT_DEVICE
         val secondary = FakeAudioInputDeviceProvider.SECONDARY_DEVICE
 
@@ -39,6 +40,7 @@ class CalibrationComponentTest {
             initialDevice = device,
             availableDevices = listOf(device, secondary),
             onConfirmed = { confirmed++ },
+            onDevicePicked = { picked += it },
         )
     }
 
@@ -171,5 +173,17 @@ class CalibrationComponentTest {
 
         assertFalse(h.component.state.value.micFailed)
         assertFalse(h.component.state.value.micRetryFailed)
+    }
+
+    @Test
+    fun `F-062 an explicit device pick is reported for saving, the initial selection is not`() {
+        val h = Harness()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(h.picked.isEmpty())
+
+        h.component.onDeviceSelected(h.secondary)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(listOf(h.secondary), h.picked)
     }
 }

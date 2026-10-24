@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.example.app.domain.config.ConfigApplyResult
 import org.example.app.domain.config.ConfigDecoder
 import org.example.app.domain.config.ConfigSchemaMigrator
+import org.example.app.domain.config.ConfigValidateResult
 import org.example.app.domain.config.ConfigValidationError
 import org.example.app.domain.config.ConfigValidator
 import org.example.app.domain.config.ConfigurationRepository
@@ -51,29 +52,37 @@ class JsonConfigurationRepository(
     }
 
     override fun applyFetched(json: String): ConfigApplyResult {
+        val config = when (val validated = validateFetched(json)) {
+            is ConfigValidateResult.Malformed -> return ConfigApplyResult.Malformed(validated.detail)
+            is ConfigValidateResult.Rejected -> return ConfigApplyResult.Rejected(validated.errors)
+            is ConfigValidateResult.Valid -> validated.config
+        }
+        // Server response always replaces the cache regardless of configVersion ordering —
+        // the server is authoritative (§6.1 pt 6).
+        cache.write(json)
+        _activeConfig.value = config
+        return ConfigApplyResult.Applied(config)
+    }
+
+    override fun validateFetched(json: String): ConfigValidateResult {
         val decodeResult = try {
             ConfigDecoder.decode(json)
         } catch (e: SerializationException) {
             logger.warn { "fetched config failed to decode: ${e::class.simpleName}" }
-            return ConfigApplyResult.Malformed(e.message ?: "malformed config JSON")
+            return ConfigValidateResult.Malformed(e.message ?: "malformed config JSON")
         } catch (e: ClassCastException) {
             // ConfigDecoder casts the root to JsonObject; a top-level JSON array/scalar throws this.
             logger.warn { "fetched config was not a JSON object: ${e::class.simpleName}" }
-            return ConfigApplyResult.Malformed(e.message ?: "config JSON root must be an object")
+            return ConfigValidateResult.Malformed(e.message ?: "config JSON root must be an object")
         }
         logDecoderWarnings(decodeResult.warnings)
 
         val validation = ConfigValidator.validate(decodeResult.config)
         if (!validation.isValid) {
             logger.warn { "fetched config failed validation: ${validation.errors.describe()}" }
-            return ConfigApplyResult.Rejected(validation.errors)
+            return ConfigValidateResult.Rejected(validation.errors)
         }
-
-        // Server response always replaces the cache regardless of configVersion ordering —
-        // the server is authoritative (§6.1 pt 6).
-        cache.write(json)
-        _activeConfig.value = decodeResult.config
-        return ConfigApplyResult.Applied(decodeResult.config)
+        return ConfigValidateResult.Valid(decodeResult.config)
     }
 
     override fun cachedAt(): java.time.Instant? = cache.lastModified()

@@ -1,0 +1,108 @@
+.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At C:\Users\koubato2\AppData\Local\Temp\3\claude\C--Users-koubato2-IdeaProjects-NewShare\ee0b7184-f127-400a-9a41-bd0e02
+2d07cb\scratchpad\start.ps1:5 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+22:23:26.560 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=5f8fdc5b0a9c4ade84ca5e4864990dc8
+22:23:26.940 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+22:23:27.190 [DefaultDispatcher-worker-8] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+22:23:29.619 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+22:23:29.622 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+22:24:04.147 [DefaultDispatcher-worker-10] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:24:04.159 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:26:16.217 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:26:16.227 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:26:21.158 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+22:26:21.341 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+22:26:24.692 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+22:26:33.056 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 251 frames
+22:26:39.245 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+22:26:47.745 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 256 frames
+22:26:53.317 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep02_take01.mjpeg
+22:27:01.581 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep02_take01.mjpeg after 248 frames
+22:27:22.380 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg -> E2E1024-11-5_<installationId>_0_PHONATION_Rep1.mp4: 251 frames at 30 fps
+22:27:22.659 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take01.mjpeg -> E2E1024-11-5_<installationId>_1_MONOLOGUE_Rep1.mp4: 256 frames at 30 fps
+22:27:22.932 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep02_take01.mjpeg -> E2E1024-11-5_<installationId>_2_MONOLOGUE_Rep2.mp4: 248 frames at 30 fps
+22:28:03.460 [DefaultDispatcher-worker-6] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:28:03.462 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:28:08.200 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+22:28:08.370 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+22:28:10.293 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+22:28:43.762 [video-capture-reader] ERROR o.e.a.i.v.FfmpegSessionVideoRecorder - capture ended while Recording: the capture process ended
+22:28:43.767 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - camera failed: capture interrupted: the capture process ended
+22:29:09.794 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+22:29:24.749 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+22:29:59.548 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg -> E2E1024-11-6_<installationId>_0_PHONATION_Rep1.mp4: 1004 frames at 30 fps
+22:30:50.655 [DefaultDispatcher-worker-10] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+22:30:50.666 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+
+> Task :app:hotRun FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:hotRun'.
+> Process 'command 'C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe'' finished with non
+-zero exit value -1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7m 40s
+13 actionable tasks: 3 executed, 10 up-to-date

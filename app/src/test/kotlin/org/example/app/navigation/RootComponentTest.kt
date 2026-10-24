@@ -2,6 +2,7 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
 import org.example.app.AppContainer
 import org.example.app.domain.audio.AudioInputDevice
 import kotlinx.coroutines.runBlocking
@@ -411,5 +412,108 @@ class RootComponentTest {
 
         assertEquals(listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE), recorder.monitoringStarts)
         assertTrue(gainControl.setCalls.isEmpty())
+    }
+
+    @Test
+    fun `F-062 a mic picked on the calibration screen is saved as the default`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val clock = FakeClock()
+        val recorder = FakeContinuousSessionRecorder(clock)
+        val container = buildContainer(
+            tempDir, dispatchers, clock, FakeAudioInputGainControl(),
+            deviceProvider = FakeAudioInputDeviceProvider(
+                listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
+            ),
+            recorder = recorder,
+        )
+        container.rawConfigCache.write(ConfigFixtures.fullProtocol)
+        container.configurationRepository.loadCached()
+        val lifecycle = LifecycleRegistry()
+        val root = DefaultRootComponent(DefaultComponentContext(lifecycle), container)
+
+        openShareSession(root, dispatchers)
+        val session = (root.stack.value.active.instance as RootComponent.Child.Session).component
+        val calibration = (session.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        // Auto-selection at start is not a pick.
+        assertNull(container.appSettingsRepository.read()?.micDeviceId)
+
+        calibration.onDeviceSelected(FakeAudioInputDeviceProvider.SECONDARY_DEVICE)
+        dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(FakeAudioInputDeviceProvider.SECONDARY_DEVICE.id, container.appSettingsRepository.read()?.micDeviceId)
+    }
+
+    private fun rootAtSessionEditor(
+        container: AppContainer,
+        priorEdit: org.example.app.domain.timeline.TimelineEdited?,
+    ): Pair<RootComponent, EditorComponent> {
+        container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)
+        container.configurationRepository.loadCached()
+        val folder = "2026-10-23_P01_s1"
+        container.sessionRepository.createSessionDirectory(folder)
+        container.sessionRepository.writeExamination(
+            folder,
+            org.example.app.domain.session.Examination(
+                sessionId = "s1",
+                installationId = "i1",
+                protocolName = "Share",
+                configVersion = "v1",
+                startedAt = "2026-10-23T09:00:00Z",
+                captureFormat = org.example.app.domain.audio.CaptureFormat(sampleRate = 1000, bits = 16, channels = 1),
+            ),
+        )
+        container.timelineRepository.writeOriginal(
+            folder,
+            org.example.app.domain.timeline.TimelineOriginal(sessionId = "s1", sampleRate = 1000, events = emptyList()),
+        )
+        priorEdit?.let { container.timelineRepository.writeEdited(folder, it) }
+        val root = buildRoot(container)
+        (root.stack.value.active.instance as RootComponent.Child.MainMenu).component.onSessionBrowser()
+        val browser = (root.stack.value.active.instance as RootComponent.Child.SessionBrowser).component
+        browser.onOpenEditor(folder)
+        return root to (root.stack.value.active.instance as RootComponent.Child.Editor).component
+    }
+
+    @Test
+    fun `accepting an untouched editor opened from Sessions pops back without reprocessing (F-066)`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val (root, editor) = rootAtSessionEditor(buildContainer(tempDir, dispatchers), priorEdit = null)
+        dispatchers.scheduler.advanceUntilIdle()
+
+        editor.onAccept()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+    }
+
+    @Test
+    fun `accepting a changed edit state from Sessions reprocesses and returns to Sessions (F-066)`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        // An existing edit that Accept deletes (no VOCAL segments loaded -> nothing moved).
+        val prior = org.example.app.domain.timeline.TimelineEdited(sessionId = "s1", sampleRate = 1000, segments = emptyList())
+        val (root, editor) = rootAtSessionEditor(buildContainer(tempDir, dispatchers), priorEdit = prior)
+        dispatchers.scheduler.advanceUntilIdle()
+
+        editor.onAccept()
+
+        val active = root.stack.value.active.instance
+        assertTrue(active is RootComponent.Child.Processing, "expected Processing but was $active")
+        // Editor is gone from the stack: back from Processing lands on Sessions, not the editor.
+        assertTrue(root.stack.value.backStack.none { it.instance is RootComponent.Child.Editor })
+        (active as RootComponent.Child.Processing).component.onBack()
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+    }
+
+    @Test
+    fun `F-027 discarding the editor opened from Sessions pops back with no Processing`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val prior = org.example.app.domain.timeline.TimelineEdited(sessionId = "s1", sampleRate = 1000, segments = emptyList())
+        val container = buildContainer(tempDir, dispatchers)
+        val (root, editor) = rootAtSessionEditor(container, priorEdit = prior)
+        dispatchers.scheduler.advanceUntilIdle()
+
+        editor.onDiscard()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+        assertTrue(root.stack.value.backStack.none { it.instance is RootComponent.Child.Processing })
+        assertTrue(container.timelineRepository.editedExists("2026-10-23_P01_s1"), "discard must leave the edit on disk")
     }
 }

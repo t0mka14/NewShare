@@ -2,6 +2,8 @@ package org.example.app.ui
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
@@ -96,7 +98,8 @@ class NewScreensSmokeTest {
             waveformService = FakeWaveformService(),
             audioPlaybackService = FakeAudioPlaybackService(),
             dispatchers = dispatchers,
-            onDone = {},
+            onDone = { _, _ -> },
+            onDiscarded = {},
         )
         dispatchers.scheduler.advanceUntilIdle()
 
@@ -118,6 +121,81 @@ class NewScreensSmokeTest {
         val moved = component.state.value.segments.first().moved
         val unchanged = component.state.value.segments.first().startSample == 100L
         assertTrue(moved || unchanged, "drag must either move the boundary or leave it validly unchanged")
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `F-027 editor reset and discard buttons drive the confirm dialog`() = runComposeUiTest {
+        val dispatchers = TestCoroutineDispatchers()
+        val sessionRepository = FakeSessionRepository()
+        val timelineRepository = FakeTimelineRepository()
+        val folderName = "folder-1"
+        val format = CaptureFormat(sampleRate = 1000, bits = 16, channels = 1)
+        timelineRepository.writeOriginal(
+            folderName,
+            TimelineOriginal(
+                sessionId = "session-1",
+                sampleRate = format.sampleRate,
+                events = listOf(
+                    TimelineEvent(TimelineEventType.START_BUTTON_PRESSED, 100, "t", 0, 1, 1),
+                    TimelineEvent(TimelineEventType.STOP_BUTTON_PRESSED, 300, "t", 0, 1, 1),
+                    TimelineEvent(TimelineEventType.SESSION_RECORDING_STOPPED, 1000, "t", null, null, null),
+                ),
+            ),
+        )
+        sessionRepository.writeExamination(
+            folderName,
+            Examination(
+                sessionId = "session-1",
+                installationId = "install-1",
+                protocolName = "Share",
+                configVersion = "v1",
+                startedAt = "2026-07-03T09:00:00Z",
+                captureFormat = format,
+                tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+            ),
+        )
+        var discarded = 0
+        val component = DefaultEditorComponent(
+            componentContext = DefaultComponentContext(LifecycleRegistry()),
+            folderName = folderName,
+            sessionRepository = sessionRepository,
+            timelineRepository = timelineRepository,
+            waveformService = FakeWaveformService(),
+            audioPlaybackService = FakeAudioPlaybackService(),
+            dispatchers = dispatchers,
+            onDone = { _, _ -> },
+            onDiscarded = { discarded++ },
+        )
+        dispatchers.scheduler.advanceUntilIdle()
+        setContent { EditorContent(component, localization()) }
+        waitForIdle()
+
+        onNodeWithTag(TestTags.Editor.RESET_SEGMENT_BUTTON).assertIsNotEnabled()
+
+        component.onDragStart(150L)
+        waitForIdle()
+        onNodeWithTag(TestTags.Editor.RESET_SEGMENT_BUTTON).assertIsEnabled().performClick()
+        waitForIdle()
+        assertEquals(100L, component.state.value.segments.first().startSample)
+        onNodeWithTag(TestTags.Editor.RESET_SEGMENT_BUTTON).assertIsNotEnabled()
+
+        component.onDragStart(150L)
+        waitForIdle()
+        onNodeWithTag(TestTags.Editor.DISCARD_BUTTON).performClick()
+        waitForIdle()
+        onNodeWithTag(TestTags.Editor.DISCARD_DIALOG).assertExists()
+        onNodeWithTag(TestTags.Editor.DISCARD_CANCEL_BUTTON).performClick()
+        waitForIdle()
+        onNodeWithTag(TestTags.Editor.DISCARD_DIALOG).assertDoesNotExist()
+        assertEquals(0, discarded)
+
+        onNodeWithTag(TestTags.Editor.DISCARD_BUTTON).performClick()
+        waitForIdle()
+        onNodeWithTag(TestTags.Editor.DISCARD_CONFIRM_BUTTON).performClick()
+        waitForIdle()
+        assertEquals(1, discarded)
+        assertTrue(!timelineRepository.editedExists(folderName))
     }
 
     @OptIn(ExperimentalTestApi::class)

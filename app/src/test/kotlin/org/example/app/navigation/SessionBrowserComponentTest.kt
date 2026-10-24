@@ -128,4 +128,20 @@ class SessionBrowserComponentTest {
 
         assertEquals(1, component.state.value.rows.size)
     }
+
+    @Test
+    fun `open editor is refused for an Uploaded session but allowed for others (F-066)`() {
+        val h = Harness()
+        h.seed("folder-up", "session-up")
+        h.seed("folder-failed", "session-failed")
+        h.uploadStatusRepository.write("folder-up", UploadStatus(status = UploadStatusValue.Uploaded))
+        h.uploadStatusRepository.write("folder-failed", UploadStatus(status = UploadStatusValue.Failed))
+        val component = h.build()
+
+        component.onOpenEditor("folder-up")
+        assertNull(h.openedEditorFor)
+
+        component.onOpenEditor("folder-failed")
+        assertEquals("folder-failed", h.openedEditorFor)
+    }
 }

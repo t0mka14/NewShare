@@ -35,6 +35,7 @@ class SettingsLayoutUiTest {
         val dispatchers = TestCoroutineDispatchers()
         val component = DefaultSettingsComponent(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
+            videoDeviceProvider = org.example.app.fakes.FakeVideoInputDeviceProvider(),
             deviceProvider = FakeAudioInputDeviceProvider(
                 listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
             ),

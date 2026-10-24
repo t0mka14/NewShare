@@ -1,0 +1,40 @@
+﻿{
+    "checkedBy":  "orchestrator, with user approval, 2026-10-24",
+    "attempts":  {
+                     "value":  [
+                                   {
+                                       "id":  16,
+                                       "at":  "2026-10-23T23:35:24.472Z",
+                                       "code":  200,
+                                       "outcome":  "accepted",
+                                       "bytes":  8351200,
+                                       "shaDeclared":  "b7a9bfdf1f9ea9f5bab3875465d6883ea7c6e889ad48657ad12a2e3f7e29f954",
+                                       "shaComputed":  "b7a9bfdf1f9ea9f5bab3875465d6883ea7c6e889ad48657ad12a2e3f7e29f954",
+                                       "deviceReported":  false,
+                                       "installationId":  "<installationId2>"
+                                   }
+                               ],
+                     "Count":  1
+                 },
+    "device37":  {
+                     "id":  37,
+                     "installationId":  "<installationId2>",
+                     "label":  null,
+                     "siteId":  12,
+                     "siteName":  "E2E-1023-Site-A",
+                     "appVersion":  "1.0.0",
+                     "lastConfigVersion":  "2026-10-23.215209",
+                     "lastConfigAt":  "2026-10-23T23:42:31.000Z",
+                     "lastSeenAt":  "2026-10-23T23:42:34.000Z",
+                     "pending":  0,
+                     "failed":  0,
+                     "backlogHidden":  false,
+                     "lastUpload":  "2026-10-23T23:35:24.472Z",
+                     "uploads30":  2,
+                     "neverUploaded":  false,
+                     "health":  {
+                                    "key":  "ok",
+                                    "label":  "Healthy"
+                                }
+                 }
+}

@@ -9,7 +9,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.AudioInputDeviceProvider
@@ -25,6 +27,8 @@ import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.InstallationIdProvider
+import org.example.app.domain.video.VideoInputDevice
+import org.example.app.domain.video.VideoInputDeviceProvider
 import org.example.app.domain.config.messageKey
 
 interface SettingsComponent {
@@ -37,6 +41,9 @@ interface SettingsComponent {
 
     /** Re-enumerate the mic devices (same lookup as when the screen opens). */
     fun onRefreshDevicesClicked()
+
+    /** The examiner picked a camera, or `null` for "Automatic (first available camera)"; saved at once. */
+    fun onCameraSelected(deviceId: String?)
 
     /** Slider dragged (live); nothing is persisted or applied until [onMicGainChangeFinished]. */
     fun onMicGainChanged(value: Int)
@@ -89,6 +96,12 @@ interface SettingsComponent {
         val micGainControllable: Boolean = false,
         /** The read finished and returned no level — the device's level cannot be set. */
         val micGainUnavailable: Boolean = false,
+        /** Cameras found by the last listing; empty until [camerasLoading] turns false. */
+        val availableCameras: List<VideoInputDevice> = emptyList(),
+        /** Listing cameras spawns a process, so it runs in the background (F-019). */
+        val camerasLoading: Boolean = true,
+        /** Saved `AppSettings.cameraDeviceId`; `null` = Automatic. May name a camera no longer listed. */
+        val selectedCameraId: String? = null,
         /** The persisted local override (`AppSettings.indicatorType`, §13 decision 53). */
         val indicatorTypeOverride: IndicatorType? = null,
         /** The active config's `indicatorType` (its default when there is no config). */
@@ -121,6 +134,7 @@ class DefaultSettingsComponent(
     private val micGainApplier: MicGainApplier,
     private val installationIdProvider: InstallationIdProvider,
     private val dispatchers: CoroutineDispatchers,
+    private val videoDeviceProvider: VideoInputDeviceProvider,
     /** `DeviceCheckinUseCase.registeredToAnotherSite`; updated by the check-in after a refresh. */
     private val registeredToAnotherSite: StateFlow<Boolean> = MutableStateFlow(false),
 ) : SettingsComponent, ComponentContext by componentContext {
@@ -129,6 +143,7 @@ class DefaultSettingsComponent(
 
     /** Last level read from (or successfully written to) the selected device. */
     private var deviceLevel: Int? = null
+    private var cameraListing: Job? = null
 
     private val _state = MutableValue(initialState())
     override val state: Value<SettingsComponent.State> = _state
@@ -150,6 +165,7 @@ class DefaultSettingsComponent(
             }
         }
         readDeviceLevel()
+        listCameras()
     }
 
     private fun initialState(): SettingsComponent.State {
@@ -165,6 +181,7 @@ class DefaultSettingsComponent(
             micSource = choice?.source,
             installationId = installationIdProvider.get(),
             siteToken = saved?.siteToken.orEmpty(),
+            selectedCameraId = saved?.cameraDeviceId,
             availableLanguages = config?.languages.orEmpty(),
             selectedLanguage = effectiveLanguage(saved?.language, config),
             // A failure from an earlier refresh (e.g. the startup one) is shown on arrival.
@@ -221,6 +238,22 @@ class DefaultSettingsComponent(
         )
         readDeviceLevel()
         reselectDefaultMic()
+        listCameras()
+    }
+
+    override fun onCameraSelected(deviceId: String?) {
+        _state.value = _state.value.copy(selectedCameraId = deviceId)
+        settingsRepository.write((settingsRepository.read() ?: AppSettings()).copy(cameraDeviceId = deviceId))
+    }
+
+    /** Enumeration blocks on ffmpeg: never on the main thread, never when the screen is built. */
+    private fun listCameras() {
+        cameraListing?.cancel()
+        _state.value = _state.value.copy(camerasLoading = true)
+        cameraListing = scope.launch(dispatchers.main) {
+            val cameras = withContext(dispatchers.io) { videoDeviceProvider.availableDevices() }
+            _state.value = _state.value.copy(availableCameras = cameras, camerasLoading = false)
+        }
     }
 
     override fun onMicGainChanged(value: Int) {
@@ -329,7 +362,7 @@ class DefaultSettingsComponent(
         /** The server was unreachable and the cached config stays active (§6.1 pt 4). */
         const val OFFLINE_KEY = "settings.refresh.offline"
 
-        /** The refresh worked but the device check-in says this computer belongs to another site. */
+        /** The device check-in says this computer belongs to another site; the fetched config was not applied (F-041). */
         const val OTHER_SITE_KEY = "settings.refresh.otherSite"
     }
 }

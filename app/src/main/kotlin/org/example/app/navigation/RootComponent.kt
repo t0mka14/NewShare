@@ -6,6 +6,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -74,7 +75,7 @@ interface RootComponent {
         class Processing(val component: ProcessingComponent) : Child()
 
         /** Minimal post-protocol confirmation (§8.6). */
-        data object SessionSummary : Child()
+        class SessionSummary(val component: SessionSummaryComponent) : Child()
 
         /** §8.9 upload screen, reached via the main-screen Upload button. */
         class Upload(val component: UploadComponent) : Child()
@@ -203,7 +204,9 @@ class DefaultRootComponent(
             is Config.Editor -> buildEditorChild(childContext, config)
             is Config.Processing -> buildProcessingChild(childContext, config)
 
-            Config.SessionSummary -> RootComponent.Child.SessionSummary
+            is Config.SessionSummary -> RootComponent.Child.SessionSummary(
+                DefaultSessionSummaryComponent(config.folderName, container.sessionRepository),
+            )
             Config.Upload -> buildUploadChild(childContext)
             Config.SessionBrowser -> buildSessionBrowserChild(childContext)
         }
@@ -234,6 +237,7 @@ class DefaultRootComponent(
             micGainApplier = container.micGainApplier,
             installationIdProvider = container.installationIdProvider,
             dispatchers = container.dispatchers,
+            videoDeviceProvider = container.videoInputDeviceProvider,
             registeredToAnotherSite = container.deviceCheckinUseCase.registeredToAnotherSite,
         )
         val subscription = settingsComponent.state.subscribe { state ->
@@ -305,6 +309,11 @@ class DefaultRootComponent(
             savedCameraDeviceId = savedSettings?.cameraDeviceId,
             savedMicDeviceId = savedSettings?.micDeviceId,
             readMicGain = container.micGainApplier::read,
+            // Same write-through merge as Settings: a calibration pick becomes the saved default (F-062).
+            onMicDevicePicked = { device ->
+                val current = container.appSettingsRepository.read() ?: AppSettings()
+                container.appSettingsRepository.write(current.copy(micDeviceId = device.id))
+            },
             videoRecorderFactory = container.sessionVideoRecorderFactory,
             ptzControllerFactory = container.ptzControllerFactory,
             startSessionUseCase = container.startSessionUseCase,
@@ -340,12 +349,18 @@ class DefaultRootComponent(
                 waveformService = container.waveformService,
                 audioPlaybackService = container.audioPlaybackService,
                 dispatchers = container.dispatchers,
-                onDone = { folderName ->
+                onDone = { folderName, needsReprocess ->
                     if (config.returnToBrowser) {
-                        navigation.pop()
+                        // F-066: an edit made from Sessions must reach examination.json and the
+                        // ZIP, so reprocess; the Processing screen pops back to Sessions.
+                        if (needsReprocess) navigation.replaceCurrent(Config.Processing(folderName, returnToBrowser = true)) else navigation.pop()
                     } else {
                         navigation.replaceAll(Config.Processing(folderName, returnToBrowser = false))
                     }
+                },
+                // F-027: nothing was written; post-session processing uses whatever is on disk.
+                onDiscarded = { folderName ->
+                    if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.Processing(folderName, returnToBrowser = false))
                 },
             ),
         )
@@ -357,8 +372,8 @@ class DefaultRootComponent(
                 folderName = config.folderName,
                 processSessionUseCase = container.processSessionUseCase,
                 dispatchers = container.dispatchers,
-                onDone = {
-                    if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.SessionSummary)
+                onDone = { folderName ->
+                    if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.SessionSummary(folderName))
                 },
                 onBackClicked = {
                     if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.MainMenu)
@@ -436,7 +451,7 @@ class DefaultRootComponent(
         data class Processing(val folderName: String, val returnToBrowser: Boolean) : Config
 
         @Serializable
-        data object SessionSummary : Config
+        data class SessionSummary(val folderName: String) : Config
 
         @Serializable
         data object Upload : Config

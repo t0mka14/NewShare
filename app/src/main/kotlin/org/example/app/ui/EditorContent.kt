@@ -21,14 +21,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -108,7 +112,10 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(localization.resolve("editor.noSegments"), style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(24.dp))
-                    AcceptButton(localization, component::onAccept)
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        DiscardButton(localization, component::onDiscard)
+                        AcceptButton(localization, component::onAccept)
+                    }
                 }
             }
         } else {
@@ -150,10 +157,35 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
                 onPrevious = component::onPrevious,
                 onPlayToggle = component::onPlayToggle,
                 onNext = component::onNext,
+                canReset = segment.changedSinceOpened,
+                onReset = component::onResetSegment,
+                onDiscard = component::onDiscard,
                 onAccept = component::onAccept,
             )
         }
     }
+    if (state.discardConfirmationOpen) DiscardConfirmDialog(component, localization)
+}
+
+/** The "Discard edits?" confirmation, inside the main window like every dialog. */
+@Composable
+private fun DiscardConfirmDialog(component: EditorComponent, localization: UiLocalization) {
+    AlertDialog(
+        onDismissRequest = component::onDiscardCancelled,
+        modifier = Modifier.testTag(TestTags.Editor.DISCARD_DIALOG),
+        title = { Text(localization.resolve("editor.discardConfirm.title")) },
+        text = { Text(localization.resolve("editor.discardConfirm.message")) },
+        confirmButton = {
+            Button(onClick = component::onDiscardConfirmed, modifier = Modifier.testTag(TestTags.Editor.DISCARD_CONFIRM_BUTTON)) {
+                Text(localization.resolve("editor.discardConfirm.confirm"))
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = component::onDiscardCancelled, modifier = Modifier.testTag(TestTags.Editor.DISCARD_CANCEL_BUTTON)) {
+                Text(localization.resolve("action.cancel"))
+            }
+        },
+    )
 }
 
 /** Editor width cap, shared by the panel and the control row so both edges line up. */
@@ -447,7 +479,7 @@ private fun Readout(label: String, value: String, emphasized: Boolean = false) {
     }
 }
 
-/** Everything actionable in one row (previous · play/stop · next · accept). */
+/** Everything actionable in one row (previous · play/stop · reset · next · discard · accept). */
 @Composable
 private fun EditorControls(
     localization: UiLocalization,
@@ -457,6 +489,9 @@ private fun EditorControls(
     onPrevious: () -> Unit,
     onPlayToggle: () -> Unit,
     onNext: () -> Unit,
+    canReset: Boolean,
+    onReset: () -> Unit,
+    onDiscard: () -> Unit,
     onAccept: () -> Unit,
 ) {
     Row(
@@ -474,16 +509,27 @@ private fun EditorControls(
             Text(localization.resolve("action.previous"))
         }
 
-        Button(
-            onClick = onPlayToggle,
-            shape = MaterialTheme.shapes.large,
-            modifier = Modifier.testTag(TestTags.Editor.PLAY_SEGMENT_BUTTON),
-        ) {
-            ButtonIcon(if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow)
-            Text(localization.resolve(if (isPlaying) "action.stop" else "action.play"))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Button(
+                onClick = onPlayToggle,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.testTag(TestTags.Editor.PLAY_SEGMENT_BUTTON),
+            ) {
+                ButtonIcon(if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow)
+                Text(localization.resolve(if (isPlaying) "action.stop" else "action.play"))
+            }
+            OutlinedButton(
+                onClick = onReset,
+                enabled = canReset,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.testTag(TestTags.Editor.RESET_SEGMENT_BUTTON),
+            ) {
+                ButtonIcon(Icons.Filled.Refresh)
+                Text(localization.resolve("editor.reset"))
+            }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = onNext,
                 enabled = hasNext,
@@ -493,8 +539,21 @@ private fun EditorControls(
                 Text(localization.resolve("action.next"))
                 ButtonIcon(Icons.Filled.ChevronRight, trailing = true)
             }
+            DiscardButton(localization, onDiscard)
             AcceptButton(localization, onAccept)
         }
+    }
+}
+
+@Composable
+private fun DiscardButton(localization: UiLocalization, onDiscard: () -> Unit) {
+    OutlinedButton(
+        onClick = onDiscard,
+        shape = MaterialTheme.shapes.large,
+        modifier = Modifier.testTag(TestTags.Editor.DISCARD_BUTTON),
+    ) {
+        ButtonIcon(Icons.Filled.Close)
+        Text(localization.resolve("editor.discard"))
     }
 }
 

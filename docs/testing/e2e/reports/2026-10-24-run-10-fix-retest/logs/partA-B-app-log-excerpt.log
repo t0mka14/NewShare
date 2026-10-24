@@ -1,0 +1,57 @@
+2026-10-24 08:01:25.548 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:01:53.279 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-24 08:02:46.620 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=32b59ee1f8994fecac49e0dfeb6fa0de
+2026-10-24 08:03:16.986 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 08:03:23.336 [DefaultDispatcher-worker-9] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted
+2026-10-24 08:03:35.954 [DefaultDispatcher-worker-8] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$AudioException: DeviceUnavailable: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:394)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:47)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 48000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:388)
+	... 10 common frames omitted

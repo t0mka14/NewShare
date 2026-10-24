@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.settings.AppSettingsRepository
+import org.example.app.domain.upload.DeviceCheckinResult
 import org.example.app.domain.upload.DeviceCheckinUseCase
 
 private val logger = KotlinLogging.logger {}
@@ -21,8 +22,9 @@ private val logger = KotlinLogging.logger {}
  * of a blocking error. Only "network unreachable with genuinely no cache" is a [ConfigError].
  *
  * The fetch identifies this computer ([deviceIdentity]) and a successful refresh is followed by
- * a device check-in ([deviceCheckin]), both §13 decision 62. The check-in never changes the
- * result.
+ * a device check-in ([deviceCheckin]), both §13 decision 62. The check-in runs before the
+ * fetched config is persisted: only its HTTP 409 ("registered to another site") changes the
+ * result, to [ConfigError.RegisteredToAnotherSite] with the fetched config discarded (F-041).
  */
 class RefreshConfigurationUseCase(
     private val settingsRepository: AppSettingsRepository,
@@ -71,7 +73,13 @@ class RefreshConfigurationUseCase(
             is Result.OfflineUsingCache -> logger.warn {
                 "config refresh: network failure, using cached configVersion=${result.config.configVersion} site=${result.config.siteName}"
             }
-            is Result.Failed -> logger.warn { "config refresh: rejected, ${result.error.logDescription()}" }
+            is Result.Failed -> logger.warn {
+                if (result.error == ConfigError.RegisteredToAnotherSite) {
+                    "config refresh: config from another site not applied (HTTP 409), keeping previous configuration"
+                } else {
+                    "config refresh: rejected, ${result.error.logDescription()}"
+                }
+            }
         }
     }
 
@@ -109,29 +117,41 @@ class RefreshConfigurationUseCase(
         }
     }
 
-    private suspend fun applyFetched(json: String): Result =
-        when (val applied = configurationRepository.applyFetched(json)) {
+    /**
+     * F-041 order: validate, device check-in, then persist + activate. A 409 from the check-in
+     * means the server files this computer under another site than the token's, so the fetched
+     * config must not become active; the previous config and its cache file stay untouched.
+     * Any other check-in outcome (recorded, network failure, skipped) still applies the config.
+     */
+    private suspend fun applyFetched(json: String): Result {
+        when (val validated = configurationRepository.validateFetched(json)) {
+            is ConfigValidateResult.Valid -> Unit
+            is ConfigValidateResult.Malformed -> return Result.Failed(ConfigError.Malformed(validated.detail))
+            is ConfigValidateResult.Rejected -> return Result.Failed(rejectedError(validated.errors))
+        }
+
+        if (deviceCheckin?.checkIn() == DeviceCheckinResult.RegisteredToAnotherSite) {
+            return Result.Failed(ConfigError.RegisteredToAnotherSite)
+        }
+
+        return when (val applied = configurationRepository.applyFetched(json)) {
             is ConfigApplyResult.Applied -> {
                 syncExampleAudio(applied.config)
-                deviceCheckin?.checkIn()
                 Result.Success(applied.config)
             }
-
             is ConfigApplyResult.Malformed -> Result.Failed(ConfigError.Malformed(applied.detail))
-
-            is ConfigApplyResult.Rejected -> {
-                val schemaError = applied.errors
-                    .filterIsInstance<ConfigValidationError.UnsupportedSchemaVersion>()
-                    .firstOrNull()
-                if (schemaError != null) {
-                    Result.Failed(
-                        ConfigError.SchemaUnsupported(schemaError.schemaVersion, schemaError.supportedRange),
-                    )
-                } else {
-                    Result.Failed(ConfigError.ValidationFailed(applied.errors))
-                }
-            }
+            is ConfigApplyResult.Rejected -> Result.Failed(rejectedError(applied.errors))
         }
+    }
+
+    private fun rejectedError(errors: List<ConfigValidationError>): ConfigError {
+        val schemaError = errors.filterIsInstance<ConfigValidationError.UnsupportedSchemaVersion>().firstOrNull()
+        return if (schemaError != null) {
+            ConfigError.SchemaUnsupported(schemaError.schemaVersion, schemaError.supportedRange)
+        } else {
+            ConfigError.ValidationFailed(errors)
+        }
+    }
 
     /** Best effort: the config is already active, so a cache failure never fails the refresh. */
     private suspend fun syncExampleAudio(config: RemoteConfig) {

@@ -84,6 +84,8 @@ class HappyPathScenarioTest {
         waitForIdle()
 
         onNodeWithTag(TestTags.SessionSummary.DONE_BUTTON).assertIsDisplayed()
+        // F-026: the auto-advanced summary states that processing succeeded.
+        onNodeWithTag(TestTags.SessionSummary.PROCESSED_TEXT).assertIsDisplayed()
 
         // ---- on-disk assertions (§8.2 layout, §8.3 timeline) ----
         val folderName = harness.sessionFolderName()

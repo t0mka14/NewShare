@@ -36,8 +36,22 @@ interface ConfigurationRepository {
      */
     fun applyFetched(json: String): ConfigApplyResult
 
+    /**
+     * Fetch path, step one (F-041): the checks of [applyFetched] without its effects. Nothing is
+     * persisted and [activeConfig] is untouched, so the caller can decide (e.g. after the device
+     * check-in) whether to go on to [applyFetched].
+     */
+    fun validateFetched(json: String): ConfigValidateResult
+
     /** When the cached config was last saved (the last successful fetch); `null` when unknown. */
     fun cachedAt(): java.time.Instant? = null
+}
+
+/** Outcome of [ConfigurationRepository.validateFetched]: [ConfigApplyResult] without the effects. */
+sealed interface ConfigValidateResult {
+    data class Valid(val config: RemoteConfig) : ConfigValidateResult
+    data class Malformed(val detail: String) : ConfigValidateResult
+    data class Rejected(val errors: List<ConfigValidationError>) : ConfigValidateResult
 }
 
 /** Outcome of [ConfigurationRepository.applyFetched]. */

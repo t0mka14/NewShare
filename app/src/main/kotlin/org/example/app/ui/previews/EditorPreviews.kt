@@ -76,6 +76,10 @@ private class PreviewEditorComponent(initial: EditorComponent.State) : EditorCom
     }
 
     override fun onAccept() = Unit
+    override fun onResetSegment() = Unit
+    override fun onDiscard() = Unit
+    override fun onDiscardConfirmed() = Unit
+    override fun onDiscardCancelled() = Unit
 
     /** Advances the position line as playback would, wrapping at the stop boundary. */
     fun advance(samples: Long) {

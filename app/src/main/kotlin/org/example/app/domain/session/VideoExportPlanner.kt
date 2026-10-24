@@ -11,6 +11,8 @@ import org.example.app.domain.timeline.TimelineEvent
 data class VideoExportPlan(
     val taskIndex: Int,
     val repetition: Int,
+    /** The kept take number. */
+    val take: Int,
     /** Session-relative raw take, e.g. `video/task03_rep01_take02.mjpeg` — `VideoTakeRecord.file`. */
     val source: String,
     val fps: Int,
@@ -62,6 +64,7 @@ object VideoExportPlanner {
             VideoExportPlan(
                 taskIndex = record.taskIndex,
                 repetition = record.repetition,
+                take = take,
                 source = video.file,
                 fps = video.captureFormat.fps,
                 fileName = "$baseName.mp4",

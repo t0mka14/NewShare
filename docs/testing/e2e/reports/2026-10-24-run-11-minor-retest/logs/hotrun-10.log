@@ -1,0 +1,85 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At C:\Users\koubato2\AppData\Local\Temp\3\claude\C--Users-koubato2-IdeaProjects-NewShare\ee0b7184-f127-400a-9a41-bd0e02
+2d07cb\scratchpad\start.ps1:5 char:1
++ .\gradlew.bat :app:hotRun --mainClass=org.example.app.MainKt --auto * ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/koubato2/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+tive-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+22:43:57.340 [AWT-EventQueue-0] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.net.SocketException
+22:43:57.355 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: network failure, using cached configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/kou
+bato2/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709a
+d/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+22:44:36.388 [AWT-EventQueue-0] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.net.SocketException
+22:44:36.390 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: network failure, using cached configVersion=2026-10-24.061507 site=E2E-1023-Site-A
+22:44:53.247 [DefaultDispatcher-worker-6] WARN  o.e.a.i.network.KtorUploadApi - upload failed, transport error for session=875547bdc7bc447286971336c1d61cae: java.net.SocketException
+22:44:53.267 [DefaultDispatcher-worker-6] WARN  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=875547bdc7bc447286971336c1d61cae attempt=1 outcome=NetworkFailure retry=manual, no automatic retry
+22:44:53.282 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 0 ok, 1 failed
+22:44:53.304 [DefaultDispatcher-worker-3] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in failed, transport error: java.net.SocketException
+22:44:53.310 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: failed
+
+> Task :app:hotRun FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:hotRun'.
+> Process 'command 'C:\Users\koubato2\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe'' finished with non
+-zero exit value -1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 23s
+13 actionable tasks: 3 executed, 10 up-to-date

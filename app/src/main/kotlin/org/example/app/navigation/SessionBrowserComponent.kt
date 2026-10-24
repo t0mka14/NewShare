@@ -79,7 +79,11 @@ class DefaultSessionBrowserComponent(
         _state.value = SessionBrowserComponent.State(rows = loadRows())
     }
 
-    override fun onOpenEditor(folderName: String) = onOpenEditorClicked(folderName)
+    override fun onOpenEditor(folderName: String) {
+        // Uploaded is terminal (§8.9): an edit could never reach the server.
+        if (_state.value.rows.firstOrNull { it.folderName == folderName }?.uploadStatus == UploadStatusValue.Uploaded) return
+        onOpenEditorClicked(folderName)
+    }
 
     override fun onReprocess(folderName: String) = onReprocessClicked(folderName)
 
