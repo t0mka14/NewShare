@@ -15,6 +15,8 @@ private val logger = KotlinLogging.logger {}
 class StartupRecovery(
     private val recoverSessionsUseCase: RecoverSessionsUseCase,
     private val sessionRepository: SessionRepository,
+    /** F-047: when set, sessions that never recorded are removed after recovery. */
+    private val emptySessionCleanup: EmptySessionCleanup? = null,
 ) {
     /** One interrupted session, in the short human form the dialog lists. */
     data class Entry(
@@ -37,6 +39,11 @@ class StartupRecovery(
         val outcomes = runCatching { recoverSessionsUseCase.recoverAll() }
             .onFailure { logger.warn(it) { "crash recovery scan failed" } }
             .getOrNull() ?: return
+        // After recovery, and only for what it left alone: a crashed session with audio is
+        // Recovered by now and is never a candidate. Startup has no active session.
+        runCatching {
+            emptySessionCleanup?.sweep(outcomes.filterIsInstance<RecoveryOutcome.NotRecovered>().map { it.folderName })
+        }.onFailure { logger.warn { "empty session cleanup failed: ${it::class.simpleName}" } }
         publish(outcomes)
     }
 

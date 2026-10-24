@@ -152,6 +152,20 @@ class JsonSessionRepository(
         return format.framesIn(dataSize)
     }
 
+    override fun hasMasterAudio(folderName: String): Boolean {
+        val dir = masterDir(folderName)
+        if (!Files.isDirectory(dir)) return false
+        return Files.list(dir).use { stream ->
+            stream.anyMatch { it.fileName.toString().endsWith(".wav") && Files.size(it) > WavHeaderSize }
+        }
+    }
+
+    override fun deleteSessionDirectory(folderName: String) {
+        val dir = sessionDir(folderName)
+        if (!Files.isDirectory(dir)) return
+        Files.walk(dir).use { stream -> stream.sorted(Comparator.reverseOrder()).forEach(Files::delete) }
+    }
+
     /** `session_master.wav` -> 1, `session_master.part2.wav`/`.partial.wav` -> 2, ... */
     private fun partNumber(fileName: String): Int {
         val stripped = fileName.removeSuffix(".partial.wav").removeSuffix(".wav")

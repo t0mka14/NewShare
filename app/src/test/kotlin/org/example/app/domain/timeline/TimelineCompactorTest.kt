@@ -49,7 +49,40 @@ class TimelineCompactorTest {
         val synthetic = result.events.last()
         assertEquals(TimelineEventType.SESSION_RECORDING_STOPPED, synthetic.type)
         assertEquals(4200, synthetic.sampleOffset)
-        assertEquals("2026-07-01T09:35:00Z", synthetic.wallClock)
+        // F-054: 3200 samples after the last event at sample 1000 (09:30:00), not the recovery time.
+        assertEquals("2026-07-01T09:30:00.066666666Z", synthetic.wallClock)
+    }
+
+    @Test
+    fun `synthetic wallClock is the last event with a clock and an offset plus the samples since`() {
+        val events = listOf(
+            event(TimelineEventType.SESSION_RECORDING_STARTED, 0).copy(wallClock = "2026-07-01T09:00:00Z"),
+            event(TimelineEventType.START_BUTTON_PRESSED, 48_000).copy(wallClock = "2026-07-01T09:00:10Z", taskIndex = 0, repetition = 1, take = 1),
+            // No offset: cannot pin a sample to a clock time, so it is skipped.
+            event(TimelineEventType.TASK_SCREEN_ENTERED, null).copy(wallClock = "2026-07-01T09:02:00Z"),
+        )
+
+        val result = TimelineCompactor.compact(
+            sessionId = "s", sampleRate = 48_000, events = events,
+            lastWrittenSample = 48_000 + 48_000 * 90L, syntheticWallClock = "2026-07-01T11:00:00Z",
+        )
+
+        val stop = result.events.last { it.type == TimelineEventType.SESSION_RECORDING_STOPPED }
+        val interrupted = result.events.single { it.reason == TimelineCompactor.REASON_RECOVERED_INTERRUPTED }
+        assertEquals("2026-07-01T09:01:40Z", stop.wallClock)
+        assertEquals("2026-07-01T09:01:40Z", interrupted.wallClock)
+    }
+
+    @Test
+    fun `synthetic wallClock falls back to the recovery time when no event has both a clock and an offset`() {
+        val events = listOf(event(TimelineEventType.TASK_SCREEN_ENTERED, null))
+
+        val result = TimelineCompactor.compact(
+            sessionId = "s", sampleRate = 48_000, events = events,
+            lastWrittenSample = 4200, syntheticWallClock = "2026-07-01T11:00:00Z",
+        )
+
+        assertEquals("2026-07-01T11:00:00Z", result.events.last().wallClock)
     }
 
     @Test
@@ -113,7 +146,8 @@ class TimelineCompactorTest {
 
         val result = TimelineCompactor.compact("s", 48000, events, lastWrittenSample = 1000, syntheticWallClock = "2026-07-01T09:35:00Z")
 
-        assertEquals(events + event(TimelineEventType.SESSION_RECORDING_STOPPED, 1000).copy(wallClock = "2026-07-01T09:35:00Z"), result.events)
+        // 600 samples (48 kHz) after the last event at sample 400, which is stamped 09:30:00.
+        assertEquals(events + event(TimelineEventType.SESSION_RECORDING_STOPPED, 1000).copy(wallClock = "2026-07-01T09:30:00.012500Z"), result.events)
     }
 
     @Test

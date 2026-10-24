@@ -31,6 +31,7 @@ import org.example.app.domain.config.VocalTask
 import org.example.app.domain.config.capturesVideo
 import org.example.app.domain.audio.DeviceOpenReportingRecorder
 import org.example.app.domain.session.CameraUse
+import org.example.app.domain.session.EmptySessionCleanup
 import org.example.app.domain.session.Examination
 import org.example.app.domain.session.HardwareEvent
 import org.example.app.domain.session.MicUse
@@ -50,6 +51,7 @@ import org.example.app.domain.video.NoOpPtzController
 import org.example.app.domain.video.PtzController
 import org.example.app.domain.video.SessionVideoRecorder
 import org.example.app.domain.video.VideoError
+import org.example.app.domain.video.redactPaths
 import org.example.app.domain.video.VideoRecorderState
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.example.app.domain.video.VideoCaptureFormat
@@ -213,6 +215,9 @@ class DefaultSessionComponent(
             recorder?.let { r -> releaseScope.launch { r.stop() } }
             // Idempotent safety net: the screen that opened the camera normally closes it.
             videoRecorder?.let { v -> releaseScope.launch { v.stop() } }
+            // F-047: a session left before anything was recorded is not kept. The cleanup checks
+            // the log and the master itself, so a session that recorded (or ended) is never removed.
+            folderName?.let { EmptySessionCleanup(sessionRepository, timelineRepository).deleteIfEmpty(it) }
         }
         scope.launch(dispatchers.main) { bootstrap() }
     }
@@ -397,12 +402,23 @@ class DefaultSessionComponent(
         scope.launch(dispatchers.main) {
             v.state.collect { vs ->
                 if (vs is VideoRecorderState.Failed) {
-                    logger.warn { "camera failed: ${vs.error}" }
-                    addHardwareEvent("camera", "capture_failed", vs.error.toString())
+                    val reason = vs.error.readableReason()
+                    logger.warn { "camera failed: $reason" }
+                    addHardwareEvent("camera", "capture_failed", reason)
                 }
             }
         }
     }
+
+    /** A short sentence for the log and `hardware.events`, never the error object's `toString`. */
+    private fun VideoError.readableReason(): String = when (this) {
+        is VideoError.DeviceUnavailable -> "camera unavailable"
+        VideoError.CaptureBackendUnavailable -> "capture backend unavailable"
+        is VideoError.CaptureStartFailed -> "capture did not start: ${redactPaths(detail)}"
+        is VideoError.CaptureInterrupted -> "capture interrupted: ${redactPaths(detail)}"
+        // Not the detail: an I/O message names the file, and that path holds the patient code.
+        is VideoError.DiskWriteFailed -> "video write failed"
+    }.let { text -> folderName?.let { text.replace(it, "<session>") } ?: text }.take(MAX_HARDWARE_DETAIL_CHARS)
 
     /** Every successful microphone open (see [DeviceOpenReportingRecorder]); also the change log. */
     private suspend fun onMicOpened(device: AudioInputDevice, format: CaptureFormat?) {
@@ -642,6 +658,10 @@ class DefaultSessionComponent(
                 reason = reason,
             ),
         )
+    }
+
+    private companion object {
+        const val MAX_HARDWARE_DETAIL_CHARS = 300
     }
 
     private data class PendingInterruption(val oldDeviceId: String?, val sampleOffset: Long, val wallClockStart: String)

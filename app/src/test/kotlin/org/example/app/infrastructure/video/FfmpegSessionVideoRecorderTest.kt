@@ -1,6 +1,7 @@
 package org.example.app.infrastructure.video
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
@@ -483,5 +484,58 @@ class FfmpegSessionVideoRecorderTest {
         val collector = MjpegFrameSplitter { _, _, _ -> count++ }
         collector.append(bytes, 0, bytes.size)
         return count
+    }
+
+    /**
+     * F-032 / F-036: `stop()` sends ffmpeg `q`, the pipe ends, and the reader used to report that as
+     * a crash, so every normal camera close showed up as `capture_failed`. A collector on
+     * `Unconfined` sees every state, so a flicker of Failed cannot be conflated away.
+     */
+    @Test
+    fun `closing the camera on purpose never passes through Failed`() = runBlocking {
+        assumeFfmpegAvailable()
+        val recorder = recorder()
+        val seen = java.util.Collections.synchronizedList(mutableListOf<VideoRecorderState>())
+        val collector = launch(Dispatchers.Unconfined) { recorder.state.collect { seen += it } }
+        try {
+            recorder.startPreview(device)
+            assertEquals(VideoRecorderState.Previewing, recorder.state.value)
+
+            recorder.stop()
+            delay(500) // a late reader would have reported by now
+
+            assertEquals(VideoRecorderState.Stopped, recorder.state.value)
+            assertFalse(seen.any { it is VideoRecorderState.Failed }, "states seen: $seen")
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    /** A real unexpected end keeps its error, but the detail is one readable line, not ffmpeg's progress. */
+    @Test
+    fun `an unexpected end reports a short detail without progress lines`() = runBlocking {
+        assumeFfmpegAvailable()
+        // The source ends after a second, so ffmpeg exits by itself while still Previewing.
+        val recorder = recorder(input = SyntheticCaptureInput(fps = 15, durationSeconds = 1))
+        try {
+            recorder.startPreview(device)
+
+            val failed = withTimeout(15_000) {
+                var state = recorder.state.value
+                while (state !is VideoRecorderState.Failed) {
+                    delay(50)
+                    state = recorder.state.value
+                }
+                state
+            }
+
+            val error = failed.error as VideoError.CaptureInterrupted
+            assertTrue(error.detail.isNotBlank())
+            assertTrue(error.detail.length <= 300, "detail is ${error.detail.length} chars")
+            assertFalse(error.detail.contains("frame="), error.detail)
+            assertFalse(error.detail.contains(" | "), "one line, not the joined tail: ${error.detail}")
+        } finally {
+            recorder.stop()
+        }
     }
 }

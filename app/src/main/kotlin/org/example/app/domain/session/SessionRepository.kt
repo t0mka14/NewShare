@@ -92,4 +92,16 @@ interface SessionRepository {
      * by a crash between finalize and compaction. `null` if no master part exists.
      */
     fun latestFinalizedMasterPartFrames(folderName: String, format: CaptureFormat): Long?
+
+    /**
+     * True if any `*.wav` or `*.partial.wav` under `master/` holds at least one audio byte past its
+     * header. A header-only file (the recorder opened the file but wrote no frames) is not audio.
+     */
+    fun hasMasterAudio(folderName: String): Boolean
+
+    /**
+     * Removes the whole session folder. Only [EmptySessionCleanup] calls this, after it has
+     * established that nothing was recorded (F-047); no other flow deletes session data.
+     */
+    fun deleteSessionDirectory(folderName: String)
 }

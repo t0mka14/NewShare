@@ -58,7 +58,10 @@ no-master sessions), `wallClock` (metadata only), `taskIndex` (0-based, position
 expanded instance list), `repetition`, `take` (1-based per instance), optional `reason`
 on `TAKE_REJECTED` (`EXAMINER_REPEAT` | `DEVICE_LOST`) and on a recovery-synthesized
 `STOP_BUTTON_PRESSED` (`RECOVERED_INTERRUPTED`: the take was open at the crash and is closed at the
-last written sample, same as the synthetic `SESSION_RECORDING_STOPPED`). A task with `nrepetition: N` is N
+last written sample, same as the synthetic `SESSION_RECORDING_STOPPED`). Both synthetic events
+get a `wallClock` derived from the samples (last logged event with a `wallClock` and a
+`sampleOffset`, plus the samples written since it), falling back to the recovery time only when no
+such event exists. A task with `nrepetition: N` is N
 instances; only the last take per instance is exported; everything stays in the master +
 log as audit trail. The JSONL reader tolerates a torn final line (power loss).
 
@@ -76,7 +79,8 @@ sample offsets to (part file, local offset) during processing.
 `NotUploaded` → `Uploading` → `Uploaded` (terminal) | `Failed` (manual retry only).
 `attempts[]` + `attemptCount` are the audit trail. A leftover `Uploading` (crash
 mid-upload) is listed as failed/"interrupted" and retryable. `Uploaded` sessions can be
-reprocessed (regenerates derived artifacts) but never re-uploaded.
+reprocessed (regenerates `clips/` and `archive/`; `waveform_cache/` is derived from the unchanged
+master and is kept) but never re-uploaded.
 
 ## Adding or changing a schema
 

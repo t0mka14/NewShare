@@ -29,6 +29,10 @@ class FakeSessionRepository : SessionRepository {
     private val partialMasterFrameCounts = mutableMapOf<Path, Long>()
     private val finalizedMasterPartFrames = mutableMapOf<String, Long>()
     private val archivedSessions = mutableSetOf<String>()
+    private val masterAudioSessions = mutableSetOf<String>()
+
+    /** Folder names passed to [deleteSessionDirectory], in order. */
+    val deletedSessions = mutableListOf<String>()
 
     /** Calls to [writeExamination], in order, for assertions on the update sequence. */
     val examinationWrites = mutableListOf<Examination>()
@@ -119,4 +123,26 @@ class FakeSessionRepository : SessionRepository {
 
     override fun latestFinalizedMasterPartFrames(folderName: String, format: CaptureFormat): Long? =
         finalizedMasterPartFrames[folderName]
+
+    /** Test setup: the session's `master/` holds real audio (not just a header). */
+    fun seedMasterAudio(folderName: String) {
+        masterAudioSessions += folderName
+    }
+
+    override fun hasMasterAudio(folderName: String): Boolean =
+        folderName in masterAudioSessions ||
+            (partialMasterFiles[folderName].orEmpty().any { (partialMasterFrameCounts[it] ?: 0L) > 0L }) ||
+            (finalizedMasterPartFrames[folderName] ?: 0L) > 0L
+
+    override fun deleteSessionDirectory(folderName: String) {
+        deletedSessions += folderName
+        createdDirs -= folderName
+        participants.remove(folderName)
+        examinations.remove(folderName)
+        configSnapshots.remove(folderName)
+        partialMasterFiles.remove(folderName)
+        masterAudioSessions -= folderName
+        finalizedMasterPartFrames.remove(folderName)
+        archivedSessions -= folderName
+    }
 }

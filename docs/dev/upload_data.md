@@ -228,7 +228,7 @@ ones. `timeline_original.json` tells which take was kept.
 - `configuredMicDeviceId` / `configuredCameraDeviceId`: the devices selected in Settings.
 - `micUses[]`: `{ openedAt, deviceId, deviceName, description, inputGainPercent?, captureFormat }`, one per time the microphone was opened.
 - `cameraUses[]`: `{ openedAt, deviceId, deviceName, nameOrdinal, platformIndex, captureFormat }`.
-- `events[]`: `{ at, device: "microphone"|"camera", event, detail? }`, e.g. `interrupted`, `capture_failed`, `gain_changed`.
+- `events[]`: `{ at, device: "microphone"|"camera", event, detail? }`, e.g. `interrupted`, `capture_failed`, `gain_changed`. `capture_failed` is only for a camera that ended unexpectedly: the app closing the camera itself (after the last filmed take) records nothing. Its `detail` is one short reason (at most 300 characters, the last meaningful ffmpeg error line), never ffmpeg's progress output.
 
 ```jsonc
 {"sessionId":"76a67cd8af73486da13a7c0e1509bd2f",

@@ -810,4 +810,116 @@ class SessionComponentTest {
     }
 
     // endregion
+
+    /** F-047: entering calibration creates the folder; leaving before recording must not keep it. */
+    @Test
+    fun `leaving at calibration before any recording deletes the session folder`() {
+        val h = Harness()
+        h.lifecycle.create()
+        h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(1, h.sessionRepository.listSessionFolderNames().size)
+
+        h.lifecycle.destroy()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), h.sessionRepository.listSessionFolderNames())
+    }
+
+    @Test
+    fun `leaving after a failed microphone open deletes the session folder`() {
+        val h = Harness()
+        h.micFailsToOpen = true
+        h.lifecycle.create()
+        h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.lifecycle.destroy()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), h.sessionRepository.listSessionFolderNames())
+    }
+
+    @Test
+    fun `destroying the session after the recording started keeps the folder`() {
+        val h = Harness()
+        h.lifecycle.create()
+        val component = h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        (component.stack.value.active.instance as SessionComponent.Child.Calibration).component.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        h.lifecycle.destroy()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.sessionRepository.listSessionFolderNames().size)
+    }
+
+    @Test
+    fun `a session with a master holding audio is kept when its component is destroyed`() {
+        val h = Harness()
+        h.lifecycle.create()
+        h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.sessionRepository.seedMasterAudio(h.sessionRepository.listSessionFolderNames().single())
+
+        h.lifecycle.destroy()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.sessionRepository.listSessionFolderNames().size)
+    }
+
+    /** F-032 / F-036: the app closing the camera itself is not a failure. */
+    @Test
+    fun `closing the camera on purpose records no hardware event`() {
+        val h = Harness(withCamera = true)
+        h.lifecycle.create()
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+
+        h.lifecycle.destroy()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(h.videoRecorder!!.stopCallCount >= 1, "the camera was closed")
+        val hardware = h.sessionRepository.examinationWrites.last().hardware
+        assertEquals(emptyList<Any>(), hardware?.events.orEmpty().filter { it.device == "camera" })
+    }
+
+    @Test
+    fun `a camera that fails records a short readable capture_failed detail`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+
+        h.videoRecorder!!.simulateFailure(
+            org.example.app.domain.video.VideoError.CaptureInterrupted("Error opening input: I/O error".padEnd(900, '.')),
+        )
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val event = h.sessionRepository.examinationWrites.last().hardware!!.events.single { it.event == "capture_failed" }
+        assertEquals("camera", event.device)
+        assertTrue(event.detail!!.startsWith("capture interrupted: Error opening input"), event.detail)
+        assertFalse(event.detail!!.contains("CaptureInterrupted("), "not the error object's toString")
+        assertTrue(event.detail!!.length <= 300, "detail is ${event.detail!!.length} chars")
+    }
+
+    @Test
+    fun `a camera failure detail never carries the session folder name`() {
+        val h = Harness(withCamera = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(component.stack.value.active.instance is SessionComponent.Child.TaskScreen)
+        val folder = h.sessionRepository.listSessionFolderNames().single()
+
+        h.videoRecorder!!.simulateFailure(
+            org.example.app.domain.video.VideoError.CaptureStartFailed("Could not open $folder for the camera"),
+        )
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val detail = h.sessionRepository.examinationWrites.last().hardware!!.events.single { it.event == "capture_failed" }.detail!!
+        assertFalse(detail.contains(folder), detail)
+        assertFalse(detail.contains("HC001"), detail)
+    }
 }

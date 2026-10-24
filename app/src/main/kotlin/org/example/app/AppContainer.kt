@@ -41,6 +41,7 @@ import org.example.app.domain.participant.ValidateParticipantInfoUseCase
 import org.example.app.domain.session.ProcessSessionUseCase
 import org.example.app.domain.session.RecoverSessionsUseCase
 import org.example.app.domain.session.SessionArchiveService
+import org.example.app.domain.session.EmptySessionCleanup
 import org.example.app.domain.session.StartupRecovery
 import org.example.app.domain.session.StartSessionUseCase
 import org.example.app.domain.upload.DeviceCheckinApi
@@ -187,7 +188,11 @@ class AppContainer(
     val recoverSessionsUseCase = RecoverSessionsUseCase(sessionRepository, timelineRepository, clock)
 
     /** Runs the recovery above, logs it and holds the one-time main-menu notice (§8.4). */
-    val startupRecovery = StartupRecovery(recoverSessionsUseCase, sessionRepository)
+    val startupRecovery = StartupRecovery(
+        recoverSessionsUseCase,
+        sessionRepository,
+        EmptySessionCleanup(sessionRepository, timelineRepository),
+    )
 
     val sessionArchiveService: SessionArchiveService = ZipSessionArchiveService()
     val fileHashService: FileHashService = Sha256FileHashService()

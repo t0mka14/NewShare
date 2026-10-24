@@ -491,7 +491,9 @@ Both safeguards are mandatory (not alternatives):
    §8.10) + file length; the event log — tolerating a torn final line after power loss — is
    compacted into
    `timeline_original.json` (a synthetic `SESSION_RECORDING_STOPPED` is appended at the last
-   written sample), and the session is marked `recovered: true` / incomplete in
+   written sample, with a `wallClock` derived from the samples: the last logged event that has
+   both a `wallClock` and a `sampleOffset`, plus the samples written since it at the sample rate;
+   the recovery time is used only if no such event exists), and the session is marked `recovered: true` / incomplete in
    `examination.json`. A take open at the crash (start, no stop) is closed first, at that same
    sample, by a `STOP_BUTTON_PRESSED` with `reason: "RECOVERED_INTERRUPTED"`, and gets its
    `examination.tasks[]` record (VOCAL, from the config snapshot): it is kept as a partial clip.
@@ -500,6 +502,17 @@ Both safeguards are mandatory (not alternatives):
    processing (`NothingToProcess`) instead of producing an empty ZIP. The processing screen
    then says nothing was recorded, and every processing failure is logged at WARN with the
    error type and `sessionId` only (§11).
+3. **Empty sessions (`EmptySessionCleanup`):** entering calibration creates the session folder,
+   so a session left before `SESSION_RECORDING_STARTED` (Back, or a microphone that never
+   opened) is deleted when its session component is destroyed, and the same check runs at
+   startup over the sessions recovery left alone (recovery first, so a crashed session with
+   audio is never touched). This is the one exception to the never-delete rule (§8.9), and it
+   deletes only a session that provably recorded nothing: not the active session; readable
+   `examination.json` that is not `recovered`, has no task records, no `endedAt`, no processing
+   and no archive; no `*.wav` / `*.partial.wav` in `master/` beyond a bare header; no
+   `timeline_original.json` / `timeline_edited.json`; and an event log with no event but
+   `TASK_SCREEN_ENTERED` and no torn line. Anything unreadable keeps the folder. Each deletion
+   is logged at INFO with the `sessionId` only.
 
 ### 8.5 Device disconnection mid-session — continue with gap
 
@@ -609,9 +622,10 @@ there is no `master/`; `clips/` exists only if step 4 produced video (a VIDEO-on
 `"sampleOffset": null`); processing means building the ZIP + manifest from the JSON files
 only.
 
-Reprocessing (from the session browser) regenerates `clips/`, `archive/`, and
-`waveform_cache/` — these are **derived artifacts**, exempt from the never-delete rule
-(§8.9). Upload status resets to `NotUploaded` only if the session was never successfully
+Reprocessing (from the session browser) regenerates `clips/` and `archive/` — these are
+**derived artifacts**, exempt from the never-delete rule (§8.9). `waveform_cache/` is also
+derived, from the master, but the master never changes on reprocess, so the cache stays valid
+and is kept (it is rebuilt only if missing, as for the editor). Upload status resets to `NotUploaded` only if the session was never successfully
 uploaded; **`Uploaded` is terminal** (§8.9) — reprocessing an already-uploaded session
 regenerates local artifacts, but re-upload is blocked.
 

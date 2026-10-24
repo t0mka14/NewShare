@@ -9,6 +9,7 @@ import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.video.SessionVideoRecorder
 import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.video.VideoError
+import org.example.app.domain.video.lastDiagnosticLine
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoRecorderState
 import org.example.app.infrastructure.HostOs
@@ -100,6 +101,13 @@ class FfmpegSessionVideoRecorder internal constructor(
 
     @Volatile private var process: Process? = null
     @Volatile private var readerThread: Thread? = null
+
+    /**
+     * The process [teardown] is closing on purpose, set before `q` is sent. Its reader sees the pipe
+     * end like it would for a crash, but that is a normal close and must not become a failure
+     * (F-032).
+     */
+    @Volatile private var closingProcess: Process? = null
     private val stderrTail = StderrTail()
 
     /** Bytes the reader has taken off the pipe during the current attempt; see [awaitFirstFrame]. */
@@ -372,7 +380,7 @@ class FfmpegSessionVideoRecorder internal constructor(
                 }
             }
         } catch (e: Exception) {
-            if (!Thread.currentThread().isInterrupted) {
+            if (!Thread.currentThread().isInterrupted && closingProcess !== started) {
                 logger.warn(e) { "capture stream ended unexpectedly" }
             }
         }
@@ -381,12 +389,16 @@ class FfmpegSessionVideoRecorder internal constructor(
             logger.warn { "capture stream needed ${splitter.resyncCount} resynchronisation(s)" }
         }
 
-        // Reaching here while still Previewing/Recording means ffmpeg died on its own.
+        // Reaching here while still Previewing/Recording means ffmpeg died on its own, unless
+        // teardown is the one that ended it.
         val current = _state.value
-        if (current == VideoRecorderState.Recording || current == VideoRecorderState.Previewing) {
-            logger.error { "capture ended while $current: ${stderrTail.snapshot()}" }
+        if (closingProcess !== started &&
+            (current == VideoRecorderState.Recording || current == VideoRecorderState.Previewing)
+        ) {
+            val reason = stderrTail.lastError()
+            logger.error { "capture ended while $current: $reason" }
             sink.getAndSet(null)?.let { runCatching { it.close() } }
-            _state.value = VideoRecorderState.Failed(VideoError.CaptureInterrupted(stderrTail.snapshot()))
+            _state.value = VideoRecorderState.Failed(VideoError.CaptureInterrupted(reason))
         }
     }
 
@@ -397,6 +409,7 @@ class FfmpegSessionVideoRecorder internal constructor(
         val running = process
         process = null
         if (running != null && running.isAlive) {
+            closingProcess = running
             // 'q' is ffmpeg's graceful quit. It matters far less here than it would if ffmpeg
             // owned the output file — we closed that ourselves above — so do not wait long.
             runCatching {
@@ -449,6 +462,9 @@ class FfmpegSessionVideoRecorder internal constructor(
                 }
             }, "video-capture-stderr").apply { isDaemon = true }.start()
         }
+
+        /** The `detail` of an unexpected end; see [lastDiagnosticLine]. */
+        fun lastError(): String = lastDiagnosticLine(synchronized(lines) { lines.toList() })
 
         fun snapshot(): String = synchronized(lines) { lines.joinToString(" | ") }
 

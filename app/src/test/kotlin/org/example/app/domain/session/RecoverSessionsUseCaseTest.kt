@@ -192,6 +192,33 @@ class RecoverSessionsUseCaseTest {
         assertTrue(outcomes.any { it is RecoveryOutcome.Recovered })
     }
 
+    /** F-054: the stop is stamped from the samples, not with the (much later) recovery time. */
+    @Test
+    fun `recovered stop events carry the crash time derived from the samples, not the recovery time`() {
+        val sessionRepository = FakeSessionRepository()
+        val timelineRepository = FakeTimelineRepository()
+        sessionRepository.createSessionDirectory("s1")
+        sessionRepository.writeExamination("s1", examination("s1"))
+        sessionRepository.writeConfigSnapshot(
+            "s1",
+            """{"schemaVersion":1,"configVersion":"1","defaultLanguage":"en","protocols":[{"name":"Share","recordingsFileName":"x",
+               "tasks":[{"type":"VOCAL","subtype":"PHONATION","titleKey":"t"}]}]}""",
+        )
+        timelineRepository.appendEvent("s1", event(TimelineEventType.SESSION_RECORDING_STARTED, 0, taskIndex = null, take = null).copy(wallClock = "2026-07-03T09:00:00Z"))
+        timelineRepository.appendEvent("s1", event(TimelineEventType.START_BUTTON_PRESSED, 48_000, taskIndex = 0).copy(wallClock = "2026-07-03T09:00:05Z"))
+        // 48_000 + 10 s of samples were on disk when the app died.
+        sessionRepository.seedPartialMasterFile("s1", Paths.get("fake-sessions-root/s1/master/session_master.partial.wav"), frameCount = 48_000L + 480_000L)
+
+        // Recovered at 10:00, an hour after the crash.
+        newUseCase(sessionRepository, timelineRepository, FakeClock(Instant.parse("2026-07-03T10:00:00Z"))).recoverOne("s1")
+
+        val events = timelineRepository.readOriginal("s1")!!.events
+        val stop = events.single { it.type == TimelineEventType.SESSION_RECORDING_STOPPED }
+        val interrupted = events.single { it.reason == "RECOVERED_INTERRUPTED" }
+        assertEquals("2026-07-03T09:00:15Z", stop.wallClock)
+        assertEquals("2026-07-03T09:00:15Z", interrupted.wallClock)
+    }
+
     @Test
     fun `a take open at the crash is closed at the last written sample and gets a task record`() {
         val sessionRepository = FakeSessionRepository()

@@ -203,4 +203,32 @@ class JsonSessionRepositoryTest {
         val frames = repository.latestFinalizedMasterPartFrames("s1", format)
         assertEquals(400L, frames) // part2's 800 bytes / frameSize(2) = 400 frames
     }
+
+    @Test
+    fun `hasMasterAudio is false for none or a bare header and true once a frame is written`(@TempDir tempDir: Path) {
+        val repository = repo(tempDir)
+        repository.createSessionDirectory("s1")
+        assertFalse(repository.hasMasterAudio("s1"))
+
+        Files.write(repository.defaultMasterFile("s1"), ByteArray(44))
+        assertFalse(repository.hasMasterAudio("s1"), "a header with no data frames is not audio")
+
+        Files.write(repository.masterDir("s1").resolve("session_master.partial.wav"), ByteArray(44 + 2))
+        assertTrue(repository.hasMasterAudio("s1"))
+    }
+
+    @Test
+    fun `deleteSessionDirectory removes the whole tree and nothing beside it`(@TempDir tempDir: Path) {
+        val repository = repo(tempDir)
+        repository.createSessionDirectory("s1")
+        repository.createSessionDirectory("s2")
+        Files.write(repository.masterDir("s1").resolve("x.wav"), ByteArray(10))
+
+        repository.deleteSessionDirectory("s1")
+
+        // Not repository.sessionDir(): the test AppDirectories creates a directory on every call.
+        assertFalse(Files.exists(tempDir.resolve("sessions").resolve("s1")))
+        assertTrue(Files.isDirectory(tempDir.resolve("sessions").resolve("s2")))
+        repository.deleteSessionDirectory("s1") // already gone: no-op
+    }
 }
