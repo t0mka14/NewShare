@@ -26,7 +26,13 @@ data class ProcessingInfo(
     val status: ProcessingStatus,
     val processedAt: String? = null,
     val timelineUsed: String? = null,
+    /** F-123: takes left out of the export, e.g. one spanning a part boundary. Empty by default. */
+    val skippedTakes: List<SkippedTake> = emptyList(),
 )
+
+/** A take processing left out of the export, and why (a [ClipPlanningError] name). */
+@Serializable
+data class SkippedTake(val taskIndex: Int, val repetition: Int, val reason: String)
 
 /**
  * One `interruptions[]` entry (§8.5, §8.10): a device-loss gap. `sampleOffset` is the global

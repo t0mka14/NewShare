@@ -133,7 +133,7 @@ class ClipExportPlannerTest {
 
     @Test
     fun `a range spanning a master part boundary is a planning error`() {
-        val interruption = Interruption(sampleOffset = 500L, start = "t", partFile = "master/session_master.part2.wav", captureFormat = format)
+        val interruption = Interruption(sampleOffset = 500L, start = "t", partFile = "session_master.part2.wav", captureFormat = format)
         val parts = MasterPartMap.build(masterFile, format, listOf(interruption), sessionDir)
         val events = listOf(start(0, 1, 1, 400), stop(0, 1, 1, 600)) // straddles the 500 boundary
 

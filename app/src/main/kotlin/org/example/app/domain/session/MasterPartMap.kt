@@ -44,6 +44,9 @@ object MasterPartMap {
         interruptions: List<Interruption>,
         sessionDir: Path,
     ): List<MasterPart> {
+        // `partFile` is a bare file name living beside the default master (F-123); a legacy
+        // `master/`-prefixed value resolves to the same place via its last segment.
+        val masterDir = defaultMasterFile.parent ?: sessionDir
         val parts = mutableListOf<MasterPart>()
         parts += MasterPart(
             file = defaultMasterFile,
@@ -54,7 +57,7 @@ object MasterPartMap {
         for (i in interruptions.indices) {
             val interruption = interruptions[i]
             parts += MasterPart(
-                file = sessionDir.resolve(interruption.partFile),
+                file = masterDir.resolve(interruption.partFile.substringAfterLast('/').substringAfterLast('\\')),
                 format = interruption.captureFormat,
                 globalStart = interruption.sampleOffset,
                 globalEndExclusive = interruptions.getOrNull(i + 1)?.sampleOffset,

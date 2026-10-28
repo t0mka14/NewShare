@@ -147,17 +147,30 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                     )
                 }
 
-                is TaskComponent.Content.Questionnaire -> QuestionnaireBody(
-                    questions = content.questions,
-                    content = content,
-                    localization = localization,
-                    onOpenAnswerChanged = component::onOpenAnswerChanged,
-                    onOptionToggled = component::onOptionToggled,
-                    modifier = Modifier
-                        .contentWidth(1500.dp)
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState()),
-                )
+                is TaskComponent.Content.Questionnaire -> {
+                    // Scrolls when the questions outgrow the middle area; the scrollbar shows that
+                    // more follows (F-091: the last option sat unseen under the hard edge)
+                    val scrollState = rememberScrollState()
+                    Box(Modifier.contentWidth(1500.dp).fillMaxHeight()) {
+                        QuestionnaireBody(
+                            questions = content.questions,
+                            content = content,
+                            localization = localization,
+                            onOpenAnswerChanged = component::onOpenAnswerChanged,
+                            onOptionToggled = component::onOptionToggled,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .testTag(TestTags.Questionnaire.CONTAINER)
+                                .verticalScroll(scrollState),
+                        )
+                        if (scrollState.maxValue > 0) {
+                            VerticalScrollbar(
+                                adapter = rememberScrollbarAdapter(scrollState),
+                                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().testTag(TestTags.Questionnaire.SCROLLBAR),
+                            )
+                        }
+                    }
+                }
 
                 is TaskComponent.Content.Video -> VideoTaskBody(
                     content = content,

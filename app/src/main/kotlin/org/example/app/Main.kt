@@ -6,6 +6,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -28,6 +29,7 @@ import org.example.app.navigation.DefaultRootComponent
 import org.example.app.ui.RootContent
 import org.example.app.ui.TestTags
 import org.example.app.ui.theme.ShareTheme
+import java.awt.Dimension
 import java.nio.file.Files
 import java.nio.file.Path
 import javax.swing.SwingUtilities
@@ -35,6 +37,10 @@ import kotlin.system.exitProcess
 
 /** Classpath resource used as the window/taskbar icon. */
 private const val APP_ICON_RESOURCE = "drawable/sami_trans.png"
+
+/** Smallest window the screens are laid out for: fits a 1024x768 screen minus the taskbar. */
+private const val MIN_WINDOW_WIDTH = 960
+private const val MIN_WINDOW_HEIGHT = 720
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -104,6 +110,9 @@ fun main() {
                 // Window/taskbar icon: the SAMI logo (also the main screen's bottom-right logo).
                 icon = painterResource(APP_ICON_RESOURCE),
             ) {
+                // F-124/F-126: below this the screens lose their bottom buttons. AWT sizes are in the
+                // same device-independent units as the Dp window size above, so no density conversion.
+                LaunchedEffect(window) { window.minimumSize = Dimension(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT) }
                 ShareTheme {
                     RootContent(
                         component = root,

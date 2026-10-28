@@ -86,10 +86,15 @@ class ProcessSessionUseCase(
     }.flowOn(dispatchers.io)
 
     private suspend fun runProcess(folderName: String, onStep: suspend (Step, Float) -> Unit): Outcome {
-        fun fail(examination: Examination?, error: ProcessingError): Outcome.Failed {
-            // Error type and sessionId only (§11): the folder name embeds the patient code and the
-            // error details can carry paths.
-            logger.warn { "processing failed: ${error::class.simpleName} (session ${examination?.sessionId ?: "unknown"})" }
+        fun fail(examination: Examination?, error: ProcessingError, cause: Exception? = null): Outcome.Failed {
+            // Error type, the cause's type and the failing file's NAME, and sessionId only (§11): the
+            // folder name embeds the patient code and the error details can carry paths.
+            val causeInfo = cause?.let { e ->
+                val fsException = generateSequence<Throwable>(e) { it.cause }.filterIsInstance<java.nio.file.FileSystemException>().firstOrNull()
+                val fileName = fsException?.file?.substringAfterLast('/')?.substringAfterLast('\\')
+                ": ${(fsException ?: e)::class.simpleName}" + (fileName?.let { " on $it" } ?: "")
+            }.orEmpty()
+            logger.warn { "processing failed: ${error::class.simpleName}$causeInfo (session ${examination?.sessionId ?: "unknown"})" }
             if (examination != null) {
                 val now = clock.now().toString()
                 runCatching {
@@ -142,6 +147,7 @@ class ProcessSessionUseCase(
 
             var updatedTasks = examination.tasks
             val audioDurationByKey = mutableMapOf<Pair<Int, Int>, Long>()
+            var skippedTakes = emptyList<SkippedTake>()
 
             // Clip and video names both come from the protocol's `recordingsFileName` and the
             // participant's values — needed even without a master, by a video-only protocol.
@@ -176,8 +182,14 @@ class ProcessSessionUseCase(
                     siteName = naming.siteName,
                     fieldValues = naming.fieldValues,
                 )
-                if (planningResult.errors.isNotEmpty()) {
-                    return fail(examination, ProcessingError.ClipPlanning(planningResult.errors))
+                // A take spanning a part boundary cannot be cut from one file; skip it, keep the rest (F-123).
+                val (spanning, blocking) = planningResult.errors.partition { it is ClipPlanningError.SpansPartBoundary }
+                if (blocking.isNotEmpty()) {
+                    return fail(examination, ProcessingError.ClipPlanning(blocking))
+                }
+                skippedTakes = spanning.filterIsInstance<ClipPlanningError.SpansPartBoundary>().map {
+                    logger.warn { "skipping task ${it.taskIndex} rep ${it.repetition}: take spans a master part boundary" }
+                    SkippedTake(it.taskIndex, it.repetition, "SpansPartBoundary")
                 }
 
                 val clipsDir = sessionRepository.clipsDir(folderName)
@@ -269,7 +281,7 @@ class ProcessSessionUseCase(
             // (clip/video paths, Done). Should the build throw, the catch below marks it Failed.
             val finalExamination = examination.copy(
                 tasks = updatedTasks,
-                processing = ProcessingInfo(status = ProcessingStatus.Done, processedAt = clock.now().toString(), timelineUsed = timelineUsed),
+                processing = ProcessingInfo(status = ProcessingStatus.Done, processedAt = clock.now().toString(), timelineUsed = timelineUsed, skippedTakes = skippedTakes),
             )
             sessionRepository.writeExamination(folderName, finalExamination)
 
@@ -339,7 +351,7 @@ class ProcessSessionUseCase(
             Outcome.Success(finalExamination, archiveResult.zipFile)
         } catch (e: Exception) {
             val current = runCatching { sessionRepository.readExamination(folderName) }.getOrNull()
-            fail(current, ProcessingError.IoFailure(e.message ?: e::class.simpleName.orEmpty()))
+            fail(current, ProcessingError.IoFailure(e.message ?: e::class.simpleName.orEmpty()), e)
         }
     }
 

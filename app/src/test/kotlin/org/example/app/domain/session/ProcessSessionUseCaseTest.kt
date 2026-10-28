@@ -264,7 +264,7 @@ class ProcessSessionUseCaseTest {
             sampleOffset = 2000L,
             start = "2026-07-01T09:05:00Z",
             end = "2026-07-01T09:05:10Z",
-            partFile = "master/session_master.part2.wav",
+            partFile = "session_master.part2.wav",
             captureFormat = format44k,
         )
         f.setUpSession(
@@ -445,6 +445,73 @@ class ProcessSessionUseCaseTest {
 
         assertEquals(ProcessingStatus.Failed, f.sessionRepository.readExamination(f.folderName)!!.processing?.status)
         assertNull(f.sessionRepository.readExamination(f.folderName)!!.processing?.timelineUsed)
+    }
+
+    @Test
+    fun `a take spanning a part boundary is skipped and recorded, the other clips still process (F-123)`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            interruptions = listOf(
+                Interruption(
+                    sampleOffset = 2000L, start = "2026-07-01T09:05:00Z", end = "2026-07-01T09:05:10Z",
+                    partFile = "session_master.part2.wav", captureFormat = format48k,
+                ),
+            ),
+            tasks = listOf(
+                TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1),
+                TaskRecord(taskIndex = 1, type = "VOCAL", subtype = "PATAKA", repetition = 1, takes = 1),
+            ),
+        )
+        f.writeOriginal(
+            listOf(
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 500), event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 1500),
+                event(TimelineEventType.START_BUTTON_PRESSED, 1, 1, 1, 1900), event(TimelineEventType.STOP_BUTTON_PRESSED, 1, 1, 1, 2100),
+            ),
+        )
+
+        val outcome = (f.runProcess().last() as ProcessSessionUseCase.Progress.Completed).outcome
+
+        assertTrue(outcome is ProcessSessionUseCase.Outcome.Success, "expected Success but was $outcome")
+        assertEquals(1, f.audioClipService.cutClipCalls.size)
+        val examination = f.sessionRepository.readExamination(f.folderName)!!
+        assertEquals(ProcessingStatus.Done, examination.processing?.status)
+        assertEquals(listOf(SkippedTake(1, 1, "SpansPartBoundary")), examination.processing?.skippedTakes)
+        assertTrue(examination.tasks[0].clipFile != null)
+        assertNull(examination.tasks[1].clipFile)
+    }
+
+    @Test
+    fun `a failure caused by a missing file logs the exception type and file name only, never the path (F-123)`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1)),
+        )
+        f.writeOriginal(
+            listOf(
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 0),
+                event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 1000),
+            ),
+        )
+        val missing = f.sessionRepository.masterDir(f.folderName).resolve("session_master.part2.wav")
+        f.audioClipService.failNextWith = java.io.UncheckedIOException(java.nio.file.NoSuchFileException(missing.toString()))
+        val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+        val previousLevel = logger.level
+        logger.level = Level.ALL
+        try {
+            f.runProcess()
+
+            val failure = appender.list.single { it.level == Level.WARN && "processing failed" in it.formattedMessage }.formattedMessage
+            assertTrue("IoFailure" in failure)
+            assertTrue("NoSuchFileException" in failure && "session_master.part2.wav" in failure, failure)
+            assertTrue(appender.list.none { f.folderName in it.formattedMessage || "HC001" in it.formattedMessage || tempDir.toString() in it.formattedMessage })
+        } finally {
+            logger.detachAppender(appender)
+            logger.level = previousLevel
+        }
     }
 
     // region video

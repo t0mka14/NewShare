@@ -183,7 +183,8 @@ class ProcessSessionUseCaseIntegrationTest {
 
         val interruption = Interruption(
             sampleOffset = 2000L, start = "2026-07-01T09:05:00Z", end = "2026-07-01T09:05:05Z",
-            partFile = "master/session_master.part2.wav", captureFormat = preferred,
+            // The bare file name, as SessionComponent really stores it (F-123).
+            partFile = "session_master.part2.wav", captureFormat = preferred,
         )
         sessionRepository.writeExamination(
             folderName,

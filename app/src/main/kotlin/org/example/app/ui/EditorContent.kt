@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -79,6 +81,7 @@ import kotlin.math.roundToInt
  * useful as it is large), then a single row of controls — play included, next to the navigation
  * and accept buttons.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditorContent(component: EditorComponent, localization: UiLocalization) {
     val state by component.state.subscribeAsState()
@@ -112,7 +115,10 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(localization.resolve("editor.noSegments"), style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(24.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         DiscardButton(localization, component::onDiscard)
                         AcceptButton(localization, component::onAccept)
                     }
@@ -192,7 +198,7 @@ private fun DiscardConfirmDialog(component: EditorComponent, localization: UiLoc
 private val EDITOR_MAX_WIDTH = 1600.dp
 private val HANDLE_HIT_WIDTH = 24.dp
 private const val RULER_HEIGHT_DP = 26
-private const val WAVEFORM_MIN_HEIGHT_DP = 220
+private const val WAVEFORM_MIN_HEIGHT_DP = 150
 
 /**
  * The instrument itself: time ruler on top, waveform below it, readouts underneath. Ruler and
@@ -480,6 +486,7 @@ private fun Readout(label: String, value: String, emphasized: Boolean = false) {
 }
 
 /** Everything actionable in one row (previous · play/stop · reset · next · discard · accept). */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EditorControls(
     localization: UiLocalization,
@@ -494,10 +501,13 @@ private fun EditorControls(
     onDiscard: () -> Unit,
     onAccept: () -> Unit,
 ) {
-    Row(
+    // FlowRow: if the three groups ever exceed the width they wrap as whole groups instead of
+    // squeezing the labels (F-093, F-125).
+    FlowRow(
         modifier = Modifier.contentWidth(EDITOR_MAX_WIDTH),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         Button(
             onClick = onPrevious,
@@ -506,7 +516,7 @@ private fun EditorControls(
             modifier = Modifier.testTag(TestTags.Editor.PREVIOUS_SEGMENT_BUTTON),
         ) {
             ButtonIcon(Icons.Filled.ChevronLeft)
-            Text(localization.resolve("action.previous"))
+            ButtonLabel(localization.resolve("action.previous"))
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -516,7 +526,7 @@ private fun EditorControls(
                 modifier = Modifier.testTag(TestTags.Editor.PLAY_SEGMENT_BUTTON),
             ) {
                 ButtonIcon(if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow)
-                Text(localization.resolve(if (isPlaying) "action.stop" else "action.play"))
+                ButtonLabel(localization.resolve(if (isPlaying) "action.stop" else "action.play"))
             }
             OutlinedButton(
                 onClick = onReset,
@@ -525,7 +535,7 @@ private fun EditorControls(
                 modifier = Modifier.testTag(TestTags.Editor.RESET_SEGMENT_BUTTON),
             ) {
                 ButtonIcon(Icons.Filled.Refresh)
-                Text(localization.resolve("editor.reset"))
+                ButtonLabel(localization.resolve("editor.reset"))
             }
         }
 
@@ -536,7 +546,7 @@ private fun EditorControls(
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.testTag(TestTags.Editor.NEXT_SEGMENT_BUTTON),
             ) {
-                Text(localization.resolve("action.next"))
+                ButtonLabel(localization.resolve("action.next"))
                 ButtonIcon(Icons.Filled.ChevronRight, trailing = true)
             }
             DiscardButton(localization, onDiscard)
@@ -553,7 +563,7 @@ private fun DiscardButton(localization: UiLocalization, onDiscard: () -> Unit) {
         modifier = Modifier.testTag(TestTags.Editor.DISCARD_BUTTON),
     ) {
         ButtonIcon(Icons.Filled.Close)
-        Text(localization.resolve("editor.discard"))
+        ButtonLabel(localization.resolve("editor.discard"))
     }
 }
 
@@ -565,8 +575,14 @@ private fun AcceptButton(localization: UiLocalization, onAccept: () -> Unit) {
         modifier = Modifier.testTag(TestTags.Editor.ACCEPT_BUTTON),
     ) {
         ButtonIcon(Icons.Filled.Check)
-        Text(localization.resolve("action.accept"))
+        ButtonLabel(localization.resolve("action.accept"))
     }
+}
+
+/** Button labels never wrap: the button keeps its intrinsic width and the row wraps instead. */
+@Composable
+private fun ButtonLabel(text: AnnotatedString) {
+    Text(text, maxLines = 1, softWrap = false)
 }
 
 @Composable

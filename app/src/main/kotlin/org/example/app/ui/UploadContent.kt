@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -73,7 +74,9 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
             modifier = Modifier
                 .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
                 .contentWidth(1300.dp)
-                .height(220.dp),
+                // Shrinks (never grows past 220 dp) so the buttons below keep their size in a small window.
+                .weight(1f, fill = false)
+                .heightIn(max = 220.dp),
         ) {
             items(state.rows, key = { it.sessionId }) { row ->
                 Column(

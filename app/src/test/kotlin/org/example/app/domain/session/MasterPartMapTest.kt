@@ -30,7 +30,7 @@ class MasterPartMapTest {
             sampleOffset = 480_000L,
             start = "2026-07-01T09:05:00Z",
             end = "2026-07-01T09:05:10Z",
-            partFile = "master/session_master.part2.wav",
+            partFile = "session_master.part2.wav",
             captureFormat = format44k,
         )
         val parts = MasterPartMap.build(defaultMasterFile, format48k, listOf(interruption), sessionDir)
@@ -47,11 +47,19 @@ class MasterPartMapTest {
     }
 
     @Test
+    fun `a legacy master-prefixed partFile still resolves into the master folder (F-123)`() {
+        val interruption = Interruption(sampleOffset = 100L, start = "t", partFile = "master/session_master.part2.wav", captureFormat = format44k)
+        val parts = MasterPartMap.build(defaultMasterFile, format48k, listOf(interruption), sessionDir)
+
+        assertEquals(defaultMasterFile.resolveSibling("session_master.part2.wav"), parts[1].file)
+    }
+
+    @Test
     fun `resolve finds the containing part and translates to local offsets`() {
         val interruption = Interruption(
             sampleOffset = 1000L,
             start = "t",
-            partFile = "master/session_master.part2.wav",
+            partFile = "session_master.part2.wav",
             captureFormat = format44k,
         )
         val parts = MasterPartMap.build(defaultMasterFile, format48k, listOf(interruption), sessionDir)
@@ -67,7 +75,7 @@ class MasterPartMapTest {
 
     @Test
     fun `resolve returns null for a range spanning a part boundary`() {
-        val interruption = Interruption(sampleOffset = 1000L, start = "t", partFile = "master/session_master.part2.wav", captureFormat = format44k)
+        val interruption = Interruption(sampleOffset = 1000L, start = "t", partFile = "session_master.part2.wav", captureFormat = format44k)
         val parts = MasterPartMap.build(defaultMasterFile, format48k, listOf(interruption), sessionDir)
 
         assertNull(MasterPartMap.resolve(parts, 900L, 1100L))
@@ -85,8 +93,8 @@ class MasterPartMapTest {
 
     @Test
     fun `two interruptions with a format-changing swap produce three parts`() {
-        val interruption1 = Interruption(sampleOffset = 500L, start = "t1", partFile = "master/session_master.part2.wav", captureFormat = format44k)
-        val interruption2 = Interruption(sampleOffset = 900L, start = "t2", partFile = "master/session_master.part3.wav", captureFormat = format48k)
+        val interruption1 = Interruption(sampleOffset = 500L, start = "t1", partFile = "session_master.part2.wav", captureFormat = format44k)
+        val interruption2 = Interruption(sampleOffset = 900L, start = "t2", partFile = "session_master.part3.wav", captureFormat = format48k)
         val parts = MasterPartMap.build(defaultMasterFile, format48k, listOf(interruption1, interruption2), sessionDir)
 
         assertEquals(3, parts.size)

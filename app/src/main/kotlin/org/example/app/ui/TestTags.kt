@@ -123,6 +123,10 @@ object TestTags {
 
     /** QUESTIONNAIRE task rendering (§8.6): one answer input per configured question. */
     object Questionnaire {
+        /** The scrolling list of questions, and its scrollbar (shown only while the questions overflow). */
+        const val CONTAINER = "questionnaire.container"
+        const val SCROLLBAR = "questionnaire.scrollbar"
+
         fun answerField(questionKey: String) = "questionnaire.answer.$questionKey"
 
         /** One option toggle (radio/checkbox) within a SINGLE_CHOICE/MULTIPLE_CHOICE question. */
