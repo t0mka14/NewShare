@@ -1,0 +1,14 @@
+03-1 activity: Activity | · 3 events | Oct 28, 2026, 07:33 PM | System Master revealed participant fields | Oct 28, 2026, 07:30 PM | System Master revealed participant fields | Oct 28, 2026, 07:28 PM | System Master downloaded the ZIP
+03-1 history: Upload history | Every request the server received for this session ID | HTTP 200 Accepted · 13.7 MB | Oct 28, 2026, 07:24 PM
+03-1 audio element after play click: [{'tag': 'AUDIO', 'err': None, 'ready': 4, 'dur': 9.6, 'paused': False}] | cant-play notice: 0
+04-1 activity: Activity | · 1 event | Oct 28, 2026, 07:28 PM | System Master downloaded the ZIP
+04-1 history: Upload history | Every request the server received for this session ID | HTTP 200 Accepted · 13.2 MB | Oct 28, 2026, 07:24 PM
+05-1 activity: Activity | · 1 event | Oct 28, 2026, 07:28 PM | System Master downloaded the ZIP
+05-1 history: Upload history | Every request the server received for this session ID | HTTP 200 Accepted · 152.5 MB | Oct 28, 2026, 07:24 PM
+05-1 video element after play click: []
+05-3 activity: Activity | · 1 event | Oct 28, 2026, 07:28 PM | System Master downloaded the ZIP
+05-3 history: Upload history | Every request the server received for this session ID | HTTP 200 Accepted · 38.7 MB | Oct 28, 2026, 07:24 PM
+05-3 video element after play click: []
+05-2 activity: Activity | · 1 event | Oct 28, 2026, 07:28 PM | System Master downloaded the ZIP
+05-2 history: Upload history | Every request the server received for this session ID | HTTP 200 Accepted · 7.3 MB | Oct 28, 2026, 07:24 PM
+console errors: []

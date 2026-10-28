@@ -1,0 +1,5 @@
+﻿2026-10-26 18:40:34.134 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-26 18:41:47.943 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-26 18:41:48.083 [DefaultDispatcher-worker-5] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-26 18:41:48.087 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-26 18:41:48.229 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: applied configVersion=2026-10-26.172809 site=E2E 1026 Clinic A

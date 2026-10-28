@@ -1,0 +1,135 @@
+Task Protocoller
+Recordings
+6
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Recordings
+E2E1026-07-1
+E2E1026-07-1
+Valid
+Unreviewed
+E2E 1026 Speech protocol · E2E 1026 Speech study · E2E 1026 Clinic A · recorded on Oct 28, 2026
+Download ZIP
+Skipped tasks
+Re-sent
+Tasks
+Clips play from the server copy
+#	Task	Takes	Result	Clip
+0	
+Phonation
+	1	
+Done	
+
+1	
+Phonation
+Repetition 2
+	1	
+Done	
+
+2	
+Pataka
+	1	
+Done	
+
+3	
+Reading
+	1	
+Done	
+
+4	
+Monologue
+		
+Skipped	
+5	
+Questionnaire
+		
+Done	Show answers (4)
+Session
+Computer
+<installationId>…
+App version
+1.0.0
+Recorded
+Oct 28, 2026, 07:42 PM
+Length
+1 min 32 s
+Received
+Oct 28, 2026, 07:44 PM
+1 min after the session ended
+Tasks
+5 of 6 recorded
+Timeline used
+Original
+Microphone
+CABLE Output (VB-Audio Virtual Cable)
+Audio
+48 kHz · 16-bit · mono
+Camera
+Session ID
+41ac1ef7821d4ceeba1c33eb257af68d
+Config version
+2026-10-26.172809
+ZIP SHA-256
+05dada55641dfa31931548a3d28f321467de8413eaf305316c4088d13fbd0099
+Recording timeline
+Master recording, 1 min 32 s · segments from timeline_original.json
+Phonation
+Phonation
+Pataka
+Reading
+0:00
+0:23
+0:46
+1:09
+1:32
+Audio task
+Filmed
+Questionnaire / info
+Activity
+· 0 events
+
+No activity recorded yet.
+
+Upload history
+Every request the server received for this session ID
+HTTP 200 Re-sent (answered as success) · 8.9 MB
+Oct 28, 2026, 07:47 PM
+HTTP 404 Held in quarantine · 8.9 MB
+Oct 28, 2026, 07:44 PM
+Review
+Unreviewed
+OK
+Needs review
+Excluded
+
+No comments yet.
+
+Add a comment for the clinic team
+Post comment
+Participant
+Show values
+Edit
+Patient code
+E2E1026-07-1
+Visit code
+••••••
+
+As typed at the clinic. Fields other than the patient code and visit stay hidden until you choose to show them. Each reveal is recorded in the audit log. Editing corrects typos: new values replace the old ones on every page and in later downloads, and every change is written to the audit log.
+
+Server checks
+ZIP checksum
+Archive structure
+Manifest file hashes
+IDs consistent
+Computer registered
+Config version
+Session complete

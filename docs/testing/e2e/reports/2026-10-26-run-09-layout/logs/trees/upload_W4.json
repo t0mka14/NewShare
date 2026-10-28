@@ -1,0 +1,1 @@
+{"id":1,"bounds":{"x":0,"y":0,"width":1264,"height":761},"children":[{"id":1279,"role":"Button","text":"Upload","testTag":"upload.uploadButton","actions":["onClick"],"bounds":{"x":580,"y":490,"width":105,"height":40}},{"id":1284,"role":"Button","text":"Back","testTag":"upload.backButton","actions":["onClick"],"bounds":{"x":32,"y":578,"width":89,"height":40}}]}

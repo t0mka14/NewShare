@@ -1,0 +1,26 @@
+master sees 5 recordings
+editor lists 0 of 5 | facets []
+  editor    E2E1026-05-3 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  editor    E2E1026-05-2 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  editor    E2E1026-05-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  editor    E2E1026-04-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  editor    E2E1026-03-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+received lists 5 of 5 | facets [{'id': 4, 'name': 'E2E 1026 Clinic A', 'count': 5}]
+  received  E2E1026-05-3 clinic=E2E 1026 Clinic A inList=True {'detail': 200, 'attempts': 200, 'activity': 200, 'comments': 200, 'zip': 200, 'clip': 200, 'bulk': 'skipped (would stream a bundle)'} OK
+  received  E2E1026-05-2 clinic=E2E 1026 Clinic A inList=True {'detail': 200, 'attempts': 200, 'activity': 200, 'comments': 200, 'zip': 200, 'clip': 200, 'bulk': 'skipped (would stream a bundle)'} OK
+  received  E2E1026-05-1 clinic=E2E 1026 Clinic A inList=True {'detail': 200, 'attempts': 200, 'activity': 200, 'comments': 200, 'zip': 200, 'clip': 200, 'bulk': 'skipped (would stream a bundle)'} OK
+  received  E2E1026-04-1 clinic=E2E 1026 Clinic A inList=True {'detail': 200, 'attempts': 200, 'activity': 200, 'comments': 200, 'zip': 200, 'clip': 200, 'bulk': 'skipped (would stream a bundle)'} OK
+  received  E2E1026-03-1 clinic=E2E 1026 Clinic A inList=True {'detail': 200, 'attempts': 200, 'activity': 200, 'comments': 200, 'zip': 200, 'clip': 200, 'bulk': 'skipped (would stream a bundle)'} OK
+nogrants lists 0 of 5 | facets []
+  nogrants  E2E1026-05-3 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  nogrants  E2E1026-05-2 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  nogrants  E2E1026-05-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  nogrants  E2E1026-04-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  nogrants  E2E1026-03-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+creator lists 0 of 5 | facets []
+  creator   E2E1026-05-3 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  creator   E2E1026-05-2 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  creator   E2E1026-05-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  creator   E2E1026-04-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+  creator   E2E1026-03-1 clinic=E2E 1026 Clinic A inList=False {'detail': 404, 'attempts': 404, 'activity': 404, 'comments': 404, 'zip': 404, 'clip': 404, 'bulk': 404} OK
+VERDICT: all as expected

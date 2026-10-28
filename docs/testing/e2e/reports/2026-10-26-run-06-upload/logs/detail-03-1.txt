@@ -1,0 +1,131 @@
+Task Protocoller
+Recordings
+5
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Recordings
+E2E1026-03-1
+E2E1026-03-1
+Valid
+Unreviewed
+E2E 1026 Speech protocol · E2E 1026 Speech study · E2E 1026 Clinic A · recorded on Oct 26, 2026
+Download ZIP
+Skipped tasks
+Retakes
+Tasks
+Clips play from the server copy
+#	Task	Takes	Result	Clip
+0	
+Phonation
+	2 last kept	
+Done	
+
+1	
+Phonation
+Repetition 2
+	1	
+Done	
+
+2	
+Pataka
+	1	
+Done	
+
+3	
+Reading
+	1	
+Done	
+
+4	
+Monologue
+		
+Skipped	
+5	
+Questionnaire
+		
+Done	Show answers (4)
+Session
+Computer
+<installationId>
+App version
+1.0.0
+Recorded
+Oct 26, 2026, 06:48 PM
+Length
+3 min 33 s
+Received
+Oct 28, 2026, 07:24 PM
+2 days after the session ended
+Tasks
+5 of 6 recorded
+Timeline used
+Original
+Microphone
+CABLE Output (VB-Audio Virtual Cable)
+Audio
+48 kHz · 16-bit · mono
+Camera
+Session ID
+6c08b80c07704a4d990c207fab344e7b
+Config version
+2026-10-26.172809
+ZIP SHA-256
+73a64e3aa666e155ba1887ab1b8eb404942b02623ea3bd8cad6c1903e21c9660
+Recording timeline
+Master recording, 3 min 33 s · segments from timeline_original.json
+Phonation
+Phonation
+Pataka
+Reading
+0:00
+0:53
+1:47
+2:40
+3:33
+Audio task
+Filmed
+Questionnaire / info
+Rejected take
+Activity
+· 2 events
+Upload history
+Every request the server received for this session ID
+Review
+Unreviewed
+OK
+Needs review
+Excluded
+
+No comments yet.
+
+Add a comment for the clinic team
+Post comment
+Participant
+Show values
+Edit
+Patient code
+E2E1026-03-1
+Visit code
+••••••
+Year of birth opt
+••••••
+
+As typed at the clinic. Fields other than the patient code and visit stay hidden until you choose to show them. Each reveal is recorded in the audit log. Editing corrects typos: new values replace the old ones on every page and in later downloads, and every change is written to the audit log.
+
+Server checks
+ZIP checksum
+Archive structure
+Manifest file hashes
+IDs consistent
+Computer registered
+Config version
+Session complete

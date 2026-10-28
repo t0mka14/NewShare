@@ -1,0 +1,133 @@
+Task Protocoller
+Recordings
+5
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Recordings
+E2E1026-04-1
+E2E1026-04-1
+Valid
+Unreviewed
+E2E 1026 Speech protocol · E2E 1026 Speech study · E2E 1026 Clinic A · recorded on Oct 26, 2026
+Download ZIP
+Retakes
+Edited timeline
+Tasks
+Clips play from the server copy
+#	Task	Takes	Result	Clip
+0	
+Phonation
+	1	
+Done	
+
+1	
+Phonation
+Repetition 2
+	1	
+Done	
+
+2	
+Pataka
+	3 last kept	
+Done	
+
+3	
+Reading
+	1	
+Done	
+
+4	
+Monologue
+	1	
+Done	
+
+5	
+Questionnaire
+		
+Done	Show answers (4)
+Session
+Computer
+<installationId>
+App version
+1.0.0
+Recorded
+Oct 26, 2026, 06:56 PM
+Length
+1 min 52 s
+Received
+Oct 28, 2026, 07:24 PM
+2 days after the session ended
+Tasks
+6 of 6 recorded
+Timeline used
+Edited in waveform editor
+Microphone
+CABLE Output (VB-Audio Virtual Cable)
+Audio
+48 kHz · 16-bit · mono
+Camera
+Session ID
+11e79754eb664c368bd7bc52412477db
+Config version
+2026-10-26.172809
+ZIP SHA-256
+738080c5edb0792e29e70a01570b2bcbdb84931145d5c6f26f44e0027e698a7f
+Recording timeline
+Master recording, 1 min 52 s · segments from timeline_edited.json
+Phonation
+Phonation
+Pataka
+Reading
+Monologue
+0:00
+0:28
+0:56
+1:24
+1:52
+Audio task
+Filmed
+Questionnaire / info
+Rejected take
+Activity
+· 1 event
+Upload history
+Every request the server received for this session ID
+Review
+Unreviewed
+OK
+Needs review
+Excluded
+
+No comments yet.
+
+Add a comment for the clinic team
+Post comment
+Participant
+Show values
+Edit
+Patient code
+E2E1026-04-1
+Visit code
+••••••
+Year of birth opt
+••••••
+
+As typed at the clinic. Fields other than the patient code and visit stay hidden until you choose to show them. Each reveal is recorded in the audit log. Editing corrects typos: new values replace the old ones on every page and in later downloads, and every change is written to the audit log.
+
+Server checks
+ZIP checksum
+Archive structure
+Manifest file hashes
+IDs consistent
+Computer registered
+Config version
+Session complete

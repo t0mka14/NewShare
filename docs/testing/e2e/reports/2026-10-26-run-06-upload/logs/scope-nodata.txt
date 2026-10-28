@@ -1,0 +1,32 @@
+editor GET /uploads/NOSUCH/zip 404 {'error': 'not_found'}
+editor GET /uploads/NOSUCH/clips/a.wav 404 {'error': 'not_found'}
+editor GET /uploads/NOSUCH/attempts 404 {'error': 'not_found'}
+editor GET /uploads/NOSUCH/activity 404 {'error': 'not_found'}
+editor GET /uploads/NOSUCH/comments 404 {'error': 'not_found'}
+editor POST /uploads/NOSUCH/reveal 404 {'error': 'not_found'}
+editor POST /uploads/download 400 {'error': 'invalid_request'}
+editor GET /uploads/export.csv 200 ﻿sessionId,receivedAt,recordedAt,site,deviceId,deviceLabel,patientCode,visitNumb
+received GET /uploads/NOSUCH/zip 404 {'error': 'not_found'}
+received GET /uploads/NOSUCH/clips/a.wav 404 {'error': 'not_found'}
+received GET /uploads/NOSUCH/attempts 404 {'error': 'not_found'}
+received GET /uploads/NOSUCH/activity 404 {'error': 'not_found'}
+received GET /uploads/NOSUCH/comments 404 {'error': 'not_found'}
+received POST /uploads/NOSUCH/reveal 404 {'error': 'not_found'}
+received POST /uploads/download 400 {'error': 'invalid_request'}
+received GET /uploads/export.csv 200 ﻿sessionId,receivedAt,recordedAt,site,deviceId,deviceLabel,patientCode,visitNumb
+nogrants GET /uploads/NOSUCH/zip 404 {'error': 'not_found'}
+nogrants GET /uploads/NOSUCH/clips/a.wav 404 {'error': 'not_found'}
+nogrants GET /uploads/NOSUCH/attempts 404 {'error': 'not_found'}
+nogrants GET /uploads/NOSUCH/activity 404 {'error': 'not_found'}
+nogrants GET /uploads/NOSUCH/comments 404 {'error': 'not_found'}
+nogrants POST /uploads/NOSUCH/reveal 404 {'error': 'not_found'}
+nogrants POST /uploads/download 400 {'error': 'invalid_request'}
+nogrants GET /uploads/export.csv 200 ﻿sessionId,receivedAt,recordedAt,site,deviceId,deviceLabel,patientCode,visitNumb
+creator GET /uploads/NOSUCH/zip 404 {'error': 'not_found'}
+creator GET /uploads/NOSUCH/clips/a.wav 404 {'error': 'not_found'}
+creator GET /uploads/NOSUCH/attempts 404 {'error': 'not_found'}
+creator GET /uploads/NOSUCH/activity 404 {'error': 'not_found'}
+creator GET /uploads/NOSUCH/comments 404 {'error': 'not_found'}
+creator POST /uploads/NOSUCH/reveal 404 {'error': 'not_found'}
+creator POST /uploads/download 400 {'error': 'invalid_request'}
+creator GET /uploads/export.csv 200 ﻿sessionId,receivedAt,recordedAt,site,deviceId,deviceLabel,patientCode,visitNumb

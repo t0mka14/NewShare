@@ -1,0 +1,26 @@
+﻿2026-10-28 19:40:55.219 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-28 19:42:19.004 [DefaultDispatcher-worker-6] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 19:42:19.064 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 19:44:45.111 [DefaultDispatcher-worker-2] WARN  o.e.a.i.network.KtorUploadApi - upload rejected for session=41ac1ef7821d4ceeba1c33eb257af68d: HTTP 404
+2026-10-28 19:44:45.163 [DefaultDispatcher-worker-2] WARN  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=41ac1ef7821d4ceeba1c33eb257af68d attempt=1 outcome=Rejected(DeviceNotRegistered) retry=manual, no automatic retry
+2026-10-28 19:44:45.182 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 0 ok, 1 failed
+2026-10-28 19:44:45.212 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: skipped, no site token
+2026-10-28 19:47:04.782 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=41ac1ef7821d4ceeba1c33eb257af68d: HTTP 200
+2026-10-28 19:47:04.837 [DefaultDispatcher-worker-10] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=41ac1ef7821d4ceeba1c33eb257af68d attempt=2 outcome=Success
+2026-10-28 19:47:04.847 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 1 ok, 0 failed
+2026-10-28 19:47:04.855 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: skipped, no site token
+2026-10-28 19:48:30.382 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-28 19:48:53.884 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-28 19:50:13.970 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:50:14.094 [DefaultDispatcher-worker-5] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+2026-10-28 19:50:16.584 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: registered to another site
+2026-10-28 19:50:16.590 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: config from another site not applied (HTTP 409), keeping previous configuration
+2026-10-28 19:51:02.929 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:51:02.947 [DefaultDispatcher-worker-10] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+2026-10-28 19:51:02.947 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: registered to another site
+2026-10-28 19:51:02.948 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: config from another site not applied (HTTP 409), keeping previous configuration
+2026-10-28 19:51:47.347 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:51:47.450 [DefaultDispatcher-worker-8] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 19:51:47.492 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 19:51:47.554 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+

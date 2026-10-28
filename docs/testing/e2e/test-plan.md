@@ -1,8 +1,25 @@
 # End-to-end test plan: web → desktop app → server
 
-Version 1.1, 2026-10-24
+Version 1.2, 2026-10-28
 
-Changes since 1.0 (from the 2026-10-23 run, see [`findings.md`](findings.md)):
+Changes since 1.1 (from the 2026-10-26/28 run, see [`findings.md`](findings.md)):
+
+- The web was redesigned. It now says **clinic** (was site), **study** (project), **computer** (device)
+  and **recording** (upload). New runs A and A2 check the new UI and its personas; run 01 is
+  covered by run A.
+- Settings has a camera picker (F-019 fixed); run 02 picks OBS there.
+- The web serves `enableEditor: false` (F-094); runs 03 and 04 open the editor from Sessions.
+- No camera at start (05.7): `Disable-PnpDevice` doesn't work for the OBS virtual camera, which is
+  a DirectShow filter, not a PnP device. Unregister its DLL instead.
+- The app opens at 1000×820, not 800×600 (F-128). No resize is needed after a start, and run 09's
+  W2 is below the default.
+- Under RDP, synthetic key presses don't reach the app (F-116). Set the token with
+  `scripts/run-07/set_token.py` while the app is stopped.
+- Scripts are kept per run in `scripts/run-<NN>/` (§1.2). For the firewall step the runner leaves a
+  marker file the orchestrator watches for (§1.1).
+- §7: what to do when no pre-E2E data was kept.
+
+Changes in 1.1, from 1.0 (from the 2026-10-23 run, see [`findings.md`](findings.md)):
 
 - Site names without spaces (F-008); the right admin login path (F-015).
 - No camera picker in Settings (F-019); the OBS camera-off steps replaced (F-030).
@@ -56,6 +73,13 @@ Related documents:
   write it, and redacts installation IDs from the run's logs and dumps (§5.4).
 - Does steps the runner's permission policy refuses (for example the admin API login) only with
   the user's approval, and notes in the report who did them.
+- Steps that need the user, such as the firewall rule in run 08, are coordinated with a marker
+  file. The runner writes, for example, `WAITING-FOR-UNBLOCK` into its run folder and polls for
+  the change. The orchestrator watches for the file (Monitor), tells the user, and removes the file
+  once the user has acted.
+- Gives each finding an index ID (continuing the numbering in `findings.md`) and adds it to the
+  report heading as "Index ID: **F-nnn**". If a heading has no stable anchor, adds
+  `<a id="f-nn-n"></a>` before it so the index link resolves.
 
 ### 1.2 Runner (Sonnet)
 
@@ -74,19 +98,23 @@ Related documents:
   already published in the docs.
 - When something looks wrong but the spec does not say what is right, records it as a
   `question` finding rather than guessing.
+- Keeps every script it writes in `docs/testing/e2e/scripts/run-<NN>/`, with shared helpers (login,
+  screenshot, API calls) in `scripts/common/`. Base URL, personas and ids come from arguments, env
+  vars or the run context file, never hard-coded; secrets stay in the secrets file. A short
+  `README.md` says how to run them, and the report lists the files.
 
 ## 2. Environment
 
 | Item | Value |
 |---|---|
 | Host | Windows Server 2022 VM (KVM), reached over RDP. The app window, the browser and OBS all live on the RDP desktop. |
-| Desktop app | `./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto`. Window title `SHARE (v1.0.0)`. Data dir `app/data/`. Opens at 800×600 every time (the size isn't remembered); runs 02–08 resize it with `resize_window` to 1000×820 after each start (§3.4). |
+| Desktop app | `./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto`. Window title `SHARE (v1.0.0)`. Data dir `app/data/`. Opens at 1000×820 every time (`Main.kt`, the size isn't remembered); runs 02–08 keep that size (§3.4). |
 | JDK | `C:\Users\koubato2\.jdks\ms-25.0.4.1` (`JAVA_HOME` and `org.gradle.java.home`); the app itself runs on the JetBrains Runtime 25 that the hot-reload plugin downloads. |
 | Server API | `http://192.168.122.183:10001/api`, compiled into the app as `WEB_SERVER_BASE_URL`. |
 | Admin UI | `http://192.168.122.183:10001`, master login `master@test.com` / `1234`. |
 | Seeded site | Paris, token `paris000paris000paris000paris000`. |
 | Microphone | VB-Audio Virtual Cable. Audio played into **CABLE Input** comes out of **CABLE Output**, which is the app's microphone. |
-| Camera | OBS Studio Virtual Camera (`OBS Virtual Camera`, DirectShow). The app has no camera picker; it uses the first eligible camera (F-019), which on the VM is OBS. A **stopped** OBS virtual camera still exists and sends a placeholder picture, so it can't stand in for a missing camera (F-030). |
+| Camera | OBS Studio Virtual Camera (`OBS Virtual Camera`, DirectShow). Settings has a camera picker (Automatic or a named camera); run 02 picks `OBS Virtual Camera`. OBS must be running with **Start Virtual Camera** on (`obs64.exe --startvirtualcam`); otherwise the device sends the OBS placeholder picture. A **stopped** OBS virtual camera still exists and sends a placeholder picture, so it can't stand in for a missing camera (F-030). |
 | Audio source | A player (Windows Media Player, `wmplayer`) looping speech audio into CABLE Input. |
 | Screenshots | MCP `take_screenshot` for the app window. `tools/Capture-Screen.ps1` for the browser, OBS, Windows dialogs and as a fallback. |
 | Mouse drag | `tools/Drag-InWindow.ps1`: a real OS mouse drag or click in the window's client coordinates (the semantic tree's bounds at 100 % scaling). The MCP tools can't drag, and the editor's boundary handles react only to a drag. |
@@ -176,9 +204,15 @@ Set-Location C:\Users\koubato2\IdeaProjects\NewShare
   hot-reload recompiler fails with `'gradlew.bat' is not recognized`, and nothing reloads.
 - Ready when `app/build/run/main/main.pid` exists and `app/build/run/main/main.chr.log` ends with
   `Waiting for changes to input files...`.
-- Then `resize_window` to 1000×820. At the default 800×600, Settings is clipped (F-020) and the
-  video preview has almost no room (F-031). Run 09 tests the sizes themselves. Keep the window
-  above the taskbar: 1000×900 runs under it on the RDP desktop.
+- The window opens at 1000×820, the size runs 02–08 use; if it was changed, `resize_window` back
+  to 1000×820. Smaller sizes lose buttons (F-124–F-126). Run 09 tests the sizes themselves. Keep
+  the window above the taskbar: 1000×900 runs under it on the RDP desktop.
+- Helper scripts: `scripts/run-08/start-app.ps1`, `wait-ready.sh` and `stop-app.ps1` do the start,
+  the ready check and the stop below. `scripts/run-02/front.ps1` brings the window to the front
+  before a screenshot.
+- **Typing doesn't work under RDP** (F-116): `type_text` and synthetic key presses don't reach the
+  window. Set the site token with `python scripts/run-07/set_token.py <secrets key|none>` while the
+  app is stopped. It reads the token from the secrets file and never prints it.
 
 Stop: `TaskStop` on the background task, then check the PID in `main.pid` is gone
 (`Get-Process -Id <pid>`). Kill it with `Stop-Process` if not, then delete `main.pid`. The app
@@ -388,11 +422,10 @@ Precondition: run 01 passed; the app was started on an empty `app/data` (§3.3).
 1. Start the app. 📷 main screen.
    - Check: with no token, Start is disabled or explains that a site token is needed, and there's
      no crash or error dialog.
-2. Settings: enter token A, save. 📷 settings after saving.
+2. Settings: enter token A, save (under RDP set it with `set_token.py` instead, §3.4). 📷 settings after saving.
    - Check: config is fetched, and the main screen shows "Site: E2E-<MMDD>-Site-A".
-3. Settings: choose `CABLE Output (VB-Audio Virtual Cable)` as microphone. Settings has no camera
-   selection (F-019); the app takes the first eligible camera, and run 05 checks that it is OBS.
-   Note whether a level meter is shown.
+3. Settings: choose `CABLE Output (VB-Audio Virtual Cable)` as microphone and `OBS Virtual Camera`
+   as camera. 📷 the camera options. Note whether a level meter is shown.
 4. Server: `GET /api/devices` and the admin **Devices** page. 📷 Devices page.
    - Check: a device with this computer's installation ID is listed under Site A **before any
      upload**, with app version `1.0.0` and the served `configVersion`.
@@ -429,7 +462,8 @@ Precondition: run 02 passed; the player is looping speech audio into CABLE Input
 8. Monologue: press **Skip**. Check: the task is marked skipped, and the flow continues.
 9. Questionnaire. Check that it blocks continuing with the required OPEN question empty. Then fill
    all four questions and continue. 📷 filled questionnaire.
-10. End of protocol → editor (if `enableEditor`). 📷 editor with the waveform.
+10. End of protocol → editor (if `enableEditor`; the web currently serves `false`, F-094, so open it
+    from Sessions → Open editor). 📷 editor with the waveform.
     - Check: one segment per kept take, and phonation rep 1 uses take 2.
     - Leave it unchanged and finish.
 11. Processing. 📷 the result.
@@ -484,9 +518,12 @@ Precondition: run 02 passed; OBS virtual camera on with a recognisable scene; pl
 7. Camera failure fallback (no camera at start). **Stopping the OBS virtual camera does not do
    this:** the device stays and sends a placeholder picture, which the app films (F-030). Use one
    of these, and ask the user first, since each changes the machine:
-   - disable `OBS Virtual Camera` in Device Manager (needs an elevated shell:
-     `Get-PnpDevice -FriendlyName 'OBS Virtual Camera' | Disable-PnpDevice`, and
-     `Enable-PnpDevice` afterwards), or
+   - unregister the OBS virtual camera. It is a DirectShow filter, not a PnP device, so
+     `Disable-PnpDevice` doesn't work. The user runs, in an elevated shell,
+     `Stop-Process -Name obs64` and
+     `regsvr32 /u /s "C:\Program Files\obs-studio\data\obs-plugins\win-dshow\obs-virtualcam-module64.dll"`.
+     Afterwards: `regsvr32 /s` with the same DLL, then start OBS with `--startvirtualcam`, and
+     check that a frame grab shows the scene. Or:
    - on hardware with a real USB camera, unplug it.
 
    If neither is approved, mark the step `skipped (F-030)`. Otherwise start a second video session
@@ -617,19 +654,20 @@ sessions in Sessions, one of them failed or not uploaded (runs 07–08 leave the
 
 The spec says fixed-size layouts are bugs (§13 decision 36), and that a screen too short for its
 content scrolls rather than clips (§8, main menu; verified down to 1280×800). This run checks
-that on every screen. Known findings to link rather than report again: F-020 (Settings clipped
-at 800×600), F-031 (video preview squeezed), and the window size not being remembered.
+that on every screen. Known findings to link rather than report again: F-063 (Settings needs a
+short scroll at 1000×820), F-093 and F-118–F-127 (the 2026-10-28 run), and the window size not
+being remembered. F-020 (closed, Settings scrolls) and F-031 (fixed) should stay fixed.
 
 **Sizes** (outer window, set with `resize_window`):
 
 | ID | Size | Why |
 |---|---|---|
 | W1 | 640×480 | Below the default: is a minimum size enforced, and does content scroll? |
-| W2 | 800×600 | The size the app opens at |
+| W2 | 800×600 | Below the default 1000×820 (the size the app opens at), a common small window |
 | W3 | 1024×768 | Small laptop or projector |
 | W4 | 1280×800 | The size the spec says is verified |
 | W5 | 1366×768 | Common laptop: wide but short |
-| W6 | Full work area (the RDP desktop is 2292×1039, less the taskbar) | Large screen: nothing should stretch to be unusable |
+| W6 | Full work area (depends on the RDP window: 1512×876 on 2026-10-28; read it before the run) | Large screen: nothing should stretch to be unusable |
 
 **Method.** Walk through one session (`E2E<MMDD>-09-1`) and stop on each screen below. On each
 screen, go through W1–W6, then move on, so one session covers all sizes. At each size:
@@ -686,6 +724,65 @@ W4. `Drag-InWindow.ps1` and the semantic tree assume 100 %, so coordinates need 
 Report: a table of screens × sizes, each cell `pass` or the finding ID, plus a row per resize
 check. Don't upload the run's sessions.
 
+### Run A: New web UI (added in v1.2, 2026-10-26)
+
+The web was redesigned (web repo branch `newshare`, spec `docs/ui_redesign/02_spec.md`, criteria §10).
+The admin UI at `http://192.168.122.183:10001` now says **clinic** (was site), **study** (project),
+**computer** (device) and **recording** (upload session); runs 01, 06 and 07 use these words. Run A
+runs **before run 01** and checks the new UI itself, with Playwright (§3.2, `headless=False`).
+
+Precondition: preflight passed; master login works. Seed users `admin@test.com` etc. may not exist on
+the fresh DB: create the personas below as master in **Users** and note it (they are named
+`e2e-<role>-1026@test.com`, password `1234`).
+
+Personas: master; an editor of one study (clinician-with-rights); a user who only receives a study
+through a clinic (read-only, "received"); a user with no grants.
+
+Steps (each 📷 at 1440×900, full page):
+
+1. **Navigation (§10.1).** Visit every route in spec §5 as master. Check: sidebar with `nav-recordings`,
+   `nav-studies`, `nav-clinics`, `nav-library`, `nav-users`; the protocol editor uses a collapsed shell.
+2. **Redirects (§10.2).** Open the old routes listed in spec §5. Check: each redirects as specified.
+3. **Single primary action (§10.3).** On every screen count visible primary buttons. Check: at most one.
+4. **Create content** (feeds run 01): study with a protocol containing every task the desktop app
+   supports and the web offers (§4.2 tables), EN and CS. Check the protocol editor offers every flag
+   (can repeat, can skip, indicator, record video, repetitions, length), and that the study screen's
+   language, validation and error messages make sense.
+5. **Received study (§10.4).** As the receiving persona: lock badge, no Save, New protocol, Archive or
+   settings-save controls; the same calls through the API answer 403.
+6. **One clinic (§10.5), runs at (§10.6), editors (§10.7).** Exercise each as in spec §10, including the
+   error cases (unknown email 404, last editor 400, non-editor 403).
+7. **Library (§10.16).** Share a protocol, add it to a second study, edit the copy, update the entry,
+   withdraw it; no-access persona gets no Library item.
+8. **Recordings scope (§10.8).** A study editor not assigned to a clinic cannot list, open or download
+   its recordings.
+9. **i18n (§10.12).** Switch EN / CS / DE on the main screens. Check: no raw keys (`a.b.c`),
+   no "undefined", no mixed languages, glossary respected.
+10. **Responsive and polish.** Screens at 1024×768 and 1440×900: nothing cut off or overlapping.
+
+Report: a table of criteria §10.1–8, 12, 16 with `pass` or a finding ID, and the list of screens
+visited. Leaves the E2E study, clinics and protocol in place for run 01 (**run 01 may reuse them**;
+the context file records ids).
+
+### Run A2: Persona checks (added in v1.2, 2026-10-26)
+
+Run A could only check the personas as master, because persona users can't be given a known
+password in the UI (F-077). Run A2 repeats the persona criteria through the API, with one login per
+persona, and through the UI where a login works.
+
+Precondition: run A done; personas `e2e-editor`, `e2e-received`, `e2e-nogrants` and `e2e-creator`
+`-<MMDD>@test.com` exist, with ids in the context file.
+
+Steps: spec §10.4 (received study is read-only, the API answers 403), §10.5 (one clinic),
+§10.6 (runs at: study side, clinic side, non-editor 403, editor without the clinic 404),
+§10.7 (editors: add by email, `cannot_remove_creator`, `last_editor`, non-editor 403),
+§10.8 (recordings scope; needs recordings, so rerun it after run 06 with
+`scripts/run-06/scope_data.py`), §10.16 (library with two users, no access), landing after login,
+and a sanity tour of the main routes per persona. Anything created for the checks goes into a
+throw-away study that is archived at the end, never deleted.
+
+Report: a table of the criteria with `pass`, `not covered` (with the reason) or a finding ID.
+
 ### Run 10: Cleanup check and summary (orchestrator)
 
 1. Compare `findings.md` against the reports: every finding has a screenshot or a reason why
@@ -698,7 +795,9 @@ check. Don't upload the run's sessions.
 
 1. Stop the app (§3.4).
 2. Move the current `app/data` to `app/data.e2e-<MMDD>-final`, then move `app/data.pre-e2e-<YYYYMMDD>`
-   back to `app/data`. Tell the user where the E2E data dirs are; delete nothing.
+   back to `app/data`. Tell the user where the E2E data dirs are; delete nothing. If no pre-E2E
+   copy exists (as in the 2026-10-26 run), ask the user before moving `app/data`, and don't upload
+   any sessions still waiting in it.
 3. Leave the `E2E <MMDD>` sites, projects and uploads on the server. List them in the summary, so
    the user can delete them in the admin UI when done.
 4. Remind the user to set the microphone privacy setting and the RDP audio settings back, if they
@@ -708,7 +807,8 @@ check. Don't upload the run's sessions.
 
 | Area | Covered by | Not covered |
 |---|---|---|
-| Web setup and config mapping | 01, 02 | Protocol PDF (`protocolInstructionsPdfUrl`) unless the designer offers it |
+| New web UI: navigation, roles, runs at, editors, library, scope, i18n | A, A2 | Persona logins in the browser (F-077) |
+| Web setup and config mapping | 01 (or A), 02 | Protocol PDF (`protocolInstructionsPdfUrl`) unless the designer offers it |
 | Config fetch, device registration, check-in | 02, 06, 07 | — |
 | Speech tasks: all VOCAL subtypes the web emits, repeats, skip, questionnaire, info | 03, 04 | `COUNTING`, `CUSTOM` unless the designer offers them |
 | Video on voice tasks (`recordVideo`) | 05 | — |
@@ -716,7 +816,7 @@ check. Don't upload the run's sessions.
 | Editor, processing, reprocessing | 03, 04 | — |
 | Upload statuses, batch, quarantine, conflict | 06, 07, 08 | Long upload unless asked (08.6) |
 | Server record: list, detail, downloads, devices | 06, 07 | QC review, comments, CSV export (web features, not part of this process) |
-| Errors: mic denied, camera loss, network, crash recovery | 05, 08 | Microphone unplugged mid-take (a virtual cable can't be unplugged without admin rights). No camera at start, unless the user approves disabling the OBS device (05.7, F-030). |
+| Errors: mic denied, camera loss, network, crash recovery | 05, 08 | Microphone unplugged mid-take (a virtual cable can't be unplugged without admin rights). No camera at start, unless the user approves unregistering the OBS virtual camera (05.7, F-030). A completely silent microphone is not detected (F-117). |
 | Window sizes, layout, live resize | 09 | Display scaling unless the user sets it up; macOS |
 | Audit log (reveals, edits, downloads) | — | No API or UI shows it (F-044); needs database access |
 | Auto-updater | — | Out of scope for this plan |

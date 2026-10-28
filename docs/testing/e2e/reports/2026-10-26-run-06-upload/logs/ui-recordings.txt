@@ -1,0 +1,20 @@
+rows after search E2E: 5 | Showing 1–5 of 5 recordings
+table text: Recordings | 	Received	Patient · visit	Study / protocol	Clinic	Length	Tasks	Server check	Review	Flags | 	 | 9 minutes ago | Oct 28, 2026, 07:24 PM | 	 | E2E1026-05-3 | d3b229fa | 	 | E2E 1026 Video study | E2E 1026 Video protocol | 	E2E 1026 Clinic A	1 min	4 / 4	 | Valid | 	 | Unreviewed | 	 | Computer event |  | 	 | 9 minutes ago | Oct 28, 2026, 07:24 PM | 	 | E2E1026-05-2 | 7f82ec98 | 	 | E2E 1026 Video study | E2E 1026 Video protocol | 	E2E 1026 Clinic A	1 min	4 / 4	 | Valid | 	 | Unreviewed | 	 | 	 | 9 minutes ago | Oct 28, 2026, 07:24 PM | 	 | E2E1026-05-1 | f1b25e4e | 	 | E2E 1026 Video study | E2E 1026 Video protocol | 	E2E 1026 Clinic A	2 min	4 / 4	 | Valid | 	 | Unreviewed | 	 | Retakes |  | 	 | 9 minutes ago | Oct 28, 2026, 07:24 PM | 	 | E2E1026-04-1 | 11e79754 | 	 | E2E 1026 Speech study | E2E 1026 Speech protocol | 	E2E 1026 Clinic A	2 min	6 / 6	 | Valid | 	 | Unreviewed | 	 | Retakes | Edited timeline |  | 	 | 9 minutes ago | Oct 28, 2026, 07:24 PM | 	 | E2E1026-03-1 | 6c08b80c | 	 | E2E 1026 Speech study | E2E 1026 Speech protocol | 	E2E 1026 Clinic A	4 min	5 / 6 | 1 skipped | 	 | Valid | 	 | Unreviewed | 	 | Skipped tasks | Retakes
+chip Has video -> ['Oct 28, 2026, 07:24 PM', 'Oct 28, 2026, 07:24 PM']
+chip Computer event -> ['Oct 28, 2026, 07:24 PM']
+detail E2E1026-03-1 
+masked before: {'visit_code': '••••••', 'year_of_birth_opt': '••••••'}
+answers modal text: Questionnaire |  | Answers as entered at the clinic |  | Jak se dnes cítíte | Dobre | Další poznámka | Zadna poznamka | Kouříte | Ne | Které příznaky se vás týkají | Chrapot, Žádné | Close
+after Show values: buttons 1 | text near fields: ['V01', 'Year of birth opt', '1975']
+after Hide: masked spans 2
+reload on detail -> ok
+detail E2E1026-04-1 
+reload on detail -> ok
+detail E2E1026-05-1 
+reload on detail -> ok
+detail E2E1026-05-3 
+reload on detail -> ok
+detail E2E1026-05-2 
+reload on detail -> ok
+console errors: []
+failed/4xx api responses: []

@@ -1,0 +1,148 @@
+ENTRIES (order):
+  master/session_master.wav  6469844 bytes
+  clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.mp4  29738095 bytes
+  clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.wav  2347244 bytes
+  clips/E2E1026-05-3_E2E1026ClinicA_1_MONOLOGUE_Rep1.wav  729644 bytes
+  clips/E2E1026-05-3_E2E1026ClinicA_2_MONOLOGUE_Rep2.wav  763244 bytes
+  clips/E2E1026-05-3_E2E1026ClinicA_3_PATAKA_Rep1.wav  921644 bytes
+  examination.json  2142 bytes
+  participant.json  87 bytes
+  task_configuration_snapshot.json  16969 bytes
+  timeline_original.json  2551 bytes
+  manifest.json  1399 bytes
+manifest keys: {'sessionId': 'd3b229fad6b442b9b171b12cde97fac3', 'configVersion': '2026-10-26.172809', 'generatedAt': '2026-10-26T18:11:10.422577500Z', 'files': 10}
+hash mismatches: [] | entries not in manifest: [] | manifest last: True
+WAV master/session_master.wav: 48000 Hz, 16 bit, 1 ch, 67.39 s
+WAV clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 24.45 s
+WAV clips/E2E1026-05-3_E2E1026ClinicA_1_MONOLOGUE_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 7.60 s
+WAV clips/E2E1026-05-3_E2E1026ClinicA_2_MONOLOGUE_Rep2.wav: 48000 Hz, 16 bit, 1 ch, 7.95 s
+WAV clips/E2E1026-05-3_E2E1026ClinicA_3_PATAKA_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 9.60 s
+examination.json:
+{
+ "sessionId": "d3b229fad6b442b9b171b12cde97fac3",
+ "installationId": "<installationId>",
+ "protocolName": "E2E 1026 Video protocol",
+ "protocolProject": "E2E 1026 Video study",
+ "configVersion": "2026-10-26.172809",
+ "startedAt": "2026-10-26T18:09:58.523200400Z",
+ "endedAt": "2026-10-26T18:11:09.685132500Z",
+ "captureFormat": {
+  "sampleRate": 48000,
+  "bits": 16,
+  "channels": 1
+ },
+ "tasks": [
+  {
+   "taskIndex": 0,
+   "type": "VOCAL",
+   "subtype": "PHONATION",
+   "repetition": 1,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.wav",
+   "videoFile": "clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.mp4",
+   "videoComplete": false,
+   "videoDurationMs": 10900,
+   "audioDurationMs": 24450
+  },
+  {
+   "taskIndex": 1,
+   "type": "VOCAL",
+   "subtype": "MONOLOGUE",
+   "repetition": 1,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_1_MONOLOGUE_Rep1.wav"
+  },
+  {
+   "taskIndex": 2,
+   "type": "VOCAL",
+   "subtype": "MONOLOGUE",
+   "repetition": 2,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_2_MONOLOGUE_Rep2.wav"
+  },
+  {
+   "taskIndex": 3,
+   "type": "VOCAL",
+   "subtype": "PATAKA",
+   "repetition": 1,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_3_PATAKA_Rep1.wav"
+  }
+ ],
+ "videoTakes": [
+  {
+   "file": "video/task00_rep01_take01.mjpeg",
+   "taskIndex": 0,
+   "repetition": 1,
+   "take": 1,
+   "captureFormat": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30
+   }
+  }
+ ],
+ "hardware": {
+  "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+  "micUses": [
+   {
+    "openedAt": "2026-10-26T18:09:58.386628900Z",
+    "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+    "description": "Direct Audio Device: DirectSound Capture",
+    "captureFormat": {
+     "sampleRate": 48000,
+     "bits": 16,
+     "channels": 1
+    }
+   }
+  ],
+  "cameraUses": [
+   {
+    "openedAt": "2026-10-26T18:10:03.076221200Z",
+    "deviceId": "dshow:0:OBS Virtual Camera",
+    "deviceName": "OBS Virtual Camera",
+    "nameOrdinal": 0,
+    "platformIndex": 0,
+    "captureFormat": {
+     "width": 1280,
+     "height": 720,
+     "fps": 30
+    }
+   }
+  ],
+  "events": [
+   {
+    "at": "2026-10-26T18:10:19.174302600Z",
+    "device": "camera",
+    "event": "capture_failed",
+    "detail": "capture interrupted: the capture process ended"
+   }
+  ]
+ },
+ "processing": {
+  "status": "Done",
+  "processedAt": "2026-10-26T18:11:10.352261500Z",
+  "timelineUsed": "original"
+ }
+}
+participant.json: {"fields":{"patient_code":"E2E1026-05-3"},"createdAt":"2026-10-26T18:09:58.523200400Z"}
+   SESSION_RECORDING_STARTED 0 None None None 
+   TASK_SCREEN_ENTERED 0 0 1 None 
+   START_BUTTON_PRESSED 283200 0 1 1 
+   STOP_BUTTON_PRESSED 1456800 0 1 1 
+   TASK_COMPLETED 1608000 0 1 1 
+   TASK_SCREEN_ENTERED 1610400 1 1 None 
+   START_BUTTON_PRESSED 1756800 1 1 1 
+   STOP_BUTTON_PRESSED 2121600 1 1 1 
+   TASK_COMPLETED 2126400 1 1 1 
+   TASK_SCREEN_ENTERED 2128800 2 2 None 
+   START_BUTTON_PRESSED 2244000 2 2 1 
+   STOP_BUTTON_PRESSED 2625600 2 2 1 
+   TASK_COMPLETED 2642400 2 2 1 
+   TASK_SCREEN_ENTERED 2644800 3 1 None 
+   START_BUTTON_PRESSED 2764800 3 1 1 
+   STOP_BUTTON_PRESSED 3225600 3 1 1 
+   TASK_COMPLETED 3232800 3 1 1 
+   SESSION_RECORDING_STOPPED 3232800 None None None 
+sessionId consistent: True

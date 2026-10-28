@@ -1,0 +1,131 @@
+2026-10-28 19:40:55.219 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-28 19:42:19.004 [DefaultDispatcher-worker-6] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 19:42:19.064 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 19:44:45.111 [DefaultDispatcher-worker-2] WARN  o.e.a.i.network.KtorUploadApi - upload rejected for session=41ac1ef7821d4ceeba1c33eb257af68d: HTTP 404
+2026-10-28 19:44:45.163 [DefaultDispatcher-worker-2] WARN  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=41ac1ef7821d4ceeba1c33eb257af68d attempt=1 outcome=Rejected(DeviceNotRegistered) retry=manual, no automatic retry
+2026-10-28 19:44:45.182 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 0 ok, 1 failed
+2026-10-28 19:44:45.212 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: skipped, no site token
+2026-10-28 19:47:04.782 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=41ac1ef7821d4ceeba1c33eb257af68d: HTTP 200
+2026-10-28 19:47:04.837 [DefaultDispatcher-worker-10] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=41ac1ef7821d4ceeba1c33eb257af68d attempt=2 outcome=Success
+2026-10-28 19:47:04.847 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 1 ok, 0 failed
+2026-10-28 19:47:04.855 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: skipped, no site token
+2026-10-28 19:48:30.382 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-28 19:48:53.884 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-28 19:50:13.970 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:50:14.094 [DefaultDispatcher-worker-5] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+2026-10-28 19:50:16.584 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: registered to another site
+2026-10-28 19:50:16.590 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: config from another site not applied (HTTP 409), keeping previous configuration
+2026-10-28 19:51:02.929 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:51:02.947 [DefaultDispatcher-worker-10] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+2026-10-28 19:51:02.947 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: registered to another site
+2026-10-28 19:51:02.948 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: config from another site not applied (HTTP 409), keeping previous configuration
+2026-10-28 19:51:47.347 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:51:47.450 [DefaultDispatcher-worker-8] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 19:51:47.492 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 19:51:47.554 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 19:57:52.529 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:57:52.666 [DefaultDispatcher-worker-5] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 19:57:52.755 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 19:57:52.822 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 19:58:25.250 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.278 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=48000, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.300 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.324 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=44100, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.344 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.354 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=32000, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.365 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.381 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=22050, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.393 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.407 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=16000, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.420 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.430 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=11025, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.436 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.451 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=8000, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.465 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.479 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=88200, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.492 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.501 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=96000, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.515 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.546 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=176400, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.560 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=1) (LineUnavailableException)
+2026-10-28 19:58:25.575 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format rejected: CaptureFormat(sampleRate=192000, bits=16, channels=2) (LineUnavailableException)
+2026-10-28 19:58:25.636 [DefaultDispatcher-worker-14] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - startMonitoring failed for device=CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version
+org.example.app.domain.video.RedactedThrowable: org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.AudioException: DeviceUnavailable: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:392)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.access$openLine(JvmContinuousSessionRecorder.kt:46)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder$startMonitoring$2.invokeSuspend(JvmContinuousSessionRecorder.kt:105)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: org.example.app.domain.video.RedactedThrowable: javax.sound.sampled.LineUnavailableException: line with format PCM_SIGNED 192000.0 Hz, 16 bit, stereo, 4 bytes/frame, little-endian not supported.
+	at java.desktop/com.sun.media.sound.DirectAudioDevice$DirectDL.implOpen(DirectAudioDevice.java:480)
+	at java.desktop/com.sun.media.sound.AbstractDataLine.open(AbstractDataLine.java:115)
+	at org.example.app.infrastructure.audio.SystemCaptureLineOpener.open(CaptureLineOpener.kt:49)
+	at org.example.app.infrastructure.audio.JvmContinuousSessionRecorder.openLine(JvmContinuousSessionRecorder.kt:380)
+	... 10 common frames omitted
+2026-10-28 19:59:28.578 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=de24a93bdf9647aebc681b71127cee1a
+2026-10-28 19:59:28.989 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:59:29.103 [DefaultDispatcher-worker-7] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 19:59:31.825 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 19:59:31.905 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 19:59:57.495 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 19:59:57.510 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:01:44.333 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=2d4cdf59765245fdb0ddb4b491d74458
+2026-10-28 20:01:47.399 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:01:47.526 [DefaultDispatcher-worker-11] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:01:47.552 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:01:47.595 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:02:31.801 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:02:31.822 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:03:15.215 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=6182cc79e2cf464a94b8cfd96d53b304
+2026-10-28 20:03:18.370 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:03:18.435 [DefaultDispatcher-worker-13] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:03:18.489 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:03:18.553 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:04:55.116 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:04:55.149 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:05:18.798 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=8158e0fc59d64cfeacb5339c36e1945b
+2026-10-28 20:05:22.102 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:05:22.247 [DefaultDispatcher-worker-15] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:05:22.288 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:05:22.353 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:05:44.813 [DefaultDispatcher-worker-7] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:05:44.846 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:06:11.608 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=dc852eb6feb24e6882140724409dd5d4
+2026-10-28 20:06:14.785 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:06:14.865 [DefaultDispatcher-worker-13] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:06:14.900 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:06:14.931 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:06:33.892 [DefaultDispatcher-worker-12] WARN  o.e.a.d.s.ProcessSessionUseCase - processing failed: NothingToProcess (session dc852eb6feb24e6882140724409dd5d4)
+2026-10-28 20:07:47.993 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:07:48.004 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:14:02.248 [AWT-EventQueue-0] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.net.SocketException
+2026-10-28 20:14:02.293 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: network failure, using cached configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:14:37.484 [DefaultDispatcher-worker-2] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:14:37.512 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:14:47.614 [AWT-EventQueue-0] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=e6df9843f8ac47d4bb40c5a274ef3fc6
+2026-10-28 20:15:00.582 [AWT-EventQueue-0] WARN  o.e.a.i.network.KtorConfigApi - config fetch failed, transport error: java.net.SocketException
+2026-10-28 20:15:00.582 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: network failure, using cached configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:15:23.295 [DefaultDispatcher-worker-3] WARN  o.e.a.i.network.KtorUploadApi - upload failed, transport error for session=b2182fdad9e944c682aa019f18ea42fe: java.net.SocketException
+2026-10-28 20:15:23.332 [DefaultDispatcher-worker-3] WARN  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=b2182fdad9e944c682aa019f18ea42fe attempt=1 outcome=NetworkFailure retry=manual, no automatic retry
+2026-10-28 20:15:23.366 [DefaultDispatcher-worker-2] WARN  o.e.a.i.network.KtorUploadApi - upload failed, transport error for session=6182cc79e2cf464a94b8cfd96d53b304: java.net.SocketException
+2026-10-28 20:15:23.376 [DefaultDispatcher-worker-2] WARN  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=6182cc79e2cf464a94b8cfd96d53b304 attempt=1 outcome=NetworkFailure retry=manual, no automatic retry
+2026-10-28 20:15:23.392 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 2 session(s), 0 ok, 2 failed
+2026-10-28 20:15:23.411 [DefaultDispatcher-worker-2] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in failed, transport error: java.net.SocketException
+2026-10-28 20:15:23.417 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: failed
+2026-10-28 20:20:58.791 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:20:58.980 [DefaultDispatcher-worker-3] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:20:58.986 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:20:59.038 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:21:24.690 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=b2182fdad9e944c682aa019f18ea42fe: HTTP 200
+2026-10-28 20:21:24.759 [DefaultDispatcher-worker-10] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=b2182fdad9e944c682aa019f18ea42fe attempt=2 outcome=Success
+2026-10-28 20:21:24.843 [DefaultDispatcher-worker-6] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=6182cc79e2cf464a94b8cfd96d53b304: HTTP 200
+2026-10-28 20:21:24.865 [DefaultDispatcher-worker-6] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=6182cc79e2cf464a94b8cfd96d53b304 attempt=2 outcome=Success
+2026-10-28 20:21:24.886 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 2 session(s), 2 ok, 0 failed
+2026-10-28 20:21:24.908 [DefaultDispatcher-worker-6] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:21:24.911 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok

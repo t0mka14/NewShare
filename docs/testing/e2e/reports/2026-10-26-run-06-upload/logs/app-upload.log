@@ -1,0 +1,17 @@
+2026-10-28 19:23:33.162 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 19:23:33.693 [DefaultDispatcher-worker-5] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 19:23:38.024 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 19:23:38.223 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 19:24:31.263 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=6c08b80c07704a4d990c207fab344e7b: HTTP 200
+2026-10-28 19:24:31.433 [DefaultDispatcher-worker-10] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=6c08b80c07704a4d990c207fab344e7b attempt=1 outcome=Success
+2026-10-28 19:24:31.619 [DefaultDispatcher-worker-9] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=11e79754eb664c368bd7bc52412477db: HTTP 200
+2026-10-28 19:24:31.631 [DefaultDispatcher-worker-9] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=11e79754eb664c368bd7bc52412477db attempt=1 outcome=Success
+2026-10-28 19:24:33.206 [DefaultDispatcher-worker-8] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=f1b25e4ecd424436ac6753a43ccf09a2: HTTP 200
+2026-10-28 19:24:33.221 [DefaultDispatcher-worker-8] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=f1b25e4ecd424436ac6753a43ccf09a2 attempt=1 outcome=Success
+2026-10-28 19:24:33.497 [DefaultDispatcher-worker-6] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=7f82ec98b70a45408dc0697920b3d8ea: HTTP 200
+2026-10-28 19:24:33.524 [DefaultDispatcher-worker-6] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=7f82ec98b70a45408dc0697920b3d8ea attempt=1 outcome=Success
+2026-10-28 19:24:34.037 [DefaultDispatcher-worker-3] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=d3b229fad6b442b9b171b12cde97fac3: HTTP 200
+2026-10-28 19:24:34.147 [DefaultDispatcher-worker-3] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=d3b229fad6b442b9b171b12cde97fac3 attempt=1 outcome=Success
+2026-10-28 19:24:34.181 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 5 session(s), 5 ok, 0 failed
+2026-10-28 19:24:34.470 [DefaultDispatcher-worker-14] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 19:24:34.471 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok

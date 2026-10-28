@@ -1,0 +1,3 @@
+{"type":"SESSION_RECORDING_STARTED","sampleOffset":0,"wallClock":"2026-10-28T19:02:40.025450900Z","taskIndex":null,"repetition":null,"take":null}
+{"type":"TASK_SCREEN_ENTERED","sampleOffset":2400,"wallClock":"2026-10-28T19:02:40.051191800Z","taskIndex":0,"repetition":1,"take":null}
+{"type":"START_BUTTON_PRESSED","sampleOffset":396000,"wallClock":"2026-10-28T19:02:48.272273900Z","taskIndex":0,"repetition":1,"take":1}

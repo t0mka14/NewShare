@@ -1,0 +1,1268 @@
+{
+ "6c08b80c07704a4d990c207fab344e7b": {
+  "detail": {
+   "id": "6c08b80c07704a4d990c207fab344e7b",
+   "siteId": 4,
+   "site": "E2E 1026 Clinic A",
+   "deviceId": "<installationId>",
+   "deviceLabel": null,
+   "appVersion": "1.0.0",
+   "protocol": "E2E 1026 Speech protocol",
+   "projectId": 3,
+   "project": "E2E 1026 Speech study",
+   "configVersion": "2026-10-26.172809",
+   "startedAt": "2026-10-26T17:48:29.225Z",
+   "endedAt": "2026-10-26T17:52:02.127Z",
+   "processedAt": "2026-10-26T17:52:02.405Z",
+   "receivedAt": "2026-10-28T18:24:31.758Z",
+   "durationS": 213,
+   "bytes": 13712393,
+   "zipSha256": "73a64e3aa666e155ba1887ab1b8eb404942b02623ea3bd8cad6c1903e21c9660",
+   "status": "valid",
+   "invalidReason": null,
+   "qc": "unreviewed",
+   "issues": [
+    "skipped",
+    "retakes"
+   ],
+   "needsAttention": false,
+   "checks": [
+    {
+     "key": "zip_checksum",
+     "result": "ok",
+     "detail": "verified at ingest"
+    },
+    {
+     "key": "archive",
+     "result": "ok"
+    },
+    {
+     "key": "manifest",
+     "result": "ok"
+    },
+    {
+     "key": "ids",
+     "result": "ok"
+    },
+    {
+     "key": "device",
+     "result": "ok"
+    },
+    {
+     "key": "config_version",
+     "result": "ok"
+    },
+    {
+     "key": "complete",
+     "result": "ok"
+    }
+   ],
+   "tasksTotal": 6,
+   "tasksDone": 5,
+   "tasksSkipped": 1,
+   "tasks": [
+    {
+     "taskIndex": 0,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 2,
+     "clipFile": "clips/E2E1026-03-1_E2E1026ClinicA_0_PHONATION_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 1,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 2,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-03-1_E2E1026ClinicA_1_PHONATION_Rep2.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 2,
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-03-1_E2E1026ClinicA_2_PATAKA_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 3,
+     "type": "VOCAL",
+     "subtype": "READING",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-03-1_E2E1026ClinicA_3_READING_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 4,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 1,
+     "result": "Skipped",
+     "takes": 0,
+     "clipFile": null,
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 5,
+     "type": "QUESTIONNAIRE",
+     "subtype": null,
+     "repetition": 1,
+     "result": "Done",
+     "takes": 0,
+     "clipFile": null,
+     "videoFile": null,
+     "questionnaireAnswers": {
+      "p1_t5_q1": [
+       "Dobre"
+      ],
+      "p1_t5_q2": [
+       "Zadna poznamka"
+      ],
+      "p1_t5_q3": [
+       "p1_t5_q3_o2"
+      ],
+      "p1_t5_q4": [
+       "p1_t5_q4_o1",
+       "p1_t5_q4_o3"
+      ]
+     }
+    }
+   ],
+   "audioClips": 4,
+   "videoClips": 0,
+   "hasAudio": true,
+   "recovered": false,
+   "interruptions": 0,
+   "interruptionEvents": [],
+   "timelineUsed": "original",
+   "timeline": [
+    {
+     "taskIndex": 0,
+     "repetition": 1,
+     "kept": {
+      "take": 2,
+      "startSample": 2092800,
+      "stopSample": 2553600
+     },
+     "rejected": [
+      {
+       "take": 1,
+       "startSample": 1084800,
+       "stopSample": 1804800,
+       "reason": "EXAMINER_REPEAT"
+      }
+     ]
+    },
+    {
+     "taskIndex": 1,
+     "repetition": 2,
+     "kept": {
+      "take": 1,
+      "startSample": 2760000,
+      "stopSample": 3177600
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 2,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 3465600,
+      "stopSample": 3945600
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 3,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 4401600,
+      "stopSample": 4845600
+     },
+     "rejected": []
+    }
+   ],
+   "captureFormat": {
+    "sampleRate": 48000,
+    "bits": 16,
+    "channels": 1
+   },
+   "sampleRate": 48000,
+   "hardware": {
+    "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "micUses": [
+     {
+      "openedAt": "2026-10-26T17:48:29.203977300Z",
+      "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+      "description": "Direct Audio Device: DirectSound Capture",
+      "captureFormat": {
+       "sampleRate": 48000,
+       "bits": 16,
+       "channels": 1
+      }
+     }
+    ]
+   },
+   "videoTakes": [],
+   "questionTexts": {
+    "p1_t5_q1": "Jak se dnes cítíte",
+    "p1_t5_q2": "Další poznámka",
+    "p1_t5_q3": "Kouříte",
+    "p1_t5_q3_o2": "Ne",
+    "p1_t5_q4": "Které příznaky se vás týkají",
+    "p1_t5_q4_o1": "Chrapot",
+    "p1_t5_q4_o3": "Žádné"
+   },
+   "participant": {
+    "patient_code": "E2E1026-03-1",
+    "visit_number": null,
+    "fields": {
+     "patient_code": "E2E1026-03-1",
+     "visit_code": null,
+     "year_of_birth_opt": null
+    },
+    "maskedKeys": [
+     "visit_code",
+     "year_of_birth_opt"
+    ],
+    "editedAt": null
+   },
+   "comments": [],
+   "canEdit": true,
+   "prevId": "11e79754eb664c368bd7bc52412477db",
+   "nextId": null
+  },
+  "attempts": [
+   {
+    "id": 1,
+    "at": "2026-10-28T18:24:31.758Z",
+    "code": 200,
+    "outcome": "accepted",
+    "bytes": 13712393,
+    "shaDeclared": "73a64e3aa666e155ba1887ab1b8eb404942b02623ea3bd8cad6c1903e21c9660",
+    "shaComputed": "73a64e3aa666e155ba1887ab1b8eb404942b02623ea3bd8cad6c1903e21c9660",
+    "deviceReported": false,
+    "installationId": "<installationId>"
+   }
+  ],
+  "localSha": "73a64e3aa666e155ba1887ab1b8eb404942b02623ea3bd8cad6c1903e21c9660"
+ },
+ "11e79754eb664c368bd7bc52412477db": {
+  "detail": {
+   "id": "11e79754eb664c368bd7bc52412477db",
+   "siteId": 4,
+   "site": "E2E 1026 Clinic A",
+   "deviceId": "<installationId>",
+   "deviceLabel": null,
+   "appVersion": "1.0.0",
+   "protocol": "E2E 1026 Speech protocol",
+   "projectId": 3,
+   "project": "E2E 1026 Speech study",
+   "configVersion": "2026-10-26.172809",
+   "startedAt": "2026-10-26T17:56:48.218Z",
+   "endedAt": "2026-10-26T17:58:40.616Z",
+   "processedAt": "2026-10-26T18:00:09.738Z",
+   "receivedAt": "2026-10-28T18:24:32.190Z",
+   "durationS": 112,
+   "bytes": 13205891,
+   "zipSha256": "738080c5edb0792e29e70a01570b2bcbdb84931145d5c6f26f44e0027e698a7f",
+   "status": "valid",
+   "invalidReason": null,
+   "qc": "unreviewed",
+   "issues": [
+    "retakes",
+    "edited"
+   ],
+   "needsAttention": false,
+   "checks": [
+    {
+     "key": "zip_checksum",
+     "result": "ok",
+     "detail": "verified at ingest"
+    },
+    {
+     "key": "archive",
+     "result": "ok"
+    },
+    {
+     "key": "manifest",
+     "result": "ok"
+    },
+    {
+     "key": "ids",
+     "result": "ok"
+    },
+    {
+     "key": "device",
+     "result": "ok"
+    },
+    {
+     "key": "config_version",
+     "result": "ok"
+    },
+    {
+     "key": "complete",
+     "result": "ok"
+    }
+   ],
+   "tasksTotal": 6,
+   "tasksDone": 6,
+   "tasksSkipped": 0,
+   "tasks": [
+    {
+     "taskIndex": 0,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_0_PHONATION_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 1,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 2,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_1_PHONATION_Rep2.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 2,
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 3,
+     "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_2_PATAKA_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 3,
+     "type": "VOCAL",
+     "subtype": "READING",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_3_READING_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 4,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_4_MONOLOGUE_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 5,
+     "type": "QUESTIONNAIRE",
+     "subtype": null,
+     "repetition": 1,
+     "result": "Done",
+     "takes": 0,
+     "clipFile": null,
+     "videoFile": null,
+     "questionnaireAnswers": {
+      "p1_t5_q1": [
+       "Unavena"
+      ],
+      "p1_t5_q2": [
+       "Bez poznamky 04"
+      ],
+      "p1_t5_q3": [
+       "p1_t5_q3_o1"
+      ],
+      "p1_t5_q4": [
+       "p1_t5_q4_o2"
+      ]
+     }
+    }
+   ],
+   "audioClips": 5,
+   "videoClips": 0,
+   "hasAudio": true,
+   "recovered": false,
+   "interruptions": 0,
+   "interruptionEvents": [],
+   "timelineUsed": "edited",
+   "timeline": [
+    {
+     "taskIndex": 0,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 148800,
+      "stopSample": 626400
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 1,
+     "repetition": 2,
+     "kept": {
+      "take": 1,
+      "startSample": 1008000,
+      "stopSample": 1430400
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 2,
+     "repetition": 1,
+     "kept": {
+      "take": 3,
+      "startSample": 2587200,
+      "stopSample": 3018566
+     },
+     "rejected": [
+      {
+       "take": 1,
+       "startSample": 1617600,
+       "stopSample": 2037600,
+       "reason": "EXAMINER_REPEAT"
+      },
+      {
+       "take": 2,
+       "startSample": 2152800,
+       "stopSample": 2584800,
+       "reason": "EXAMINER_REPEAT"
+      }
+     ]
+    },
+    {
+     "taskIndex": 3,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 3261600,
+      "stopSample": 3691200
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 4,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 3794400,
+      "stopSample": 4965600
+     },
+     "rejected": []
+    }
+   ],
+   "captureFormat": {
+    "sampleRate": 48000,
+    "bits": 16,
+    "channels": 1
+   },
+   "sampleRate": 48000,
+   "hardware": {
+    "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "micUses": [
+     {
+      "openedAt": "2026-10-26T17:56:48.203455400Z",
+      "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+      "description": "Direct Audio Device: DirectSound Capture",
+      "captureFormat": {
+       "sampleRate": 48000,
+       "bits": 16,
+       "channels": 1
+      }
+     }
+    ]
+   },
+   "videoTakes": [],
+   "questionTexts": {
+    "p1_t5_q1": "Jak se dnes cítíte",
+    "p1_t5_q2": "Další poznámka",
+    "p1_t5_q3": "Kouříte",
+    "p1_t5_q3_o1": "Ano",
+    "p1_t5_q4": "Které příznaky se vás týkají",
+    "p1_t5_q4_o2": "Kašel"
+   },
+   "participant": {
+    "patient_code": "E2E1026-04-1",
+    "visit_number": null,
+    "fields": {
+     "patient_code": "E2E1026-04-1",
+     "visit_code": null,
+     "year_of_birth_opt": null
+    },
+    "maskedKeys": [
+     "visit_code",
+     "year_of_birth_opt"
+    ],
+    "editedAt": null
+   },
+   "comments": [],
+   "canEdit": true,
+   "prevId": "f1b25e4ecd424436ac6753a43ccf09a2",
+   "nextId": "6c08b80c07704a4d990c207fab344e7b"
+  },
+  "attempts": [
+   {
+    "id": 2,
+    "at": "2026-10-28T18:24:32.190Z",
+    "code": 200,
+    "outcome": "accepted",
+    "bytes": 13205891,
+    "shaDeclared": "738080c5edb0792e29e70a01570b2bcbdb84931145d5c6f26f44e0027e698a7f",
+    "shaComputed": "738080c5edb0792e29e70a01570b2bcbdb84931145d5c6f26f44e0027e698a7f",
+    "deviceReported": false,
+    "installationId": "<installationId>"
+   }
+  ],
+  "localSha": "738080c5edb0792e29e70a01570b2bcbdb84931145d5c6f26f44e0027e698a7f"
+ },
+ "f1b25e4ecd424436ac6753a43ccf09a2": {
+  "detail": {
+   "id": "f1b25e4ecd424436ac6753a43ccf09a2",
+   "siteId": 4,
+   "site": "E2E 1026 Clinic A",
+   "deviceId": "<installationId>",
+   "deviceLabel": null,
+   "appVersion": "1.0.0",
+   "protocol": "E2E 1026 Video protocol",
+   "projectId": 4,
+   "project": "E2E 1026 Video study",
+   "configVersion": "2026-10-26.172809",
+   "startedAt": "2026-10-26T18:07:08.139Z",
+   "endedAt": "2026-10-26T18:09:07.868Z",
+   "processedAt": "2026-10-26T18:09:09.450Z",
+   "receivedAt": "2026-10-28T18:24:33.064Z",
+   "durationS": 120,
+   "bytes": 152458476,
+   "zipSha256": "3b16f25626ce201f19043b1afd5c4cf9323c082ad54597ab8a156ff409c9413c",
+   "status": "valid",
+   "invalidReason": null,
+   "qc": "unreviewed",
+   "issues": [
+    "retakes"
+   ],
+   "needsAttention": false,
+   "checks": [
+    {
+     "key": "zip_checksum",
+     "result": "ok",
+     "detail": "verified at ingest"
+    },
+    {
+     "key": "archive",
+     "result": "ok"
+    },
+    {
+     "key": "manifest",
+     "result": "ok"
+    },
+    {
+     "key": "ids",
+     "result": "ok"
+    },
+    {
+     "key": "device",
+     "result": "ok"
+    },
+    {
+     "key": "config_version",
+     "result": "ok"
+    },
+    {
+     "key": "complete",
+     "result": "ok"
+    }
+   ],
+   "tasksTotal": 4,
+   "tasksDone": 4,
+   "tasksSkipped": 0,
+   "tasks": [
+    {
+     "taskIndex": 0,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-1_E2E1026ClinicA_0_PHONATION_Rep1.wav",
+     "videoFile": "clips/E2E1026-05-1_E2E1026ClinicA_0_PHONATION_Rep1.mp4",
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 1,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 2,
+     "clipFile": "clips/E2E1026-05-1_E2E1026ClinicA_1_MONOLOGUE_Rep1.wav",
+     "videoFile": "clips/E2E1026-05-1_E2E1026ClinicA_1_MONOLOGUE_Rep1.mp4",
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 2,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 2,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-1_E2E1026ClinicA_2_MONOLOGUE_Rep2.wav",
+     "videoFile": "clips/E2E1026-05-1_E2E1026ClinicA_2_MONOLOGUE_Rep2.mp4",
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 3,
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-1_E2E1026ClinicA_3_PATAKA_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    }
+   ],
+   "audioClips": 4,
+   "videoClips": 3,
+   "hasAudio": true,
+   "recovered": false,
+   "interruptions": 0,
+   "interruptionEvents": [],
+   "timelineUsed": "original",
+   "timeline": [
+    {
+     "taskIndex": 0,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 448800,
+      "stopSample": 1104000
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 1,
+     "repetition": 1,
+     "kept": {
+      "take": 2,
+      "startSample": 2268000,
+      "stopSample": 3201600
+     },
+     "rejected": [
+      {
+       "take": 1,
+       "startSample": 1509600,
+       "stopSample": 2073600,
+       "reason": "EXAMINER_REPEAT"
+      }
+     ]
+    },
+    {
+     "taskIndex": 2,
+     "repetition": 2,
+     "kept": {
+      "take": 1,
+      "startSample": 3477600,
+      "stopSample": 4336800
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 3,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 4912800,
+      "stopSample": 5496000
+     },
+     "rejected": []
+    }
+   ],
+   "captureFormat": {
+    "sampleRate": 48000,
+    "bits": 16,
+    "channels": 1
+   },
+   "sampleRate": 48000,
+   "hardware": {
+    "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "micUses": [
+     {
+      "openedAt": "2026-10-26T18:07:07.984099400Z",
+      "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+      "description": "Direct Audio Device: DirectSound Capture",
+      "captureFormat": {
+       "sampleRate": 48000,
+       "bits": 16,
+       "channels": 1
+      }
+     }
+    ],
+    "cameraUses": [
+     {
+      "openedAt": "2026-10-26T18:07:12.113060700Z",
+      "deviceId": "dshow:0:OBS Virtual Camera",
+      "deviceName": "OBS Virtual Camera",
+      "nameOrdinal": 0,
+      "platformIndex": 0,
+      "captureFormat": {
+       "width": 1280,
+       "height": 720,
+       "fps": 30
+      }
+     }
+    ]
+   },
+   "videoTakes": [
+    {
+     "file": "video/task00_rep01_take01.mjpeg",
+     "taskIndex": 0,
+     "repetition": 1,
+     "take": 1,
+     "captureFormat": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30
+     }
+    },
+    {
+     "file": "video/task01_rep01_take01.mjpeg",
+     "taskIndex": 1,
+     "repetition": 1,
+     "take": 1,
+     "captureFormat": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30
+     }
+    },
+    {
+     "file": "video/task01_rep01_take02.mjpeg",
+     "taskIndex": 1,
+     "repetition": 1,
+     "take": 2,
+     "captureFormat": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30
+     }
+    },
+    {
+     "file": "video/task02_rep02_take01.mjpeg",
+     "taskIndex": 2,
+     "repetition": 2,
+     "take": 1,
+     "captureFormat": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30
+     }
+    }
+   ],
+   "questionTexts": {},
+   "participant": {
+    "patient_code": "E2E1026-05-1",
+    "visit_number": null,
+    "fields": {
+     "patient_code": "E2E1026-05-1"
+    },
+    "maskedKeys": [],
+    "editedAt": null
+   },
+   "comments": [],
+   "canEdit": true,
+   "prevId": "7f82ec98b70a45408dc0697920b3d8ea",
+   "nextId": "11e79754eb664c368bd7bc52412477db"
+  },
+  "attempts": [
+   {
+    "id": 3,
+    "at": "2026-10-28T18:24:33.064Z",
+    "code": 200,
+    "outcome": "accepted",
+    "bytes": 152458476,
+    "shaDeclared": "3b16f25626ce201f19043b1afd5c4cf9323c082ad54597ab8a156ff409c9413c",
+    "shaComputed": "3b16f25626ce201f19043b1afd5c4cf9323c082ad54597ab8a156ff409c9413c",
+    "deviceReported": false,
+    "installationId": "<installationId>"
+   }
+  ],
+  "localSha": "3b16f25626ce201f19043b1afd5c4cf9323c082ad54597ab8a156ff409c9413c"
+ },
+ "d3b229fad6b442b9b171b12cde97fac3": {
+  "detail": {
+   "id": "d3b229fad6b442b9b171b12cde97fac3",
+   "siteId": 4,
+   "site": "E2E 1026 Clinic A",
+   "deviceId": "<installationId>",
+   "deviceLabel": null,
+   "appVersion": "1.0.0",
+   "protocol": "E2E 1026 Video protocol",
+   "projectId": 4,
+   "project": "E2E 1026 Video study",
+   "configVersion": "2026-10-26.172809",
+   "startedAt": "2026-10-26T18:09:58.523Z",
+   "endedAt": "2026-10-26T18:11:09.685Z",
+   "processedAt": "2026-10-26T18:11:10.352Z",
+   "receivedAt": "2026-10-28T18:24:34.417Z",
+   "durationS": 71,
+   "bytes": 38663316,
+   "zipSha256": "1560bf6dbc8495e32e77e3315690e6beb18d3c693a0f2ebc5363003c6f20b816",
+   "status": "valid",
+   "invalidReason": null,
+   "qc": "unreviewed",
+   "issues": [
+    "device"
+   ],
+   "needsAttention": false,
+   "checks": [
+    {
+     "key": "zip_checksum",
+     "result": "ok",
+     "detail": "verified at ingest"
+    },
+    {
+     "key": "archive",
+     "result": "ok"
+    },
+    {
+     "key": "manifest",
+     "result": "ok"
+    },
+    {
+     "key": "ids",
+     "result": "ok"
+    },
+    {
+     "key": "device",
+     "result": "ok"
+    },
+    {
+     "key": "config_version",
+     "result": "ok"
+    },
+    {
+     "key": "complete",
+     "result": "ok"
+    }
+   ],
+   "tasksTotal": 4,
+   "tasksDone": 4,
+   "tasksSkipped": 0,
+   "tasks": [
+    {
+     "taskIndex": 0,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.wav",
+     "videoFile": "clips/E2E1026-05-3_E2E1026ClinicA_0_PHONATION_Rep1.mp4",
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 1,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_1_MONOLOGUE_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 2,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 2,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_2_MONOLOGUE_Rep2.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 3,
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-3_E2E1026ClinicA_3_PATAKA_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    }
+   ],
+   "audioClips": 4,
+   "videoClips": 1,
+   "hasAudio": true,
+   "recovered": false,
+   "interruptions": 0,
+   "interruptionEvents": [],
+   "timelineUsed": "original",
+   "timeline": [
+    {
+     "taskIndex": 0,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 283200,
+      "stopSample": 1456800
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 1,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 1756800,
+      "stopSample": 2121600
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 2,
+     "repetition": 2,
+     "kept": {
+      "take": 1,
+      "startSample": 2244000,
+      "stopSample": 2625600
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 3,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 2764800,
+      "stopSample": 3225600
+     },
+     "rejected": []
+    }
+   ],
+   "captureFormat": {
+    "sampleRate": 48000,
+    "bits": 16,
+    "channels": 1
+   },
+   "sampleRate": 48000,
+   "hardware": {
+    "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "micUses": [
+     {
+      "openedAt": "2026-10-26T18:09:58.386628900Z",
+      "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+      "description": "Direct Audio Device: DirectSound Capture",
+      "captureFormat": {
+       "sampleRate": 48000,
+       "bits": 16,
+       "channels": 1
+      }
+     }
+    ],
+    "cameraUses": [
+     {
+      "openedAt": "2026-10-26T18:10:03.076221200Z",
+      "deviceId": "dshow:0:OBS Virtual Camera",
+      "deviceName": "OBS Virtual Camera",
+      "nameOrdinal": 0,
+      "platformIndex": 0,
+      "captureFormat": {
+       "width": 1280,
+       "height": 720,
+       "fps": 30
+      }
+     }
+    ],
+    "events": [
+     {
+      "at": "2026-10-26T18:10:19.174302600Z",
+      "device": "camera",
+      "event": "capture_failed",
+      "detail": "capture interrupted: the capture process ended"
+     }
+    ]
+   },
+   "videoTakes": [
+    {
+     "file": "video/task00_rep01_take01.mjpeg",
+     "taskIndex": 0,
+     "repetition": 1,
+     "take": 1,
+     "captureFormat": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30
+     }
+    }
+   ],
+   "questionTexts": {},
+   "participant": {
+    "patient_code": "E2E1026-05-3",
+    "visit_number": null,
+    "fields": {
+     "patient_code": "E2E1026-05-3"
+    },
+    "maskedKeys": [],
+    "editedAt": null
+   },
+   "comments": [],
+   "canEdit": true,
+   "prevId": null,
+   "nextId": "7f82ec98b70a45408dc0697920b3d8ea"
+  },
+  "attempts": [
+   {
+    "id": 5,
+    "at": "2026-10-28T18:24:34.417Z",
+    "code": 200,
+    "outcome": "accepted",
+    "bytes": 38663316,
+    "shaDeclared": "1560bf6dbc8495e32e77e3315690e6beb18d3c693a0f2ebc5363003c6f20b816",
+    "shaComputed": "1560bf6dbc8495e32e77e3315690e6beb18d3c693a0f2ebc5363003c6f20b816",
+    "deviceReported": false,
+    "installationId": "<installationId>"
+   }
+  ],
+  "localSha": "1560bf6dbc8495e32e77e3315690e6beb18d3c693a0f2ebc5363003c6f20b816"
+ },
+ "7f82ec98b70a45408dc0697920b3d8ea": {
+  "detail": {
+   "id": "7f82ec98b70a45408dc0697920b3d8ea",
+   "siteId": 4,
+   "site": "E2E 1026 Clinic A",
+   "deviceId": "<installationId>",
+   "deviceLabel": null,
+   "appVersion": "1.0.0",
+   "protocol": "E2E 1026 Video protocol",
+   "projectId": 4,
+   "project": "E2E 1026 Video study",
+   "configVersion": "2026-10-26.172809",
+   "startedAt": "2026-10-26T18:34:55.341Z",
+   "endedAt": "2026-10-26T18:36:01.553Z",
+   "processedAt": "2026-10-26T18:36:01.960Z",
+   "receivedAt": "2026-10-28T18:24:33.904Z",
+   "durationS": 66,
+   "bytes": 7267489,
+   "zipSha256": "e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde",
+   "status": "valid",
+   "invalidReason": null,
+   "qc": "unreviewed",
+   "issues": [],
+   "needsAttention": false,
+   "checks": [
+    {
+     "key": "zip_checksum",
+     "result": "ok",
+     "detail": "verified at ingest"
+    },
+    {
+     "key": "archive",
+     "result": "ok"
+    },
+    {
+     "key": "manifest",
+     "result": "ok"
+    },
+    {
+     "key": "ids",
+     "result": "ok"
+    },
+    {
+     "key": "device",
+     "result": "ok"
+    },
+    {
+     "key": "config_version",
+     "result": "ok"
+    },
+    {
+     "key": "complete",
+     "result": "ok"
+    }
+   ],
+   "tasksTotal": 4,
+   "tasksDone": 4,
+   "tasksSkipped": 0,
+   "tasks": [
+    {
+     "taskIndex": 0,
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-2_E2E1026ClinicA_0_PHONATION_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 1,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-2_E2E1026ClinicA_1_MONOLOGUE_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 2,
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "repetition": 2,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-2_E2E1026ClinicA_2_MONOLOGUE_Rep2.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    },
+    {
+     "taskIndex": 3,
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "repetition": 1,
+     "result": "Done",
+     "takes": 1,
+     "clipFile": "clips/E2E1026-05-2_E2E1026ClinicA_3_PATAKA_Rep1.wav",
+     "videoFile": null,
+     "questionnaireAnswers": null
+    }
+   ],
+   "audioClips": 4,
+   "videoClips": 0,
+   "hasAudio": true,
+   "recovered": false,
+   "interruptions": 0,
+   "interruptionEvents": [],
+   "timelineUsed": "original",
+   "timeline": [
+    {
+     "taskIndex": 0,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 556800,
+      "stopSample": 945600
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 1,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 1236000,
+      "stopSample": 1600800
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 2,
+     "repetition": 2,
+     "kept": {
+      "take": 1,
+      "startSample": 1836000,
+      "stopSample": 2196000
+     },
+     "rejected": []
+    },
+    {
+     "taskIndex": 3,
+     "repetition": 1,
+     "kept": {
+      "take": 1,
+      "startSample": 2486400,
+      "stopSample": 2851200
+     },
+     "rejected": []
+    }
+   ],
+   "captureFormat": {
+    "sampleRate": 48000,
+    "bits": 16,
+    "channels": 1
+   },
+   "sampleRate": 48000,
+   "hardware": {
+    "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "micUses": [
+     {
+      "openedAt": "2026-10-26T18:34:55.145314900Z",
+      "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+      "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+      "description": "Direct Audio Device: DirectSound Capture",
+      "captureFormat": {
+       "sampleRate": 48000,
+       "bits": 16,
+       "channels": 1
+      }
+     }
+    ]
+   },
+   "videoTakes": [],
+   "questionTexts": {},
+   "participant": {
+    "patient_code": "E2E1026-05-2",
+    "visit_number": null,
+    "fields": {
+     "patient_code": "E2E1026-05-2"
+    },
+    "maskedKeys": [],
+    "editedAt": null
+   },
+   "comments": [],
+   "canEdit": true,
+   "prevId": "d3b229fad6b442b9b171b12cde97fac3",
+   "nextId": "f1b25e4ecd424436ac6753a43ccf09a2"
+  },
+  "attempts": [
+   {
+    "id": 4,
+    "at": "2026-10-28T18:24:33.904Z",
+    "code": 200,
+    "outcome": "accepted",
+    "bytes": 7267489,
+    "shaDeclared": "e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde",
+    "shaComputed": "e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde",
+    "deviceReported": false,
+    "installationId": "<installationId>"
+   }
+  ],
+  "localSha": "e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde"
+ }
+}

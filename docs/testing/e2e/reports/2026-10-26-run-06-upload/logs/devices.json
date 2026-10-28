@@ -1,0 +1,33 @@
+{
+ "devices": [
+  {
+   "id": 1,
+   "installationId": "<installationId>",
+   "label": null,
+   "siteId": 4,
+   "siteName": "E2E 1026 Clinic A",
+   "appVersion": "1.0.0",
+   "lastConfigVersion": "2026-10-26.172809",
+   "lastConfigAt": "2026-10-28T18:23:33.000Z",
+   "lastSeenAt": "2026-10-28T18:24:34.000Z",
+   "pending": 0,
+   "failed": 0,
+   "backlogHidden": false,
+   "lastUpload": "2026-10-28T18:24:34.417Z",
+   "uploads30": 5,
+   "neverUploaded": false,
+   "health": {
+    "key": "ok",
+    "label": "Healthy"
+   }
+  }
+ ],
+ "stats": {
+  "devices": 1,
+  "healthy": 1,
+  "waiting": 0,
+  "failed": 0,
+  "silent": 0,
+  "unassigned": 0
+ }
+}

@@ -1,0 +1,88 @@
+===== received
+landing at #/ with a valid session: http://192.168.122.183:10001/#/recordings
+/recordings -> /recordings | h=Recordings | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=['recordings-download|Download'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies -> /studies | h=Studies | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3 -> /studies/3/protocols | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/clinics -> /studies/3/protocols | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/recordings -> /studies/3/recordings | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/editors -> /studies/3/protocols | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/settings -> /studies/3/settings | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/4 -> /studies/4/protocols | h=E2E 1026 Video study | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics -> /clinics/4/studies | h=E2E 1026 Clinic A | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4 -> /clinics/4/studies | h=E2E 1026 Clinic A | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4/computers -> /clinics/4/computers | h=E2E 1026 Clinic A | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4/recordings -> /clinics/4/recordings | h=E2E 1026 Clinic A | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4/settings -> /clinics/4/settings | h=E2E 1026 Clinic A | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/5/studies -> /clinics/5/studies | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/5', 404), ('GET', '/sites/5', 404)] | consoleErr=2
+/library -> /library | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/library', 403)] | consoleErr=1
+/library/15 -> /library/15 | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/library/15', 403)] | consoleErr=1
+/users -> /users | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/does-not-exist -> /does-not-exist | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/6 -> /studies/6/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/6', 404)] | consoleErr=1
+/studies/6/editors -> /studies/6/editors | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/6', 404)] | consoleErr=1
+===== nogrants
+landing at #/ with a valid session: http://192.168.122.183:10001/#/recordings
+/recordings -> /recordings | h=Recordings | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=['recordings-download|Download'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies -> /studies | h=Studies | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3 -> /studies/3/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/clinics -> /studies/3/clinics | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/recordings -> /studies/3/recordings | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/editors -> /studies/3/editors | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/settings -> /studies/3/settings | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/4 -> /studies/4/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/4', 404)] | consoleErr=1
+/clinics -> /clinics | h=Clinics | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4 -> /clinics/4/studies | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/computers -> /clinics/4/computers | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/recordings -> /clinics/4/recordings | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/settings -> /clinics/4/settings | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/5/studies -> /clinics/5/studies | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/5', 404), ('GET', '/sites/5', 404)] | consoleErr=2
+/library -> /library | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/library', 403)] | consoleErr=1
+/library/15 -> /library/15 | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/library/15', 403)] | consoleErr=1
+/users -> /users | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/does-not-exist -> /does-not-exist | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/6 -> /studies/6/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/6', 404)] | consoleErr=1
+/studies/6/editors -> /studies/6/editors | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/6', 404)] | consoleErr=1
+===== editor
+landing at #/ with a valid session: http://192.168.122.183:10001/#/recordings
+/recordings -> /recordings | h=Recordings | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['recordings-download|Download'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies -> /studies | h=Studies | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3 -> /studies/3/protocols | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-new-protocol|New protocol'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/clinics -> /studies/3/clinics | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/recordings -> /studies/3/recordings | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/editors -> /studies/3/editors | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-add-editor|Add editor'] | editctl=['study-add-editor'] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3/settings -> /studies/3/settings | h=E2E 1026 Speech study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-settings-save|Save'] | editctl=['study-settings-save'] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/4 -> /studies/4/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/4', 404)] | consoleErr=1
+/clinics -> /clinics/5/studies | h=E2E 1026 Clinic B | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['clinic-add-study|Add study'] | editctl=['clinic-add-study'] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4 -> /clinics/4/studies | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/computers -> /clinics/4/computers | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/recordings -> /clinics/4/recordings | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/settings -> /clinics/4/settings | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/5/studies -> /clinics/5/studies | h=E2E 1026 Clinic B | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['clinic-add-study|Add study'] | editctl=['clinic-add-study'] | raw=[] [] | api>=400=[] | consoleErr=0
+/library -> /library | h=Library | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/library/15 -> /library/15 | h=E2E 1026 Speech protocol | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['library-add|Add to study…'] | editctl=['library-add'] | raw=[] [] | api>=400=[] | consoleErr=0
+/users -> /users | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/does-not-exist -> /does-not-exist | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/6 -> /studies/6/protocols | h=E2E 1026 A2 throwaway study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-new-protocol|New protocol'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/6/editors -> /studies/6/editors | h=E2E 1026 A2 throwaway study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-add-editor|Add editor'] | editctl=['study-add-editor'] | raw=[] [] | api>=400=[] | consoleErr=0
+===== creator
+landing at #/ with a valid session: http://192.168.122.183:10001/#/recordings
+/recordings -> /recordings | h=Recordings | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['recordings-download|Download'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies -> /studies | h=Studies | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['studies-new|New study'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/3 -> /studies/3/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/clinics -> /studies/3/clinics | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/recordings -> /studies/3/recordings | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/editors -> /studies/3/editors | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/3/settings -> /studies/3/settings | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/3', 404)] | consoleErr=1
+/studies/4 -> /studies/4/protocols | h=None | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/projects/4', 404)] | consoleErr=1
+/clinics -> /clinics | h=Clinics | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/clinics/4 -> /clinics/4/studies | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/computers -> /clinics/4/computers | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/recordings -> /clinics/4/recordings | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/4/settings -> /clinics/4/settings | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/4', 404), ('GET', '/sites/4', 404)] | consoleErr=2
+/clinics/5/studies -> /clinics/5/studies | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[('GET', '/sites/5', 404), ('GET', '/sites/5', 404)] | consoleErr=2
+/library -> /library | h=Library | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/library/15 -> /library/15 | h=E2E 1026 Speech protocol | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['library-add|Add to study…'] | editctl=['library-add'] | raw=[] [] | api>=400=[] | consoleErr=0
+/users -> /users | h=Not available | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/does-not-exist -> /does-not-exist | h=Page not found | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=[] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/6 -> /studies/6/protocols | h=E2E 1026 A2 throwaway study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-new-protocol|New protocol'] | editctl=[] | raw=[] [] | api>=400=[] | consoleErr=0
+/studies/6/editors -> /studies/6/editors | h=E2E 1026 A2 throwaway study | nav=['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library'] | prim=['study-add-editor|Add editor'] | editctl=['study-add-editor'] | raw=[] [] | api>=400=[] | consoleErr=0

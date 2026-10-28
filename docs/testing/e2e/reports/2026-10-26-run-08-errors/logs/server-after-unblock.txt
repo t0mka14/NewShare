@@ -1,0 +1,21 @@
+GET /uploads/b2182fdad9e944c682aa019f18ea42fe 200
+   status = "valid"
+   receivedAt = "2026-10-28T19:21:25.174Z"
+   bytes = 9394995
+   zipSha256 = "90a21a4f847b18dd1a54983ac9573ff1b34098266a4540f89a8de19842309370"
+   issues = ["skipped"]
+   recovered = false
+  keys ['appVersion', 'audioClips', 'bytes', 'canEdit', 'captureFormat', 'checks', 'comments', 'configVersion', 'deviceId', 'deviceLabel', 'durationS', 'endedAt', 'hardware', 'hasAudio', 'id', 'interruptionEvents', 'interruptions', 'invalidReason', 'issues', 'needsAttention', 'nextId', 'participant', 'prevId', 'processedAt', 'project', 'projectId', 'protocol', 'qc', 'questionTexts', 'receivedAt', 'recovered', 'sampleRate', 'site', 'siteId', 'startedAt', 'status', 'tasks', 'tasksDone', 'tasksSkipped', 'tasksTotal', 'timeline', 'timelineUsed', 'videoClips', 'videoTakes', 'zipSha256']
+GET attempts 200 count = 1
+  attempt {"id": 10, "at": "2026-10-28T19:21:25.174Z", "code": 200, "outcome": "accepted", "bytes": 9394995, "shaDeclared": "90a21a4f847b18dd1a54983ac9573ff1b34098266a4540f89a8de19842309370", "shaComputed": "90a21a4f847b18dd1a54983ac9573ff1b34098266a4540f89a8de19842309370", "deviceReported": false, "installationId": "<installationId>"}
+  zip download 200 local 90a21a4f847b18dd1a54983ac9573ff1b34098266a4540f89a8de19842309370 server 90a21a4f847b18dd1a54983ac9573ff1b34098266a4540f89a8de19842309370 MATCH
+GET /uploads/6182cc79e2cf464a94b8cfd96d53b304 200
+   status = "valid"
+   receivedAt = "2026-10-28T19:21:25.413Z"
+   bytes = 2259488
+   zipSha256 = "cdbb6a309421e7ff337f85c336080ee08874a6962c51db14c8b86207b3077bca"
+   issues = ["recovered"]
+   recovered = true
+  keys ['appVersion', 'audioClips', 'bytes', 'canEdit', 'captureFormat', 'checks', 'comments', 'configVersion', 'deviceId', 'deviceLabel', 'durationS', 'endedAt', 'hardware', 'hasAudio', 'id', 'interruptionEvents', 'interruptions', 'invalidReason', 'issues', 'needsAttention', 'nextId', 'participant', 'prevId', 'processedAt', 'project', 'projectId', 'protocol', 'qc', 'questionTexts', 'receivedAt', 'recovered', 'sampleRate', 'site', 'siteId', 'startedAt', 'status', 'tasks', 'tasksDone', 'tasksSkipped', 'tasksTotal', 'timeline', 'timelineUsed', 'videoClips', 'videoTakes', 'zipSha256']
+GET attempts 200 count = 1
+  attempt {"id": 11, "at": "2026-10-28T19:21:25.413Z", "code": 200, "outcome": "accepted", "bytes": 2259488, "shaDeclared": "cdbb6a309421e7ff337f85c336080ee08874a6962c51db14c8b86207b3077bca", "shaComputed": "cdbb6a309421e7ff337f85c336080ee08874a6962c51db14c8b86207b3077bca", "deviceReported": false, "installationId": "<installationId>"}

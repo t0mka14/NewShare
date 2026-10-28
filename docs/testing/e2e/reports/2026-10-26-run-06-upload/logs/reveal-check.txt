@@ -1,0 +1,2 @@
+E2E1026-03-1 200 {'visit_code': 'V01', 'year_of_birth_opt': '1975'} expected {'visit_code': 'V01', 'year_of_birth_opt': '1975'} MATCH
+E2E1026-04-1 200 {'visit_code': 'V01', 'year_of_birth_opt': '1980'} expected {'visit_code': 'V01', 'year_of_birth_opt': '1980'} MATCH

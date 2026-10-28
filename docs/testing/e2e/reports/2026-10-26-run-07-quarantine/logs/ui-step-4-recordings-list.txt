@@ -1,0 +1,226 @@
+{
+ "url": "#/recordings",
+ "headings": [
+  "Recordings"
+ ],
+ "buttons": [
+  "shell-logout|",
+  "|",
+  "recordings-download|Download all 6",
+  "recordings-kpi-unreviewed|Unreviewed6",
+  "recordings-kpi-attention|Needs attention1",
+  "recordings-kpi-invalid|Invalid1",
+  "recordings-kpi-week|Received in last 7 days6",
+  "recordings-more-filters|More filters",
+  "|‹",
+  "|1",
+  "|›"
+ ],
+ "testids": [
+  "app-shell",
+  "app-sidebar",
+  "nav-recordings",
+  "nav-studies",
+  "nav-clinics",
+  "nav-library",
+  "nav-users",
+  "user-menu",
+  "user-name",
+  "user-role",
+  "shell-language",
+  "shell-logout",
+  "recordings-page",
+  "recordings-download",
+  "recordings-unassigned-banner",
+  "recordings-list",
+  "recordings-kpis",
+  "recordings-kpi-unreviewed",
+  "recordings-kpi-attention",
+  "recordings-kpi-invalid",
+  "recordings-kpi-week",
+  "recordings-filters",
+  "recordings-search",
+  "recordings-filter-clinic",
+  "recordings-filter-study",
+  "recordings-filter-protocol",
+  "recordings-filter-review",
+  "recordings-filter-check",
+  "recordings-filter-date",
+  "recordings-more-filters",
+  "recordings-table",
+  "recordings-select-all",
+  "recordings-count"
+ ]
+}
+Task Protocoller
+Recordings
+6
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Recordings
+Everything uploaded by the computers at your clinics.
+Download all 6
+1 computer is not assigned to a clinic, and its recordings are in quarantine.
+Review computers
+Unreviewed
+6
+Needs attention
+1
+Invalid
+1
+Received in last 7 days
+6
+Clinic
+All clinics
+E2E 1026 Clinic A
+Study
+All studies
+E2E 1026 A2 throwaway study
+E2E 1026 Speech study
+E2E 1026 Video study
+Test Study 001
+Test Study 002
+Protocol
+All protocols
+E2E 1026 Speech protocol
+E2E 1026 Video protocol
+Review
+Any review
+Unreviewed
+OK
+Needs review
+Excluded
+Server check
+Any server check
+Valid
+Validating
+Invalid
+Date
+Any date
+Today
+Last 7 days
+Last 30 days
+Custom…
+More filters
+Recordings
+	Received	Patient · visit	Study / protocol	Clinic	Length	Tasks	Server check	Review	Flags
+	
+1 minute ago
+Oct 28, 2026, 07:44 PM
+	
+E2E1026-07-1
+41ac1ef7
+	
+E2E 1026 Speech study
+E2E 1026 Speech protocol
+	No clinic	2 min	5 / 6
+1 skipped
+	
+Invalid
+Device not registered
+	
+Unreviewed
+	
+Skipped tasks
+
+	
+21 minutes ago
+Oct 28, 2026, 07:24 PM
+	
+E2E1026-05-3
+d3b229fa
+	
+E2E 1026 Video study
+E2E 1026 Video protocol
+	E2E 1026 Clinic A	1 min	4 / 4	
+Valid
+	
+Unreviewed
+	
+Computer event
+
+	
+21 minutes ago
+Oct 28, 2026, 07:24 PM
+	
+E2E1026-05-2
+7f82ec98
+	
+E2E 1026 Video study
+E2E 1026 Video protocol
+	E2E 1026 Clinic A	1 min	4 / 4	
+Valid
+	
+Unreviewed
+	
+Re-sent
+
+	
+21 minutes ago
+Oct 28, 2026, 07:24 PM
+	
+E2E1026-05-1
+f1b25e4e
+	
+E2E 1026 Video study
+E2E 1026 Video protocol
+	E2E 1026 Clinic A	2 min	4 / 4	
+Valid
+	
+Unreviewed
+	
+Retakes
+
+	
+21 minutes ago
+Oct 28, 2026, 07:24 PM
+	
+E2E1026-04-1
+11e79754
+	
+E2E 1026 Speech study
+E2E 1026 Speech protocol
+	E2E 1026 Clinic A	2 min	6 / 6	
+Valid
+	
+Unreviewed
+	
+Retakes
+Edited timeline
+
+	
+21 minutes ago
+Oct 28, 2026, 07:24 PM
+	
+E2E1026-03-1
+6c08b80c
+	
+E2E 1026 Speech study
+E2E 1026 Speech protocol
+	E2E 1026 Clinic A	4 min	5 / 6
+1 skipped
+	
+Valid
+	
+Unreviewed
+	
+Skipped tasks
+Retakes
+Showing 1–6 of 6 recordings
+Rows
+10
+25
+50
+100
+‹
+1
+›

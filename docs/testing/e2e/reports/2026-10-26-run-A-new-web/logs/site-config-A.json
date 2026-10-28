@@ -1,0 +1,308 @@
+{
+ "schemaVersion": 1,
+ "configVersion": "2026-10-26.172417",
+ "siteName": "E2E 1026 Clinic A",
+ "defaultLanguage": "en",
+ "languages": [
+  "cs",
+  "en"
+ ],
+ "defaultMicName": "",
+ "enableEditor": false,
+ "indicatorType": "CIRCLE",
+ "useCalibration": true,
+ "protocols": [
+  {
+   "name": "E2E 1026 Speech protocol",
+   "version": 2,
+   "project": "E2E 1026 Speech study",
+   "descriptionKey": "p1_description",
+   "recordingsFileName": "${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+   "patientFields": [
+    {
+     "name": "patient_code",
+     "labelKey": "p1_f_patient_code_label",
+     "helpKey": "p1_f_patient_code_help",
+     "placeholder": "HC001",
+     "regex": "[A-Za-z0-9_-]+",
+     "required": true
+    },
+    {
+     "name": "visit_code",
+     "labelKey": "p1_f_visit_code_label",
+     "helpKey": "p1_f_visit_code_help",
+     "placeholder": "",
+     "regex": "V[0-9]{2}",
+     "required": true
+    },
+    {
+     "name": "year_of_birth_opt",
+     "labelKey": "p1_f_year_of_birth_opt_label",
+     "helpKey": "p1_f_year_of_birth_opt_help",
+     "placeholder": "",
+     "regex": "(19|20)[0-9]{2}",
+     "required": false
+    }
+   ],
+   "tasks": [
+    {
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "titleKey": "p1_t1_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 2,
+     "instructionKeys": [
+      "p1_t1_instr1",
+      "p1_t1_instr2"
+     ],
+     "length": 5,
+     "showIndicator": true,
+     "recordVideo": false,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/phonation_a.wav"
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "titleKey": "p1_t2_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p1_t2_instr1",
+      "p1_t2_instr2"
+     ],
+     "length": 5,
+     "showIndicator": true,
+     "recordVideo": false,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/syllableRepeating_pataka.wav"
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "READING",
+     "titleKey": "p1_t3_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p1_t3_instr1",
+      "p1_t3_instr2"
+     ],
+     "length": 150,
+     "showIndicator": false,
+     "recordVideo": false
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "titleKey": "p1_t4_title",
+     "canRepeat": true,
+     "canSkip": true,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p1_t4_instr1",
+      "p1_t4_instr2"
+     ],
+     "length": 20,
+     "showIndicator": false,
+     "recordVideo": false
+    },
+    {
+     "type": "QUESTIONNAIRE",
+     "titleKey": "p1_t5_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "questions": [
+      {
+       "questionType": "OPEN",
+       "questionKey": "p1_t5_q1",
+       "questionTextKey": "p1_t5_q1_text",
+       "questionRegex": ".+"
+      },
+      {
+       "questionType": "OPEN",
+       "questionKey": "p1_t5_q2",
+       "questionTextKey": "p1_t5_q2_text",
+       "questionRegex": ".*"
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p1_t5_q3",
+       "questionTextKey": "p1_t5_q3_text",
+       "questionOptions": [
+        "p1_t5_q3_o1",
+        "p1_t5_q3_o2"
+       ]
+      },
+      {
+       "questionType": "MULTIPLE_CHOICE",
+       "questionKey": "p1_t5_q4",
+       "questionTextKey": "p1_t5_q4_text",
+       "questionOptions": [
+        "p1_t5_q4_o1",
+        "p1_t5_q4_o2",
+        "p1_t5_q4_o3"
+       ]
+      }
+     ],
+     "length": 300
+    }
+   ]
+  },
+  {
+   "name": "E2E 1026 Video protocol",
+   "version": 1,
+   "project": "E2E 1026 Video study",
+   "descriptionKey": "p2_description",
+   "recordingsFileName": "${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+   "patientFields": [
+    {
+     "name": "patient_code",
+     "labelKey": "p2_f_patient_code_label",
+     "helpKey": "p2_f_patient_code_help",
+     "placeholder": "HC001",
+     "regex": "[A-Za-z0-9_-]+",
+     "required": true
+    }
+   ],
+   "tasks": [
+    {
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "titleKey": "p2_t1_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p2_t1_instr1",
+      "p2_t1_instr2"
+     ],
+     "length": 5,
+     "showIndicator": true,
+     "recordVideo": true,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/phonation_a.wav"
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "titleKey": "p2_t2_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 2,
+     "instructionKeys": [
+      "p2_t2_instr1",
+      "p2_t2_instr2"
+     ],
+     "length": 15,
+     "showIndicator": false,
+     "recordVideo": true
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "titleKey": "p2_t3_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p2_t3_instr1",
+      "p2_t3_instr2"
+     ],
+     "length": 5,
+     "showIndicator": true,
+     "recordVideo": false,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/syllableRepeating_pataka.wav"
+    }
+   ]
+  }
+ ],
+ "strings": {
+  "cs": {
+   "p1_t1_title": "Prodloužená fonace - /aaa/",
+   "p1_t1_instr1": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /aaa/. Měl/a byste vydržet alespoň 5 sekund.\nNyní Vám přehraji ukázku.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p1_t1_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než 5 sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</italic>",
+   "p1_t2_title": "PATAKA",
+   "p1_t2_instr1": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>\n\n<italic>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:</italic>\n\n<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p1_t2_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň 12 trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).</italic>",
+   "p1_t3_title": "Čtený text - Severní vítr a Slunce",
+   "p1_t3_instr1": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>\n\n<italic>Dejte účastníkovi TEXT KE ČTENÍ - Severní vítr a Slunce.\nÚčastníkovi nabídněte text s vhodnou velikostí písma.</italic>",
+   "p1_t3_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.</italic>",
+   "p1_t4_title": "Monolog - Volné vyprávění",
+   "p1_t4_instr1": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň 20 sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>\n\n<italic>Požadovaná délka nahrávaného monologu je alespoň 20 sekund.</italic>",
+   "p1_t4_instr2": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání a na konci úlohy tlačítko STOP pro ukončení nahrávání.\nČas monologu měřte. Pokud je monolog krátký nebo obsahově chudý, pokuste se rozvést téma doplňujícími otázkami nebo navrhněte téma nové. V nejhorších případech je možnost přejít k tzv. řízené diskuzi. V případě řízené diskuze se snažte pokládat otevřené otázky, vyžadující dlouhou odpověď. Čistý čas monologu, bez dlouhých pauz a otázek vyšetřujícího, by měl být minimálně 20 sekund.</italic>",
+   "p1_t5_title": "E2E 1026 dotazník",
+   "p1_t5_q1_text": "Jak se dnes cítíte",
+   "p1_t5_q2_text": "Další poznámka",
+   "p1_t5_q3_text": "Kouříte",
+   "p1_t5_q3_o1": "Ano",
+   "p1_t5_q3_o2": "Ne",
+   "p1_t5_q4_text": "Které příznaky se vás týkají",
+   "p1_t5_q4_o1": "Chrapot",
+   "p1_t5_q4_o2": "Kašel",
+   "p1_t5_q4_o3": "Žádné",
+   "p1_f_patient_code_label": "Kód účastníka",
+   "p1_f_patient_code_help": "Studijní kód účastníka, např. HC001.",
+   "p1_f_visit_code_label": "Visit code",
+   "p1_f_visit_code_help": "e.g. V01",
+   "p1_f_year_of_birth_opt_label": "Year of birth (optional)",
+   "p1_f_year_of_birth_opt_help": "four digits",
+   "p1_description": "Auto-created from AdminTaskEditor",
+   "p2_t1_title": "Prodloužená fonace - /aaa/",
+   "p2_t1_instr1": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /aaa/. Měl/a byste vydržet alespoň 5 sekund.\nNyní Vám přehraji ukázku.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p2_t1_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než 5 sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</italic>",
+   "p2_t2_title": "Monolog - Volné vyprávění",
+   "p2_t2_instr1": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň 15 sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>\n\n<italic>Požadovaná délka nahrávaného monologu je alespoň 15 sekund.</italic>",
+   "p2_t2_instr2": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání a na konci úlohy tlačítko STOP pro ukončení nahrávání.\nČas monologu měřte. Pokud je monolog krátký nebo obsahově chudý, pokuste se rozvést téma doplňujícími otázkami nebo navrhněte téma nové. V nejhorších případech je možnost přejít k tzv. řízené diskuzi. V případě řízené diskuze se snažte pokládat otevřené otázky, vyžadující dlouhou odpověď. Čistý čas monologu, bez dlouhých pauz a otázek vyšetřujícího, by měl být minimálně 15 sekund.</italic>",
+   "p2_t3_title": "PATAKA",
+   "p2_t3_instr1": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>\n\n<italic>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:</italic>\n\n<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p2_t3_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň 12 trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).</italic>",
+   "p2_f_patient_code_label": "Kód účastníka",
+   "p2_f_patient_code_help": "Studijní kód účastníka, např. HC001.",
+   "p2_description": "Auto-created from AdminTaskEditor"
+  },
+  "en": {
+   "p1_t1_title": "Prolonged phonation - /aaa/",
+   "p1_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should last at least 5 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p1_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 5 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+   "p1_t2_title": "PATAKA",
+   "p1_t2_instr1": "<bold>Please repeat the following syllables after me: /pa/-/ta/-/ka/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p1_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 12 triplets of /pa-ta-ka/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
+   "p1_t3_title": "Reading - The North Wind and the Sun",
+   "p1_t3_instr1": "<bold>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</bold>\n\n<italic>Give the participant the READING TEXT - The North Wind and the Sun.\nOffer the participant a text with a suitable font size.</italic>",
+   "p1_t3_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</italic>",
+   "p1_t4_title": "Monologue - Free narration",
+   "p1_t4_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least 20 seconds. The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work.</bold>\n\n<italic>The required length of the recorded monologue is at least 20 seconds.</italic>",
+   "p1_t4_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least 20 seconds.</italic>",
+   "p1_t5_title": "E2E 1026 dotazník",
+   "p1_t5_q1_text": "Jak se dnes cítíte",
+   "p1_t5_q2_text": "Další poznámka",
+   "p1_t5_q3_text": "Kouříte",
+   "p1_t5_q3_o1": "Ano",
+   "p1_t5_q3_o2": "Ne",
+   "p1_t5_q4_text": "Které příznaky se vás týkají",
+   "p1_t5_q4_o1": "Chrapot",
+   "p1_t5_q4_o2": "Kašel",
+   "p1_t5_q4_o3": "Žádné",
+   "p1_f_patient_code_label": "Participant code",
+   "p1_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+   "p1_f_visit_code_label": "Visit code",
+   "p1_f_visit_code_help": "e.g. V01",
+   "p1_f_year_of_birth_opt_label": "Year of birth (optional)",
+   "p1_f_year_of_birth_opt_help": "four digits",
+   "p1_description": "Auto-created from AdminTaskEditor",
+   "p2_t1_title": "Prolonged phonation - /aaa/",
+   "p2_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should last at least 5 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p2_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 5 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+   "p2_t2_title": "Monologue - Free narration",
+   "p2_t2_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least 15 seconds. The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work.</bold>\n\n<italic>The required length of the recorded monologue is at least 15 seconds.</italic>",
+   "p2_t2_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least 15 seconds.</italic>",
+   "p2_t3_title": "PATAKA",
+   "p2_t3_instr1": "<bold>Please repeat the following syllables after me: /pa/-/ta/-/ka/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p2_t3_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 12 triplets of /pa-ta-ka/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
+   "p2_f_patient_code_label": "Participant code",
+   "p2_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+   "p2_description": "Auto-created from AdminTaskEditor"
+  }
+ }
+}

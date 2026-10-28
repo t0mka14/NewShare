@@ -1,0 +1,83 @@
+{
+ "url": "#/clinics/4/computers",
+ "headings": [
+  "E2E 1026 Clinic A",
+  "Connect a computer",
+  "Computers"
+ ],
+ "buttons": [
+  "shell-logout|",
+  "|",
+  "|",
+  "clinic-token-toggle|Show",
+  "clinic-token-rotate|Replace token…",
+  "|"
+ ],
+ "testids": [
+  "app-shell",
+  "app-sidebar",
+  "nav-recordings",
+  "nav-studies",
+  "nav-clinics",
+  "nav-library",
+  "nav-users",
+  "user-menu",
+  "user-name",
+  "user-role",
+  "shell-language",
+  "shell-logout",
+  "clinic-page",
+  "clinic-tab-studies",
+  "clinic-tab-computers",
+  "clinic-tab-recordings",
+  "clinic-tab-settings",
+  "clinic-connection",
+  "clinic-token",
+  "clinic-token-toggle",
+  "clinic-token-rotate",
+  "clinic-computers-table",
+  "computer-status-1"
+ ]
+}
+Task Protocoller
+Recordings
+6
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Clinics
+E2E 1026 Clinic A
+E2E 1026 Clinic A
+Active
+Czechia
+Studies
+2
+Computers
+1
+Recordings
+5
+Settings
+Connect a computer
+Enter these in the desktop app under Settings.
+Server address
+./api
+Access token
+••••••••••••••••••••••••
+Show
+Replace token…
+Computers
+Installations of the desktop app that use this clinic's token.
+Computers
+Computer	Status	App version	Last seen	Waiting to upload	
+
+<installationId>
+	
+Healthy	1.0.0	21 minutes ago	0	

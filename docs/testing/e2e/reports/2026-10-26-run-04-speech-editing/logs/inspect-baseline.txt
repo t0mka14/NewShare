@@ -1,0 +1,149 @@
+ENTRIES (order):
+  master/session_master.wav  10499444 bytes
+  clips/E2E1026-04-1_E2E1026ClinicA_0_PHONATION_Rep1.wav  955244 bytes
+  clips/E2E1026-04-1_E2E1026ClinicA_1_PHONATION_Rep2.wav  844844 bytes
+  clips/E2E1026-04-1_E2E1026ClinicA_2_PATAKA_Rep1.wav  998444 bytes
+  clips/E2E1026-04-1_E2E1026ClinicA_3_READING_Rep1.wav  859244 bytes
+  clips/E2E1026-04-1_E2E1026ClinicA_4_MONOLOGUE_Rep1.wav  2342444 bytes
+  examination.json  1805 bytes
+  participant.json  130 bytes
+  task_configuration_snapshot.json  16969 bytes
+  timeline_original.json  4230 bytes
+  manifest.json  1397 bytes
+manifest keys: {'sessionId': '11e79754eb664c368bd7bc52412477db', 'configVersion': '2026-10-26.172809', 'generatedAt': '2026-10-26T17:58:41.217411400Z', 'files': 10}
+hash mismatches: [] | entries not in manifest: [] | manifest last: True
+WAV master/session_master.wav: 48000 Hz, 16 bit, 1 ch, 109.37 s
+WAV clips/E2E1026-04-1_E2E1026ClinicA_0_PHONATION_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 9.95 s
+WAV clips/E2E1026-04-1_E2E1026ClinicA_1_PHONATION_Rep2.wav: 48000 Hz, 16 bit, 1 ch, 8.80 s
+WAV clips/E2E1026-04-1_E2E1026ClinicA_2_PATAKA_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 10.40 s
+WAV clips/E2E1026-04-1_E2E1026ClinicA_3_READING_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 8.95 s
+WAV clips/E2E1026-04-1_E2E1026ClinicA_4_MONOLOGUE_Rep1.wav: 48000 Hz, 16 bit, 1 ch, 24.40 s
+examination.json:
+{
+ "sessionId": "11e79754eb664c368bd7bc52412477db",
+ "installationId": "<installationId>",
+ "protocolName": "E2E 1026 Speech protocol",
+ "protocolProject": "E2E 1026 Speech study",
+ "configVersion": "2026-10-26.172809",
+ "startedAt": "2026-10-26T17:56:48.218617Z",
+ "endedAt": "2026-10-26T17:58:40.616704800Z",
+ "captureFormat": {
+  "sampleRate": 48000,
+  "bits": 16,
+  "channels": 1
+ },
+ "tasks": [
+  {
+   "taskIndex": 0,
+   "type": "VOCAL",
+   "subtype": "PHONATION",
+   "repetition": 1,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_0_PHONATION_Rep1.wav"
+  },
+  {
+   "taskIndex": 1,
+   "type": "VOCAL",
+   "subtype": "PHONATION",
+   "repetition": 2,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_1_PHONATION_Rep2.wav"
+  },
+  {
+   "taskIndex": 2,
+   "type": "VOCAL",
+   "subtype": "PATAKA",
+   "repetition": 1,
+   "takes": 3,
+   "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_2_PATAKA_Rep1.wav"
+  },
+  {
+   "taskIndex": 3,
+   "type": "VOCAL",
+   "subtype": "READING",
+   "repetition": 1,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_3_READING_Rep1.wav"
+  },
+  {
+   "taskIndex": 4,
+   "type": "VOCAL",
+   "subtype": "MONOLOGUE",
+   "repetition": 1,
+   "takes": 1,
+   "clipFile": "clips/E2E1026-04-1_E2E1026ClinicA_4_MONOLOGUE_Rep1.wav"
+  },
+  {
+   "taskIndex": 5,
+   "type": "QUESTIONNAIRE",
+   "repetition": 1,
+   "questionnaireAnswers": {
+    "p1_t5_q1": [
+     "Unavena"
+    ],
+    "p1_t5_q2": [
+     "Bez poznamky 04"
+    ],
+    "p1_t5_q3": [
+     "p1_t5_q3_o1"
+    ],
+    "p1_t5_q4": [
+     "p1_t5_q4_o2"
+    ]
+   }
+  }
+ ],
+ "hardware": {
+  "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+  "micUses": [
+   {
+    "openedAt": "2026-10-26T17:56:48.203455400Z",
+    "deviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version",
+    "deviceName": "CABLE Output (VB-Audio Virtual Cable)",
+    "description": "Direct Audio Device: DirectSound Capture",
+    "captureFormat": {
+     "sampleRate": 48000,
+     "bits": 16,
+     "channels": 1
+    }
+   }
+  ]
+ },
+ "processing": {
+  "status": "Done",
+  "processedAt": "2026-10-26T17:58:41.114445Z",
+  "timelineUsed": "original"
+ }
+}
+participant.json: {"fields":{"patient_code":"E2E1026-04-1","visit_code":"V01","year_of_birth_opt":"1980"},"createdAt":"2026-10-26T17:56:48.218617Z"}
+   SESSION_RECORDING_STARTED 0 None None None 
+   TASK_SCREEN_ENTERED 0 0 1 None 
+   START_BUTTON_PRESSED 148800 0 1 1 
+   STOP_BUTTON_PRESSED 626400 0 1 1 
+   TASK_COMPLETED 792000 0 1 1 
+   TASK_SCREEN_ENTERED 792000 1 2 None 
+   START_BUTTON_PRESSED 1008000 1 2 1 
+   STOP_BUTTON_PRESSED 1430400 1 2 1 
+   TASK_COMPLETED 1435200 1 2 1 
+   TASK_SCREEN_ENTERED 1435200 2 1 None 
+   START_BUTTON_PRESSED 1617600 2 1 1 
+   STOP_BUTTON_PRESSED 2037600 2 1 1 
+   TAKE_REJECTED 2150400 2 1 1 EXAMINER_REPEAT
+   START_BUTTON_PRESSED 2152800 2 1 2 
+   STOP_BUTTON_PRESSED 2584800 2 1 2 
+   TAKE_REJECTED 2587200 2 1 2 EXAMINER_REPEAT
+   START_BUTTON_PRESSED 2587200 2 1 3 
+   STOP_BUTTON_PRESSED 3086400 2 1 3 
+   TASK_COMPLETED 3177600 2 1 3 
+   TASK_SCREEN_ENTERED 3177600 3 1 None 
+   START_BUTTON_PRESSED 3261600 3 1 1 
+   STOP_BUTTON_PRESSED 3691200 3 1 1 
+   TASK_COMPLETED 3696000 3 1 1 
+   TASK_SCREEN_ENTERED 3696000 4 1 None 
+   START_BUTTON_PRESSED 3794400 4 1 1 
+   STOP_BUTTON_PRESSED 4965600 4 1 1 
+   TASK_COMPLETED 4972800 4 1 1 
+   TASK_SCREEN_ENTERED 4972800 5 1 None 
+   TASK_COMPLETED 5244000 5 1 None 
+   SESSION_RECORDING_STOPPED 5246400 None None None 
+sessionId consistent: True

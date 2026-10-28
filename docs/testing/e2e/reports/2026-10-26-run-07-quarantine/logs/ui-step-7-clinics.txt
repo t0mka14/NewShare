@@ -1,0 +1,28 @@
+Task Protocoller
+Recordings
+6
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Clinics
+Where your studies run. All computers at a clinic share one access token and receive the same protocols.
+New clinic
+Clinics
+Clinic
+▲
+	Country
+	Studies running	Computers	Last upload	Unreviewed
+E2E 1026 Clinic A	Czechia	2	
+2	8 minutes ago	6
+E2E 1026 Clinic B	Czechia	1	None yet	—	0
+London	United Kingdom	1	None yet	—	0
+Paris	France	2	None yet	—	0
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	—	None yet	None yet	—	0

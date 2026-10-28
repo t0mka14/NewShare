@@ -1,0 +1,4 @@
+{"type":"SESSION_RECORDING_STARTED","sampleOffset":0,"wallClock":"2026-10-28T19:00:51.215391100Z","taskIndex":null,"repetition":null,"take":null}
+{"type":"TASK_SCREEN_ENTERED","sampleOffset":2400,"wallClock":"2026-10-28T19:00:51.243608900Z","taskIndex":0,"repetition":1,"take":null}
+{"type":"START_BUTTON_PRESSED","sampleOffset":230400,"wallClock":"2026-10-28T19:00:56.000188300Z","taskIndex":0,"repetition":1,"take":1}
+{"type":"STOP_BUTTON_PRESSED","sampleOffset":1017600,"wallClock":"2026-10-28T19:01:12.439341900Z","taskIndex":0,"repetition":1,"take":1}

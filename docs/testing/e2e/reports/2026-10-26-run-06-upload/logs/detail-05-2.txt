@@ -1,0 +1,115 @@
+Task Protocoller
+Recordings
+5
+Studies
+Clinics
+Library
+Administration
+Users
+SM
+System Master
+Master
+English
+Čeština
+Deutsch
+Recordings
+E2E1026-05-2
+E2E1026-05-2
+Valid
+Unreviewed
+E2E 1026 Video protocol · E2E 1026 Video study · E2E 1026 Clinic A · recorded on Oct 26, 2026
+Download ZIP
+Tasks
+Clips play from the server copy
+#	Task	Takes	Result	Clip
+0	
+Phonation
+	1	
+Done	
+
+1	
+Monologue
+	1	
+Done	
+
+2	
+Monologue
+Repetition 2
+	1	
+Done	
+
+3	
+Pataka
+	1	
+Done	
+Session
+Computer
+<installationId>
+App version
+1.0.0
+Recorded
+Oct 26, 2026, 07:34 PM
+Length
+1 min 06 s
+Received
+Oct 28, 2026, 07:24 PM
+48 h after the session ended
+Tasks
+4 of 4 recorded
+Timeline used
+Original
+Microphone
+CABLE Output (VB-Audio Virtual Cable)
+Audio
+48 kHz · 16-bit · mono
+Camera
+Session ID
+7f82ec98b70a45408dc0697920b3d8ea
+Config version
+2026-10-26.172809
+ZIP SHA-256
+e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde
+Recording timeline
+Master recording, 1 min 06 s · segments from timeline_original.json
+Phonation
+Monologue
+Monologue
+Pataka
+0:00
+0:17
+0:33
+0:50
+1:06
+Audio task
+Filmed
+Questionnaire / info
+Activity
+· 1 event
+Upload history
+Every request the server received for this session ID
+Review
+Unreviewed
+OK
+Needs review
+Excluded
+
+No comments yet.
+
+Add a comment for the clinic team
+Post comment
+Participant
+Show values
+Edit
+Patient code
+E2E1026-05-2
+
+As typed at the clinic. Fields other than the patient code and visit stay hidden until you choose to show them. Each reveal is recorded in the audit log. Editing corrects typos: new values replace the old ones on every page and in later downloads, and every change is written to the audit log.
+
+Server checks
+ZIP checksum
+Archive structure
+Manifest file hashes
+IDs consistent
+Computer registered
+Config version
+Session complete

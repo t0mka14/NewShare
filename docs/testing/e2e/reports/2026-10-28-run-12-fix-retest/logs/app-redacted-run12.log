@@ -1,0 +1,28 @@
+2026-10-28 22:47:01.813 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 22:47:01.997 [DefaultDispatcher-worker-1] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 22:47:02.023 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 22:47:02.061 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 22:48:03.882 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take02.mjpeg: 1146 frames at 30 fps
+2026-10-28 22:48:03.884 [DefaultDispatcher-worker-8] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-28 22:48:04.162 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take01.mjpeg: 261 frames at 30 fps
+2026-10-28 22:48:04.162 [DefaultDispatcher-worker-8] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 1 rep 1 converted
+2026-10-28 22:48:04.428 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep02_take01.mjpeg: 268 frames at 30 fps
+2026-10-28 22:48:04.429 [DefaultDispatcher-worker-8] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 2 rep 2 converted
+2026-10-28 22:50:03.488 [DefaultDispatcher-worker-2] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 22:50:03.504 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 22:50:09.557 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-28 22:50:09.737 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-28 22:50:16.415 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-28 23:08:16.686 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 32408 frames
+2026-10-28 23:08:30.071 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+2026-10-28 23:08:47.383 [DefaultDispatcher-worker-3] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 519 frames
+2026-10-28 23:08:53.522 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep02_take01.mjpeg
+2026-10-28 23:09:09.975 [DefaultDispatcher-worker-3] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep02_take01.mjpeg after 494 frames
+2026-10-28 23:09:45.114 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 32408 frames at 30 fps
+2026-10-28 23:09:45.114 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-28 23:09:45.517 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take01.mjpeg: 519 frames at 30 fps
+2026-10-28 23:09:45.517 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 1 rep 1 converted
+2026-10-28 23:09:45.892 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep02_take01.mjpeg: 494 frames at 30 fps
+2026-10-28 23:09:45.893 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 2 rep 2 converted
+2026-10-28 23:12:29.455 [DefaultDispatcher-worker-7] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 23:12:29.460 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)

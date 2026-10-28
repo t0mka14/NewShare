@@ -1,0 +1,48 @@
+main W1 client=624x441 dumps=2 controls=7: pass
+main W2 client=784x561 dumps=1 controls=9: pass
+picker W4 client=1264x761 dumps=1 controls=7: pass
+calib W1 client=624x441 dumps=1 controls=5: FAIL
+    C2 narrow 'calibration.confirmButton' w=52 vs W4 w=176
+    C2 narrow 'calibration.levelIndicator' w=141 vs W4 w=285
+    C2 squashed 'Microphone position' h=77 vs W4 h=257
+    C2 squashed 'calibration.levelIndicator' h=77 vs W4 h=257
+calib W4 client=1264x761 dumps=1 controls=7: pass
+phon W1 client=624x441 dumps=1 controls=4: FAIL
+    C1 UNREACHABLE/clipped 'task.exampleAudioButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C2 narrow 'task.exampleAudioButton' w=0 vs W4 w=192
+    C2 narrow 'task.nextButton' w=167 vs W4 w=350
+    C2 squashed 'task.exampleAudioButton' h=0 vs W4 h=51
+    C2 tiny 'task.exampleAudioButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+phon W2 client=784x561 dumps=1 controls=4: FAIL
+    C1 UNREACHABLE/clipped 'task.exampleAudioButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C2 narrow 'task.exampleAudioButton' w=0 vs W4 w=192
+    C2 squashed 'task.exampleAudioButton' h=0 vs W4 h=51
+    C2 tiny 'task.exampleAudioButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+phon W4 client=1264x761 dumps=1 controls=7: pass
+sessions W2 client=784x561 dumps=1 controls=3: FAIL
+    C1 UNREACHABLE/clipped 'sessionBrowser.backButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C1 UNREACHABLE/clipped 'sessionBrowser.goToUploadButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C2 narrow 'sessionBrowser.backButton' w=0 vs W4 w=89
+    C2 narrow 'sessionBrowser.goToUploadButton' w=0 vs W4 w=151
+    C2 squashed 'sessionBrowser.backButton' h=0 vs W4 h=40
+    C2 squashed 'sessionBrowser.goToUploadButton' h=0 vs W4 h=40
+    C2 tiny 'sessionBrowser.backButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C2 tiny 'sessionBrowser.goToUploadButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+sessions W3 client=1008x729 dumps=1 controls=3: FAIL
+    C2 squashed 'sessionBrowser.backButton' h=17 vs W4 h=40
+sessions W4 client=1264x761 dumps=1 controls=3: pass
+upload W2 client=784x561 dumps=1 controls=2: FAIL
+    C1 UNREACHABLE/clipped 'upload.backButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C2 narrow 'upload.backButton' w=0 vs W4 w=89
+    C2 squashed 'upload.backButton' h=0 vs W4 h=40
+    C2 tiny 'upload.backButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+upload W4 client=1264x761 dumps=1 controls=2: pass
+editor W2 client=784x561 dumps=1 controls=8: FAIL
+    C1 UNREACHABLE/clipped 'editor.acceptButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+    C2 narrow 'editor.acceptButton' w=0 vs W4 w=131
+    C2 squashed 'editor.acceptButton' h=0 vs W4 h=40
+    C2 squashed 'editor.startBoundaryHandle' h=145 vs W4 h=445
+    C2 squashed 'editor.stopBoundaryHandle' h=145 vs W4 h=445
+    C2 tiny 'editor.acceptButton' {'x': 0, 'y': 0, 'width': 0, 'height': 0}
+editor W4 client=1264x761 dumps=1 controls=13: pass
+settings W2 client=784x561 dumps=2 controls=13: pass

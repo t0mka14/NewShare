@@ -1,0 +1,11 @@
+attempts before: 1
+== 1) re-send E2E1026-05-2 7f82ec98b70a45408dc0697920b3d8ea
+{"status":"ok","sessionId":"7f82ec98b70a45408dc0697920b3d8ea","bytes":7267489,"sha256":"e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde","receivedAt":"2026-10-28T18:24:33.904Z"}
+HTTP 200
+ 
+== 2) conflict: ZIP of E2E1026-03-1 under session id of E2E1026-05-2 with the correct hash of that ZIP
+{"error":"session_exists"}
+HTTP 409
+ 
+attempts after: [[409, "conflict", 13712393], [200, "resent", 7267489], [200, "accepted", 7267489]]
+record after: status valid bytes 7267489 sha e3767edb2b5171af1d959022852a65e7503a55b4cccdc98619d2901651197fde issues ['duplicate']

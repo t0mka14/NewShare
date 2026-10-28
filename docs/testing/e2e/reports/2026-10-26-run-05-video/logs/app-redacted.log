@@ -1,0 +1,33 @@
+2026-10-26 19:05:48.282 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-26 19:05:48.415 [DefaultDispatcher-worker-12] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-26 19:05:48.448 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-26 19:05:48.518 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-26 19:07:07.971 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-26 19:07:07.982 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-26 19:07:11.848 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-26 19:07:12.110 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-26 19:07:20.677 [DefaultDispatcher-worker-1] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-26 19:07:34.332 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 409 frames
+2026-10-26 19:07:42.677 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+2026-10-26 19:07:54.574 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 356 frames
+2026-10-26 19:07:58.504 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take02.mjpeg
+2026-10-26 19:08:18.058 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take02.mjpeg after 586 frames
+2026-10-26 19:08:23.867 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep02_take01.mjpeg
+2026-10-26 19:08:41.792 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep02_take01.mjpeg after 537 frames
+2026-10-26 19:09:08.558 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 409 frames at 30 fps
+2026-10-26 19:09:08.560 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-26 19:09:09.023 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take02.mjpeg: 586 frames at 30 fps
+2026-10-26 19:09:09.024 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 1 rep 1 converted
+2026-10-26 19:09:09.449 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep02_take01.mjpeg: 537 frames at 30 fps
+2026-10-26 19:09:09.450 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 2 rep 2 converted
+2026-10-26 19:09:58.384 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-26 19:09:58.386 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-26 19:10:02.871 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-26 19:10:03.075 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-26 19:10:08.242 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-26 19:10:19.164 [video-capture-reader] ERROR o.e.a.i.v.FfmpegSessionVideoRecorder - capture ended while Recording: the capture process ended
+2026-10-26 19:10:19.171 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - camera failed: capture interrupted: the capture process ended
+2026-10-26 19:10:38.938 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+2026-10-26 19:10:49.085 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+2026-10-26 19:11:10.351 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 327 frames at 30 fps
+2026-10-26 19:11:10.351 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted

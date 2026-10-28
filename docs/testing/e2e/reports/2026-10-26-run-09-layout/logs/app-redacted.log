@@ -1,0 +1,61 @@
+2026-10-28 20:20:58.791 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:20:58.980 [DefaultDispatcher-worker-3] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:20:58.986 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:20:59.038 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:21:24.690 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=b2182fdad9e944c682aa019f18ea42fe: HTTP 200
+2026-10-28 20:21:24.759 [DefaultDispatcher-worker-10] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=b2182fdad9e944c682aa019f18ea42fe attempt=2 outcome=Success
+2026-10-28 20:21:24.843 [DefaultDispatcher-worker-6] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=6182cc79e2cf464a94b8cfd96d53b304: HTTP 200
+2026-10-28 20:21:24.865 [DefaultDispatcher-worker-6] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=6182cc79e2cf464a94b8cfd96d53b304 attempt=2 outcome=Success
+2026-10-28 20:21:24.886 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 2 session(s), 2 ok, 0 failed
+2026-10-28 20:21:24.908 [DefaultDispatcher-worker-6] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:21:24.911 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:25:06.184 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:25:06.341 [DefaultDispatcher-worker-1] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:25:09.068 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:25:09.145 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:27:29.829 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:27:29.863 [DefaultDispatcher-worker-3] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:27:29.864 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:27:29.925 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:29:26.239 [DefaultDispatcher-worker-5] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:29:26.248 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:32:46.479 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:32:46.486 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:32:55.265 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-28 20:32:55.487 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-28 20:33:27.400 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-28 20:33:47.127 [DefaultDispatcher-worker-10] WARN  o.e.a.i.a.JvmContinuousSessionRecorder - recorder interrupted at sample=2424000 reason=READ_STARVATION
+2026-10-28 20:33:47.283 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 597 frames
+2026-10-28 20:34:02.906 [DefaultDispatcher-worker-4] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:34:02.922 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:34:09.649 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take02.mjpeg
+2026-10-28 20:34:47.861 [DefaultDispatcher-worker-4] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take02.mjpeg after 1146 frames
+2026-10-28 20:35:00.671 [DefaultDispatcher-worker-4] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+2026-10-28 20:35:09.384 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 261 frames
+2026-10-28 20:35:12.367 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep02_take01.mjpeg
+2026-10-28 20:35:21.297 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep02_take01.mjpeg after 268 frames
+2026-10-28 20:35:34.713 [DefaultDispatcher-worker-6] WARN  o.e.a.d.s.ProcessSessionUseCase - processing failed: IoFailure (session 579b05d44748443e802a4ae2c701b019)
+2026-10-28 20:35:52.418 [DefaultDispatcher-worker-6] WARN  o.e.a.d.s.ProcessSessionUseCase - processing failed: IoFailure (session 579b05d44748443e802a4ae2c701b019)
+2026-10-28 20:40:07.962 [DefaultDispatcher-worker-3] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:40:07.964 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:41:27.312 [main] INFO  o.e.a.d.session.EmptySessionCleanup - removed empty session: sessionId=eafcf68c1c1949efa799396717d796c4
+2026-10-28 20:41:27.734 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-28 20:41:27.881 [DefaultDispatcher-worker-8] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-28 20:41:30.488 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-28 20:41:30.555 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-28 20:42:04.600 [DefaultDispatcher-worker-8] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:42:04.617 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-28 20:42:08.910 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-28 20:42:09.105 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-28 20:42:16.858 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-28 20:42:34.557 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 531 frames
+2026-10-28 20:42:45.752 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+2026-10-28 20:42:54.978 [DefaultDispatcher-worker-1] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 277 frames
+2026-10-28 20:42:56.884 [DefaultDispatcher-worker-1] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep02_take01.mjpeg
+2026-10-28 20:43:10.168 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep02_take01.mjpeg after 399 frames
+2026-10-28 20:43:24.610 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 531 frames at 30 fps
+2026-10-28 20:43:24.613 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-28 20:43:24.929 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take01.mjpeg: 277 frames at 30 fps
+2026-10-28 20:43:24.931 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 1 rep 1 converted
+2026-10-28 20:43:25.267 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep02_take01.mjpeg: 399 frames at 30 fps
+2026-10-28 20:43:25.268 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 2 rep 2 converted
