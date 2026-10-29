@@ -111,7 +111,7 @@ Index ID: **F-122**
 - **Repro:** video protocol, START, resize 800x600, wait, resize 1280x800 (intermittent).
 - **Evidence:** `screenshots/resize-2-filmed-take-back-W4.png`; `logs/app-redacted.log` (20:33:47); `logs/09-2-examination.json`.
 - **Notes:** see F-123 for what the interruption did to the session.
-- **Status:** open
+- **Status:** fixed (2026-10-29), confirmed in run 13 (2026-10-29). Cause: the capture thread ran `channel.force(true)` with every 5-s header patch, and the watchdog declared a device loss after any 1-s read gap, without checking the device or its own late wake-up; a 150 ms line buffer dropped audio during any stall. Fix: no fsync in the periodic patch (only when a part is finished); a gap counts as device loss only if the device is gone or the line closed (> 1 s) or after 3 s with the device present; a late watchdog tick resets the baseline; line buffer 500 ms (spec §5.3.1, §8.5 updated). Tests: `JvmContinuousSessionRecorderInterruptionTest` (stall below the limit, 400 ms stall loses no frames, device gone, stall beyond the limit, late tick, wedged capture thread, header patch without force).
 
 ### F-09-6: A session with a microphone interruption plus Resume cannot be processed ("Processing failed", IoFailure); Retry and Reprocess fail again
 Index ID: **F-123**
@@ -214,4 +214,4 @@ Index ID: **F-129**
 - **Severity:** minor  **Area:** desktop-app  **Run / step:** fix round for F-123, analysis of session 09-2
 - **Actual:** `examination.json` `interruptions[0].sampleOffset` is 2424000 (the recorder's value), while the `RECORDING_INTERRUPTED` / `RESUMED` timeline events say 2425500, and part 1 holds 2425500 frames. The part map therefore cuts the last 1500 frames (about 31 ms) of part 1, and the two records disagree. Nothing fails.
 - **Evidence:** `logs/09-2-examination.json`, `logs/09-2-timeline.events.jsonl`, part 1 WAV header (4851000 data bytes = 2425500 frames).
-- **Status:** open
+- **Status:** fixed (2026-10-29), confirmed in run 13 (2026-10-29). Cause: in `JvmContinuousSessionRecorder`, the watchdog read the cut sample, then closed the line, and the capture thread (still owning a live writer) wrote the partial chunk that `close()` released; the watchdog also finalized the writer from its own thread. Fix: the watchdog only claims the failure and closes the line; the capture thread drops that chunk, finalizes the part and publishes `Interrupted` with the global sample count, so `sampleOffset`, the events and part 1's frame count agree. Test: `JvmContinuousSessionRecorderInterruptionTest` F-129 case (red on the old recorder: part held 8700 frames, cut recorded at 7200).

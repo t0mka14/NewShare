@@ -1,0 +1,6 @@
+interruptions: [{'sampleOffset': 2791200, 'start': '2026-10-29T00:34:44.649196800Z', 'end': '2026-10-29T00:36:17.038157700Z', 'oldDevice': 'CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version', 'newDevice': 'CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version', 'partFile': 'session_master.part2.wav', 'captureFormat': {'sampleRate': 48000, 'bits': 16, 'channels': 1}}]
+events:
+  {"type":"RECORDING_INTERRUPTED","sampleOffset":2791200,"wallClock":"2026-10-29T00:34:44.649196800Z","taskIndex":null,"repetition":null,"take":null}
+  {"type":"RECORDING_RESUMED","sampleOffset":2793600,"wallClock":"2026-10-29T00:36:17.030998100Z","taskIndex":null,"repetition":null,"take":null}
+session_master.part2.wav data bytes 6771000 blockAlign 2 frames 3385500 filesize 6771044
+session_master.wav data bytes 5582400 blockAlign 2 frames 2791200 filesize 5582444

@@ -1,0 +1,10 @@
+2026-10-29 01:21:49.892 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-29 01:21:50.029 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-29 01:21:50.034 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-29 01:21:50.080 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-29 01:22:12.334 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session dc852eb6feb24e6882140724409dd5d4)
+2026-10-29 01:22:12.389 [DefaultDispatcher-worker-10] WARN  o.e.a.d.s.ProcessSessionUseCase - processing failed: NothingToProcess (session dc852eb6feb24e6882140724409dd5d4)
+2026-10-29 01:22:22.054 [DefaultDispatcher-worker-4] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session 2d4cdf59765245fdb0ddb4b491d74458)
+2026-10-29 01:22:22.086 [DefaultDispatcher-worker-4] WARN  o.e.a.d.s.ProcessSessionUseCase - processing failed: NothingToProcess (session 2d4cdf59765245fdb0ddb4b491d74458)
+2026-10-29 01:23:06.950 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session e4b33758155e4839b39bf35789c1e18e)
+2026-10-29 01:23:08.580 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 5 clips (session e4b33758155e4839b39bf35789c1e18e)

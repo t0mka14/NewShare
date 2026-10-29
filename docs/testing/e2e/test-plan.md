@@ -816,7 +816,7 @@ Report: a table of the criteria with `pass`, `not covered` (with the reason) or 
 | Editor, processing, reprocessing | 03, 04 | — |
 | Upload statuses, batch, quarantine, conflict | 06, 07, 08 | Long upload unless asked (08.6) |
 | Server record: list, detail, downloads, devices | 06, 07 | QC review, comments, CSV export (web features, not part of this process) |
-| Errors: mic denied, camera loss, network, crash recovery | 05, 08 | Microphone unplugged mid-take (a virtual cable can't be unplugged without admin rights). No camera at start, unless the user approves unregistering the OBS virtual camera (05.7, F-030). A completely silent microphone is not detected (F-117). |
+| Errors: mic denied, camera loss, network, crash recovery, device loss | 05, 08, 13 | A real microphone unplug. On the VM, disabling the `CABLE Output` endpoint does not reach an open line (F-131) and the VB-Audio driver can't be disabled while in use; stopping the Windows Audio service for 15 s (`Stop-Service Audiosrv -Force; Start-Sleep 15; Start-Service Audiosrv`, elevated) does cause an interruption (run 13). No camera at start, unless the user approves unregistering the OBS virtual camera (05.7, F-030). A completely silent microphone is not detected (F-117). |
 | Window sizes, layout, live resize | 09 | Display scaling unless the user sets it up; macOS |
 | Audit log (reveals, edits, downloads) | — | No API or UI shows it (F-044); needs database access |
 | Auto-updater | — | Out of scope for this plan |

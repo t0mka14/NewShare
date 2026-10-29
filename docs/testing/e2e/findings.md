@@ -97,23 +97,23 @@ scope passed on the rerun in run 06.
 
 | Open by area | blocker | major | minor | cosmetic | question | Total |
 |---|---|---|---|---|---|---|
-| desktop-app | 0 | 0 | 4 | 13 | 7 | 24 |
+| desktop-app | 0 | 0 | 0 | 14 | 7 | 21 |
 | web-ui | 0 | 0 | 13 | 17 | 7 | 37 |
 | integration | 0 | 0 | 3 | 0 | 4 | 7 |
 | server-api | 0 | 0 | 1 | 0 | 3 | 4 |
 | environment | 0 | 1 | 1 | 0 | 3 | 5 |
 | docs | 0 | 0 | 0 | 1 | 1 | 2 |
-| **Total** | 0 | 1 | 22 | 31 | 25 | **79** |
+| **Total** | 0 | 1 | 18 | 32 | 25 | **76** |
 
-Counts are open findings across both E2E runs after fix round 1 (2026-10-28), including F-036,
-whose web tile is still open. They include F-129–F-131, which were found during the fix round.
+Counts are open findings across both E2E runs after fix round 2 (2026-10-29), including F-036
+(web tile still open) and F-131. No desktop-app minor is open.
 Fixed but not re-run yet: F-034, F-055, F-062, F-066.
 
 ### E2E run of 2026-10-23/24 (app commit `59bb063`)
 
 ## Progress of the 2026-10-26 run (new web build on the container, app commit `7cd7e47`)
 
-Completed 2026-10-28. Reports are in `reports/2026-10-26-run-*`, scripts in `scripts/`, findings F-067 to F-131 below.
+Completed 2026-10-28. Reports are in `reports/2026-10-26-run-*`, scripts in `scripts/`, findings F-067 to F-136 below.
 
 | Run | State |
 |---|---|
@@ -127,6 +127,7 @@ Completed 2026-10-28. Reports are in `reports/2026-10-26-run-*`, scripts in `scr
 | 08 errors | done 2026-10-28, passed (F-117; F-046 seen again): mic denied message, offline start with cached config and notice, network failure retryable, retry uploads with one server attempt and equal SHA-256, crash recovery with intact master, zero-clip session not uploadable. Part 6 not covered (user decision) |
 | 09 layout | done 2026-10-28, passed with findings (F-118..F-128: 4 major, 4 minor, 2 cosmetic, 1 question). Below the 1000x820 default, Sessions, Editor and Upload lose their Back/Accept buttons; a mic interruption + Resume makes a video session unprocessable (F-123). Work area 1512x876 |
 | 12 fix re-test | done 2026-10-28, passed with findings (F-130, F-131): F-123, F-124, F-125, F-126, F-093, F-091, F-118 confirmed fixed; new interruption session not covered (could not trigger a device loss) |
+| 13 fix re-test | done 2026-10-29, passed (F-133 cosmetic): F-104, F-106, F-122, F-129, F-132 confirmed; real interruption via Audiosrv stop: sampleOffset = event = part-1 frames |
 | 10 summary and restore | done 2026-10-28 by the orchestrator: summary above, evidence and links checked, server records listed, test plan 1.2 |
 
 
@@ -342,9 +343,9 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-101](reports/2026-10-26-run-A2-personas/report.md#f-a2-7) | cosmetic | web-ui | Hidden study says "Study not found", hidden clinic says "Page not found" | run A2 (F-A2-7) | open |
 | [F-102](reports/2026-10-26-run-A2-personas/report.md#f-a2-8) | question | server-api | Non-master users see full installation IDs in the UI and GET /devices | run A2 (F-A2-8), run 06 (2026-10-28) | open |
 | [F-103](reports/2026-10-26-run-04-speech-editing/report.md#f-04-1) | question | desktop-app | Accept on one editor segment finishes the editor and reprocesses at once | run 04 (F-04-1) | open |
-| [F-104](reports/2026-10-26-run-04-speech-editing/report.md#f-04-2) | minor | desktop-app | No feedback while or after Accept / Reprocess from Sessions | run 04 (F-04-2) | open |
+| [F-104](reports/2026-10-26-run-04-speech-editing/report.md#f-04-2) | minor | desktop-app | No feedback while or after Accept / Reprocess from Sessions | run 04 (F-04-2), run 13 (2026-10-29) | fixed (2026-10-29), confirmed in run 13 |
 | [F-105](reports/2026-10-26-run-04-speech-editing/report.md#f-04-3) | cosmetic | desktop-app | Editor shows end time and length truncated, not rounded | run 04 (F-04-3) | open |
-| [F-106](reports/2026-10-26-run-05-video/report.md#f-05-2) | minor | desktop-app | Camera failure messages overlap each other and the frozen frame in the preview box | run 05 (F-05-2) | open |
+| [F-106](reports/2026-10-26-run-05-video/report.md#f-05-2) | minor | desktop-app | Camera failure messages overlap each other and the frozen frame in the preview box | run 05 (F-05-2), run 13 (2026-10-29) | fixed (2026-10-29), confirmed in run 13 |
 | [F-107](reports/2026-10-26-run-05-video/report.md#f-05-3) | question | desktop-app | After a camera failure later tasks stay audio-only with no retry | run 05 (F-05-3) | open |
 | [F-108](reports/2026-10-26-run-05-video/report.md#f-05-4) | question | desktop-app | Filmed clips are large (about 2.7 MB/s); 50 s of video gives a 146 MB ZIP | run 05 (F-05-4) | open |
 | [F-109](reports/2026-10-26-run-05-video/report.md#f-05-5-nothing-in-the-archive-says-the-camera-was-missing-at-start) | question | desktop-app | Nothing in the archive says the camera was missing at start | run 05 (F-05-5), run 06 (2026-10-28) | open |
@@ -360,13 +361,18 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-119](reports/2026-10-26-run-09-layout/report.md#f-09-2-calibration-at-640x480-continue-is-squeezed-to-a-sliver-picture-and-level-meter-shrink-to-77-px) | minor | desktop-app | Calibration at 640x480: Continue squeezed, picture and meter shrink | run 09 (F-09-2) | closed (2026-10-28), below the 960×720 minimum window (F-118); confirm in re-test |
 | [F-120](reports/2026-10-26-run-09-layout/report.md#f-09-3-task-screens-at-640x480-instructions-and-play-example-disappear-the-next-task-label-is-written-vertically) | minor | desktop-app | Task screens at 640x480: instructions and Play example disappear | run 09 (F-09-3) | closed (2026-10-28), below the 960×720 minimum window (F-118); confirm in re-test |
 | [F-121](reports/2026-10-26-run-09-layout/report.md#f-09-4-at-800x600-the-instruction-box-is-only-132-px-high-while-about-210-px-below-it-stay-empty-play-example-and-start-now-are-hidden-behind-a-scroll) | minor | desktop-app | At 800x600 the instruction box is 132 px while space below is empty; Play example behind a scroll | run 09 (F-09-4) | closed (2026-10-28), below the 960×720 minimum window (F-118); confirm in re-test |
-| [F-122](reports/2026-10-26-run-09-layout/report.md#f-09-5-a-filmed-take-was-interrupted-microphone-was-disconnected-read_starvation-right-after-a-resize) | minor | desktop-app | Filmed take interrupted (READ_STARVATION) right after a resize, intermittent | run 09 (F-09-5) | open |
+| [F-122](reports/2026-10-26-run-09-layout/report.md#f-09-5-a-filmed-take-was-interrupted-microphone-was-disconnected-read_starvation-right-after-a-resize) | minor | desktop-app | Filmed take interrupted (READ_STARVATION) right after a resize, intermittent | run 09 (F-09-5), run 13 (2026-10-29) | fixed (2026-10-29), confirmed in run 13 |
 | [F-123](reports/2026-10-26-run-09-layout/report.md#f-09-6-a-session-with-a-microphone-interruption-plus-resume-cannot-be-processed-processing-failed-iofailure-retry-and-reprocess-fail-again) | major | desktop-app | Session with a mic interruption + Resume (2-part master) cannot be processed (IoFailure) | run 09 (F-09-6), run 12 (2026-10-28) | fixed (2026-10-28), confirmed in run 12 |
 | [F-124](reports/2026-10-26-run-09-layout/report.md#f-09-7-sessions-go-to-upload-and-back-are-squeezed-out-at-800x600-and-1024x768) | major | desktop-app | Sessions: Go to upload and Back squeezed out at 800x600 and 1024x768 | run 09 (F-09-7), run 12 (2026-10-28) | fixed (2026-10-28), confirmed in run 12 |
 | [F-125](reports/2026-10-26-run-09-layout/report.md#f-09-8-editor-at-800x600-accept-is-not-on-screen-0x0-discard-changes-wraps-one-letter-per-line-same-root-cause-as-f-093) | major | desktop-app | Editor at 800x600: Accept off screen, Discard wraps per letter (cause of F-093) | run 09 (F-09-8), run 12 (2026-10-28) | fixed (2026-10-28), confirmed in run 12 |
 | [F-126](reports/2026-10-26-run-09-layout/report.md#f-09-9-upload-screen-at-800x600-back-is-not-on-screen-0x0) | major | desktop-app | Upload screen at 800x600: Back off screen | run 09 (F-09-9), run 12 (2026-10-28) | fixed (2026-10-28), confirmed in run 12 |
 | [F-127](reports/2026-10-26-run-09-layout/report.md#f-09-10-at-1512x876-content-stretches-long-text-lines-picture-and-level-meter-far-apart-fixed-height-session-list) | cosmetic | desktop-app | At full screen content stretches (long lines, meter far from picture) | run 09 (F-09-10) | open |
 | [F-128](reports/2026-10-26-run-09-layout/report.md#f-09-11-plan-and-notes-say-the-app-opens-at-800x600-it-opens-at-1000x820) | cosmetic | docs | Plan says the app opens at 800x600; it opens at 1000x820 | run 09 (F-09-11) | open |
-| [F-129](reports/2026-10-26-run-09-layout/report.md#f-129-the-interruption-records-sample-offset-disagrees-with-the-interruption-events-by-1500-frames) | minor | desktop-app | Interruption record's sample offset disagrees with the interruption events by 1500 frames (31 ms of part 1 dropped) | fix round 2026-10-28 (orchestrator) | open |
+| [F-129](reports/2026-10-26-run-09-layout/report.md#f-129-the-interruption-records-sample-offset-disagrees-with-the-interruption-events-by-1500-frames) | minor | desktop-app | Interruption record's sample offset disagrees with the interruption events by 1500 frames (31 ms of part 1 dropped) | fix round 2026-10-28 (orchestrator), run 13 (2026-10-29) | fixed (2026-10-29), confirmed in run 13 |
 | [F-130](reports/2026-10-28-run-12-fix-retest/report.md#f-12-1-editor-controls-are-grouped-oddly-when-the-row-wraps-at-960x720-and-1000x820) | cosmetic | desktop-app | Editor controls grouped oddly when the row wraps (Previous and Next on different rows) | run 12 (F-12-1) | open |
-| [F-131](reports/2026-10-28-run-12-fix-retest/report.md#f-12-2-disabling-the-capture-device-for-4-s-during-a-take-does-not-interrupt-the-recording) | question | desktop-app | Disabling the capture device for 4 s during a take does not interrupt the recording | run 12 (F-12-2) | open |
+| [F-131](reports/2026-10-28-run-12-fix-retest/report.md#f-12-2-disabling-the-capture-device-for-4-s-during-a-take-does-not-interrupt-the-recording) | question | desktop-app | Disabling the capture device for 4 s during a take does not interrupt the recording | run 12 (F-12-2), run 13 (2026-10-29) | open (endpoint disable still no effect in run 13; stopping Audiosrv does interrupt) |
+| [F-132](reports/2026-10-26-run-05-video/report.md#f-132-the-video-preview-texts-are-english-only) | cosmetic | desktop-app | Video preview texts are English only | fix round 2026-10-29 (orchestrator), run 13 (2026-10-29) | fixed (2026-10-29), confirmed in run 13 (EN live; CS by unit tests) |
+| [F-133](reports/2026-10-29-run-13-fix-retest/report.md#f-13-1-the-task-layout-shifts-when-the-camera-lost-message-appears) | cosmetic | desktop-app | Task layout shifts when the "Camera lost" message appears | run 13 (F-13-1) | open |
+| [F-134](reports/2026-10-29-run-13-fix-retest/report.md#f-134-the-recording_resumed-event-carries-a-later-offset-than-the-cut) | minor | desktop-app | RECORDING_RESUMED event carries a later offset than the cut; crash recovery after a Resume shifted offsets | review of fix round 2 (2026-10-29) | fixed (2026-10-29), not yet re-run |
+| [F-135](reports/2026-10-29-run-13-fix-retest/report.md#f-135-a-wedged-capture-thread-from-an-old-episode-could-write-into-the-resumed-part) | minor | desktop-app | A wedged capture thread from an old episode could write into the resumed part | review of fix round 2 (2026-10-29) | fixed (2026-10-29), not yet re-run |
+| [F-136](reports/2026-10-29-run-13-fix-retest/report.md#f-136-consecutive-late-watchdog-ticks-could-hide-a-real-device-loss) | minor | desktop-app | Consecutive late watchdog ticks could hide a real device loss | review of fix round 2 (2026-10-29) | fixed (2026-10-29), not yet re-run |

@@ -39,7 +39,7 @@ Other checks: app log has config refresh, check-in and "microphone opened" only 
 - **Expected:** progress or a result, like the "Processing" screen after a session (F-026).
 - **Actual:** Accept returns to the Sessions list with nothing shown; Reprocess leaves the row unchanged (no spinner, no message); nothing in the log.
 - **Evidence:** `screenshots/step-4-after-reprocess.png`.
-- **Status:** open
+- **Status:** fixed (2026-10-29), confirmed in run 13 (2026-10-29). Cause: with `returnToBrowser`, processing success just popped back to Sessions (`RootComponent`), an unchanged Accept popped without a word, and Reprocess was offered for every row. Fix: Sessions shows one result line ("Session … processed (N clips)." / "No changes – the session was not reprocessed.", EN + CS, cleared when leaving Sessions); the Reprocess button shows only for failed ("Retry processing"), not-processed or stuck "Processing" rows; `ProcessSessionUseCase` logs "processing started" / "processing done: N clips" with the sessionId only. Tests: `SessionBrowserComponentTest` "reprocess is offered only for failed, not-processed and stuck sessions…", "a result message is shown, survives the resume refresh…"; `RootComponentTest` "F-104 accepting a changed edit…", "F-104 reprocess from Sessions…" and the F-066 untouched-Accept test; `ProcessSessionUseCaseTest` "F-104 a run logs a start and a done line…"; `SessionBrowserLayoutUiTest` "F-104 the result message and the reprocess button…" (all red before the fix).
 
 <a id="f-04-3"></a>
 

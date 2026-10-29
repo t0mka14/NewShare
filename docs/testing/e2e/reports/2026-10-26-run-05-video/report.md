@@ -35,7 +35,7 @@ Report text saved by the orchestrator from the runner's hand-back. Patients `E2E
 - **Repro:** start a filmed take, kill the app's ffmpeg process.
 - **Evidence:** `screenshots/step-8-camera-lost.png`.
 - **Notes:** related to F-031.
-- **Status:** open
+- **Status:** fixed (2026-10-29), confirmed in run 13 (2026-10-29). Cause: `VideoPreview` drew the error and the audio-only texts together inside the 200×150 picture, and `VideoSurface` kept the last decoded frame. Fix: the message sits below the picture and only one shows ("Camera lost — recording audio only." after a lost camera); the frame is cleared to black while the camera has failed and returns when it recovers. Tests: `VideoTaskScreenUiTest` "a camera lost during a VOCAL take shows one message and clears the frame at 944x681 / 984x781", "the preview shows frames again once the camera recovers" (red on the old layout). The preview texts were English-only; fixed as F-132.
 
 <a id="f-05-3"></a>
 
@@ -85,3 +85,12 @@ F-019 (camera picker now exists: fixed), F-030, F-031, F-095.
 - **Actual:** with no camera, `examination.json` has no `videoTakes`, no `videoFile` and no `hardware.cameraFaults`/camera entry; only the app log has `WARN ... protocol wants video but no camera was found`. In the camera-lost case (05-3) the archive does record `cameraFaults` and `videoComplete:false`.
 - **Evidence:** `screenshots/step-7-no-camera-phonation.png`; inspection of the ZIP above.
 - **Status:** open
+
+## Orchestrator follow-up (2026-10-29 fix round 2)
+
+### F-132: The video preview texts are English only
+Index ID: **F-132**
+- **Severity:** cosmetic  **Area:** desktop-app  **Run / step:** fix round 2 (F-106 review)
+- **Actual:** `VideoPreview` (`VideoTaskBody.kt`) has hard-coded English texts ("Starting camera…", "Camera not available — recording audio only.", "Camera lost — recording audio only.", the camera error descriptions), so a CS examiner sees English on the filmed task screens.
+- **Evidence:** code review of `VideoTaskBody.kt`; no `UiLocalization` reaches `VideoPreview`.
+- **Status:** fixed (2026-10-29), confirmed in run 13 (2026-10-29). All `VideoPreview` / `VideoTaskBody` texts now come from `BuiltinStrings` (8 keys `task.video.*`, EN + CS) through `UiLocalization`. Tests: `VideoTaskScreenUiTest` "F-132 … is Czech in cs and English in en" (4 tests, red with the English literals).
