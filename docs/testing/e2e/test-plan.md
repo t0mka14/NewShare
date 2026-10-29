@@ -731,7 +731,10 @@ The admin UI at `http://192.168.122.183:10001` now says **clinic** (was site), *
 **computer** (device) and **recording** (upload session); runs 01, 06 and 07 use these words. Run A
 runs **before run 01** and checks the new UI itself, with Playwright (§3.2, `headless=False`).
 
-Precondition: preflight passed; master login works. Seed users `admin@test.com` etc. may not exist on
+Precondition: preflight passed; master login works. Invited users get only a random emailed
+temporary password and the UI can't set one (F-077), so after creating the personas the orchestrator
+sets their passwords in the database over SSH (`ssh share_web`, MariaDB `task_protocoller`, table
+`users`; only those rows, with the hash format the seed uses). Seed users `admin@test.com` etc. may not exist on
 the fresh DB: create the personas below as master in **Users** and note it (they are named
 `e2e-<role>-1026@test.com`, password `1234`).
 

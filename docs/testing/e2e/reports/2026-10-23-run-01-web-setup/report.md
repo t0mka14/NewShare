@@ -167,7 +167,7 @@ There is no INFO task (F-010).
 - **Repro:** Protocols → Create Protocol → open it in the editor.
 - **Evidence:** none. It was seen while creating the protocols, before a screenshot was taken.
   The runner read it from the web UI's request payload.
-- **Status:** open
+- **Status:** fixed in the redesign (`376904b`, 2026-10-26); check in run 14. "Create and edit" builds a draft with a required `patient_code` field and the `${field.patient_code}_...` file name (`studyHelpers.js`, test `studyHelpers.test.js`). An API save without these fields still gets the server default.
 
 ### F-007: Boolean defaults are blank in the "Available Tasks" list
 
@@ -204,7 +204,7 @@ There is no INFO task (F-010).
   ("passage not shown") would pass for the wrong reason.
 - **Evidence:** `logs/site-config-A.json`, speech protocol task 3. No screenshot (API data).
 - **Notes:** run 03 should check that only the first card shows and that "Start now" is missing.
-- **Status:** open
+- **Status:** fixed in the web repo (2026-10-29), not yet deployed or re-run. Decision (2026-10-29): the web sends the passage. Fix (web repo `task_protocoller_web_app` commit `44d8490`): every READING task gets one more instruction paragraph after the Start-now card: that language's topic text, else its topic label (cs/de carry labels only), else empty. So the app's "last paragraph is the passage" rule never drops Start now. Tests: `extConfig.test.js` READING cases (red before). Desktops apply it on their next fetch; `configVersion` does not change until a protocol or site row is saved.
 
 ### F-010: The designer's Info page and protocol Instructions aren't in the site-config
 

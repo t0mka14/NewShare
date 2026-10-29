@@ -35,8 +35,9 @@ scope passed on the rerun in run 06.
    Confirmed in run 12.
 3. ~~**F-091 (desktop-app):** the last option of a multiple-choice question is cut off at
    1000×820.~~ Fixed 2026-10-28: a scrollbar now shows. Confirmed in run 12.
-4. **F-077 (environment), still open:** persona users can't be given a known password, so the
-   editor and no-grants checks went through the API only.
+4. ~~**F-077 (environment):** persona users can't be given a known password.~~ Closed as worked
+   around (2026-10-29): run A2 set the persona passwords in the database over SSH, and the test plan's
+   Run A precondition now says so. A web "set password" action remains an optional feature request.
 
 **Recurring themes:**
 
@@ -98,16 +99,20 @@ scope passed on the rerun in run 06.
 | Open by area | blocker | major | minor | cosmetic | question | Total |
 |---|---|---|---|---|---|---|
 | desktop-app | 0 | 0 | 0 | 14 | 7 | 21 |
-| web-ui | 0 | 0 | 13 | 17 | 7 | 37 |
-| integration | 0 | 0 | 3 | 0 | 4 | 7 |
-| server-api | 0 | 0 | 1 | 0 | 3 | 4 |
-| environment | 0 | 1 | 1 | 0 | 3 | 5 |
+| web-ui | 0 | 0 | 0 | 16 | 7 | 23 |
+| integration | 0 | 0 | 0 | 0 | 4 | 4 |
+| server-api | 0 | 0 | 0 | 0 | 3 | 3 |
+| environment | 0 | 0 | 1 | 0 | 3 | 4 |
 | docs | 0 | 0 | 0 | 1 | 1 | 2 |
-| **Total** | 0 | 1 | 18 | 32 | 25 | **76** |
+| **Total** | 0 | 0 | 1 | 31 | 25 | **57** |
 
-Counts are open findings across both E2E runs after fix round 2 (2026-10-29), including F-036
-(web tile still open) and F-131. No desktop-app minor is open.
-Fixed but not re-run yet: F-034, F-055, F-062, F-066.
+Counts are open findings across both E2E runs after fix round 3 (web minors, 2026-10-29,
+[spec](fix-round-2026-10-29-web-spec.md)), including F-131. The only open minor is an
+environment one; no desktop, web, server or integration minor is open.
+Fixed but not re-run yet: F-034, F-055, F-062, F-066, F-134, F-135, F-136, and the round 3 web
+fixes (F-009, F-067, F-068, F-069, F-073, F-074, F-079, F-086, F-087, F-096, F-097, F-110, F-111),
+which wait for deployment and run 14. F-006, F-035 and F-036 (web tile) are fixed in the
+redesign and get a live check in run 14. F-037 (accepted) and F-076 (by design) are closed.
 
 ### E2E run of 2026-10-23/24 (app commit `59bb063`)
 
@@ -245,10 +250,10 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-003](reports/2026-10-23-run-00-environment/report.md#f-003-the-compose-hot-reload-mcp-server-does-not-start-on-windows) | minor | environment | The compose-hot-reload MCP server does not start on Windows | run 00 | closed, worked around (test plan §3.2; user decision) |
 | [F-004](reports/2026-10-23-run-00-environment/report.md#f-004-the-hot-reload-recompiler-cant-find-gradlewbat-when-started-from-claude-code) | minor | environment | The hot-reload recompiler can't find `gradlew.bat` when started from Claude Code | run 00 | closed, worked around (test plan §3.4; user decision) |
 | [F-005](reports/2026-10-23-run-01-web-setup/report.md#f-005-the-webs-default-file-name-template-uses-sitename-which-the-app-doesnt-substitute) | major | integration | The web's default file-name template uses `${siteName}`, which the app doesn't substitute | run 01, 10, 11 | fixed (2026-10-24), confirmed in runs 10 and 11 |
-| [F-006](reports/2026-10-23-run-01-web-setup/report.md#f-006-create-protocol-makes-a-protocol-with-no-patient-identifiers-and-no-patient-code-in-its-file-name) | minor | web-ui | "Create Protocol" makes a protocol with no patient identifiers and no patient code in its file name | run 01, 10, 11 | open |
+| [F-006](reports/2026-10-23-run-01-web-setup/report.md#f-006-create-protocol-makes-a-protocol-with-no-patient-identifiers-and-no-patient-code-in-its-file-name) | minor | web-ui | "Create Protocol" makes a protocol with no patient identifiers and no patient code in its file name | run 01, 10, 11 | fixed in the redesign (`376904b`, 2026-10-26); check in run 14 |
 | [F-007](reports/2026-10-23-run-01-web-setup/report.md#f-007-boolean-defaults-are-blank-in-the-available-tasks-list) | cosmetic | web-ui | Boolean defaults are blank in the "Available Tasks" list | run 01 | open |
 | [F-008](reports/2026-10-23-run-01-web-setup/report.md#f-008-site-names-cant-contain-spaces-so-the-plans-naming-doesnt-work) | question | docs | Site names can't contain spaces, so the plan's naming doesn't work | run 01 | open |
-| [F-009](reports/2026-10-23-run-01-web-setup/report.md#f-009-reading-has-no-passage-in-the-config-the-app-would-hide-the-start-now-card-instead) | minor | integration | READING has no passage in the config; the app would hide the "Start now" card instead | run 01, run 03 | open |
+| [F-009](reports/2026-10-23-run-01-web-setup/report.md#f-009-reading-has-no-passage-in-the-config-the-app-would-hide-the-start-now-card-instead) | minor | integration | READING has no passage in the config; the app would hide the "Start now" card instead | run 01, run 03 | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-010](reports/2026-10-23-run-01-web-setup/report.md#f-010-the-designers-info-page-and-protocol-instructions-arent-in-the-site-config) | question | integration | The designer's Info page and protocol Instructions aren't in the site-config | run 01 | open |
 | [F-011](reports/2026-10-23-run-01-web-setup/report.md#f-011-typo-in-the-en-phonation-instruction-should-least-5-seconds) | cosmetic | web-ui | Typo in the EN phonation instruction: "should least 5 seconds" | run 01 | open |
 | [F-012](reports/2026-10-23-run-01-web-setup/report.md#f-012-cs-questionnaire-texts-are-a-copy-of-the-en-texts) | question | web-ui | CS questionnaire texts are a copy of the EN texts | run 01, run 03 | open |
@@ -274,9 +279,9 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-032](reports/2026-10-23-run-05-video/report.md#f-032-a-normal-camera-close-is-recorded-as-capture_failed) | minor | desktop-app | A normal camera close is recorded as `capture_failed` | run 05, 06, 11 | fixed (2026-10-24), confirmed in run 11 |
 | [F-033](reports/2026-10-23-run-05-video/report.md#f-033-the-camera-stopped-messages-are-drawn-over-the-frozen-last-frame-and-are-hard-to-read) | cosmetic | desktop-app | The "camera stopped" messages are drawn over the frozen last frame and are hard to read | run 05 | open |
 | [F-034](reports/2026-10-23-run-05-video/report.md#f-034-a-partially-filmed-take-isnt-marked-as-partial-in-the-data) | question | desktop-app | A partially filmed take isn't marked as partial in the data | run 05, 06 | fixed (2026-10-25), not yet re-run |
-| [F-035](reports/2026-10-23-run-06-upload/report.md#f-035-the-web-session-detail-shows-input-gain-undefined-) | minor | web-ui | The web session detail shows "input gain undefined %" | run 06 | open |
-| [F-036](reports/2026-10-23-run-06-upload/report.md#f-036-the-camera-tile-shows-raw-ffmpeg-output-as-a-captureinterrupted-warning-even-for-a-normal-close) | minor | integration | The camera tile shows raw ffmpeg output as a "CaptureInterrupted" warning, even for a normal close | run 06, 11 | open (app side fixed, confirmed in run 11; web tile open) |
-| [F-037](reports/2026-10-23-run-06-upload/report.md#f-037-the-admin-ui-cant-play-the-video-clips-mjpeg-in-mp4) | minor | integration | The admin UI can't play the video clips (MJPEG in MP4) | run 06, run 06 (2026-10-28) | open |
+| [F-035](reports/2026-10-23-run-06-upload/report.md#f-035-the-web-session-detail-shows-input-gain-undefined-) | minor | web-ui | The web session detail shows "input gain undefined %" | run 06 | fixed in the redesign; check in run 14 |
+| [F-036](reports/2026-10-23-run-06-upload/report.md#f-036-the-camera-tile-shows-raw-ffmpeg-output-as-a-captureinterrupted-warning-even-for-a-normal-close) | minor | integration | The camera tile shows raw ffmpeg output as a "CaptureInterrupted" warning, even for a normal close | run 06, 11 | web tile fixed in the redesign; F-111 separator fixed 2026-10-29; check in run 14 |
+| [F-037](reports/2026-10-23-run-06-upload/report.md#f-037-the-admin-ui-cant-play-the-video-clips-mjpeg-in-mp4) | minor | integration | The admin UI can't play the video clips (MJPEG in MP4) | run 06, run 06 (2026-10-28) | closed, accepted (2026-10-29) |
 | [F-038](reports/2026-10-23-run-06-upload/report.md#f-038-config-fetch-device-check-in-and-upload-write-no-log-lines) | minor | desktop-app | Config fetch, device check-in and upload write no log lines | run 06, 07, 08, 11 | fixed (2026-10-24), confirmed in run 11 |
 | [F-039](reports/2026-10-23-run-06-upload/report.md#f-039-the-participant-masking-check-cant-run-because-no-test-session-has-a-hidden-field) | question | docs | The participant-masking check can't run, because no test session has a hidden field | run 06, 07 | resolved in run 07 (masking and reveal work) |
 | [F-040](reports/2026-10-23-run-06-upload/report.md#f-040-the-questionnaire-summary-shows-internal-keys-instead-of-question-and-answer-text) | question | web-ui | The questionnaire summary shows internal keys instead of question and answer text | run 06 | open |
@@ -306,27 +311,27 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-064](reports/2026-10-24-run-11-minor-retest/report.md#f-064-1-sessions-ready-to-upload) | cosmetic | desktop-app | "1 sessions ready to upload" | run 11, run 07 (2026-10-28), run 08 (2026-10-28) | open |
 | [F-065](reports/2026-10-24-run-11-minor-retest/report.md#f-065-a-fresh-questionnaire-shows-red-validation-errors-before-any-input) | cosmetic | desktop-app | A fresh questionnaire shows red validation errors before any input | run 11, run 03 | open |
 | [F-066](reports/2026-10-24-run-11-minor-retest/report.md#f-066-after-an-edit-from-sessions-accept-leaves-the-session-processed-with-the-old-zip) | major | desktop-app | After an edit from Sessions, Accept leaves the session "Processed" with the old ZIP | user report 2026-10-24 | fixed (2026-10-24), not yet re-run |
-| [F-067](reports/2026-10-26-run-A-new-web/report.md#f-a-1) | minor | web-ui | Relative and absolute times shifted by the browser's UTC offset (zoneless server time) | run A (F-A-1), run A2 | open |
-| [F-068](reports/2026-10-26-run-A-new-web/report.md#f-a-2) | minor | web-ui | Save-confirm dialog still uses old participant-link text | run A (F-A-2) | open |
-| [F-069](reports/2026-10-26-run-A-new-web/report.md#f-a-3) | minor | web-ui | Blank protocol description stored as "Auto-created from AdminTaskEditor" and sent to the desktop config | run A (F-A-3), run 02 (F-02-2), run 03 | open |
+| [F-067](reports/2026-10-26-run-A-new-web/report.md#f-a-1) | minor | web-ui | Relative and absolute times shifted by the browser's UTC offset (zoneless server time) | run A (F-A-1), run A2 | fixed in the web repo (2026-10-29), not yet deployed or re-run |
+| [F-068](reports/2026-10-26-run-A-new-web/report.md#f-a-2) | minor | web-ui | Save-confirm dialog still uses old participant-link text | run A (F-A-2) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
+| [F-069](reports/2026-10-26-run-A-new-web/report.md#f-a-3) | minor | web-ui | Blank protocol description stored as "Auto-created from AdminTaskEditor" and sent to the desktop config | run A (F-A-3), run 02 (F-02-2), run 03 | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-070](reports/2026-10-26-run-A-new-web/report.md#f-a-4) | cosmetic | web-ui | Questionnaire modal has untranslated strings in CS/DE | run A (F-A-4) | open |
 | [F-071](reports/2026-10-26-run-A-new-web/report.md#f-a-5) | cosmetic | web-ui | Questionnaire modal is off-style (purple pill, all-caps labels) | run A (F-A-5) | open |
 | [F-072](reports/2026-10-26-run-A-new-web/report.md#f-a-6) | question | integration | Info page is saved but no INFO task or string reaches /site-config | run A (F-A-6), run 03, run 04 | open |
-| [F-073](reports/2026-10-26-run-A-new-web/report.md#f-a-7) | minor | web-ui | Designer accepts contradictory durations without a warning | run A (F-A-7) | open |
-| [F-074](reports/2026-10-26-run-A-new-web/report.md#f-a-8) | minor | web-ui | At 1024 px the Clinics table overflows its card | run A (F-A-8) | open |
+| [F-073](reports/2026-10-26-run-A-new-web/report.md#f-a-7) | minor | web-ui | Designer accepts contradictory durations without a warning | run A (F-A-7) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
+| [F-074](reports/2026-10-26-run-A-new-web/report.md#f-a-8) | minor | web-ui | At 1024 px the Clinics table overflows its card | run A (F-A-8) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-075](reports/2026-10-26-run-A-new-web/report.md#f-a-9) | question | integration | Default file-name template differs from spec §6.4 | run A (F-A-9) | open |
-| [F-076](reports/2026-10-26-run-A-new-web/report.md#f-a-10) | minor | web-ui | Custom patient field label and help have no per-language entry | run A (F-A-10) | open |
-| [F-077](reports/2026-10-26-run-A-new-web/report.md#f-a-11) | major | environment | Persona users cannot be given a known password; editor / no-grants checks blocked | run A (F-A-11) | open |
+| [F-076](reports/2026-10-26-run-A-new-web/report.md#f-a-10) | minor | web-ui | Custom patient field label and help have no per-language entry | run A (F-A-10) | closed, by design (2026-10-29) |
+| [F-077](reports/2026-10-26-run-A-new-web/report.md#f-a-11) | major | environment | Persona users cannot be given a known password; editor / no-grants checks blocked | run A (F-A-11) | closed, worked around (run A2: persona passwords set in the DB over SSH; test plan Run A precondition; user decision 2026-10-29) |
 | [F-078](reports/2026-10-26-run-A-new-web/report.md#f-a-12) | question | web-ui | Opening #/login while signed in clears the session | run A (F-A-12) | open |
-| [F-079](reports/2026-10-26-run-A-new-web/report.md#f-a-13) | minor | web-ui | Direct link to protocol preview ends on #/not-found | run A (F-A-13) | open |
+| [F-079](reports/2026-10-26-run-A-new-web/report.md#f-a-13) | minor | web-ui | Direct link to protocol preview ends on #/not-found | run A (F-A-13) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-080](reports/2026-10-26-run-A-new-web/report.md#f-a-14) | cosmetic | web-ui | "Invite user" wording differs from spec "New user" | run A (F-A-14) | open |
 | [F-081](reports/2026-10-26-run-A-new-web/report.md#f-a-15) | cosmetic | web-ui | Questionnaire row in the task list shows blank values | run A (F-A-15) | open |
 | [F-082](reports/2026-10-26-run-A-new-web/report.md#f-a-16) | cosmetic | web-ui | Clinic name input silently truncates at 64 characters | run A (F-A-16) | open |
 | [F-083](reports/2026-10-26-run-A-new-web/report.md#f-a-17) | question | server-api | last_editor error unreachable on normal studies | run A (F-A-17), run A2 | open |
 | [F-084](reports/2026-10-26-run-A-new-web/report.md#f-a-18) | cosmetic | web-ui | Library "Not available" page text is wrong for the audience | run A (F-A-18), run A2 | open |
 | [F-085](reports/2026-10-26-run-A-new-web/report.md#f-a-19) | question | web-ui | Preview shows the participant-web flow, not the desktop flow | run A (F-A-19) | open |
-| [F-086](reports/2026-10-26-run-A-new-web/report.md#f-a-20) | minor | server-api | POST /protocols with a partial body returns 500 instead of 400 | run A (F-A-20), run A2 | open |
-| [F-087](reports/2026-10-26-run-02-first-start/report.md#f-02-1) | minor | web-ui | Computers tab does not show the config version a computer got | run 02 (F-02-1), run 06 (2026-10-28), run 07 (2026-10-28) | open |
+| [F-086](reports/2026-10-26-run-A-new-web/report.md#f-a-20) | minor | server-api | POST /protocols with a partial body returns 500 instead of 400 | run A (F-A-20), run A2 | fixed in the web repo (2026-10-29), not yet deployed or re-run |
+| [F-087](reports/2026-10-26-run-02-first-start/report.md#f-02-1) | minor | web-ui | Computers tab does not show the config version a computer got | run 02 (F-02-1), run 06 (2026-10-28), run 07 (2026-10-28) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-088](reports/2026-10-26-run-02-first-start/report.md#f-02-3) | cosmetic | desktop-app | Language options in Settings are raw codes cs / en | run 02 (F-02-3) | open |
 | [F-089](reports/2026-10-26-run-02-first-start/report.md#f-02-4) | cosmetic | desktop-app | "No site token" message is left-aligned | run 02 (F-02-4), run 07 (2026-10-28) | open |
 | [F-090](reports/2026-10-26-run-02-first-start/report.md#f-02-5) | question | web-ui | Connect-a-computer panel shows server address ./api | run 02 (F-02-5), run A2 (F-A2-3) | open |
@@ -335,8 +340,8 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-093](reports/2026-10-26-run-03-speech-happy/report.md#f-03-3) | cosmetic | desktop-app | Editor "Accept" label wraps to "Acc / ept" | run 03 (F-03-3), run 04, run 09 (2026-10-28, same cause as F-125), run 12 (2026-10-28) | fixed (2026-10-28), confirmed in run 12 |
 | [F-094](reports/2026-10-26-run-03-speech-happy/report.md#f-03-4) | question | integration | Web config has enableEditor=false so the editor is skipped | run 03 (F-03-4), run 04 | open |
 | [F-095](reports/2026-10-26-run-03-speech-happy/report.md#f-03-5) | question | desktop-app | App log has nothing about the session (start, take, processing) | run 03 (F-03-5), run 04, run 05 | open |
-| [F-096](reports/2026-10-26-run-A2-personas/report.md#f-a2-1) | minor | web-ui | Received persona sees disabled runs-at switches instead of none (spec §4) | run A2 (F-A2-1) | open |
-| [F-097](reports/2026-10-26-run-A2-personas/report.md#f-a2-2) | minor | web-ui | Editor sees a clinic count that includes clinics they cannot see | run A2 (F-A2-2) | open |
+| [F-096](reports/2026-10-26-run-A2-personas/report.md#f-a2-1) | minor | web-ui | Received persona sees disabled runs-at switches instead of none (spec §4) | run A2 (F-A2-1) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
+| [F-097](reports/2026-10-26-run-A2-personas/report.md#f-a2-2) | minor | web-ui | Editor sees a clinic count that includes clinics they cannot see | run A2 (F-A2-2) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-098](reports/2026-10-26-run-A2-personas/report.md#f-a2-4) | cosmetic | web-ui | Empty Clinics page tells users who cannot create clinics to create one | run A2 (F-A2-4) | open |
 | [F-099](reports/2026-10-26-run-A2-personas/report.md#f-a2-5) | cosmetic | web-ui | Recordings search placeholder cut off for one-clinic users | run A2 (F-A2-5) | open |
 | [F-100](reports/2026-10-26-run-A2-personas/report.md#f-a2-6) | question | server-api | Re-adding an existing editor returns 201 with added_at null; email match is case-insensitive | run A2 (F-A2-6) | open |
@@ -349,8 +354,8 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-107](reports/2026-10-26-run-05-video/report.md#f-05-3) | question | desktop-app | After a camera failure later tasks stay audio-only with no retry | run 05 (F-05-3) | open |
 | [F-108](reports/2026-10-26-run-05-video/report.md#f-05-4) | question | desktop-app | Filmed clips are large (about 2.7 MB/s); 50 s of video gives a 146 MB ZIP | run 05 (F-05-4) | open |
 | [F-109](reports/2026-10-26-run-05-video/report.md#f-05-5-nothing-in-the-archive-says-the-camera-was-missing-at-start) | question | desktop-app | Nothing in the archive says the camera was missing at start | run 05 (F-05-5), run 06 (2026-10-28) | open |
-| [F-110](reports/2026-10-26-run-06-upload/report.md#f-06-1-server-record-does-not-show-that-a-video-is-shorter-than-the-audio-videocompletefalse-is-ignored) | minor | web-ui | Server record does not show that a video is shorter than the audio (videoComplete:false ignored) | run 06 (F-06-1) | open |
-| [F-111](reports/2026-10-26-run-06-upload/report.md#f-06-2-camera-text-on-the-detail-page-runs-together-obs-virtual-camerathe-camera-could-not-capture-video) | cosmetic | web-ui | Camera name and failure notice run together on the detail page | run 06 (F-06-2) | open |
+| [F-110](reports/2026-10-26-run-06-upload/report.md#f-06-1-server-record-does-not-show-that-a-video-is-shorter-than-the-audio-videocompletefalse-is-ignored) | minor | web-ui | Server record does not show that a video is shorter than the audio (videoComplete:false ignored) | run 06 (F-06-1) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
+| [F-111](reports/2026-10-26-run-06-upload/report.md#f-06-2-camera-text-on-the-detail-page-runs-together-obs-virtual-camerathe-camera-could-not-capture-video) | cosmetic | web-ui | Camera name and failure notice run together on the detail page | run 06 (F-06-2) | fixed in the web repo (2026-10-29), not yet deployed or re-run |
 | [F-112](reports/2026-10-26-run-06-upload/report.md#f-06-3-participant-field-label-shown-as-year-of-birth-opt-the-raw-field-key-humanized) | cosmetic | web-ui | Participant field label shown as "Year of birth opt" (raw key) | run 06 (F-06-3) | open |
 | [F-113](reports/2026-10-26-run-07-quarantine/report.md#f-07-1-a-recording-released-from-quarantine-and-re-uploaded-is-flagged-re-sent-duplicate) | question | web-ui | Recording released from quarantine and re-uploaded is flagged "Re-sent" | run 07 (F-07-1) | open |
 | [F-114](reports/2026-10-26-run-07-quarantine/report.md#f-07-2-a-quarantined-recording-is-shown-as-invalid-and-counted-in-the-invalid-kpi) | question | web-ui | Quarantined recording shown as "Invalid" and counted in the Invalid KPI | run 07 (F-07-2) | open |

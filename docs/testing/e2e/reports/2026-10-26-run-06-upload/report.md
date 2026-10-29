@@ -44,7 +44,7 @@ Index ID: **F-110**
 - **Repro:** 1. Upload `d3b229fa...` (05-3). 2. Recordings -> E2E1026-05-3. 3. Look at Tasks and Session -> Camera.
 - **Evidence:** `screenshots/F-06-1-partial-video-not-flagged.png`; `logs/api-check.json`, `logs/downloads.txt` (ffprobe durations).
 - **Notes:** related F-109. The "Computer event" chip is the only hint.
-- **Status:** open
+- **Status:** fixed in the web repo (2026-10-29), not yet deployed or re-run. Cause: `sessionExtractor` built `exam_summary.tasks[]` from a fixed field list without `videoComplete`, `videoDurationMs` and `audioDurationMs`. Fix (web repo `task_protocoller_web_app` commit `44d8490`): the fields are kept; `TaskTable` shows a warning badge "Video partial · 0:11 of 0:24" (badge only, no list flag); upload spec updated. Existing records keep their old summary (no backfill). Tests: `sessionExtractor.test.js` "F-110: carries videoComplete ...", `Recording.test.jsx` badge cases (red before).
 
 ### F-06-2: Camera text on the detail page runs together ("OBS Virtual CameraThe camera could not capture video.")
 Index ID: **F-111**
@@ -55,7 +55,7 @@ Index ID: **F-111**
 - **Actual:** the Session card shows "OBS Virtual CameraThe camera could not capture video." with the notice in a smaller font directly after the name; the DOM text has no space or newline between them.
 - **Repro:** open the 05-3 detail page (any recording with a camera event).
 - **Evidence:** `screenshots/F-06-2-camera-text-run-together.png` (also in `step-5-detail-05-3.png`).
-- **Status:** open
+- **Status:** fixed in the web repo (2026-10-29), not yet deployed or re-run. Fix (web repo `task_protocoller_web_app` commit `44d8490`): the device notice is a block element (`DeviceEvents` uses a `div`, `.recd-event` is `display: block`) under the device name. Test: `Recording.test.jsx` "F-111: the notice is a block of its own ..." (red before).
 
 ### F-06-3: Participant field label shown as "Year of birth opt" (the raw field key, humanized)
 Index ID: **F-112**

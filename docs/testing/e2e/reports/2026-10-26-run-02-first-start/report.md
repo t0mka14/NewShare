@@ -28,7 +28,7 @@ Cleanup: app stopped, PID gone, no ffmpeg, main.pid removed. app/data/app.lock e
 - **Repro:** master, open `#/clinics/4/computers`.
 - **Evidence:** step-4-computers-page.png; logs/api-devices-after-first-start.json.
 - **Notes:** check whether the redesign spec intends this.
-- **Status:** open
+- **Status:** fixed in the web repo (2026-10-29), not yet deployed or re-run. Fix (web repo `task_protocoller_web_app` commit `44d8490`): the Computers tab has a Config column with `lastConfigVersion` (tooltip: when it was fetched), en/cs/de; `docs/ui_redesign/02_spec.md` section 6.7 updated. Tests: `ClinicComputersTab.test.jsx` (red before), Playwright "F-087: the Computers table has a Config column".
 
 <a id="f-02-2"></a>
 

@@ -51,7 +51,7 @@ F-038.
   non-empty. The app doesn't send the field on this device (its gain can't be set, F-017).
 - **Repro:** open `#/admin/uploads/60cf6e0af3ed40c599d15d65e5765b51` and look at the AUDIO tile.
 - **Evidence:** `screenshots/F-06-1-input-gain-undefined-and-raw-keys.png`
-- **Status:** open
+- **Status:** fixed in the redesign; check in run 14. The old detail page is gone; `gainText()` keeps only numbers and the gain line is hidden without a value (`recordingFormat.js`, `SessionPanel.jsx`; test `Recording.test.jsx` "F-035: missing values are hidden").
 
 ### F-036: The camera tile shows raw ffmpeg output as a "CaptureInterrupted" warning, even for a normal close
 
@@ -69,7 +69,7 @@ F-038.
 - **Repro:** upload a run 05 session, then open its detail page.
 - **Evidence:** `screenshots/F-06-2-raw-ffmpeg-text-camera.png`, `step-4-uploads-filtered-E2E.png`
 - **Notes:** related to F-032.
-- **Status:** app side fixed 2026-10-24 (`8aaa7c1`): a real failure's detail is now one readable line, with progress lines skipped, paths replaced by `<path>`, the folder name replaced by `<session>`, and at most 300 characters. A normal close no longer produces the event at all (F-032). Still open for the web: how the camera tile shows the detail. Tests: `FfmpegSessionVideoRecorderTest` "an unexpected end reports a short detail without progress lines", `ErrorTextTest`, `SessionComponentTest` "a camera failure detail never carries the session folder name".
+- **Status:** web tile fixed in the redesign; F-111 separator fixed 2026-10-29; check in run 14. The redesigned tile shows one translated sentence with the raw detail behind "Details" (`DeviceEvents.jsx`, test `Recording.test.jsx`), seen on 2026-10-28. The remaining layout problem F-111 is fixed (web repo `task_protocoller_web_app` commit `44d8490`).
 
 ### F-037: The admin UI can't play the video clips (MJPEG in MP4)
 
@@ -86,7 +86,7 @@ F-038.
   (Chromium)
 - **Notes:** download-and-play-locally works. The MP4 has no audio track; the audio is the
   separate WAV.
-- **Status:** open
+- **Status:** closed, accepted (2026-10-29). Decision (2026-10-29): keep "Download to play" (the server has no ffmpeg, and the app copies MJPEG without re-encoding by design). Tidy-up (web repo `task_protocoller_web_app` commit `44d8490`): on media error code 4 `ClipPlayer` probes the clip with a 1-byte range request; a readable clip goes straight to the fallback without spending a new ticket, while a 401/403 still gets the single retry. Test: `Recording.test.jsx` "code 4 with a readable clip: fallback at once ..." (red before).
 
 ### F-038: Config fetch, device check-in and upload write no log lines
 
