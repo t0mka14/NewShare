@@ -161,7 +161,15 @@ Index ID: **F-137**
   3. "Cancel".
 - **Evidence:** `screenshots/13-6-after-cancel-custom-field.png`; `scripts/run-14/c13c.py` prints
   the settings text before and after.
-- **Status:** open
+- **Status:** fixed (2026-10-29, web `69f956e`), confirmed in run 14b.
+  - **Cause:** the identifiers dialog edited the live protocol, and its Cancel, Esc and backdrop close
+    only closed it.
+  - **Fix:** the hook `useSnapshotModal` snapshots the fields a dialog writes when it opens, and puts
+    them back on every close except Save. Save stays blocked while a field is invalid.
+  - **Tests** (both failed before the fix):
+    - `editor.test.jsx` "identifiers modal draft (F-137)", 3 cases;
+    - Playwright `protocol-manager.spec.ts` "cancelling the participant-fields editor discards a
+      just-added custom field (F-137)".
 
 ### F-14-2: At 1024 px the sticky table header does not stick on overflowing tables
 Index ID: **F-138**
@@ -181,7 +189,41 @@ Index ID: **F-138**
   `scripts/run-14/c9b.py`.
 - **Status:** open
 
+### F-139: Cancelling the info page or instructions editor keeps the typed text
+Index ID: **F-139**
+- **Severity:** minor
+- **Area:** web-ui
+- **Run / step:** found by the engineer while fixing F-137 (2026-10-29)
+- **Expected:** Cancel, Esc or a backdrop click discards text typed or a template loaded in the info
+  page and instructions dialogs.
+- **Actual:** both dialogs wrote straight into the protocol (`updateProtocolField`) and their close
+  only closed them, so cancelled text stayed and the protocol became dirty.
+- **Status:** fixed (2026-10-29, web `69f956e`), confirmed in run 14b. The fix is the same
+  `useSnapshotModal` hook as F-137 (keys `info_text`, `instructions_text`). Tests: `editor.test.jsx`
+  multi-key case, Playwright `protocol-manager.spec.ts` "cancelling the info page editor ..." and
+  "cancelling the instructions editor ..." (red before: the add button stayed hidden because the
+  cancelled text was kept).
+
 No new finding of major severity or above.
+
+## Follow-up: run 14b (2026-10-29, about 06:40)
+
+A short live check after deploying web commit `69f956e` (frontend only; the served bundle was
+`index-aZA6QrXk.js`, the same as the local build). Playwright, headless, 1440x900, EN, study 3,
+protocol 3. Nothing was saved. Scripts are in `scripts/run-14b/` and screenshots are `14b-*`.
+
+| Check | Result | Evidence |
+|---|---|---|
+| F-137: Add custom field, then Cancel | pass | No empty chip or red text afterwards, and Save stays disabled. `14b-1-4-after-cancel` |
+| F-137: toggle "required", then Esc, then reopen | pass | The original state is back. `14b-1-5` to `14b-1-8` |
+| F-139: info page, type text, then Cancel | pass | The row is unchanged, Save is disabled, and the dirty note is gone. `14b-2-info-*` |
+| F-139: instructions, type text, then Cancel | pass | "Add Instructions" is still shown and Save is disabled. `14b-2-instr-*` |
+| API: protocol 3 before and after | pass | `updated_at`, `version`, `info_text` and `instructions_text` are identical. |
+
+**Note, not a finding:** while a dialog is open, the page behind it already shows the draft (the
+empty chip and its validation text, "Unsaved changes", and an enabled Save). The dialogs still edit
+the live protocol and are reverted on Cancel, by design of this fix. Everything goes back on Cancel
+or Esc.
 
 ## Context updates
 

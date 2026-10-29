@@ -99,16 +99,16 @@ scope passed on the rerun in run 06.
 | Open by area | blocker | major | minor | cosmetic | question | Total |
 |---|---|---|---|---|---|---|
 | desktop-app | 0 | 0 | 0 | 14 | 7 | 21 |
-| web-ui | 0 | 0 | 1 | 17 | 7 | 25 |
+| web-ui | 0 | 0 | 0 | 17 | 7 | 24 |
 | integration | 0 | 0 | 0 | 0 | 4 | 4 |
 | server-api | 0 | 0 | 0 | 0 | 3 | 3 |
 | environment | 0 | 0 | 1 | 0 | 3 | 4 |
 | docs | 0 | 0 | 0 | 1 | 1 | 2 |
-| **Total** | 0 | 0 | 2 | 32 | 25 | **59** |
+| **Total** | 0 | 0 | 1 | 32 | 25 | **58** |
 
 Counts are open findings across both E2E runs after fix round 3 (web minors, 2026-10-29,
-[spec](fix-round-2026-10-29-web-spec.md)) and its re-test, run 14, including F-131. Open minors:
-F-137 (web, new in run 14) and one environment finding.
+[spec](fix-round-2026-10-29-web-spec.md)) and its re-test, run 14, including F-131. The only open minor is an environment
+finding; F-137 and F-139 were fixed and confirmed in run 14b.
 Fixed but not re-run yet: F-034, F-055, F-062, F-066, F-134, F-135, F-136. F-110 is deployed but its
 live check needs a partial-video upload. F-009 is confirmed in the served config; the desktop card was
 not re-checked. F-037 (accepted) and F-076 (by design) are closed.
@@ -133,6 +133,7 @@ Completed 2026-10-28. Reports are in `reports/2026-10-26-run-*`, scripts in `scr
 | 12 fix re-test | done 2026-10-28, passed with findings (F-130, F-131): F-123, F-124, F-125, F-126, F-093, F-091, F-118 confirmed fixed; new interruption session not covered (could not trigger a device loss) |
 | 13 fix re-test | done 2026-10-29, passed (F-133 cosmetic): F-104, F-106, F-122, F-129, F-132 confirmed; real interruption via Audiosrv stop: sampleOffset = event = part-1 frames |
 | 14 web re-test | done 2026-10-29, passed (F-137 minor, F-138 cosmetic): web fix round 3 confirmed live (F-009 config, F-067, F-068, F-069, F-073, F-074, F-079, F-086, F-087, F-096, F-097, F-111; F-006, F-035, F-036 redesign); F-110 not covered (needs a partial-video upload) |
+| 14b live check | done 2026-10-29, passed: F-137 and F-139 (web `69f956e`) confirmed; dialogs show the draft behind them while open (by design, reverted on Cancel) |
 | 10 summary and restore | done 2026-10-28 by the orchestrator: summary above, evidence and links checked, server records listed, test plan 1.2 |
 
 
@@ -381,5 +382,6 @@ run 09 (window sizes). Their status here stays as it was until the next run conf
 | [F-134](reports/2026-10-29-run-13-fix-retest/report.md#f-134-the-recording_resumed-event-carries-a-later-offset-than-the-cut) | minor | desktop-app | RECORDING_RESUMED event carries a later offset than the cut; crash recovery after a Resume shifted offsets | review of fix round 2 (2026-10-29) | fixed (2026-10-29), not yet re-run |
 | [F-135](reports/2026-10-29-run-13-fix-retest/report.md#f-135-a-wedged-capture-thread-from-an-old-episode-could-write-into-the-resumed-part) | minor | desktop-app | A wedged capture thread from an old episode could write into the resumed part | review of fix round 2 (2026-10-29) | fixed (2026-10-29), not yet re-run |
 | [F-136](reports/2026-10-29-run-13-fix-retest/report.md#f-136-consecutive-late-watchdog-ticks-could-hide-a-real-device-loss) | minor | desktop-app | Consecutive late watchdog ticks could hide a real device loss | review of fix round 2 (2026-10-29) | fixed (2026-10-29), not yet re-run |
-| [F-137](reports/2026-10-29-run-14-web-retest/report.md#f-14-1-cancelling-the-patient-field-editor-keeps-a-blank-custom-field) | minor | web-ui | Cancelling the patient-field editor keeps a blank custom field | run 14 (F-14-1) | open |
+| [F-137](reports/2026-10-29-run-14-web-retest/report.md#f-14-1-cancelling-the-patient-field-editor-keeps-a-blank-custom-field) | minor | web-ui | Cancelling the patient-field editor keeps a blank custom field | run 14 (F-14-1), run 14b (2026-10-29) | fixed (2026-10-29, web `69f956e`), confirmed in run 14b |
 | [F-138](reports/2026-10-29-run-14-web-retest/report.md#f-14-2-at-1024-px-the-sticky-table-header-does-not-stick-on-overflowing-tables) | cosmetic | web-ui | At 1024 px the sticky table header does not stick on overflowing tables | run 14 (F-14-2) | open |
+| [F-139](reports/2026-10-29-run-14-web-retest/report.md#f-139-cancelling-the-info-page-or-instructions-editor-keeps-the-typed-text) | minor | web-ui | Cancelling the info page or instructions editor keeps the typed text | fix of F-137 (engineer, 2026-10-29), run 14b (2026-10-29) | fixed (2026-10-29, web `69f956e`), confirmed in run 14b |

@@ -1,0 +1,26 @@
+"""F-137: New protocol -> Edit fields -> Add custom field -> Cancel; required toggle + Esc. Never saves."""
+from ui import *
+t=tok("master")
+s=Sess("master"); p=s.page
+s.go("/studies/3/protocols"); p.reload(); p.wait_for_timeout(1500)
+p.click('[data-testid=study-new-protocol]'); p.wait_for_timeout(500)
+p.fill('[data-testid=new-protocol-name]','run14b throwaway')
+p.click('[data-testid=new-protocol-create]'); p.wait_for_timeout(2500)
+def sett(): return p.inner_text('[data-testid=protocol-settings]').replace("\n"," | ")
+st=p.locator('[data-testid=protocol-settings]')
+p.locator('[data-testid=protocol-settings-toggle]').scroll_into_view_if_needed()
+print("SETTINGS 0:", sett()[:600])
+s.shot("14b-1-1-settings-before")
+p.click('[data-testid=edit-identifiers]'); p.wait_for_timeout(700)
+s.shot("14b-1-2-edit-fields")
+dlg=p.locator('[role=dialog], .ui-modal, [data-testid*=modal]').last
+print("DLG:", dlg.inner_text().replace("\n"," | ")[:800])
+print("dialog testids:", p.locator('[data-testid]').evaluate_all("e=>e.map(x=>x.dataset.testid).filter(x=>/ident|field|modal/i.test(x))"))
+p.get_by_text("Add custom field").first.click(); p.wait_for_timeout(700)
+s.shot("14b-1-3-custom-field-open")
+print("DLG after add:", dlg.inner_text().replace("\n"," | ")[:800])
+p.get_by_role("button",name="Cancel").last.click(); p.wait_for_timeout(700)
+s.shot("14b-1-4-after-cancel")
+print("DLG after cancel:", dlg.inner_text().replace("\n"," | ")[:800] if dlg.count() else "none")
+print("errors:", s.errors[:5])
+s.close()
