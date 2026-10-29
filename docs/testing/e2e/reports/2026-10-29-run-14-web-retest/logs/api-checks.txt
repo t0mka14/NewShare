@@ -1,0 +1,9 @@
+projects 200 [(6, 'E2E 1026 A2 throwaway study', 0, 0, False, None), (3, 'E2E 1026 Speech study', 2, 2, False, None), (4, 'E2E 1026 Video study', 1, 1, False, None), (1, 'Test Study 001', 2, 2, False, None), (2, 'Test Study 002', 1, 1, False, None)]
+protocols 3 200
+   3 E2E 1026 Speech protocol None v 2 upd 2026-10-26T17:23:40Z cr 2026-10-26T17:23:40Z desc None
+protocols 4 200
+   5 E2E 1026 Video protocol None v 1 upd 2026-10-26T17:24:17Z cr 2026-10-26T17:24:17Z desc None
+editor projects 200 [(6, 0, 0, False), (3, 2, 1, False)]
+site-config 200 17170 False
+top keys ['schemaVersion', 'configVersion', 'siteName', 'defaultLanguage', 'languages', 'defaultMicName', 'enableEditor', 'indicatorType', 'useCalibration', 'protocols', 'strings']
+F-086 400 b'{"error":"task_invalid","index":0}'

@@ -1,0 +1,26 @@
+languages ['cs', 'en'] protocols 2
+PROTOCOL {'name': 'E2E 1026 Speech protocol', 'version': 2, 'project': 'E2E 1026 Speech study', 'recordingsFileName': '${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}', 'patientFields': 'list', 'tasks': 'list'}
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'PHONATION', 'titleKey': 'p1_t1_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 2, 'length': 5, 'showIndicator': True, 'recordVideo': False, 'audioExamplePath': 'http://192.168.122.183:10001/audio/illustrations/phonation_a.wav'}
+    instructionKeys ['p1_t1_instr1', 'p1_t1_instr2']
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'PATAKA', 'titleKey': 'p1_t2_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 1, 'length': 5, 'showIndicator': True, 'recordVideo': False, 'audioExamplePath': 'http://192.168.122.183:10001/audio/illustrations/syllableRepeating_pataka.wav'}
+    instructionKeys ['p1_t2_instr1', 'p1_t2_instr2']
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'READING', 'titleKey': 'p1_t3_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 1, 'length': 150, 'showIndicator': False, 'recordVideo': False}
+    instructionKeys ['p1_t3_instr1', 'p1_t3_instr2', 'p1_t3_instr3']
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'MONOLOGUE', 'titleKey': 'p1_t4_title', 'canRepeat': True, 'canSkip': True, 'nrepetition': 1, 'length': 20, 'showIndicator': False, 'recordVideo': False}
+    instructionKeys ['p1_t4_instr1', 'p1_t4_instr2']
+ task None QUESTIONNAIRE {'type': 'QUESTIONNAIRE', 'titleKey': 'p1_t5_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 1, 'length': 300}
+PROTOCOL {'name': 'E2E 1026 Video protocol', 'version': 1, 'project': 'E2E 1026 Video study', 'recordingsFileName': '${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}', 'patientFields': 'list', 'tasks': 'list'}
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'PHONATION', 'titleKey': 'p2_t1_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 1, 'length': 5, 'showIndicator': True, 'recordVideo': True, 'audioExamplePath': 'http://192.168.122.183:10001/audio/illustrations/phonation_a.wav'}
+    instructionKeys ['p2_t1_instr1', 'p2_t1_instr2']
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'MONOLOGUE', 'titleKey': 'p2_t2_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 2, 'length': 15, 'showIndicator': False, 'recordVideo': True}
+    instructionKeys ['p2_t2_instr1', 'p2_t2_instr2']
+ task None VOCAL {'type': 'VOCAL', 'subtype': 'PATAKA', 'titleKey': 'p2_t3_title', 'canRepeat': True, 'canSkip': False, 'nrepetition': 1, 'length': 5, 'showIndicator': True, 'recordVideo': False, 'audioExamplePath': 'http://192.168.122.183:10001/audio/illustrations/syllableRepeating_pataka.wav'}
+    instructionKeys ['p2_t3_instr1', 'p2_t3_instr2']
+strings type dict ['cs', 'en']
+--- READING strings
+cs p1_t3_instr1 '<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Po' len 240
+cs p1_t3_instr2 '<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START ' len 186
+cs p1_t3_instr3 'Severní vítr a Slunce' len 21
+en p1_t3_instr1 '<bold>Now I will ask you to read a short passage of text. If' len 250
+en p1_t3_instr2 '<bold>Start now.</bold>\n\n<italic>Press the START button to b' len 179
+en p1_t3_instr3 'The North Wind and the Sun were disputing which was the stro' len 599
