@@ -112,6 +112,8 @@ class ProcessSessionUseCase(
 
             val examination = sessionRepository.readExamination(folderName)
                 ?: return fail(null, ProcessingError.MissingExamination(folderName))
+            // sessionId only (§11): the folder name embeds the patient code.
+            logger.info { "processing started (session ${examination.sessionId})" }
 
             val editedTimeline = if (timelineRepository.editedExists(folderName)) {
                 timelineRepository.readEdited(folderName)
@@ -348,6 +350,8 @@ class ProcessSessionUseCase(
             }
 
             onStep(Step.UPDATING_METADATA, 1.0f)
+            val clipCount = finalExamination.tasks.count { it.clipFile != null || it.videoFile != null }
+            logger.info { "processing done: $clipCount clips (session ${finalExamination.sessionId})" }
             Outcome.Success(finalExamination, archiveResult.zipFile)
         } catch (e: Exception) {
             val current = runCatching { sessionRepository.readExamination(folderName) }.getOrNull()

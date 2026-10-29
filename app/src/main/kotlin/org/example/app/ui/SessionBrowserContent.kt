@@ -23,9 +23,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.example.app.navigation.SessionBrowserComponent
+import org.example.app.domain.session.ProcessingStatus
 import org.example.app.domain.upload.UploadStatusValue
 import java.time.Instant
 import java.time.ZoneId
@@ -36,6 +38,23 @@ private val DATE_FORMAT = DateTimeFormatter.ofPattern("dd. MM. yyyy HH:mm")
 /** ISO instant → local `dd. MM. yyyy HH:mm`; falls back to the raw string if unparsable. */
 private fun formatDate(iso: String): String =
     runCatching { DATE_FORMAT.format(Instant.parse(iso).atZone(ZoneId.systemDefault())) }.getOrDefault(iso)
+
+/** Localization key for the processed line (EN one/other; CS one/few/other), as on the session summary. */
+internal fun sessionBrowserProcessedKey(clips: Int, language: String): String = when {
+    clips == 0 -> "sessionBrowser.result.processed"
+    clips == 1 -> "sessionBrowser.result.processed.one"
+    language == "cs" && clips in 2..4 -> "sessionBrowser.result.processed.few"
+    else -> "sessionBrowser.result.processed.other"
+}
+
+private fun resultText(message: SessionBrowserComponent.Message, localization: UiLocalization): AnnotatedString = when (message) {
+    is SessionBrowserComponent.Message.Processed ->
+        localization.resolve(
+            sessionBrowserProcessedKey(message.clips, localization.language),
+            mapOf("patient" to message.patientCode, "count" to message.clips.toString()),
+        )
+    SessionBrowserComponent.Message.NoChanges -> localization.resolve("sessionBrowser.result.noChanges")
+}
 
 /** §8.11 session browser — lists every recorded session with per-session actions. Draws on the
  * same visual language as the upload screen (bordered list, big action buttons, §13 decision 36). */
@@ -55,6 +74,15 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
                 localization.resolve("sessionBrowser.instructions"),
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        state.message?.let { message ->
+            Text(
+                resultText(message, localization),
+                modifier = Modifier.testTag(TestTags.SessionBrowser.RESULT_MESSAGE),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
 
@@ -78,7 +106,7 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
                                 Text("${row.patientCode} — ${formatDate(row.startedAt)}", style = MaterialTheme.typography.bodyLarge)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(
-                                        localization.resolve("sessionBrowser.processingStatus.${(row.processingStatus ?: org.example.app.domain.session.ProcessingStatus.NotProcessed).name}"),
+                                        localization.resolve("sessionBrowser.processingStatus.${(row.processingStatus ?: ProcessingStatus.NotProcessed).name}"),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                     row.uploadStatus?.let { status ->
@@ -101,11 +129,14 @@ fun SessionBrowserContent(component: SessionBrowserComponent, localization: UiLo
                                 ) {
                                     Text(localization.resolve("sessionBrowser.openEditorButton"))
                                 }
-                                Button(
-                                    onClick = { component.onReprocess(row.folderName) },
-                                    modifier = Modifier.testTag(TestTags.SessionBrowser.reprocessButton(row.sessionId)),
-                                ) {
-                                    Text(localization.resolve("sessionBrowser.reprocessButton"))
+                                if (row.canReprocess) {
+                                    Button(
+                                        onClick = { component.onReprocess(row.folderName) },
+                                        modifier = Modifier.testTag(TestTags.SessionBrowser.reprocessButton(row.sessionId)),
+                                    ) {
+                                        val key = if (row.processingStatus == ProcessingStatus.Failed) "sessionBrowser.retryProcessingButton" else "sessionBrowser.processButton"
+                                        Text(localization.resolve(key))
+                                    }
                                 }
                             }
                         }

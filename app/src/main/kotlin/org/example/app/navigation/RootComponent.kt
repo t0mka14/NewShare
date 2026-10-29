@@ -353,7 +353,13 @@ class DefaultRootComponent(
                     if (config.returnToBrowser) {
                         // F-066: an edit made from Sessions must reach examination.json and the
                         // ZIP, so reprocess; the Processing screen pops back to Sessions.
-                        if (needsReprocess) navigation.replaceCurrent(Config.Processing(folderName, returnToBrowser = true)) else navigation.pop()
+                        if (needsReprocess) {
+                            navigation.replaceCurrent(Config.Processing(folderName, returnToBrowser = true))
+                        } else {
+                            // F-104: say why Sessions looks unchanged.
+                            navigation.pop()
+                            sessionBrowser()?.showResult(SessionBrowserComponent.Message.NoChanges)
+                        }
                     } else {
                         navigation.replaceAll(Config.Processing(folderName, returnToBrowser = false))
                     }
@@ -373,13 +379,32 @@ class DefaultRootComponent(
                 processSessionUseCase = container.processSessionUseCase,
                 dispatchers = container.dispatchers,
                 onDone = { folderName ->
-                    if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.SessionSummary(folderName))
+                    if (config.returnToBrowser) {
+                        navigation.pop()
+                        sessionBrowser()?.showResult(processedMessage(folderName))
+                    } else {
+                        navigation.replaceAll(Config.SessionSummary(folderName))
+                    }
                 },
                 onBackClicked = {
                     if (config.returnToBrowser) navigation.pop() else navigation.replaceAll(Config.MainMenu)
                 },
             ),
         )
+
+    /** The Sessions component under Editor/Processing, if it is on the stack (a Decompose child instance lives as long as its entry). */
+    private fun sessionBrowser(): SessionBrowserComponent? =
+        stack.value.items.map { it.instance }.filterIsInstance<RootComponent.Child.SessionBrowser>().lastOrNull()?.component
+
+    /** F-104: patient code and clip count of the session just processed, read from disk like the post-session summary. */
+    private fun processedMessage(folderName: String): SessionBrowserComponent.Message.Processed {
+        val patientCode = container.sessionRepository.listSessions().firstOrNull { it.folderName == folderName }?.patientCode.orEmpty()
+        val clips = when (val result = DefaultSessionSummaryComponent(folderName, container.sessionRepository).result) {
+            is SessionSummaryComponent.Result.ProcessedClips -> result.count
+            SessionSummaryComponent.Result.ProcessedNoClips, SessionSummaryComponent.Result.NotProcessed -> 0
+        }
+        return SessionBrowserComponent.Message.Processed(patientCode, clips)
+    }
 
     private fun buildUploadChild(childContext: ComponentContext): RootComponent.Child =
         RootComponent.Child.Upload(

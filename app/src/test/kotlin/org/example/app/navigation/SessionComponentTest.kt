@@ -464,6 +464,35 @@ class SessionComponentTest {
         assertEquals("secondary", examination.interruptions.single().newDevice)
         assertEquals("session_master.part2.wav", examination.interruptions.single().partFile)
     }
+    @Test
+    fun `RECORDING_RESUMED carries the cut offset even though the new part is already being written`() {
+        val h = Harness()
+        val component = h.build(vocalProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        calibration.onConfirm()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        h.clock.advance(kotlin.time.Duration.parse("2s"))
+        h.recorder!!.simulateInterruption(InterruptionReason.DEVICE_LOST)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val cut = (h.recorder!!.state.value as org.example.app.domain.audio.RecorderState.Interrupted).atSample
+        assertTrue(cut > 0)
+
+        h.recorder!!.samplesWrittenDuringResume = 2_400
+        task.onDeviceReselected(FakeAudioInputDeviceProvider.SECONDARY_DEVICE)
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val folderName = h.sessionRepository.listSessionFolderNames().single()
+        val events = h.timelineRepository.readEventLog(folderName).events
+        assertEquals(cut, events.single { it.type == TimelineEventType.RECORDING_INTERRUPTED }.sampleOffset)
+        assertEquals(cut, events.single { it.type == TimelineEventType.RECORDING_RESUMED }.sampleOffset)
+        assertEquals(cut, h.sessionRepository.readExamination(folderName)!!.interruptions.single().sampleOffset)
+    }
+
     // region camera lifecycle
 
     /**

@@ -389,6 +389,31 @@ class ProcessSessionUseCaseTest {
     }
 
     @Test
+    fun `F-104 a run logs a start and a done line with the sessionId and clip count, never the folder name or patient code`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpSession(
+            captureFormat = format48k,
+            tasks = listOf(
+                TaskRecord(taskIndex = 0, type = "VOCAL", subtype = "PHONATION", repetition = 1, takes = 1),
+                TaskRecord(taskIndex = 1, type = "VOCAL", subtype = "PATAKA", repetition = 1, takes = 1),
+            ),
+        )
+        f.writeOriginal(
+            listOf(
+                event(TimelineEventType.START_BUTTON_PRESSED, 0, 1, 1, 0), event(TimelineEventType.STOP_BUTTON_PRESSED, 0, 1, 1, 1000),
+                event(TimelineEventType.START_BUTTON_PRESSED, 1, 1, 1, 2000), event(TimelineEventType.STOP_BUTTON_PRESSED, 1, 1, 1, 3000),
+            ),
+        )
+
+        val lines = org.example.app.infrastructure.logging.captureLogs { f.runProcess() }
+            .map { it.formattedMessage }
+
+        assertEquals(1, lines.count { it == "processing started (session s1)" }, "$lines")
+        assertEquals(1, lines.count { it == "processing done: 2 clips (session s1)" }, "$lines")
+        assertTrue(lines.none { f.folderName in it || "HC001" in it }, "$lines")
+    }
+
+    @Test
     fun `reprocessing resets NotUploaded-eligible status but leaves Uploaded terminal`(@TempDir tempDir: Path) {
         val f = Fixture(tempDir)
         f.setUpSession(captureFormat = null, tasks = emptyList())

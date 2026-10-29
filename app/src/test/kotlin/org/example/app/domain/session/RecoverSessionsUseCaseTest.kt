@@ -98,6 +98,38 @@ class RecoverSessionsUseCaseTest {
     }
 
     @Test
+    fun `crash after a resume bases the newest part on the cut recorded in the interruption, not on a drifted RESUMED event`() {
+        val sessionRepository = FakeSessionRepository()
+        val timelineRepository = FakeTimelineRepository()
+        sessionRepository.createSessionDirectory("s1")
+        sessionRepository.writeExamination(
+            "s1",
+            examination("s1").copy(
+                interruptions = listOf(
+                    Interruption(
+                        sampleOffset = 2_791_200,
+                        start = "2026-07-03T09:05:00Z",
+                        end = "2026-07-03T09:05:10Z",
+                        oldDevice = "old-mic",
+                        newDevice = "new-mic",
+                        partFile = "session_master.part2.wav",
+                        captureFormat = format,
+                    ),
+                ),
+            ),
+        )
+        timelineRepository.appendEvent("s1", event(TimelineEventType.RECORDING_INTERRUPTED, 2_791_200, taskIndex = null, take = null))
+        // Sessions recorded before the fix logged the live counter, already past the cut.
+        timelineRepository.appendEvent("s1", event(TimelineEventType.RECORDING_RESUMED, 2_793_600, taskIndex = null, take = null))
+        val partialFile = Paths.get("fake-sessions-root/s1/master/session_master.part2.partial.wav")
+        sessionRepository.seedPartialMasterFile("s1", partialFile, frameCount = 4_800L)
+
+        val outcome = newUseCase(sessionRepository, timelineRepository).recoverOne("s1") as RecoveryOutcome.Recovered
+
+        assertEquals(2_791_200L + 4_800L, outcome.lastWrittenSample)
+    }
+
+    @Test
     fun `a crashed part-2 partial file is reconstructed with the interruption's own format, not the session's top-level one`() {
         val sessionRepository = FakeSessionRepository()
         val timelineRepository = FakeTimelineRepository()

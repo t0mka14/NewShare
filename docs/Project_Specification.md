@@ -229,11 +229,13 @@ The recorder is the **single source of truth for audio time**. Requirements:
 - **Capture architecture:** a dedicated capture thread reads fixed-size chunks (≤ 100 ms of
   audio) from the `TargetDataLine` — `read()` blocks, so it must not run on a shared
   coroutine dispatcher thread. A watchdog coroutine monitors the last-successful-read
-  timestamp for starvation detection (§8.5). Line buffer + read chunk together stay
-  ≤ 200 ms.
+  timestamp for starvation detection (§8.5). Line buffer (500 ms) + read chunk together stay
+  ≤ ~600 ms.
 - **Offset skew:** `writtenSamples` counts samples handed to the file writer; audio at the
   instant of a button press may still be in the line/read buffer, so event offsets can lag
-  the physical press by up to the buffer duration (bounded by the ~200 ms above). Cutting is
+  the physical press: in steady state the capture thread keeps the queue near one chunk, so the
+  skew is normally ≤ one chunk (50 ms) and grows up to the buffer length (~600 ms above) only right
+  after a stall, which a smaller buffer would have turned into lost audio. Cutting is
   sample-exact with respect to recorded offsets; this bounded skew is accepted clinically.
 - **Format negotiation:** preferred format is PCM 48 kHz / 16-bit / mono. If the selected
   device does not support it, the recorder picks the nearest supported PCM format (higher
@@ -534,8 +536,9 @@ Both safeguards are mandatory (not alternatives):
 Decision: **continue with gap**, do not abort.
 
 - Detection (per the capture architecture, §5.3.1): (a) exceptions/closure reported by the
-  line; (b) the watchdog on the last-successful-read timestamp (> 1 s starvation while
-  `Writing`); (c) a secondary **silence heuristic** — on both target OSes a removed device
+  line; (b) the watchdog on the last-successful-read timestamp while `Writing` — device gone
+  or line closed: interruption once the read gap exceeds 1 s; stall with the device present:
+  only after 3 s (a late watchdog tick resets the baseline instead); (c) a secondary **silence heuristic** — on both target OSes a removed device
   can keep delivering zero-filled buffers, so sustained digital silence (> 5 s of all-zero
   samples while a take is open) raises a non-blocking "check microphone" warning rather
   than an interruption. Device hot-plug behavior on Windows and macOS must be verified with

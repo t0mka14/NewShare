@@ -41,19 +41,33 @@ class WavFileWriter private constructor(
         bytesWritten += length
     }
 
-    /** Rewrites the header in place to reflect [bytesWritten] so far (§8.4: every ~5 s). */
+    /**
+     * Rewrites the header in place to reflect [bytesWritten] so far (§8.4: every ~5 s). Deliberately no
+     * fsync: this runs on the capture thread, where a slow disk flush starves the line (F-122). The write
+     * reaches the OS page cache, which survives a killed process; only [finalizeAndRename] and
+     * [closeWithoutRename] force to disk.
+     */
     fun patchHeader() {
         check(!closed) { "writer already closed" }
         val header = WavHeader.build(format, bytesWritten)
         channel.position(0)
         channel.write(ByteBuffer.wrap(header))
+    }
+
+    /** Number of `force` calls issued by this writer so far (test seam: periodic patches must not sync). */
+    internal var syncCount: Int = 0
+        private set
+
+    private fun sync() {
         channel.force(true)
+        syncCount++
     }
 
     /** Final header patch + atomic rename `*.partial.wav` -> the target path (clean stop, §8.4). */
     fun finalizeAndRename(): Path {
         check(!closed) { "writer already closed" }
         patchHeader()
+        sync()
         channel.close()
         closed = true
         Files.move(
@@ -68,7 +82,7 @@ class WavFileWriter private constructor(
     fun closeWithoutRename() {
         if (closed) return
         try {
-            channel.force(true)
+            sync()
         } finally {
             channel.close()
             closed = true

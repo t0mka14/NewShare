@@ -108,7 +108,12 @@ class FakeContinuousSessionRecorder(
         lastAccountedInstant = clock.now()
         _captureFormat.value = negotiatedFormat
         _state.value = RecorderState.Writing
+        // The real recorder's capture thread is already writing the new part by the time resume() returns.
+        _writtenSamples.value += samplesWrittenDuringResume
     }
+
+    /** Frames the new part holds when `resume` returns; the default 0 keeps the counter at the cut. */
+    var samplesWrittenDuringResume: Long = 0L
 
     override suspend fun stop() {
         accrueSamples()

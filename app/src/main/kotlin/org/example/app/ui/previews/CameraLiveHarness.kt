@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.example.app.domain.DefaultCoroutineDispatchers
+import org.example.app.domain.localization.LocalizedStringProvider
 import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoRecorderState
@@ -44,6 +45,7 @@ import org.example.app.infrastructure.video.FfmpegSessionVideoRecorder
 import org.example.app.navigation.TaskComponent
 import org.example.app.navigation.TaskScreenState
 import org.example.app.navigation.VideoFeed
+import org.example.app.ui.UiLocalization
 import org.example.app.ui.VideoTaskBody
 import org.example.app.ui.theme.ShareTheme
 import java.nio.file.Files
@@ -241,6 +243,7 @@ private fun CameraLive() {
                     ptzAvailable = false,
                     zoom = remember { MutableStateFlow(null) },
                 ),
+                localization = remember { UiLocalization(LocalizedStringProvider(), "en", null) },
                 onPtz = {},
                 modifier = Modifier.fillMaxSize(),
             )

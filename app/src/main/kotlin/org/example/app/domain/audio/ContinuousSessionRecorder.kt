@@ -16,7 +16,8 @@ import java.nio.file.Path
  *   staging with a periodically patched valid header (§8.4); atomic rename on [stop].
  * - [stop] flushes, finalizes the WAV header, closes the line.
  * - Capture runs on a dedicated thread reading ≤100 ms chunks; line buffer + chunk
- *   stay ≤200 ms. A watchdog detects read starvation (§8.5).
+ *   stay ≤~600 ms (the buffer only absorbs capture-thread stalls; steady-state queue is
+ *   about one chunk). A watchdog detects read starvation (§8.5).
  */
 interface ContinuousSessionRecorder {
     val state: StateFlow<RecorderState>

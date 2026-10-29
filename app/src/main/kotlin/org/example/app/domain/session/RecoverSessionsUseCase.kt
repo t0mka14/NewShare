@@ -86,7 +86,11 @@ class RecoverSessionsUseCase(
                 val compacted = if (alreadyStopped) {
                     TimelineCompactor.compact(examination.sessionId, format?.sampleRate ?: 0, events)
                 } else {
-                    val baseOffset = events.lastOrNull { it.type == TimelineEventType.RECORDING_RESUMED }?.sampleOffset ?: 0L
+                    // The recorded cut is authoritative; RESUMED events of older sessions carry the live counter,
+                    // already past it. The event covers a crash between the RESUMED append and the examination write.
+                    val baseOffset = examination.interruptions.lastOrNull()?.sampleOffset
+                        ?: events.lastOrNull { it.type == TimelineEventType.RECORDING_RESUMED }?.sampleOffset
+                        ?: 0L
                     val tailFrames = latestFinalizedFrames
                         ?: format?.let { sessionRepository.latestFinalizedMasterPartFrames(folderName, it) }
                         ?: 0L

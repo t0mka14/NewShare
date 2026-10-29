@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -30,6 +32,10 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger {}
+
+/** [stateDescription] of the surface: whether a decoded frame is currently on it (test seam). */
+internal const val FRAME_SHOWN = "frame"
+internal const val FRAME_EMPTY = "empty"
 
 /**
  * Renders the live camera preview.
@@ -57,13 +63,19 @@ fun VideoSurface(
     decodeDispatcher: CoroutineDispatcher,
     modifier: Modifier = Modifier,
     testTag: String? = null,
+    /** False once the camera has failed: the last frame is dropped rather than left up as if live. */
+    active: Boolean = true,
 ) {
     val holder = remember { VideoFrameHolder() }
     val revision = remember { mutableIntStateOf(0) }
 
     DisposableEffect(holder) { onDispose { holder.close() } }
 
-    LaunchedEffect(frames, holder, decodeDispatcher) {
+    LaunchedEffect(frames, holder, decodeDispatcher, active) {
+        if (!active) {
+            if (holder.decode(null)) revision.intValue++
+            return@LaunchedEffect
+        }
         withContext(decodeDispatcher) {
             frames.collect { jpeg ->
                 if (holder.decode(jpeg)) revision.intValue++
@@ -72,7 +84,11 @@ fun VideoSurface(
     }
 
     Box(modifier = modifier) {
-        Canvas(Modifier.fillMaxSize().let { if (testTag != null) it.testTag(testTag) else it }) {
+        Canvas(
+            Modifier.fillMaxSize()
+                .semantics { stateDescription = if (revision.intValue >= 0 && holder.current != null) FRAME_SHOWN else FRAME_EMPTY }
+                .let { if (testTag != null) it.testTag(testTag) else it },
+        ) {
             revision.intValue // read so a new frame invalidates the draw phase
             holder.current?.let { drawPreserveAspect(it) }
         }

@@ -623,7 +623,9 @@ class DefaultSessionComponent(
         pendingInterruption = null
         currentDeviceId = device.id
 
-        logEvent(TimelineEventType.RECORDING_RESUMED, null, null, null)
+        // The cut, not the live counter: the new part is already being written, and INTERRUPTED/RESUMED
+        // carry one value (decision 20) which crash recovery reads as the base of the newest part.
+        logEvent(TimelineEventType.RECORDING_RESUMED, null, null, null, offset = pending.sampleOffset)
 
         val format = r.captureFormat.value ?: return
         val interruption = Interruption(
@@ -646,9 +648,15 @@ class DefaultSessionComponent(
         return sessionRepository.masterDir(folder).resolve("session_master.part$interruptionPartCounter.wav")
     }
 
-    private fun logEvent(type: TimelineEventType, taskIndex: Int?, repetition: Int?, take: Int?, reason: String? = null) {
+    private fun logEvent(
+        type: TimelineEventType,
+        taskIndex: Int?,
+        repetition: Int?,
+        take: Int?,
+        reason: String? = null,
+        offset: Long? = recorder?.writtenSamples?.value,
+    ) {
         val folder = folderName ?: return
-        val offset = recorder?.writtenSamples?.value
         timelineRepository.appendEvent(
             folder,
             TimelineEvent(

@@ -445,6 +445,7 @@ class RootComponentTest {
     private fun rootAtSessionEditor(
         container: AppContainer,
         priorEdit: org.example.app.domain.timeline.TimelineEdited?,
+        captureFormat: org.example.app.domain.audio.CaptureFormat? = org.example.app.domain.audio.CaptureFormat(sampleRate = 1000, bits = 16, channels = 1),
     ): Pair<RootComponent, EditorComponent> {
         container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)
         container.configurationRepository.loadCached()
@@ -458,7 +459,7 @@ class RootComponentTest {
                 protocolName = "Share",
                 configVersion = "v1",
                 startedAt = "2026-10-23T09:00:00Z",
-                captureFormat = org.example.app.domain.audio.CaptureFormat(sampleRate = 1000, bits = 16, channels = 1),
+                captureFormat = captureFormat,
             ),
         )
         container.timelineRepository.writeOriginal(
@@ -482,6 +483,9 @@ class RootComponentTest {
         editor.onAccept()
 
         assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+        // F-104: the examiner is told nothing was reprocessed instead of seeing an unchanged list.
+        val browser = (root.stack.value.active.instance as RootComponent.Child.SessionBrowser).component
+        assertEquals(SessionBrowserComponent.Message.NoChanges, browser.state.value.message)
     }
 
     @Test
@@ -500,6 +504,43 @@ class RootComponentTest {
         assertTrue(root.stack.value.backStack.none { it.instance is RootComponent.Child.Editor })
         (active as RootComponent.Child.Processing).component.onBack()
         assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+    }
+
+    @Test
+    fun `F-104 accepting a changed edit from Sessions shows the processed message on Sessions`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val prior = org.example.app.domain.timeline.TimelineEdited(sessionId = "s1", sampleRate = 1000, segments = emptyList())
+        val (root, editor) = rootAtSessionEditor(buildContainer(tempDir, dispatchers), priorEdit = prior, captureFormat = null)
+        dispatchers.scheduler.advanceUntilIdle()
+
+        editor.onAccept()
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.Processing)
+        dispatchers.scheduler.advanceUntilIdle()
+
+        val browser = (root.stack.value.active.instance as RootComponent.Child.SessionBrowser).component
+        assertEquals(SessionBrowserComponent.Message.Processed("P01", 0), browser.state.value.message)
+    }
+
+    @Test
+    fun `F-104 reprocess from Sessions returns to Sessions with the processed message and a Done row`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val container = buildContainer(tempDir, dispatchers)
+        val (root, editor) = rootAtSessionEditor(container, priorEdit = null, captureFormat = null)
+        dispatchers.scheduler.advanceUntilIdle()
+        editor.onAccept() // untouched -> back on Sessions
+        val browser = (root.stack.value.active.instance as RootComponent.Child.SessionBrowser).component
+        assertTrue(browser.state.value.rows.single().canReprocess)
+
+        browser.onReprocess("2026-10-23_P01_s1")
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.Processing)
+        dispatchers.scheduler.advanceUntilIdle()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.SessionBrowser)
+        assertEquals(SessionBrowserComponent.Message.Processed("P01", 0), browser.state.value.message)
+        browser.refresh() // the test root's lifecycle is never resumed, so the resume refresh does not run
+        val row = browser.state.value.rows.single()
+        assertEquals(org.example.app.domain.session.ProcessingStatus.Done, row.processingStatus)
+        assertTrue(!row.canReprocess)
     }
 
     @Test

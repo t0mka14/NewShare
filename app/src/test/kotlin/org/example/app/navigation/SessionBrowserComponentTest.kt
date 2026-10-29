@@ -144,4 +144,46 @@ class SessionBrowserComponentTest {
         component.onOpenEditor("folder-failed")
         assertEquals("folder-failed", h.openedEditorFor)
     }
+
+    @Test
+    fun `reprocess is offered only for failed, not-processed and stuck sessions, never for processed or uploaded ones (F-104)`() {
+        val h = Harness()
+        h.seed("f-failed", "s-failed", processing = ProcessingStatus.Failed)
+        h.seed("f-new", "s-new", processing = ProcessingStatus.NotProcessed)
+        h.seed("f-none", "s-none", processing = null)
+        h.seed("f-stuck", "s-stuck", processing = ProcessingStatus.Processing)
+        h.seed("f-done", "s-done", processing = ProcessingStatus.Done)
+        h.seed("f-up", "s-up", processing = ProcessingStatus.Failed)
+        h.uploadStatusRepository.write("f-up", UploadStatus(status = UploadStatusValue.Uploaded))
+
+        val can = h.build().state.value.rows.associate { it.sessionId to it.canReprocess }
+
+        assertEquals(
+            mapOf("s-failed" to true, "s-new" to true, "s-none" to true, "s-stuck" to true, "s-done" to false, "s-up" to false),
+            can,
+        )
+    }
+
+    @Test
+    fun `a result message is shown, survives the resume refresh and is gone after leaving and returning (F-104)`() {
+        val h = Harness()
+        h.seed("folder-a", "session-a", processing = ProcessingStatus.Done)
+        val lifecycle = LifecycleRegistry()
+        val component = h.build(lifecycle)
+        lifecycle.resume()
+        assertNull(component.state.value.message)
+
+        // Processing ran on top of the browser (paused); the root reports the result, then pops.
+        lifecycle.pause()
+        component.showResult(SessionBrowserComponent.Message.Processed("HC001", 3))
+        lifecycle.resume()
+        assertEquals(SessionBrowserComponent.Message.Processed("HC001", 3), component.state.value.message)
+        component.refresh()
+        assertEquals(SessionBrowserComponent.Message.Processed("HC001", 3), component.state.value.message)
+
+        // Leaving Sessions (upload screen, editor, ...) and coming back shows no stale message.
+        lifecycle.pause()
+        lifecycle.resume()
+        assertNull(component.state.value.message)
+    }
 }

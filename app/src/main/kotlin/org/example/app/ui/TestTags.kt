@@ -215,6 +215,8 @@ object TestTags {
     object SessionBrowser {
         const val BACK_BUTTON = "sessionBrowser.backButton"
         const val GO_TO_UPLOAD_BUTTON = "sessionBrowser.goToUploadButton"
+        /** The one result line after processing started from Sessions (F-104); absent when none. */
+        const val RESULT_MESSAGE = "sessionBrowser.resultMessage"
 
         fun sessionRow(sessionId: String) = "sessionBrowser.sessionRow.$sessionId"
         fun reprocessButton(sessionId: String) = "sessionBrowser.reprocessButton.$sessionId"
