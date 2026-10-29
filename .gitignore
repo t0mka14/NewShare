@@ -49,3 +49,7 @@ data/
 
 # E2E test run secrets (site tokens)
 docs/testing/e2e/reports/*-secrets.json
+
+# Python bytecode from the E2E scripts
+__pycache__/
+*.pyc
