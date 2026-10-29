@@ -252,6 +252,10 @@ compose.desktop {
         nativeDistributions {
             targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg, org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi, org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
             packageName = "ClinicalRecordingApp"
+            // The auto-detected jlink runtime missed modules ("Failed to launch JVM" on machines
+            // without a JDK). includeAllModules fails on JMOD-less JDKs (Temurin 25: jdk.jlink).
+            modules("java.instrument", "java.sql", "java.naming", "java.net.http", "java.prefs", "java.management",
+                "jdk.unsupported", "jdk.crypto.ec", "jdk.localedata", "jdk.zipfs", "jdk.httpserver")
             // Same source as app/version.json and the window title — see the root `appVersion`
             // property. Note this also feeds the uber jar's filename, which is why :packaging
             // resolves that jar through the task's archiveFile provider rather than by name.
