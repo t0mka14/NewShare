@@ -34,7 +34,8 @@ data class AppSettings(
      */
     val micGain: Int? = null,
     /**
-     * Calibration target band `[min, max]`, linear RMS normalized to full scale (0.0–1.0). A
+     * Calibration target band `[min, max]`, in peak-level units, normalized to full scale (0.0–1.0), as read by
+     * `ContinuousSessionRecorder.levels`. A
      * technician override edited in `settings.json` only — no UI; null (or malformed) uses
      * [DEFAULT_OPTIMAL_LOUDNESS]. See [loudnessRange].
      */

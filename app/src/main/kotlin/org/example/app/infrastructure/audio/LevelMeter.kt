@@ -2,16 +2,17 @@ package org.example.app.infrastructure.audio
 
 import org.example.app.domain.audio.CaptureFormat
 import kotlin.math.exp
-import kotlin.math.sqrt
 
 /**
- * Linear RMS level, normalized 0.0-1.0 full scale, smoothed over a ~300 ms
- * window (§5.3.1) — the *one* formula used in both Monitoring and Writing
- * modes. Pure PCM16 byte-buffer math; no line/thread dependency, so it is
- * unit-testable with synthesized buffers.
+ * Peak level, normalized 0.0-1.0 full scale, with instant attack and an exponential
+ * release over a ~300 ms window (§5.3.1) — the *one* formula used in both Monitoring and
+ * Writing modes. F-143: this used to be RMS, which for speech reads 2-3x below the peak an
+ * editor waveform shows, so the meters looked dead and the calibration band was unreachable.
+ * Pure PCM16 byte-buffer math; no line/thread dependency, so it is unit-testable with
+ * synthesized buffers.
  *
- * Stateful only in the smoothing accumulator: one instance per recorder
- * session (call [reset] between sessions/parts to avoid a stale carry-over).
+ * Stateful only in the release accumulator: one instance per recorder session (call
+ * [reset] between sessions/parts to avoid a stale carry-over).
  */
 class LevelMeter(private val windowMs: Double = DEFAULT_WINDOW_MS) {
     @Volatile
@@ -22,29 +23,33 @@ class LevelMeter(private val windowMs: Double = DEFAULT_WINDOW_MS) {
         currentLevel = 0f
     }
 
-    /** Computes the RMS of [length] bytes of PCM16 audio starting at [offset] in
-     * [buffer], folds it into the smoothed level, and returns the new smoothed value. */
+    /** Computes the peak of [length] bytes of PCM16 audio starting at [offset] in
+     * [buffer] and folds it into the level (instant attack, exponential release), and
+     * returns the new value. */
     fun process(buffer: ByteArray, offset: Int, length: Int, format: CaptureFormat): Float {
-        val rms = computeRms(buffer, offset, length, format)
-        val chunkMs = format.millisIn(length)
-        val alpha = smoothingAlpha(chunkMs, windowMs)
-        currentLevel = (currentLevel + alpha * (rms - currentLevel)).toFloat().coerceIn(0f, 1f)
+        val peak = computePeak(buffer, offset, length, format)
+        currentLevel = if (peak >= currentLevel) {
+            peak
+        } else {
+            val alpha = smoothingAlpha(format.millisIn(length), windowMs)
+            (currentLevel + alpha * (peak - currentLevel)).toFloat().coerceIn(0f, 1f)
+        }
         return currentLevel
     }
 
     companion object {
-        /** Meter window for the calibration bar and any threshold decision (§5.3.1). */
+        /** Release window of the calibration bar and any threshold decision (§5.3.1): how
+         * slowly the peak level falls back after loud audio. */
         const val DEFAULT_WINDOW_MS = 300.0
 
         /**
-         * Meter window behind `ContinuousSessionRecorder.fastLevels`, which drives both live
-         * task-screen indicators (§6.2) — **the knob to turn if they look too smeared or too
-         * twitchy.** Kept well below the capture chunk (`JvmContinuousSessionRecorder.CHUNK_MS`)
-         * so each value describes its own slice of audio: at 40 ms the previous value still
-         * contributes ~14%, which takes the edge off without blurring syllables together.
-         * `0.0` disables smoothing entirely and yields the plain per-chunk RMS (already an
-         * average over 80 ms of audio); raising it toward [DEFAULT_WINDOW_MS] progressively
-         * flattens both the WAVEFORM trace and the CIRCLE's swell.
+         * Release window behind `ContinuousSessionRecorder.fastLevels`, which drives both live
+         * task-screen indicators (§6.2) — **the knob to turn if they look too sticky or too
+         * twitchy.** Attack is always instant; the window only sets how fast the trace falls
+         * back after a loud chunk: at 40 ms with 50 ms chunks a drop keeps ~29% of the old
+         * level per chunk. `0.0` disables the release entirely and yields the plain per-chunk
+         * peak; raising it toward [DEFAULT_WINDOW_MS] makes both the WAVEFORM trace and the
+         * CIRCLE's swell linger longer after each peak.
          */
         const val FAST_WINDOW_MS = 40.0
 
@@ -56,25 +61,22 @@ class LevelMeter(private val windowMs: Double = DEFAULT_WINDOW_MS) {
             return (1.0 - exp(-chunkMs / windowMs)).coerceIn(0.0, 1.0)
         }
 
-        /** Un-smoothed linear RMS of one chunk of 16-bit PCM, normalized 0.0-1.0
-         * full scale. All channels are folded into a single RMS value. */
-        fun computeRms(buffer: ByteArray, offset: Int, length: Int, format: CaptureFormat): Float {
+        /** Un-smoothed peak of one chunk of 16-bit PCM: max |sample| normalized 0.0-1.0
+         * full scale. All channels are folded into a single value. */
+        fun computePeak(buffer: ByteArray, offset: Int, length: Int, format: CaptureFormat): Float {
             require(format.bits == 16) { "LevelMeter currently supports 16-bit PCM only, was ${format.bits}-bit" }
-            var sumSquares = 0.0
-            var sampleCount = 0
+            var peak = 0
             var i = offset
             val end = offset + length
             while (i + 1 < end) {
                 val lo = buffer[i].toInt() and 0xFF
                 val hi = buffer[i + 1].toInt() and 0xFF
                 val sample = ((hi shl 8) or lo).toShort().toInt()
-                val normalized = sample / 32768.0
-                sumSquares += normalized * normalized
-                sampleCount++
+                val magnitude = if (sample < 0) -sample else sample
+                if (magnitude > peak) peak = magnitude
                 i += 2
             }
-            if (sampleCount == 0) return 0f
-            return sqrt(sumSquares / sampleCount).toFloat().coerceIn(0f, 1f)
+            return (peak / 32768.0).toFloat().coerceIn(0f, 1f)
         }
 
         /** True when every byte in the given range is zero (device-loss silence

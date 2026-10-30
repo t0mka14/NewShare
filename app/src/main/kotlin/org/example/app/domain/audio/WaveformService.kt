@@ -5,7 +5,7 @@ import java.nio.file.Path
 /**
  * Downsampled min/max peak pairs for a WAV file's visible portion (§8.7). One
  * pair per bucket, signed and normalized to [-1.0, 1.0] full scale (unlike the
- * recorder's unsigned RMS [ContinuousSessionRecorder.levels] — a waveform
+ * recorder's unsigned peak level [ContinuousSessionRecorder.levels] — a waveform
  * needs the sign to draw the envelope above/below its center line).
  *
  * [min] and [max] each have exactly [bucketCount] entries, one per equal-width

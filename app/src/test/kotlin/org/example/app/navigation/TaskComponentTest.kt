@@ -488,4 +488,44 @@ class TaskComponentTest {
         h.component.onPlayExampleAudio()
         assertEquals(1, h.audioPlaybackService.playCalls.size) // no second call
     }
+
+    private fun vocal(h: Harness) = h.component.state.value.content as TaskComponent.Content.Vocal
+
+    @Test
+    fun `F-144 a burst of fast levels while capturing gives exactly one history point each, equal values included`() {
+        val h = Harness(vocalTask)
+        h.component.onStart()
+        val burst = listOf(0.3f, 0.3f, 0.3f, 0.5f, 0.5f, 0.1f, 0.1f, 0.1f)
+        burst.forEach { h.recorder!!.emitLevel(it) }
+
+        assertEquals(burst, vocal(h).levelHistory)
+    }
+
+    @Test
+    fun `F-144 levels emitted while not capturing are not added to the history`() {
+        val h = Harness(vocalTask)
+        h.recorder!!.emitLevel(0.9f) // Idle
+        assertEquals(emptyList<Float>(), vocal(h).levelHistory)
+
+        h.component.onStart()
+        h.recorder.emitLevel(0.4f)
+        h.component.onStop()
+        h.recorder.emitLevel(0.8f) // Stopped
+        assertEquals(listOf(0.4f), vocal(h).levelHistory)
+    }
+
+    @Test
+    fun `F-144 the history survives Stop and a new take clears it`() {
+        val h = Harness(vocalTask)
+        h.component.onStart()
+        h.recorder!!.emitLevel(0.2f)
+        h.recorder.emitLevel(0.6f)
+        h.component.onStop()
+        assertEquals(listOf(0.2f, 0.6f), vocal(h).levelHistory)
+
+        h.component.onRepeat()
+        assertEquals(emptyList<Float>(), vocal(h).levelHistory)
+        h.recorder.emitLevel(0.7f)
+        assertEquals(listOf(0.7f), vocal(h).levelHistory)
+    }
 }

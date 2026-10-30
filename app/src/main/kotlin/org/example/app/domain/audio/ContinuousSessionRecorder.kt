@@ -29,7 +29,8 @@ interface ContinuousSessionRecorder {
     val writtenSamples: StateFlow<Long>
 
     /**
-     * RMS level, linear, normalized 0.0–1.0 full scale, smoothed over ~300 ms.
+     * Peak level, linear, normalized 0.0–1.0 full scale, instant attack with a ~300 ms
+     * release (F-143: RMS read 2–3x below the waveform peak).
      * Emitted in both Monitoring and Writing states. One formula everywhere.
      *
      * This is the level a human reads off a meter: the calibration bar and its
@@ -38,15 +39,19 @@ interface ContinuousSessionRecorder {
     val levels: Flow<Float>
 
     /**
-     * The same RMS measurement with fast ballistics — one value per capture chunk,
-     * barely smoothed, so consecutive values describe distinct slices of audio rather
+     * The same peak measurement with fast ballistics — one value per capture chunk,
+     * barely released, so consecutive values describe distinct slices of audio rather
      * than overlapping averages.
      *
      * Feeds the live task-screen indicators (§6.2), which do their own smoothing or want
      * none: WAVEFORM plots a *history*, and the 300 ms window of [levels] applied to a
-     * trace sampled every 80 ms makes neighbouring points share most of their energy,
+     * trace sampled every 50 ms makes neighbouring points share most of their energy,
      * smearing the envelope the trace exists to show; CIRCLE animates the value through a
      * `spring`, which already smooths it.
+     *
+     * Every chunk's value is delivered — the flow is not conflated, so several chunks
+     * arriving back-to-back each reach a collector, and equal consecutive values are kept
+     * (F-144). A new collector first gets the latest value (replay of one).
      *
      * Never use this for a threshold decision — that is what [levels] is for.
      */

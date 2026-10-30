@@ -177,11 +177,17 @@ interface TaskComponent {
             /**
              * Live input level for the indicator (§6.2), from
              * [ContinuousSessionRecorder.fastLevels] — one value per capture chunk, barely
-             * smoothed. WAVEFORM plots it as a history and needs the detail; CIRCLE animates
+             * released (peak level). WAVEFORM plots it as a history and needs the detail; CIRCLE animates
              * it through a `spring`, which does its own smoothing, so neither wants the
              * meter-ballistics value the calibration bar reads.
              */
             val level: Float,
+            /**
+             * The take's level history for the WAVEFORM indicator (F-144): exactly one value per
+             * [ContinuousSessionRecorder.fastLevels] emission while the take was open. Kept after
+             * Stop, cleared when the next take starts. Immutable snapshot.
+             */
+            val levelHistory: List<Float> = emptyList(),
             val deviceLost: Boolean,
             /** `VocalTask.showIndicator` (§6.2) — carried directly so the UI never needs the
              * raw task definition (see the removed `RootComponent` re-expansion workaround). */
@@ -321,6 +327,8 @@ class DefaultTaskComponent(
     private var screenState: TaskScreenState = TaskScreenState.Idle
     private var currentTake = 0
     private var level = 0f
+    /** Per-take WAVEFORM history (F-144); appended only while `Capturing`, cleared by the next take. */
+    private var levelHistory: List<Float> = emptyList()
     private var deviceLost = false
     private var exampleAudioPlaying = false
     private var skipConfirmationOpen = false
@@ -342,6 +350,7 @@ class DefaultTaskComponent(
             scope.launch(dispatchers.main) {
                 recorder.fastLevels.collect { l ->
                     level = l
+                    if (screenState is TaskScreenState.Capturing) levelHistory = levelHistory + l.coerceIn(0f, 1f)
                     publish()
                 }
             }
@@ -408,6 +417,7 @@ class DefaultTaskComponent(
         if (videoCaptureUnavailable) return
         if (screenState !is TaskScreenState.Idle && screenState !is TaskScreenState.Failed) return
         currentTake += 1
+        levelHistory = emptyList()
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
         startVideoTake()
@@ -429,6 +439,7 @@ class DefaultTaskComponent(
         if (screenState !is TaskScreenState.Stopped) return
         eventLogger(TimelineEventType.TAKE_REJECTED, currentTake, REASON_EXAMINER_REPEAT)
         currentTake += 1
+        levelHistory = emptyList()
         eventLogger(TimelineEventType.START_BUTTON_PRESSED, currentTake, null)
         screenState = TaskScreenState.Capturing
         startVideoTake()
@@ -681,6 +692,7 @@ class DefaultTaskComponent(
                 screenState = screenState,
                 takeNumber = currentTake,
                 level = level,
+                levelHistory = levelHistory,
                 deviceLost = deviceLost,
                 showIndicator = task.showIndicator,
                 exampleAudioAvailable = resolvedAudioExamplePath != null,

@@ -135,7 +135,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                                     indicatorType = content.indicatorType,
                                     level = content.level,
                                     capturing = capturing,
-                                    takeKey = content.takeNumber,
+                                    history = content.levelHistory,
                                 )
                             }
                         }
@@ -146,7 +146,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                         indicatorType = content.indicatorType,
                         level = content.level,
                         capturing = capturing,
-                        takeKey = content.takeNumber,
+                        history = content.levelHistory,
                     )
                 }
 

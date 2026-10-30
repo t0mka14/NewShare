@@ -49,10 +49,10 @@ class FakeContinuousSessionRecorder(
     private val _writtenSamples = MutableStateFlow(0L)
     override val writtenSamples: StateFlow<Long> = _writtenSamples.asStateFlow()
 
-    private val _levels = MutableSharedFlow<Float>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _levels = MutableSharedFlow<Float>(replay = 1, extraBufferCapacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val levels: Flow<Float> = _levels.asSharedFlow()
 
-    private val _fastLevels = MutableSharedFlow<Float>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _fastLevels = MutableSharedFlow<Float>(replay = 1, extraBufferCapacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val fastLevels: Flow<Float> = _fastLevels.asSharedFlow()
 
     private val _captureFormat = MutableStateFlow<CaptureFormat?>(null)
@@ -143,7 +143,7 @@ class FakeContinuousSessionRecorder(
     // ---- test hooks ----
 
     /**
-     * Push one reading to [levels] **and** [fastLevels] subscribers (linear RMS, 0.0-1.0,
+     * Push one reading to [levels] **and** [fastLevels] subscribers (peak level, 0.0-1.0,
      * §5.3.1). The real recorder derives both from the same chunk and only differs in
      * smoothing, so a fake that fed just one of them would let a screen wired to the wrong
      * flow still pass its test. Use [emitLevels] when a test needs them to differ.

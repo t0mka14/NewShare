@@ -5,6 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,8 +62,11 @@ class JvmContinuousSessionRecorder(
     private val _levels = MutableStateFlow(0f)
     override val levels: Flow<Float> = _levels.asStateFlow()
 
-    private val _fastLevels = MutableStateFlow(0f)
-    override val fastLevels: Flow<Float> = _fastLevels.asStateFlow()
+    // F-144: a SharedFlow, not a StateFlow — every chunk's value reaches a collector even when the
+    // line delivers chunks in back-to-back bursts (a StateFlow conflates and drops equal values).
+    private val _fastLevels = MutableSharedFlow<Float>(replay = 1, extraBufferCapacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        .also { it.tryEmit(0f) }
+    override val fastLevels: Flow<Float> = _fastLevels
 
     private val _captureFormat = MutableStateFlow<CaptureFormat?>(null)
     override val captureFormat: StateFlow<CaptureFormat?> = _captureFormat.asStateFlow()
@@ -249,7 +254,7 @@ class JvmContinuousSessionRecorder(
     private fun processChunk(buffer: ByteArray, n: Int, format: CaptureFormat) {
         lastSuccessfulReadAtMillis.set(clock())
         _levels.value = levelMeter.process(buffer, 0, n, format)
-        _fastLevels.value = fastMeter.process(buffer, 0, n, format)
+        _fastLevels.tryEmit(fastMeter.process(buffer, 0, n, format))
         updateSilenceHeuristic(LevelMeter.isAllZero(buffer, 0, n), n, format)
 
         val writer = currentWriter
@@ -450,7 +455,7 @@ class JvmContinuousSessionRecorder(
         _writtenSamples.value = 0
         _captureFormat.value = null
         _levels.value = 0f
-        _fastLevels.value = 0f
+        _fastLevels.tryEmit(0f)
         levelMeter.reset()
         fastMeter.reset()
         silenceAccumMs = 0.0
