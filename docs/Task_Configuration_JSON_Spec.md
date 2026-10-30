@@ -59,7 +59,7 @@ The configuration fully describes:
 | `defaultMicName` | string | The microphone **model** the session records from when Settings has no saved device (a device saved in Settings wins), and the target of `defaultMicGain`. Give the device's product string as the sound panel shows it, e.g. `USB audio CODEC` — the same physical device is named `Microphone (USB audio CODEC)` on Windows, `USB audio CODEC` on macOS and `CODEC [plughw:3,0]` on Linux, so the value is matched case-insensitively as a substring of the device's name + description, which all three contain. It identifies a model, not a unit. Java on Windows cuts device names to 31 characters (JDK-7116070); a name cut through the model string still matches while at least half of it (and six characters) remain |
 | `defaultMicGain` | int | 0..100 input level (the Windows sound panel's units) set on the device matching `defaultMicName` right before it is opened for a session. Validated (a value outside 0..100 rejects the config). A level set on the Settings slider wins over this value. Omit to leave the OS level alone (§13 decision 44 of the project specification) |
 | `enableEditor` | boolean | Show waveform boundary editor after the protocol |
-| `indicatorType` | enum | `CIRCLE` (pulsating circle following RMS level) \| `WAVEFORM` (the take's amplitude envelope, growing over the take and kept after Stop) — live feedback on VOCAL task screens; a default the examiner can override in Settings |
+| `indicatorType` | enum | `CIRCLE` (pulsating circle following the peak level) \| `WAVEFORM` (the take's amplitude envelope, growing over the take and kept after Stop) — live feedback on VOCAL task screens; a default the examiner can override in Settings |
 | `useCalibration` | boolean | Show the calibration screen before the first task of every protocol that contains a `VOCAL` task (§4.3). Absent = `false` |
 
 All flags are real JSON booleans (`true`/`false`), never `0`/`1`.
@@ -241,8 +241,8 @@ the examiner confirms the observed level lies within the target band, and only t
 master recording begin. With `useCalibration: false` the recording starts right away.
 
 The target band `[min, max]` is **not** part of the config: it is the local app setting
-`optimalLoudness` in `settings.json`, default `[0.2, 0.5]`. Units: linear RMS normalized to
-full scale (0.0–1.0), smoothed over a ~300 ms window. The screen's text uses the built-in keys
+`optimalLoudness` in `settings.json`, default `[0.2, 0.5]`. Units: linear peak level normalized to
+full scale (0.0–1.0), instant attack with a ~300 ms release. The screen's text uses the built-in keys
 `calibration.title` and `calibration.instructions`, which a config's `strings` may override.
 
 ### 4.4 INFO

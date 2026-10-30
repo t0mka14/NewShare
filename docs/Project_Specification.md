@@ -217,11 +217,11 @@ The recorder is the **single source of truth for audio time**. Requirements:
 - `writtenSamples: StateFlow<Long>` — count of samples written to disk so far. **Every
   timeline event's offset is taken from this counter at event time** (§8.3); wall-clock time
   is stored as metadata only. Millisecond offsets, where needed, are derived from samples.
-- `levels: Flow<Float>` — RMS level (linear, normalized 0.0–1.0 full scale, smoothed over a
-  ~300 ms window; one formula, unlike the original) for calibration and any threshold
-  decision. There is no separate `AudioLevelMeter` interface; levels come from the recorder in
-  both monitoring and writing modes.
-- `fastLevels: Flow<Float>` — the same RMS measurement with fast ballistics (~40 ms window,
+- `levels: Flow<Float>` — peak level (linear sample peak, normalized 0.0–1.0 full scale,
+  instant attack, ~300 ms release; one formula, unlike the original; §13 decision 63) for
+  calibration and any threshold decision. There is no separate `AudioLevelMeter` interface;
+  levels come from the recorder in both monitoring and writing modes.
+- `fastLevels: Flow<Float>` — the same peak measurement with fast ballistics (~40 ms release,
   one value per capture chunk) for the live task-screen indicators, which shape the signal
   themselves (§13 decision 39).
 - `state: StateFlow<RecorderState>` — `Idle / Monitoring / Writing / Interrupted / Stopped /
@@ -347,16 +347,16 @@ Task types in scope: `VOCAL`, `QUESTIONNAIRE`, `INFO`, `VIDEO`.
 
 Calibration (not a task, §13 decision 47): when the config's `useCalibration` is true and the
 protocol contains at least one VOCAL task, the calibration screen precedes the first task. It
-shows live input level against the local `optimalLoudness` setting (linear RMS, 0.0–1.0 full
-scale, default `[0.2, 0.5]`) and must be confirmed before the master recording starts; without
+shows live input level against the local `optimalLoudness` setting (linear peak level, 0.0–1.0
+full scale, default `[0.2, 0.5]`) and must be confirmed before the master recording starts; without
 `useCalibration` the recording starts as soon as the session is set up. **Protocols with no VOCAL tasks (questionnaire/info-only) skip calibration and do not
 record a master WAV at all.**
 A microphone the examiner picks on the calibration screen is also saved as `AppSettings.micDeviceId` (write-through, same as Settings), so the next session and the Settings screen start on it; the automatic initial selection is never saved (F-062).
 
 `indicatorType` selects the live recording feedback on VOCAL task screens: `CIRCLE` — a
-pulsating circle whose radius/opacity follows the RMS level; `WAVEFORM` — the take's amplitude
+pulsating circle whose radius/opacity follows the peak level; `WAVEFORM` — the take's amplitude
 envelope drawn on a canvas, growing over the take and kept on screen after Stop (decision 61). The config value is a default: a choice made in Settings
-overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.levels`. A VOCAL
+overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.fastLevels` (decision 39). A VOCAL
 task with `recordVideo` also shows a small live camera preview: beside the indicator with
 `showIndicator`, alone without it (§13 decision 60).
 
@@ -1223,12 +1223,13 @@ Error taxonomy (normative, inlined from the old plan):
     triggers backup restore.
 
 39. **Two meter ballistics, one formula (2026-08-17):** the recorder exposes `levels`
-    (~300 ms window) and `fastLevels` (~40 ms, one value per capture chunk). Same RMS
-    computation, same `LevelMeter` class, only the smoothing window differs, so §5.3.1's "one
+    (~300 ms window) and `fastLevels` (~40 ms, one value per capture chunk). Same
+    computation (peak since decision 63, RMS before), same `LevelMeter` class, only the release
+    window differs, so §5.3.1's "one
     formula" property holds. Calibration and every threshold decision read `levels` — an
     in-range judgment needs a value that holds still while someone speaks. The CIRCLE and
     WAVEFORM task indicators read `fastLevels`: WAVEFORM plots a history, and a 300 ms window
-    sampled every 80 ms makes neighbouring points share most of their energy, smearing the
+    sampled every 50 ms makes neighbouring points share most of their energy, smearing the
     envelope; CIRCLE animates through a `spring`, which already smooths. The windows are the
     two constants in `LevelMeter` (`DEFAULT_WINDOW_MS`, `FAST_WINDOW_MS`).
 
@@ -1534,15 +1535,19 @@ Error taxonomy (normative, inlined from the old plan):
     every other VOCAL task.
 
 61. **The waveform indicator is one growing trace, kept after Stop (2026-10-12).** It replaces
-    the rolling ~3 s window. `TaskLevelIndicator` keeps the take's levels in one list (keyed by
-    take number, so Start/Again begins empty) and only an open take adds to it. The trace fills
-    the canvas left to right at the old spacing for the first 120 samples (~3 s), then
-    compresses to fit the whole take; Stop only stops adding, so the picture never rescales on
-    stop. With CIRCLE the circle shows during the take and the same trace replaces it after
+    the rolling ~3 s window. `TaskComponent` keeps the take's levels in one list (`levelHistory`,
+    emptied when a new take starts) and only an open take adds to it: one point per capture
+    chunk (~20/s), taken from `fastLevels`, which delivers every chunk's value without
+    conflation. The trace always spans the full width of the canvas, from its first point, and
+    compresses continuously as the take grows. Above one point per pixel column it shows the
+    maximum of each column. Stop only stops adding, so the picture does not rescale on stop
+    (F-144, 2026-10-31). Before F-144 the trace kept a fixed spacing for its first 120 points
+    and gained one point per recomposition. Once the 500 ms line buffer made Windows deliver
+    chunks in bursts, it got only ~8–10 points/s, and short takes left most of the box empty.
+    With CIRCLE the circle shows during the take and the same trace replaces it after
     Stop, standing in for the legacy post-take waveform. Before a take's first sample WAVEFORM
-    draws nothing. The trace is display state built from the levels the UI receives (one
-    sample per recomposition, as before), not a time-accurate take waveform — the editor's
-    waveform (§8.7) is that. Memory is ~30 floats/s per take, dropped with the next take.
+    draws nothing. The trace is display state, not a time-accurate take waveform — the editor's
+    waveform (§8.7) is that. Memory is ~20 floats/s per take, dropped with the next take.
     The canvas keeps the calibration bar's outline and adds a zero line plus ticks on its left
     edge every 0.2 of full scale up to 0.8, mirrored above and below (the outline marks 1.0).
 
@@ -1572,6 +1577,17 @@ Error taxonomy (normative, inlined from the old plan):
       previous one stays. The note shows in Settings until a later check-in is recorded. It is skipped
       while no site token is set.
     - The site token, like the installation ID, never reaches a log line (§11).
+
+63. **The level meters read peak level, not RMS (2026-10-30, F-143).** `LevelMeter` takes each
+    capture chunk's largest absolute sample (all channels, normalized 0.0–1.0 full scale) and
+    applies instant attack with an exponential release over the meter's window (300 ms for
+    `levels`, 40 ms for `fastLevels`). RMS read 2–3× below the waveform people see in the
+    editor or in Audacity, because speech and music have a crest factor of 2–3: the E2E loop
+    clip peaks at 0.5–0.7, yet the 300 ms RMS meter never went above 0.20, so the default
+    calibration band `[0.2, 0.5]` was nearly out of reach. On the peak meter the same clip has
+    a median of 0.36 and a p90 of 0.48. The default band stays `[0.2, 0.5]` (about −14 to
+    −6 dBFS peak, a sensible speech target). An `optimalLoudness` override already written to a
+    `settings.json` is now read on the peak scale.
 
 **Still open:**
 
