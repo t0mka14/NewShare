@@ -134,6 +134,10 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
                         ),
                     )
                     if (segment.subtype.isNotBlank()) append(" - ${segment.subtype}")
+                    // F-025: tell repetitions of one task apart; a one-repetition task needs no suffix.
+                    if (segment.repetitionCount > 1) {
+                        append(localization.resolve("editor.segmentRepetition", mapOf("r" to segment.repetition.toString())))
+                    }
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
@@ -197,6 +201,7 @@ private fun DiscardConfirmDialog(component: EditorComponent, localization: UiLoc
 /** Editor width cap, shared by the panel and the control row so both edges line up. */
 private val EDITOR_MAX_WIDTH = 1600.dp
 private val HANDLE_HIT_WIDTH = 24.dp
+private val MIN_GROUP_GAP = 8.dp
 private const val RULER_HEIGHT_DP = 26
 private const val WAVEFORM_MIN_HEIGHT_DP = 150
 
@@ -509,17 +514,40 @@ private fun EditorControls(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        Button(
-            onClick = onPrevious,
-            enabled = hasPrevious,
-            shape = MaterialTheme.shapes.large,
-            modifier = Modifier.testTag(TestTags.Editor.PREVIOUS_SEGMENT_BUTTON),
+        // F-130: two groups — navigation (Previous, Next) and segment actions (Play, Reset,
+        // Discard, Accept). Each group stays on one row; only whole groups wrap. The navigation
+        // group carries 8dp of end padding so the groups are never closer than that, while the
+        // actions group stays flush with the right edge.
+        Row(
+            modifier = Modifier.padding(end = MIN_GROUP_GAP).testTag(TestTags.Editor.NAVIGATION_GROUP),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            ButtonIcon(Icons.Filled.ChevronLeft)
-            ButtonLabel(localization.resolve("action.previous"))
+            Button(
+                onClick = onPrevious,
+                enabled = hasPrevious,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.testTag(TestTags.Editor.PREVIOUS_SEGMENT_BUTTON),
+            ) {
+                ButtonIcon(Icons.Filled.ChevronLeft)
+                ButtonLabel(localization.resolve("action.previous"))
+            }
+            Button(
+                onClick = onNext,
+                enabled = hasNext,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.testTag(TestTags.Editor.NEXT_SEGMENT_BUTTON),
+            ) {
+                ButtonLabel(localization.resolve("action.next"))
+                ButtonIcon(Icons.Filled.ChevronRight, trailing = true)
+            }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.testTag(TestTags.Editor.ACTIONS_GROUP),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Button(
                 onClick = onPlayToggle,
                 shape = MaterialTheme.shapes.large,
@@ -536,18 +564,6 @@ private fun EditorControls(
             ) {
                 ButtonIcon(Icons.Filled.Refresh)
                 ButtonLabel(localization.resolve("editor.reset"))
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Button(
-                onClick = onNext,
-                enabled = hasNext,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.testTag(TestTags.Editor.NEXT_SEGMENT_BUTTON),
-            ) {
-                ButtonLabel(localization.resolve("action.next"))
-                ButtonIcon(Icons.Filled.ChevronRight, trailing = true)
             }
             DiscardButton(localization, onDiscard)
             AcceptButton(localization, onAccept)
@@ -667,22 +683,25 @@ private fun EditorBoundaryHandle(xPx: Float, testTag: String, onDragToPixelX: (F
 private val HORIZONTAL_RESIZE_CURSOR = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR))
 
 /** `m:ss.t`, the resolution an examiner trims at — for positions on the recording's clock. */
-private fun formatSampleTime(sample: Long, sampleRate: Int): String {
+internal fun formatSampleTime(sample: Long, sampleRate: Int): String {
     if (sampleRate <= 0) return "–:––.–"
     return formatSeconds(sample.toDouble() / sampleRate)
 }
 
 /** Lengths are read as a count of seconds, not as a clock time (`7.4 s`, not `0:07.4`). */
-private fun formatSampleDuration(samples: Long, sampleRate: Int): String {
+internal fun formatSampleDuration(samples: Long, sampleRate: Int): String {
     if (sampleRate <= 0) return "– s"
-    val seconds = samples.toDouble() / sampleRate
-    if (seconds >= 60) return "${formatClock(seconds)} min"
-    val tenths = (seconds * 10).toLong().coerceAtLeast(0L)
+    val tenths = roundedTenths(samples.toDouble() / sampleRate)
+    // Rounded first, so 59.96 s carries into "1:00 min" rather than reading "60.0 s".
+    if (tenths >= 600) return "${formatClock(tenths / 10.0)} min"
     return "${tenths / 10}.${tenths % 10} s"
 }
 
-private fun formatSeconds(seconds: Double): String {
-    val totalTenths = (seconds * 10).toLong().coerceAtLeast(0L)
+/** Rounds to the displayed tenth (half up) instead of truncating: 62.887 s is 1:02.9, not 1:02.8. */
+private fun roundedTenths(seconds: Double): Long = Math.round(seconds * 10).coerceAtLeast(0L)
+
+internal fun formatSeconds(seconds: Double): String {
+    val totalTenths = roundedTenths(seconds)
     val minutes = totalTenths / 600
     val secs = (totalTenths / 10) % 60
     val tenths = totalTenths % 10

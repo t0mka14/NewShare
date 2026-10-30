@@ -739,6 +739,7 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
     { "taskIndex": 5, "type": "QUESTIONNAIRE", "repetition": 1,
       "questionnaireAnswers": { "question_key": ["answer"] } }
   ],
+  "hardware": { "events": [ { "at": "…", "device": "camera", "event": "unavailable_at_start", "detail": null } ] },
   "processing": { "status": "Done", "processedAt": "…", "timelineUsed": "edited" }
 }
 
@@ -753,6 +754,12 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
   "attempts": [ { "at": "…", "outcome": "…" } ], "attemptCount": 1 }
 
 ```
+
+`hardware.events[]` entries are `{ at, device, event, detail }` with `device` `microphone` or
+`camera`. Known `event` values: `interrupted` and `gain_changed` (microphone), `capture_failed`
+(camera, lost mid-take; the only one that affects `videoComplete`) and `unavailable_at_start`
+(camera; the protocol has video tasks but no camera was found when the session started, F-109).
+Events are history: written once per session, never removed, and kept when a camera is found later.
 
 ### 8.11 Session browser
 

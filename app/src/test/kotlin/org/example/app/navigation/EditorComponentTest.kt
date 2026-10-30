@@ -540,4 +540,43 @@ class EditorComponentTest {
 
         assertTrue(h.component.state.value.discardConfirmationOpen)
     }
+
+    @Test
+    fun `F-028 moving the start past the position line puts the line on the new start`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(100L, h.component.state.value.positionSample)
+
+        h.component.onDragStart(150L)
+
+        assertEquals(150L, h.component.state.value.segments[0].startSample)
+        assertEquals(150L, h.component.state.value.positionSample)
+    }
+
+    @Test
+    fun `F-028 moving the stop before the position line puts the line on the new stop`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onSeek(280L)
+        assertEquals(280L, h.component.state.value.positionSample)
+
+        h.component.onDragStop(200L)
+
+        assertEquals(200L, h.component.state.value.segments[0].stopSample)
+        assertEquals(200L, h.component.state.value.positionSample)
+    }
+
+    @Test
+    fun `F-028 a boundary move that leaves the position line inside the range keeps it, and a rejected drag changes nothing`() {
+        val h = Harness(folderName, format)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        h.component.onSeek(200L)
+
+        h.component.onDragStart(150L)
+        h.component.onDragStop(250L)
+        assertEquals(200L, h.component.state.value.positionSample)
+
+        h.component.onDragStart(260L) // rejected: start past stop
+        assertEquals(200L, h.component.state.value.positionSample)
+    }
 }

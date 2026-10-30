@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.example.app.domain.upload.UploadStatusValue
 import org.example.app.navigation.UploadComponent
 
 /**
@@ -64,7 +65,7 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
             if (state.rows.isEmpty() && !state.uploading) {
                 localization.resolve("upload.noSessions")
             } else {
-                localization.resolve("upload.readyCount", mapOf("count" to state.rows.size.toString()))
+                localization.resolve(uploadReadyCountKey(state.rows.size), mapOf("count" to state.rows.size.toString()))
             },
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.testTag(TestTags.Upload.READY_COUNT_TEXT),
@@ -130,7 +131,11 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
 
         LinearProgressIndicator(
             progress = { state.overallProgress },
-            color = MaterialTheme.colorScheme.secondary,
+            color = if (uploadHasFailure(state.rows)) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.secondary
+            },
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.contentWidth(1300.dp).testTag(TestTags.Upload.PROGRESS_BAR),
         )
@@ -165,3 +170,10 @@ fun UploadContent(component: UploadComponent, localization: UiLocalization) {
         }
     }
 }
+
+/** `upload.readyCount.one` for exactly one session, else the general form (Czech reads correctly for every count >= 2). */
+internal fun uploadReadyCountKey(count: Int): String =
+    if (count == 1) "upload.readyCount.one" else "upload.readyCount"
+
+/** A failed session stays listed (§8.9), so any failed row means the finished run did not go well. */
+internal fun uploadHasFailure(rows: List<UploadComponent.Row>): Boolean = rows.any { it.status == UploadStatusValue.Failed }

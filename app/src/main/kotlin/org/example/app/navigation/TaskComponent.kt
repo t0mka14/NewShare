@@ -131,7 +131,12 @@ data class VideoFeed(
 data class AnswerState(
     val selected: List<String> = emptyList(),
     val valid: Boolean = true,
-)
+    /** F-065: the examiner has changed this question; its error may now show. A fresh question is untouched. */
+    val touched: Boolean = false,
+) {
+    /** Whether the error is shown: invalid and (touched or a Next/Finish was attempted). */
+    fun showsError(submitAttempted: Boolean): Boolean = !valid && (touched || submitAttempted)
+}
 
 interface TaskComponent {
     val state: Value<State>
@@ -194,6 +199,8 @@ interface TaskComponent {
             val questions: List<Question>,
             val answers: Map<String, AnswerState>,
             val allValid: Boolean,
+            /** F-065: Next/Finish was pressed while answers were invalid, so every invalid question shows its error. */
+            val submitAttempted: Boolean = false,
         ) : Content
 
         data class Video(
@@ -318,6 +325,7 @@ class DefaultTaskComponent(
     private var exampleAudioPlaying = false
     private var skipConfirmationOpen = false
     private var answers: Map<String, AnswerState> = initialAnswers()
+    private var submitAttempted = false
     private var videoError: VideoError? = null
     private var videoReady = false
     /** VOCAL with `recordVideo` only: Start no longer waits for the camera. Never reset. */
@@ -479,7 +487,11 @@ class DefaultTaskComponent(
             }
 
             is QuestionnaireTask -> {
-                if (!allAnswersValid()) return
+                if (!allAnswersValid()) {
+                    submitAttempted = true // F-065: reveal every invalid question's error
+                    publish()
+                    return
+                }
                 eventLogger(TimelineEventType.TASK_COMPLETED, null, null)
                 onTaskFinished(
                     TaskRecord(
@@ -562,7 +574,7 @@ class DefaultTaskComponent(
     override fun onOpenAnswerChanged(questionKey: String, value: String) {
         val questionnaire = task as? QuestionnaireTask ?: return
         val question = questionnaire.questions.firstOrNull { it.questionKey == questionKey } ?: return
-        answers = answers + (questionKey to AnswerState(selected = listOf(value), valid = question.acceptsOpenAnswer(value)))
+        answers = answers + (questionKey to AnswerState(selected = listOf(value), valid = question.acceptsOpenAnswer(value), touched = true))
         publish()
     }
 
@@ -580,7 +592,7 @@ class DefaultTaskComponent(
             QuestionType.MULTIPLE_CHOICE -> true
             QuestionType.OPEN -> true
         }
-        answers = answers + (questionKey to AnswerState(selected = updated, valid = valid))
+        answers = answers + (questionKey to AnswerState(selected = updated, valid = valid, touched = true))
         publish()
     }
 
@@ -681,6 +693,7 @@ class DefaultTaskComponent(
                 questions = task.questions,
                 answers = answers,
                 allValid = allAnswersValid(),
+                submitAttempted = submitAttempted,
             )
 
             is VideoTask -> TaskComponent.Content.Video(
@@ -711,7 +724,9 @@ class DefaultTaskComponent(
                 startEnabled = false,
                 stopEnabled = false,
                 repeatEnabled = false,
-                nextEnabled = task !is QuestionnaireTask || allAnswersValid(),
+                // A questionnaire's Next stays pressable while answers are invalid: pressing it reveals
+                // every invalid question's error (F-065) instead of leaving a dead button.
+                nextEnabled = true,
                 skipEnabled = task.canSkip,
             )
         }

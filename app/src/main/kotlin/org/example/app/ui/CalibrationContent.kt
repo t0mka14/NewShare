@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
@@ -54,8 +56,10 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
     val state by component.state.subscribeAsState()
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // F-127: 90% of the window, but the column is capped (like Settings) so a full-screen window keeps it readable
+        Box(modifier = Modifier.fillMaxSize(0.9f), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.fillMaxSize(0.9f),
+            modifier = Modifier.fillMaxHeight().contentWidth(1100.dp).testTag(TestTags.Calibration.CONTENT),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -106,19 +110,20 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
             }
             //Spacer(Modifier.height(20.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),//.weight(1f),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                // F-127: the level meter sits next to the picture instead of at the far edge
+                horizontalArrangement = Arrangement.spacedBy(72.dp, Alignment.CenterHorizontally),
             ) {
                 Image(
                     painter = painterResource("drawable/mic_position_trans.png"),
                     contentDescription = "Microphone position",
-                    modifier = Modifier.fillMaxSize(0.5f),
+                    modifier = Modifier.fillMaxHeight(0.5f).testTag(TestTags.Calibration.MIC_IMAGE),
                 )
                 SoundLevelBar(
                     level = state.level,
                     minLoudness = state.minLoudness,
                     maxLoudness = state.maxLoudness,
-                    modifier = Modifier.fillMaxSize(0.5f).testTag(TestTags.Calibration.LEVEL_INDICATOR),
+                    modifier = Modifier.width(160.dp).fillMaxHeight(0.5f).testTag(TestTags.Calibration.LEVEL_INDICATOR),
                 )
             }
             Spacer(Modifier.height(20.dp))
@@ -151,6 +156,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                     Text(localization.resolve("calibration.continueButton"), style = actionButtonTextStyle())
                 }
             }
+        }
         }
 
         if (state.deviceLost) {

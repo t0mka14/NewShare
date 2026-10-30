@@ -90,8 +90,10 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         resetKey = vocal?.takeNumber ?: video?.takeNumber,
     )
 
+    // F-127: the content is capped at ~1100 dp (plus the 20 dp padding) and centred, like Settings
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(all = 20.dp),
+        modifier = Modifier.fillMaxHeight().contentWidth(1100.dp + 40.dp).testTag(TestTags.Task.CONTENT).padding(all = 20.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -115,7 +117,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         val indicatorHeight = if (vocal?.indicatorType == IndicatorType.WAVEFORM) 250.dp else 160.dp
         val middleModifier = if (vocal != null) {
             // Never squeezed, but no taller than needed: the indicator (the waveform is 250 tall) or the 150 preview
-            val minHeight = maxOf(if (vocal.showIndicator) indicatorHeight else 0.dp, if (vocal.video != null) 150.dp else 0.dp)
+            val minHeight = maxOf(if (vocal.showIndicator) indicatorHeight else 0.dp, if (vocal.video != null) 150.dp + CAMERA_MESSAGE_SLOT_NARROW else 0.dp)
             Modifier.fillMaxWidth().heightIn(min = minHeight)
         } else {
             Modifier.weight(1f).fillMaxWidth()
@@ -193,6 +195,7 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
 
         // Bottom line: hidden prev slot / state button / next-task button
         BottomButtonRow(component, state, localization)
+    }
     }
 
     if (vocal != null && vocal.deviceLost) {
@@ -621,6 +624,7 @@ private fun QuestionnaireBody(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(20.dp)) {
         questions.forEach { question ->
             val answer = content.answers[question.questionKey] ?: AnswerState()
+            val showError = answer.showsError(content.submitAttempted)
             Column {
                 Text(localization.resolve(question.questionTextKey), style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -629,7 +633,7 @@ private fun QuestionnaireBody(
                     QuestionType.OPEN -> OutlinedTextField(
                         value = answer.selected.firstOrNull().orEmpty(),
                         onValueChange = { onOpenAnswerChanged(question.questionKey, it) },
-                        isError = !answer.valid,
+                        isError = showError,
                         modifier = Modifier.fillMaxWidth().testTag(TestTags.Questionnaire.answerField(question.questionKey)),
                     )
 
@@ -661,7 +665,7 @@ private fun QuestionnaireBody(
                     }
                 }
 
-                if (!answer.valid) {
+                if (showError) {
                     Text(
                         localization.resolve("questionnaire.error.invalid"),
                         color = MaterialTheme.colorScheme.error,

@@ -71,6 +71,8 @@ object TestTags {
     object Calibration {
         const val CONFIRM_BUTTON = "calibration.confirmButton"
         const val LEVEL_INDICATOR = "calibration.levelIndicator"
+        const val MIC_IMAGE = "calibration.micImage"
+        const val CONTENT = "calibration.content"
         const val DEVICE_LOST_ERROR = "calibration.deviceLostError"
         const val DEVICE_SELECT = "calibration.deviceSelect"
         const val MIC_ERROR = "calibration.micError"
@@ -80,6 +82,7 @@ object TestTags {
 
     /** Task screen state machine (§8.6): Idle/Capturing/Stopped/Failed button set. */
     object Task {
+        const val CONTENT = "task.content"
         const val START_BUTTON = "task.startButton"
         const val STOP_BUTTON = "task.stopButton"
         const val REPEAT_BUTTON = "task.repeatButton"
@@ -165,6 +168,8 @@ object TestTags {
         const val STOP_BOUNDARY_HANDLE = "editor.stopBoundaryHandle"
         const val PLAY_SEGMENT_BUTTON = "editor.playSegmentButton"
         const val PREVIOUS_SEGMENT_BUTTON = "editor.previousSegmentButton"
+        const val NAVIGATION_GROUP = "editor.navigationGroup"
+        const val ACTIONS_GROUP = "editor.actionsGroup"
         const val NEXT_SEGMENT_BUTTON = "editor.nextSegmentButton"
         const val ACCEPT_BUTTON = "editor.acceptButton"
         const val SEGMENT_LABEL = "editor.segmentLabel"

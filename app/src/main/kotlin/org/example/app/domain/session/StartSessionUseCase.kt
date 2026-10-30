@@ -10,9 +10,12 @@ import org.example.app.domain.config.Protocol
 import org.example.app.domain.participant.PatientFieldCatalogue
 import org.example.app.domain.timeline.ProtocolExpansion
 import org.example.app.domain.timeline.TaskInstanceExpander
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 import java.time.LocalDate
 import java.time.ZoneId
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * §5.5 `StartSessionUseCase`: disk preflight, session directory creation, initial
@@ -101,6 +104,8 @@ class StartSessionUseCase(
             captureFormat = params.negotiatedFormat,
         )
         sessionRepository.writeExamination(folderName, examination)
+        // sessionId only (§11): the folder name embeds the patient code.
+        logger.info { "session created session=$sessionId tasks=${expansion.instances.size}" }
 
         val masterFile = params.negotiatedFormat?.let { sessionRepository.defaultMasterFile(folderName) }
 

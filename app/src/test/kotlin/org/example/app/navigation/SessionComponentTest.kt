@@ -951,4 +951,77 @@ class SessionComponentTest {
         assertFalse(detail.contains(folder), detail)
         assertFalse(detail.contains("HC001"), detail)
     }
+
+    private fun unavailableAtStart(h: Harness) = h.sessionRepository.readExamination(h.sessionRepository.listSessionFolderNames().single())!!
+        .hardware?.events.orEmpty().filter { it.device == "camera" && it.event == "unavailable_at_start" }
+
+    /** F-109: a protocol that films, started with no camera, says so in the archive - once. */
+    @Test
+    fun `F-109 video protocol without a camera records one unavailable_at_start event`() {
+        val h = Harness(withCamera = false)
+        val component = h.build(vocalThenVideoProtocol, useCalibration = false)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        task.onStart()
+        task.onStop()
+        task.onNext()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        val events = unavailableAtStart(h)
+        assertEquals(1, events.size, "$events")
+        assertEquals("2026-07-03T09:00:00Z", events.single().at)
+        assertNull(events.single().detail)
+    }
+
+    @Test
+    fun `F-109 no unavailable_at_start event when a camera is found or the protocol has no video`() {
+        val withCamera = Harness(withCamera = true)
+        withCamera.build(vocalThenVideoProtocol, useCalibration = false)
+        withCamera.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(unavailableAtStart(withCamera).isEmpty())
+
+        val audioOnly = Harness(withCamera = false)
+        audioOnly.build(vocalProtocol, useCalibration = false)
+        audioOnly.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(unavailableAtStart(audioOnly).isEmpty())
+    }
+
+    /** F-095: the app log follows the session by id only; the patient code never appears. */
+    @Test
+    fun `F-095 app log records session lifecycle lines with the session id and no patient code`() {
+        val h = Harness()
+        val lines = org.example.app.infrastructure.logging.captureLogs {
+            val component = h.build(
+                Protocol(
+                    name = "LogFlow",
+                    recordingsFileName = "\${field.patient_code}_\${taskIndex}.wav",
+                    tasks = listOf(
+                        VocalTask(titleKey = "vocal", subtype = VocalSubtype.PHONATION),
+                        QuestionnaireTask(titleKey = "q", canSkip = true),
+                    ),
+                ),
+                useCalibration = false,
+            )
+            h.dispatchers.scheduler.advanceUntilIdle()
+            var task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+            task.onStart()
+            task.onStop()
+            task.onNext()
+            h.dispatchers.scheduler.advanceUntilIdle()
+            task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+            task.onSkip()
+            h.dispatchers.scheduler.advanceUntilIdle()
+        }.filter { it.level == ch.qos.logback.classic.Level.INFO }.map { it.formattedMessage }
+
+        val folder = h.sessionRepository.listSessionFolderNames().single()
+        val id = h.sessionRepository.readExamination(folder)!!.sessionId
+        fun has(prefix: String) = lines.any { it.startsWith(prefix) && "session=$id" in it }
+        assertTrue(has("session created"), "$lines")
+        assertTrue(has("take started") && lines.any { "task=1/2 VocalTask rep=1 take=1" in it }, "$lines")
+        assertTrue(has("take stopped"), "$lines")
+        assertTrue(has("task skipped") && lines.any { "task=2/2 QuestionnaireTask" in it }, "$lines")
+        assertTrue(has("session finished"), "$lines")
+        val session = lines.filter { "session=" in it }
+        assertTrue(session.none { "HC001" in it || folder in it }, "$session")
+    }
 }

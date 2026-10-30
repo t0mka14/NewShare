@@ -346,3 +346,11 @@ private val FlagResources = mapOf(
     "cs" to "drawable/flags/czech.png",
     "en" to "drawable/flags/english.png",
 )
+
+/** Endonym of a language code (shown in Settings); an unknown code is shown as itself. */
+internal fun languageDisplayName(code: String): String = LanguageNames[code] ?: code
+
+private val LanguageNames = mapOf(
+    "cs" to "Čeština",
+    "en" to "English",
+)

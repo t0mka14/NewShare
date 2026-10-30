@@ -161,7 +161,7 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
             RadioSelector(
                 selected = state.selectedLanguage,
                 items = state.availableLanguages,
-                itemLabel = { it },
+                itemLabel = ::languageDisplayName,
                 itemTag = { TestTags.Settings.languageOption(it) },
                 onSelected = component::onLanguageSelected,
                 modifier = Modifier.testTag(TestTags.Settings.LANGUAGE_SELECT),

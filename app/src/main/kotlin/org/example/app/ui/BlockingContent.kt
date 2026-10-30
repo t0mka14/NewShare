@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.example.app.domain.config.ConfigError
 import org.example.app.domain.config.messageKey
@@ -37,6 +38,7 @@ fun BlockingConfigurationRequiredContent(
             Text(
                 localization.resolve(error?.messageKey() ?: "error.config.required"),
                 style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.contentWidth(1300.dp).testTag(TestTags.Blocking.CONFIGURATION_REQUIRED_MESSAGE),
             )
             Spacer(modifier = Modifier.height(32.dp))

@@ -16,6 +16,7 @@ import org.example.app.domain.session.MasterPart
 import org.example.app.domain.session.MasterPartMap
 import org.example.app.domain.session.ProcessingStatus
 import org.example.app.domain.session.SessionRepository
+import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.session.TimelineSource
 import org.example.app.domain.timeline.TakeSelector
 import org.example.app.domain.timeline.TimelineEditedSegment
@@ -93,6 +94,9 @@ interface EditorComponent {
          * take's own); what Reset and Discard go back to. */
         val openedStartSample: Long = startSample,
         val openedStopSample: Long = stopSample,
+        /** F-025: how many repetitions the task this segment belongs to has (1 = no repetition
+         * text in the label). [repetition] is the one-based repetition within that task. */
+        val repetitionCount: Int = 1,
     ) {
         val moved: Boolean get() = startSample != initialStartSample || stopSample != initialStopSample
 
@@ -199,6 +203,7 @@ class DefaultEditorComponent(
         val editedByKey = timelineRepository.readEdited(folderName)?.segments.orEmpty()
             .associateBy { it.taskIndex to it.repetition }
 
+        val repetitionCounts = repetitionCounts(examination.tasks)
         val vocalRecords = examination.tasks.filter { it.type == "VOCAL" && !it.skipped }
         val result = mutableListOf<Loaded>()
         for (record in vocalRecords) {
@@ -224,6 +229,7 @@ class DefaultEditorComponent(
                     fileTotalSamples = fileTotal,
                     openedStartSample = edited?.first ?: localRange.first,
                     openedStopSample = edited?.second ?: (localRange.last + 1),
+                    repetitionCount = repetitionCounts[record.taskIndex] ?: 1,
                 ),
                 part = part,
             )
@@ -237,6 +243,30 @@ class DefaultEditorComponent(
             sampleRate = sampleRate,
         )
         refreshVisibleWindow()
+    }
+
+    /**
+     * F-025: taskIndex → repetition count of its task. The expanded instance list keeps the
+     * repetitions of one task contiguous with the same type/subtype and repetition 1, 2, ...; a
+     * run is closed when the repetition does not continue the count. Skipped instances still
+     * count, so "repetition 2" stays "repetition 2" when repetition 1 was skipped.
+     */
+    private fun repetitionCounts(tasks: List<TaskRecord>): Map<Int, Int> {
+        val result = mutableMapOf<Int, Int>()
+        var run = mutableListOf<TaskRecord>()
+        fun close() {
+            run.forEach { result[it.taskIndex] = run.size }
+            run = mutableListOf()
+        }
+        for (task in tasks) {
+            val last = run.lastOrNull()
+            val continues = last != null && last.type == task.type && last.subtype == task.subtype &&
+                task.repetition == last.repetition + 1
+            if (!continues) close()
+            run += task
+        }
+        close()
+        return result
     }
 
     private fun globalTotalSamples(events: List<TimelineEvent>, parts: List<MasterPart>): Long {
@@ -298,7 +328,12 @@ class DefaultEditorComponent(
         // fixed for the duration of one segment view (§8.7 — it is a *display* context window,
         // not a boundary), so the pixel<->sample mapping stays stable while the examiner drags,
         // instead of shifting under their pointer as the boundary approaches its edge.
-        _state.value = _state.value.copy(segments = loaded.map { it.segment })
+        // F-028: keep the position line inside the (possibly shrunk) range. A line left at the
+        // new stop is the same "parked at the end" state onPlayToggle already treats as "replay
+        // the whole segment", so clamping to the stop (not jumping to the start) changes nothing
+        // about what Play does, and the line stays at the nearest edge instead of teleporting.
+        val position = _state.value.positionSample?.coerceIn(candidate.startSample, candidate.stopSample)
+        _state.value = _state.value.copy(segments = loaded.map { it.segment }, positionSample = position)
     }
 
     private fun toEditedSegment(segment: EditorComponent.Segment): TimelineEditedSegment =

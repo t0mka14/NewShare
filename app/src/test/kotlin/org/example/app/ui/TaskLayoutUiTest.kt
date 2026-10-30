@@ -72,7 +72,7 @@ class TaskLayoutUiTest {
         recordVideo = recordVideo,
     )
 
-    private fun checkMiddleArea(width: Int, height: Int) = runDesktopComposeUiTest(width, height) {
+    private fun checkMiddleArea(width: Int, height: Int, minInstructions: Int = 110) = runDesktopComposeUiTest(width, height) {
         setContent { TaskContent(component(phonation(recordVideo = true)), localization) }
         waitForIdle()
 
@@ -84,7 +84,7 @@ class TaskLayoutUiTest {
         onNodeWithTag(TestTags.Task.START_BUTTON).assertIsDisplayed()
         onNodeWithTag(TestTags.Task.NEXT_BUTTON).assertIsDisplayed()
         val instructions = onNodeWithTag(TestTags.Task.INSTRUCTIONS).getUnclippedBoundsInRoot()
-        assertTrue(instructions.height >= 110.dp, "instructions at ${width}x$height were $instructions")
+        assertTrue(instructions.height >= minInstructions.dp, "instructions at ${width}x$height were $instructions")
     }
 
     @Test
@@ -94,7 +94,8 @@ class TaskLayoutUiTest {
     fun `a filming phonation task keeps its preview and indicator at 800x600`() = checkMiddleArea(800, 600)
 
     @Test
-    fun `a filming phonation task keeps its preview and indicator in the 784x561 content of an 800x600 window`() = checkMiddleArea(784, 561)
+    fun `a filming phonation task keeps its preview and indicator in the 784x561 content of an 800x600 window`() = // Below the 944x681 minimum window; F-133 reserves the camera-message line, which costs the cards ~38 dp here
+    checkMiddleArea(784, 561, minInstructions = 90)
 
     @Test
     fun `the instruction cards scroll instead of squeezing the middle area when the window is short`() =

@@ -105,7 +105,7 @@ class BatchUploadScenarioTest {
             .assertIsDisplayed()
             .assertTextEquals("Odeslání selhalo: server není dostupný. Sezení zůstává uloženo a lze je odeslat později - zkuste to znovu tlačítkem Odeslat")
         onNodeWithTag(TestTags.Upload.sessionRow(succeedingSessionId)).assertDoesNotExist()
-        onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("Sezení připravená k odeslání: 1")
+        onNodeWithTag(TestTags.Upload.READY_COUNT_TEXT).assertTextEquals("Sezení připravené k odeslání: 1")
 
         // ---- both upload_status.json files are correct (§8.10) ----
         val failingFolder = folderNames[sessionIds.indexOf(failingSessionId)]

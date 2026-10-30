@@ -246,7 +246,12 @@ class DefaultSessionComponent(
             initialVideoDevice = cameras.firstOrNull { it.id == savedCameraDeviceId }
                 ?: cameras.firstOrNull { it.eligible }
                 ?: cameras.firstOrNull()
-            if (initialVideoDevice == null) logger.warn { "protocol wants video but no camera was found" }
+            if (initialVideoDevice == null) {
+                logger.warn { "protocol wants video but no camera was found" }
+                // F-109: the archive must say the camera was missing. bootstrap runs once per session,
+                // so this is recorded once; [updateHardware] flushes it when the examination exists.
+                addHardwareEvent("camera", "unavailable_at_start")
+            }
         }
 
         // The recorder *object* is created here so the flows handed to task components are
@@ -590,6 +595,7 @@ class DefaultSessionComponent(
         exam = (examination ?: exam).copy(endedAt = clock.now().toString()) // re-read: hardware events may have landed
         examination = exam
         sessionRepository.writeExamination(folder, exam)
+        logger.info { "session finished session=${exam.sessionId} tasks=${exam.tasks.size}" }
 
         val parseResult = timelineRepository.readEventLog(folder)
         val sampleRate = exam.captureFormat?.sampleRate ?: 0
@@ -657,6 +663,7 @@ class DefaultSessionComponent(
         offset: Long? = recorder?.writtenSamples?.value,
     ) {
         val folder = folderName ?: return
+        logTakeLifecycle(type, taskIndex, repetition, take)
         timelineRepository.appendEvent(
             folder,
             TimelineEvent(
@@ -669,6 +676,24 @@ class DefaultSessionComponent(
                 reason = reason,
             ),
         )
+    }
+
+    /**
+     * F-095: the app log follows the session. Session ID and task position/type only — never the
+     * patient code, a participant field or a path (F-059/F-060).
+     */
+    private fun logTakeLifecycle(type: TimelineEventType, taskIndex: Int?, repetition: Int?, take: Int?) {
+        val what = when (type) {
+            TimelineEventType.START_BUTTON_PRESSED -> "take started"
+            TimelineEventType.STOP_BUTTON_PRESSED -> "take stopped"
+            TimelineEventType.TAKE_REJECTED -> "take rejected"
+            TimelineEventType.TASK_SKIPPED -> "task skipped"
+            else -> return
+        }
+        val taskType = navigableInstances.firstOrNull { it.taskIndex == taskIndex }?.task?.let { it::class.simpleName }
+        val position = taskIndex?.let { "${it + 1}/${navigableInstances.size}" }
+        val takePart = take?.let { " take=$it" } ?: ""
+        logger.info { "$what session=${examination?.sessionId} task=$position $taskType rep=$repetition$takePart" }
     }
 
     private companion object {

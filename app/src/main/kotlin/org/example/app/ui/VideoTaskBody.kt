@@ -71,6 +71,10 @@ fun VideoTaskBody(
     }
 }
 
+/** Height reserved under the picture for the camera message: two lines in the narrow preview, one line in the wide one. */
+internal val CAMERA_MESSAGE_SLOT_NARROW = 48.dp
+internal val CAMERA_MESSAGE_SLOT = 32.dp
+
 /**
  * The live camera preview of any filming task: a black frame with the picture, and below it a
  * line saying why there is none. A VOCAL task with `recordVideo` shows this beside its level
@@ -107,26 +111,33 @@ fun VideoPreview(feed: VideoFeed, localization: UiLocalization, modifier: Modifi
             }
         }
 
-        val error = feed.error
-        when {
-            // VOCAL task: the take goes on without video; one line says so (error + audioOnly coincide).
-            feed.audioOnly && (error != null || !feed.ready) -> Text(
-                text = localization.resolvePlain(
-                    if (error is VideoError.CaptureInterrupted) "task.video.cameraLost" else "task.video.audioOnly",
-                ),
-                color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_AUDIO_ONLY),
-            )
+        // F-133: the line for the camera message is always reserved, so its appearance (or the
+        // message wrapping to two lines in the narrow 200 dp preview) moves nothing else.
+        Box(
+            modifier = Modifier.fillMaxWidth().height(if (pictureHeight != null) CAMERA_MESSAGE_SLOT_NARROW else CAMERA_MESSAGE_SLOT),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            val error = feed.error
+            when {
+                // VOCAL task: the take goes on without video; one line says so (error + audioOnly coincide).
+                feed.audioOnly && (error != null || !feed.ready) -> Text(
+                    text = localization.resolvePlain(
+                        if (error is VideoError.CaptureInterrupted) "task.video.cameraLost" else "task.video.audioOnly",
+                    ),
+                    color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_AUDIO_ONLY),
+                )
 
-            error != null -> Text(
-                text = localization.resolvePlain(error.messageKey()),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_ERROR),
-            )
+                error != null -> Text(
+                    text = localization.resolvePlain(error.messageKey()),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_ERROR),
+                )
+            }
         }
     }
 }

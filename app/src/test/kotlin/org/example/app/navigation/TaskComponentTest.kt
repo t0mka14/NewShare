@@ -334,20 +334,27 @@ class TaskComponentTest {
     )
 
     @Test
-    fun `questionnaire next is blocked until required answers are valid`() {
+    fun `questionnaire next stays pressable but only finishes once required answers are valid`() {
         val h = Harness(questionnaireTask, withRecorder = false)
 
-        assertFalse(h.component.state.value.buttons.nextEnabled)
+        assertTrue(h.component.state.value.buttons.nextEnabled)
+        assertFalse((h.component.state.value.content as TaskComponent.Content.Questionnaire).allValid)
+
+        h.component.onNext() // invalid: reveals errors, does not finish
+        assertEquals(0, h.finished.size)
+        assertTrue((h.component.state.value.content as TaskComponent.Content.Questionnaire).submitAttempted)
 
         h.component.onOpenAnswerChanged("age", "not a number")
-        assertFalse(h.component.state.value.buttons.nextEnabled)
+        h.component.onNext()
+        assertEquals(0, h.finished.size)
 
         h.component.onOpenAnswerChanged("age", "42")
-        assertFalse(h.component.state.value.buttons.nextEnabled) // handedness still unselected
+        h.component.onNext()
+        assertEquals(0, h.finished.size) // handedness still unselected
 
         h.component.onOptionToggled("handedness", "right", true)
         // symptoms is MULTIPLE_CHOICE with no minimum — should already be valid with zero selections.
-        assertTrue(h.component.state.value.buttons.nextEnabled)
+        assertTrue((h.component.state.value.content as TaskComponent.Content.Questionnaire).allValid)
 
         h.component.onNext()
         assertEquals(1, h.finished.size)
@@ -363,12 +370,16 @@ class TaskComponentTest {
         )
 
         // The web sends `.*` for an optional open question and `.+` for a required one.
-        assertTrue(Harness(openTask(".*"), withRecorder = false).component.state.value.buttons.nextEnabled)
+        val optional = Harness(openTask(".*"), withRecorder = false)
+        optional.component.onNext()
+        assertEquals(1, optional.finished.size)
 
         val required = Harness(openTask(".+"), withRecorder = false)
-        assertFalse(required.component.state.value.buttons.nextEnabled)
+        required.component.onNext()
+        assertEquals(0, required.finished.size)
         required.component.onOpenAnswerChanged("note", "x")
-        assertTrue(required.component.state.value.buttons.nextEnabled)
+        required.component.onNext()
+        assertEquals(1, required.finished.size)
     }
 
     @Test
