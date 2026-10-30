@@ -1,0 +1,90 @@
+2026-10-30 02:23:41.329 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-30 02:24:23.435 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: rejected, SiteTokenMissing
+2026-10-30 02:24:56.817 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-30 02:24:57.072 [DefaultDispatcher-worker-2] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-30 02:24:57.076 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-30 02:24:57.126 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-30 02:26:20.438 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-30 02:26:20.535 [DefaultDispatcher-worker-10] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-30 02:26:20.556 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-30 02:26:20.637 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-30 02:26:51.350 [DefaultDispatcher-worker-10] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-30 02:26:51.363 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-30 02:26:51.481 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<sessionId> tasks=6
+2026-10-30 02:27:01.079 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=1/6 VocalTask rep=1 take=1
+2026-10-30 02:27:12.250 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=1/6 VocalTask rep=1 take=1
+2026-10-30 02:27:34.688 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=2/6 VocalTask rep=2 take=1
+2026-10-30 02:27:41.928 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=2/6 VocalTask rep=2 take=1
+2026-10-30 02:27:54.060 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=3/6 VocalTask rep=1 take=1
+2026-10-30 02:28:00.324 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=3/6 VocalTask rep=1 take=1
+2026-10-30 02:28:08.902 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=4/6 VocalTask rep=1 take=1
+2026-10-30 02:28:15.129 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=4/6 VocalTask rep=1 take=1
+2026-10-30 02:28:28.660 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - task skipped session=<sessionId> task=5/6 VocalTask rep=1
+2026-10-30 02:28:50.627 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=<sessionId> tasks=6
+2026-10-30 02:28:50.689 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session <sessionId>)
+2026-10-30 02:28:51.401 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 4 clips (session <sessionId>)
+2026-10-30 02:29:50.128 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 0 ok, 1 failed
+2026-10-30 02:29:50.220 [DefaultDispatcher-worker-9] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-30 02:29:50.221 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-30 02:31:22.052 [DefaultDispatcher-worker-7] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=<sessionId>: HTTP 200
+2026-10-30 02:31:22.104 [DefaultDispatcher-worker-7] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=<sessionId> attempt=1 outcome=Success
+2026-10-30 02:31:22.113 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 1 ok, 0 failed
+2026-10-30 02:31:22.116 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: skipped, no site token
+2026-10-30 02:31:56.808 [DefaultDispatcher-worker-14] WARN  o.e.a.i.network.KtorUploadApi - upload conflict for session=<sessionId>: already on the server with different content (HTTP 409)
+2026-10-30 02:31:56.834 [DefaultDispatcher-worker-14] WARN  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=<sessionId> attempt=1 outcome=Conflict retry=none, needs an administrator
+2026-10-30 02:31:56.844 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 0 ok, 1 failed
+2026-10-30 02:31:56.848 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: skipped, no site token
+2026-10-30 02:32:28.243 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-10-30 02:32:28.355 [DefaultDispatcher-worker-8] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-10-30 02:32:28.359 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-10-30 02:32:28.424 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-10-26.172809 site=E2E 1026 Clinic A
+2026-10-30 02:32:51.151 [DefaultDispatcher-worker-14] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-30 02:32:51.172 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-30 02:32:51.377 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<sessionId> tasks=4
+2026-10-30 02:33:12.701 [DefaultDispatcher-worker-15] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-30 02:33:12.833 [DefaultDispatcher-worker-15] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-30 02:33:31.430 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=1/4 VocalTask rep=1 take=1
+2026-10-30 02:33:31.469 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-30 02:33:41.568 [video-capture-reader] ERROR o.e.a.i.v.FfmpegSessionVideoRecorder - capture ended while Recording: the capture process ended
+2026-10-30 02:33:41.573 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - camera failed: capture interrupted: the capture process ended
+2026-10-30 02:33:59.299 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=1/4 VocalTask rep=1 take=1
+2026-10-30 02:34:10.196 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=2/4 VocalTask rep=1 take=1
+2026-10-30 02:34:10.219 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+2026-10-30 02:34:17.425 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=2/4 VocalTask rep=1 take=1
+2026-10-30 02:34:27.484 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=3/4 VocalTask rep=2 take=1
+2026-10-30 02:34:27.520 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+2026-10-30 02:34:35.725 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=3/4 VocalTask rep=2 take=1
+2026-10-30 02:34:45.534 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=4/4 VocalTask rep=1 take=1
+2026-10-30 02:34:51.730 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=4/4 VocalTask rep=1 take=1
+2026-10-30 02:34:53.991 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=<sessionId> tasks=4
+2026-10-30 02:34:54.055 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session <sessionId>)
+2026-10-30 02:34:54.481 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 302 frames at 30 fps
+2026-10-30 02:34:54.482 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-30 02:34:54.893 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 4 clips (session <sessionId>)
+2026-10-30 02:37:01.852 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session <sessionId>)
+2026-10-30 02:37:02.204 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 302 frames at 30 fps
+2026-10-30 02:37:02.205 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-30 02:37:02.764 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 4 clips (session <sessionId>)
+2026-10-30 02:37:34.825 [DefaultDispatcher-worker-10] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-30 02:37:34.828 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+2026-10-30 02:37:34.985 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<sessionId> tasks=4
+2026-10-30 02:37:43.346 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+2026-10-30 02:37:43.475 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+2026-10-30 02:37:52.084 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=1/4 VocalTask rep=1 take=1
+2026-10-30 02:37:52.134 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+2026-10-30 02:37:57.689 [video-capture-reader] ERROR o.e.a.i.v.FfmpegSessionVideoRecorder - capture ended while Recording: the capture process ended
+2026-10-30 02:37:57.691 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - camera failed: capture interrupted: the capture process ended
+2026-10-30 02:38:11.255 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=1/4 VocalTask rep=1 take=1
+2026-10-30 02:38:21.318 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=2/4 VocalTask rep=1 take=1
+2026-10-30 02:38:21.351 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+2026-10-30 02:38:25.531 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=2/4 VocalTask rep=1 take=1
+2026-10-30 02:38:35.537 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=3/4 VocalTask rep=2 take=1
+2026-10-30 02:38:35.586 [AWT-EventQueue-0] WARN  o.e.app.navigation.SessionComponent - ignoring video take 1: capture is Failed(error=CaptureInterrupted(detail=the capture process ended))
+2026-10-30 02:38:39.826 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=3/4 VocalTask rep=2 take=1
+2026-10-30 02:38:49.261 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<sessionId> task=4/4 VocalTask rep=1 take=1
+2026-10-30 02:38:53.530 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<sessionId> task=4/4 VocalTask rep=1 take=1
+2026-10-30 02:38:55.801 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=<sessionId> tasks=4
+2026-10-30 02:38:55.830 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session <sessionId>)
+2026-10-30 02:38:56.112 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 167 frames at 30 fps
+2026-10-30 02:38:56.112 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+2026-10-30 02:38:56.401 [DefaultDispatcher-worker-6] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 4 clips (session <sessionId>)

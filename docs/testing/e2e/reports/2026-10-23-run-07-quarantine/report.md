@@ -113,7 +113,7 @@ Repeats:
 - **Actual:** a full green bar (1.0) above the red "Upload failed" row. The bar counts
   sessions done, failed ones included.
 - **Evidence:** `screenshots/step-4-upload-quarantined.png`
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): the upload progress bar uses the error colour when any row failed (`uploadHasFailure`); progress is counted as before. Test: `FixRound4DUiTest` "F-046 progress bar turns to the error colour when any session failed" (red before).
 
 ## Context updates
 

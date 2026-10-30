@@ -84,7 +84,7 @@
   - A frozen frame next to the message can read as "camera still live".
 - **Evidence:** `step-5-ffmpeg-killed.png`, `step-5-next-task-after-failure.png`
 - **Notes:** related to F-033.
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). Fixed with F-106 (2026-10-29), as F-033.
 
 ### F-062: A device picked on the calibration screen isn't remembered; the system default can be a silent device
 
@@ -120,7 +120,7 @@
 - **Area:** desktop-app
 - **Run / step:** run 11, part 10
 - **Actual:** the ready-count text uses the plural for one session.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): `upload.readyCount.one` in EN ("1 session ready to upload") and CS ("Sezení připravené k odeslání: 1"), picked by `uploadReadyCountKey`. Tests: `FixRound4DUiTest` "F-064 ..." (2, red before).
 
 ### F-065: A fresh questionnaire shows red validation errors before any input
 
@@ -129,7 +129,7 @@
 - **Run / step:** run 11, part 3
 - **Actual:** required questions show "Please provide a valid answer." in red as soon as the questionnaire opens, before the examiner has touched anything.
 - **Notes:** also visible in the orchestrator's group 1 check (questionnaire after a skipped monologue).
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Cause: the error showed whenever an answer was invalid, and required answers start invalid. Fix (NewShare `app/`, uncommitted): an answer shows its error once touched, or after Next is pressed with invalid answers. Next is now always pressable on a questionnaire (no question is marked required, so a disabled Next gave no reason); with invalid answers it shows every error and stays. Tests: `QuestionnaireValidationUiTest` "F-065 ..." (4), `TaskComponentTest` questionnaire cases updated (red before).
 
 Seen again:
 
@@ -149,7 +149,7 @@ Seen again:
   - `RootComponent.buildEditorChild` only pops when `returnToBrowser` is true. `timeline_edited.json` is written, but `examination.json` keeps `Done` / `timelineUsed: "original"` and `archive/*.zip` keeps the old clips.
   - The session stays upload-eligible, so the stale ZIP is what gets uploaded.
 - **Repro:** process a session, open it in the editor from Sessions, drag a boundary, press Accept.
-- **Status:** fixed 2026-10-24, not yet re-run. Cause: `buildEditorChild` popped back to Sessions without reprocessing. Fix: `EditorComponent.onAccept` reports `needsReprocess`. It is true when the edit on disk changed, or when the last `Done` processing's `timelineUsed` doesn't match the timeline now in effect, which also repairs sessions left stale by the bug. From Sessions, that replaces the editor with Processing (`returnToBrowser = true`). "Open editor" is disabled for `Uploaded` sessions, and the component ignores the action. Spec §8.7, §8.11. Tests: 7 `EditorComponentTest` cases, 1 `SessionBrowserComponentTest`, 2 `RootComponentTest` (all named F-066).
+- **Status:** fixed 2026-10-24, confirmed in run 16 (2026-10-30). Cause: `buildEditorChild` popped back to Sessions without reprocessing. Fix: `EditorComponent.onAccept` reports `needsReprocess`. It is true when the edit on disk changed, or when the last `Done` processing's `timelineUsed` doesn't match the timeline now in effect, which also repairs sessions left stale by the bug. From Sessions, that replaces the editor with Processing (`returnToBrowser = true`). "Open editor" is disabled for `Uploaded` sessions, and the component ignores the action. Spec §8.7, §8.11. Tests: 7 `EditorComponentTest` cases, 1 `SessionBrowserComponentTest`, 2 `RootComponentTest` (all named F-066).
 
 ## Context updates
 

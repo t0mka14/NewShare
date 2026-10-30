@@ -58,7 +58,7 @@ Report text saved by the orchestrator from the runner's hand-back. Patient code 
 - **Repro:** open calibration; `scripts/run-03/endpoint-volume.ps1` lists the volumes.
 - **Evidence:** `screenshots/step-3-calibration.png`.
 - **Notes:** a louder or speech source would fix it.
-- **Status:** open
+- **Status:** closed, environment (2026-10-29). Test setup: `test-plan.md` §3 now says to raise the player volume until calibration reaches the band; Continue works below the band by design (F-021).
 
 <a id="f-03-3"></a>
 
@@ -84,7 +84,7 @@ Report text saved by the orchestrator from the runner's hand-back. Patient code 
 - **Expected:** enough in the log to follow a session for support.
 - **Actual:** `app.log` for the whole run has config fetch, check-in and one "microphone opened" line; nothing about session creation, processing or the editor. No patient code or path leaks (F-059 / F-060 fine).
 - **Evidence:** `logs/app.log` (installation ID replaced).
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): INFO lines with the session ID only: `session created`, `take started/stopped/rejected`, `task skipped`, `session finished`, plus the existing processing lines. Test: `SessionComponentTest` "F-095 app log records session lifecycle lines with the session id and no patient code" (red before).
 
 ### Duplicates seen again
 F-009, F-012, F-025, F-065, F-069, F-072. Fixed items confirmed: F-022, F-026, F-027.

@@ -67,7 +67,7 @@ Index ID: **F-112**
 - **Repro:** 03-1 detail -> Participant -> Show values.
 - **Evidence:** `screenshots/F-06-3-year-of-birth-opt-label.png`.
 - **Notes:** related F-076 (custom patient field label has no per-language entry); may be the same root cause (the web does not use the config's field labels).
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 15 (2026-10-30). Cause: `ParticipantPanel` labelled fields with the key (`k.replace(/_/g," ")`). Fix (web repo `task_protocoller_web_app`, uncommitted): `participantLabel.js` uses a label sent with the record, else the catalogue label (`common.json` `identifiers.catalogue.<key>.label`, also for the key without `_opt`) in the viewer's language, else the humanised key without `_opt`. Side effect: `patient_code` reads "Participant code". Tests: `ParticipantPanel.test.jsx` "F-112: year_of_birth_opt reads Year of birth in en and Rok narození in cs", "F-112: an unknown key loses _opt ..." (red before).
 
 ### Seen again (not new)
 - F-037: MJPEG-in-MP4 clips can't play in the admin UI (`screenshots/step-6-play-video-05-3.png`, now with a "Download to play" notice and a "Download clip" link).

@@ -41,7 +41,7 @@ Cleanup: app stopped, PID gone, no ffmpeg, main.pid removed. app/data/app.lock e
 - **Severity:** cosmetic. **Area:** desktop-app. **Run / step:** run 02, steps 3 and 5.
 - **Expected:** language names or flags, as on the main menu selector.
 - **Evidence:** step-2-settings-after-save.png.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): Settings shows "Čeština" / "English" (`languageDisplayName`); the main menu keeps flag plus code. Test: `FixRound4DUiTest` "F-088 settings language options show names not raw codes" (red before).
 
 <a id="f-02-4"></a>
 
@@ -49,7 +49,7 @@ Cleanup: app stopped, PID gone, no ffmpeg, main.pid removed. app/data/app.lock e
 - **Severity:** cosmetic. **Area:** desktop-app. **Run / step:** run 02, step 1.
 - **Expected:** centred like the title and the Settings button. **Actual:** text starts at x=32 while "SHARE" and the button are centred.
 - **Evidence:** step-1-main-no-token.png.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): the configuration-required message is `TextAlign.Center`. Test: `FixRound4DUiTest` "F-089 no-token message is centre aligned" (red before).
 
 <a id="f-02-5"></a>
 
@@ -57,7 +57,7 @@ Cleanup: app stopped, PID gone, no ffmpeg, main.pid removed. app/data/app.lock e
 - **Severity:** question. **Area:** web-ui. **Run / step:** run 02, step 4.
 - **Expected:** an address the examiner can use. **Actual:** relative `./api` (the app has no server-address field; it is compiled in). Maybe VITE_API_BASE is unset on this deployment.
 - **Evidence:** step-4-computers-page.png.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 15 (2026-10-30). Cause: `ClinicComputersTab` showed `VITE_API_BASE` raw (`./api` on the container). Fix (web repo `task_protocoller_web_app`, uncommitted): `utils/serverAddress.js` `absoluteApiAddress` resolves it against the page URL (no hash, query or trailing slash). Tests: `serverAddress.test.js` "F-090: absoluteApiAddress ..." (3 cases).
 
 ### Observations, not findings
 - Plan text is out of date on the camera picker (step 3).

@@ -1,0 +1,31 @@
+[en] nogrants /library -> /library :: Not available |  | You don't have access to this page. Ask an administrator if you need it. |  | Go to Recordings
+   errors: [('error', 'Failed to load resource: the server responded with a status of 403 (Forbidden)')]
+[en] creator /library -> /library :: Library | Ready-made protocols you can add to a study. | Shared by me | Library | Name | 	Languages	Tasks | 	Shared by | 	Used in | 	Last changed | ▼ |  |  | E2E 1026 Speech protocol | 	 | EN | CS | 	5	System Master	0	3 days ago
+[en] editor /users -> /users :: Not available |  | You don't have access to this page. Ask an administrator if you need it. |  | Go to Recordings
+[en] nogrants /users -> /users :: Not available |  | You don't have access to this page. Ask an administrator if you need it. |  | Go to Recordings
+[en] nogrants /clinics -> /clinics :: Clinics | Where your studies run. All computers at a clinic share one access token and receive the same protocols. | No clinics yet |  | Ask an administrator to give you access to a clinic.
+[en] creator /clinics -> /clinics :: Clinics | Where your studies run. All computers at a clinic share one access token and receive the same protocols. | No clinics yet |  | Ask an administrator to give you access to a clinic.
+[en] nogrants /clinics/4 -> /clinics/4/studies :: Clinic not found |  | It does not exist, or you do not have access to it. |  | Back to Clinics
+   errors: [('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)'), ('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)')]
+[en] nogrants /studies/3 -> /studies/3/protocols :: Study not found |  | It does not exist, or you do not have access to it. |  | Back to Studies
+   errors: [('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)')]
+[en] nogrants /clinics/99999 -> /clinics/99999/studies :: Clinic not found |  | It does not exist, or you do not have access to it. |  | Back to Clinics
+   errors: [('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)'), ('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)')]
+[cs] nogrants /library -> /library :: Nedostupné |  | K této stránce nemáte přístup. Pokud ji potřebujete, požádejte správce. |  | Přejít na Záznamy
+   errors: [('error', 'Failed to load resource: the server responded with a status of 403 (Forbidden)')]
+[cs] creator /library -> /library :: Knihovna | Hotové protokoly, které můžete přidat do studie. | Sdílené mnou | Knihovna | Název | 	Jazyky	Úlohy | 	Sdílí | 	Použito v | 	Naposledy změněno | ▼ |  |  | E2E 1026 Speech protocol | 	 | EN | CS | 	5	System Master	0	před 3 dny
+[cs] editor /users -> /users :: Nedostupné |  | K této stránce nemáte přístup. Pokud ji potřebujete, požádejte správce. |  | Přejít na Záznamy
+[cs] nogrants /users -> /users :: Nedostupné |  | K této stránce nemáte přístup. Pokud ji potřebujete, požádejte správce. |  | Přejít na Záznamy
+[cs] nogrants /clinics -> /clinics :: Kliniky | Kde vaše studie běží. Všechny počítače kliniky sdílejí jeden přístupový token a dostávají stejné protokoly. | Zatím žádné kliniky |  | Požádejte správce, aby vám dal přístup k nějaké klinice.
+[cs] creator /clinics -> /clinics :: Kliniky | Kde vaše studie běží. Všechny počítače kliniky sdílejí jeden přístupový token a dostávají stejné protokoly. | Zatím žádné kliniky |  | Požádejte správce, aby vám dal přístup k nějaké klinice.
+[cs] nogrants /clinics/4 -> /clinics/4/studies :: Klinika nenalezena |  | Neexistuje, nebo k ní nemáte přístup. |  | Zpět na Kliniky
+   errors: [('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)'), ('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)')]
+[de] nogrants /library -> /library :: Nicht verfügbar |  | Sie haben keinen Zugriff auf diese Seite. Bitten Sie einen Administrator darum, falls Sie ihn benötigen. |  | Zu den Aufnahmen
+   errors: [('error', 'Failed to load resource: the server responded with a status of 403 (Forbidden)')]
+[de] creator /library -> /library :: Bibliothek | Fertige Protokolle, die Sie einer Studie hinzufügen können. | Von mir geteilt | Bibliothek | Name | 	Sprachen	Aufgaben | 	Geteilt von | 	Verwendet in | 	Zuletzt geändert | ▼ |  |  | E2E 1026 Speech protocol | 	 | EN | CS | 	5	System Master	0	vor 3 Tagen
+[de] editor /users -> /users :: Nicht verfügbar |  | Sie haben keinen Zugriff auf diese Seite. Bitten Sie einen Administrator darum, falls Sie ihn benötigen. |  | Zu den Aufnahmen
+[de] nogrants /users -> /users :: Nicht verfügbar |  | Sie haben keinen Zugriff auf diese Seite. Bitten Sie einen Administrator darum, falls Sie ihn benötigen. |  | Zu den Aufnahmen
+[de] nogrants /clinics -> /clinics :: Kliniken | Wo Ihre Studien laufen. Alle Computer einer Klinik teilen einen Zugangstoken und erhalten dieselben Protokolle. | Noch keine Kliniken |  | Bitten Sie einen Administrator, Ihnen Zugriff auf eine Klinik zu geben.
+[de] creator /clinics -> /clinics :: Kliniken | Wo Ihre Studien laufen. Alle Computer einer Klinik teilen einen Zugangstoken und erhalten dieselben Protokolle. | Noch keine Kliniken |  | Bitten Sie einen Administrator, Ihnen Zugriff auf eine Klinik zu geben.
+[de] nogrants /clinics/4 -> /clinics/4/studies :: Klinik nicht gefunden |  | Sie existiert nicht, oder Sie haben keinen Zugriff darauf. |  | Zurück zu Kliniken
+   errors: [('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)'), ('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)'), ('error', 'Failed to load resource: the server responded with a status of 404 (Not Found)')]

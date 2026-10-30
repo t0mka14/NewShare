@@ -1,0 +1,12 @@
+received en {'ph': 'Patient code, session ID or computer', 'textW': 226.1396484375, 'contentW': 362, 'clientW': 404, 'scrollW': 404, 'fits': True, 'font': '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'}
+ errors []
+received cs {'ph': 'Kód pacienta, ID záznamu nebo počítač', 'textW': 243.4140625, 'contentW': 483, 'clientW': 525, 'scrollW': 525, 'fits': True, 'font': '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'}
+ errors []
+received de {'ph': 'Patientencode, Aufnahme-ID oder Computer', 'textW': 276.103515625, 'contentW': 331, 'clientW': 373, 'scrollW': 373, 'fits': True, 'font': '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'}
+ errors []
+master en {'ph': 'Patient code, session ID or computer', 'textW': 226.1396484375, 'contentW': 344, 'clientW': 386, 'scrollW': 386, 'fits': True, 'font': '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'}
+ errors []
+master cs {'ph': 'Kód pacienta, ID záznamu nebo počítač', 'textW': 243.4140625, 'contentW': 311, 'clientW': 353, 'scrollW': 353, 'fits': True, 'font': '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'}
+ errors []
+master de {'ph': 'Patientencode, Aufnahme-ID oder Computer', 'textW': 276.103515625, 'contentW': 329, 'clientW': 371, 'scrollW': 371, 'fits': True, 'font': '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'}
+ errors []

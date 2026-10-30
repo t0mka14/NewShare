@@ -187,7 +187,7 @@ Index ID: **F-138**
 - **Repro:** Recordings at 1024x420, scroll the page by 400 px.
 - **Evidence:** `screenshots/9-4-sticky-1024-recordings.png`, `9-4-sticky-1440-recordings.png`;
   `scripts/run-14/c9b.py`.
-- **Status:** open
+- **Status:** closed, accepted (2026-10-29). The trade-off accepted for F-074: only tables wider than their card scroll sideways and lose the sticky header.
 
 ### F-139: Cancelling the info page or instructions editor keeps the typed text
 Index ID: **F-139**

@@ -1,0 +1,6 @@
+editors before 200 [{"user_id": 6, "name": "E2E 1026 Creator", "email": "e2e-creator-1026@test.com", "is_creator": true, "added_at": "2026-10-30T01:06:15Z"}, {"user_id": 3, "name": "E2E 1026 Editor", "email": "e2e-editor-1026@test.com", "is_creator": false, "added_at": "2026-10-30T01:06:22Z"}]
+add new (expect 201) 200 {"user_id": 3, "name": "E2E 1026 Editor", "email": "e2e-editor-1026@test.com", "is_creator": false, "added_at": "2026-10-30T01:06:22Z"}
+re-add (expect 200) 200 {"user_id": 3, "name": "E2E 1026 Editor", "email": "e2e-editor-1026@test.com", "is_creator": false, "added_at": "2026-10-30T01:06:22Z"}
+re-add upper-case (expect 200) 200 {"user_id": 3, "name": "E2E 1026 Editor", "email": "e2e-editor-1026@test.com", "is_creator": false, "added_at": "2026-10-30T01:06:22Z"}
+editors after 200 [{"user_id": 6, "name": "E2E 1026 Creator", "email": "e2e-creator-1026@test.com", "is_creator": true, "added_at": "2026-10-30T01:06:15Z"}, {"user_id": 3, "name": "E2E 1026 Editor", "email": "e2e-editor-1026@test.com", "is_creator": false, "added_at": "2026-10-30T01:06:22Z"}]
+added_at new: 2026-10-30T01:06:22Z | re-add: 2026-10-30T01:06:22Z | equal: True | ISO: True

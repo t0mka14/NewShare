@@ -106,7 +106,7 @@ Index ID: **F-130**
 - **Repro:** at 960x720 or 1000x820, go to Sessions and open the editor for 09-1.
 - **Evidence:** `screenshots/step-4-editor-960x720.png`, `step-4-editor-1000x820.png`, `step-4-editor-1024x768.png`.
 - **Notes:** every control is reachable and each label is on one line, so this is a judgement call.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): two groups that wrap as units, navigation (Previous, Next) and actions (Play, Reset, Discard, Accept), at least 8 dp apart. Tests: `EditorLabelAndGroupsUiTest` "F-130 ..." (3, red before with the old layout).
 
 ### F-12-2: Disabling the capture device for 4 s during a take does not interrupt the recording
 Index ID: **F-131**
@@ -120,7 +120,7 @@ Index ID: **F-131**
 - **Repro:** start a filmed take, then disable and re-enable `CABLE Output` (4 s gap) from an elevated shell.
 - **Evidence:** `logs/app-redacted-run12.log` (no interruption line).
 - **Notes:** the interruption, Resume and 2-part master path is therefore covered only by session 09-2 (reprocessed, F-123).
-- **Status:** open
+- **Status:** closed, environment (2026-10-29). A VB-Cable endpoint disable doesn't reach an open line; a real loss (stopping Audiosrv) interrupts correctly (run 13).
 
 No new finding of major severity or above.
 

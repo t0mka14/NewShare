@@ -112,7 +112,7 @@
 - **Repro:** start the app and call `resize_window` immediately. It happens only sometimes.
 - **Evidence:** `logs/all-app-log-excerpt.log`, line 61.
 - **Notes:** test tooling, not app code. It can confuse log-based checks such as F-001's.
-- **Status:** open
+- **Status:** closed, environment (2026-10-29). Only the hot-reload development tool logs it; not the shipped app.
 
 ### F-057: The zero-clip processing failure shows a generic message and writes no log line
 
@@ -146,7 +146,7 @@
   - The new protocol also has no patient identifiers (F-006, seen again).
   - App-side effect of that: `patientFields: []`, so there is no patient form.
   - The session folder is `2026-10-24__<sessionId>`, and the ZIP is `_<sessionId>.zip`.
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). `ProtocolEditorPage.jsx` and `NewProtocolModal.jsx` never navigate to `/protocols/undefined`; run 14 used Create and edit.
 
 ### F-059: The video recorder logs the full session path, which contains the patient code
 

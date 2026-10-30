@@ -95,7 +95,7 @@ Repeats, cited and not filed again:
   - Ways to cover the start path: disable the device (needs admin) or unregister the OBS DirectShow
     filter, or test with a real USB camera unplugged. Both are left for the user to decide. Plan
     §6 run 05 needs updating either way.
-- **Status:** open
+- **Status:** closed, environment (2026-10-29). The test plan kills the app's ffmpeg to simulate a camera loss instead.
 
 ### F-031: On the phonation screen, the camera preview and level indicator are squeezed into a 23 px strip
 
@@ -153,7 +153,7 @@ Repeats, cited and not filed again:
 - **Actual:** the red and the gray message sit on the last video frame inside the 200×150 preview.
   They wrap, and the second line is cut off at the bottom.
 - **Evidence:** `screenshots/step-8-after-capture-killed.png`, `step-8-after-stop.png`
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). Fixed with F-106 (2026-10-29): one camera message below the picture, frozen frame cleared.
 
 ### F-034: A partially filmed take isn't marked as partial in the data
 
@@ -169,7 +169,7 @@ Repeats, cited and not filed again:
   - An analyst can only tell by comparing durations.
 - **Evidence:** the session's `examination.json` and `clips/*MONOLOGUE_Rep2.*` (in the
   orchestrator's scratchpad copy).
-- **Status:** fixed 2026-10-25, not yet re-run. Decision (user): add `videoComplete` and the durations. Each task record with a `videoFile` now gets three fields:
+- **Status:** fixed 2026-10-25, confirmed in run 16 (2026-10-30). Decision (user): add `videoComplete` and the durations. Each task record with a `videoFile` now gets three fields:
   - `videoComplete`: false iff a `camera`/`capture_failed` entry in `hardware.events` falls inside the kept take's START..STOP wall-clock range (since F-032 a normal close writes none; durations are never compared).
   - `videoDurationMs`: the remux's verified frame count / fps.
   - `audioDurationMs`: clip source samples / rate.

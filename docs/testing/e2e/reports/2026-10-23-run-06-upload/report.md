@@ -139,7 +139,7 @@ F-038.
 - **Repro:** open the `03-1` detail and press "Show answers (4)".
 - **Evidence:** `screenshots/F-06-1-input-gain-undefined-and-raw-keys.png` (Tasks panel)
 - **Notes:** the web spec is silent.
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). `TaskTable.jsx` `AnswersModal` shows question and answer text; a key appears only when the text is missing.
 
 ## Context updates
 

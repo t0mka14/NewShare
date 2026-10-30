@@ -115,7 +115,7 @@ Related documents:
 | Seeded site | Paris, token `paris000paris000paris000paris000`. |
 | Microphone | VB-Audio Virtual Cable. Audio played into **CABLE Input** comes out of **CABLE Output**, which is the app's microphone. |
 | Camera | OBS Studio Virtual Camera (`OBS Virtual Camera`, DirectShow). Settings has a camera picker (Automatic or a named camera); run 02 picks `OBS Virtual Camera`. OBS must be running with **Start Virtual Camera** on (`obs64.exe --startvirtualcam`); otherwise the device sends the OBS placeholder picture. A **stopped** OBS virtual camera still exists and sends a placeholder picture, so it can't stand in for a missing camera (F-030). |
-| Audio source | A player (Windows Media Player, `wmplayer`) looping speech audio into CABLE Input. |
+| Audio source | A player (Windows Media Player, `wmplayer`) looping speech audio into CABLE Input. Raise the player volume until calibration reaches the green band; with a quiet sample the level stays below it, and Continue still works by design (F-092, F-021). |
 | Screenshots | MCP `take_screenshot` for the app window. `tools/Capture-Screen.ps1` for the browser, OBS, Windows dialogs and as a fallback. |
 | Mouse drag | `tools/Drag-InWindow.ps1`: a real OS mouse drag or click in the window's client coordinates (the semantic tree's bounds at 100 % scaling). The MCP tools can't drag, and the editor's boundary handles react only to a drag. |
 | Web automation | Playwright for Python with Chromium (§3.2). |
@@ -233,9 +233,9 @@ access state it started with; a fresh one picks up the change.
 ### 4.1 Naming
 
 Everything a run creates on the web gets the prefix `E2E <MMDD>` (for example
-`E2E 1023 Speech protocol`), so it can be found and cleaned up later. **Site names** can't
-contain spaces (1–32 letters, digits, `_` or `-`, F-008), so sites use `E2E-<MMDD>-Site-A`, and
-the app shows "Site: E2E-<MMDD>-Site-A". Patient codes are `E2E<MMDD>-<run>-<n>` (for example
+`E2E 1023 Speech protocol`), so it can be found and cleaned up later. Clinic (site) names may
+contain spaces since the web redesign (F-008), so clinics use `E2E <MMDD> Clinic A`, and the app
+shows "Site: E2E <MMDD> Clinic A". Patient codes are `E2E<MMDD>-<run>-<n>` (for example
 `E2E1023-03-1`).
 
 ### 4.2 What run 1 builds

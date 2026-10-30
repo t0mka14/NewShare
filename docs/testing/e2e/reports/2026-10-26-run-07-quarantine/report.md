@@ -60,7 +60,7 @@ Index ID: **F-115**
 - **Actual:** the bold lead and the sentence run together: "...assigned to a clinic Its recordings are kept in quarantine."
 - **Evidence:** `screenshots/F-07-3-quarantine-banner-no-separator.png`.
 - **Notes:** same pattern as F-111.
-- **Status:** open
+- **Status:** fixed (2026-10-30), deployed; not verifiable live in run 15 (no recording in quarantine). Fix (web repo `task_protocoller_web_app`, uncommitted): the banner title is a block of its own (`recd-banner-lead`, `display: block`) above the sentence, like the F-111 notice. Test: `Recording.test.jsx` "F-115 the title is its own block above the body text" (red before).
 
 ### F-07-4: Synthetic keyboard input does not reach the app window in this RDP session, so a token cannot be typed or pasted
 Index ID: **F-116**
@@ -71,7 +71,7 @@ Index ID: **F-116**
 - **Actual:** `SendKeys`, `keybd_event` Ctrl+V (clipboard held the token) and a long-press on the token field did nothing; the MCP `type_text` would have put the secret into a tool call, and reading the secret into the output was refused by the permission classifier. So the token was written into `settings.json` by script with the app stopped, and the app's start-up refresh and check-in were the trigger. The "type token and save in Settings" path is untested this run; "Refresh configuration" was pressed manually with token B and gave the same result as start-up.
 - **Evidence:** `scripts/run-07/set_token.py`, `scripts/run-07/paste_token.ps1`, `logs/app.log`.
 - **Notes:** for run 08 and later, tokens need the same route (or the user types them).
-- **Status:** open
+- **Status:** closed, environment (2026-10-29). Worked around with `scripts/run-07/set_token.py` (app stopped) and `type_text`.
 
 ### Seen again (no new finding)
 - F-046: progress bar full green after the failed upload (`screenshots/F-07-seen-again-F-046-F-064.png`).

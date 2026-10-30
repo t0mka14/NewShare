@@ -1,0 +1,34 @@
+en recording bad: [] len 1944
+en recordings bad: [] len 2469
+en studies bad: [] len 698
+en study-protocols bad: [] len 428
+en protocol-editor bad: [] len 3366
+en clinics bad: [] len 638
+en clinic-studies bad: [] len 573
+en task modal open: 1
+en closed: True
+en instructions-ish buttons: ['Add Instructions']
+en STUDIES list has run15 study: True
+cs recording bad: [] len 2044
+cs recordings bad: [] len 2587
+cs studies bad: [] len 713
+cs study-protocols bad: [] len 415
+cs protocol-editor bad: [] len 3640
+cs clinics bad: [] len 659
+cs clinic-studies bad: [] len 567
+cs task modal open: 1
+cs closed: True
+cs instructions-ish buttons: ['Add Instructions']
+cs STUDIES list has run15 study: True
+de recording bad: [] len 2140
+de recordings bad: [] len 2611
+de studies bad: [] len 724
+de study-protocols bad: [] len 459
+de protocol-editor bad: [] len 3811
+de clinics bad: [] len 661
+de clinic-studies bad: [] len 601
+de task modal open: 1
+de closed: True
+de instructions-ish buttons: ['Add Instructions']
+de STUDIES list has run15 study: True
+ALL console errors: []

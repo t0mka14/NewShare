@@ -1,0 +1,14 @@
+master start /recordings {'tok': True, 'user': True}
+master after #/login: /recordings {'tok': True, 'user': True}
+master after reload on #/login: /recordings {'tok': True, 'user': True}
+signout btns: 1 1
+master after sign out: /login {'tok': False, 'user': False}
+ login form: 1 email value: '' pw value: ''
+ errors []
+received start /recordings {'tok': True, 'user': True}
+received after #/login: /recordings {'tok': True, 'user': True}
+received after reload on #/login: /recordings {'tok': True, 'user': True}
+signout btns: 1 1
+received after sign out: /login {'tok': False, 'user': False}
+ login form: 1 email value: '' pw value: ''
+ errors []

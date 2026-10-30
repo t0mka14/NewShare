@@ -177,7 +177,7 @@ There is no INFO task (F-010).
 - **Actual:** in the left task list, the record video, repeat, skip and indicator defaults show
   as empty.
 - **Evidence:** `screenshots/F-007-boolean-values-blank.png`
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). The old "Available Tasks" list was removed in the redesign; `TaskList.jsx` shows type labels only.
 
 ### F-008: Site names can't contain spaces, so the plan's naming doesn't work
 
@@ -190,7 +190,7 @@ There is no INFO task (F-010).
 - **Evidence:** `screenshots/F-008-site-name-with-spaces.png`
 - **Notes:** later runs expect "Site: E2E-1023-Site-A". Either the plan changes, or the web is
   expected to allow display names; the spec decides which.
-- **Status:** open
+- **Status:** closed, gone in the web (2026-10-29). `isValidSiteName` allows spaces (clinic "E2E 1026 Clinic A"); `test-plan.md` §4.1 corrected the same day.
 
 ### F-009: READING has no passage in the config; the app would hide the "Start now" card instead
 
@@ -226,7 +226,7 @@ There is no INFO task (F-010).
 - **Actual:** "The phonation should least 5 seconds", in the preview and in config string
   `p13_t1_instr1`.
 - **Evidence:** `screenshots/F-011-typo-should-least.png`
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). `frontend/src/i18n/en/tasks.json` now reads "should last at least ... seconds".
 
 ### F-012: CS questionnaire texts are a copy of the EN texts
 
@@ -246,7 +246,7 @@ There is no INFO task (F-010).
 - **Area:** web-ui
 - **Run / step:** run 01, step 1
 - **Evidence:** `screenshots/F-013-dashboard-partly-czech.png`
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). The old dashboard no longer exists; the redesigned shell has cs and de namespaces (and run 14 found no mixed languages).
 
 ### F-014: The site page counts language variants as protocols ("4 Inherited Protocols")
 
@@ -255,7 +255,7 @@ There is no INFO task (F-010).
 - **Run / step:** run 01, step 4
 - **Actual:** site A shows "4 Inherited Protocols" for 2 protocols × 2 languages.
 - **Evidence:** `screenshots/F-014-inherited-protocols-count.png`
-- **Status:** open
+- **Status:** closed, gone in the current code (code check 2026-10-29). No "Inherited Protocols" string or count exists any more.
 
 ### F-015: Plan §3.2.3 gives the wrong admin login path
 

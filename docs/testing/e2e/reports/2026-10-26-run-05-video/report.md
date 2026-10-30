@@ -52,7 +52,7 @@ Report text saved by the orchestrator from the runner's hand-back. Patients `E2E
 - **Severity:** question  **Area:** desktop-app / integration  **Run / step:** run 05, step 5
 - **Actual:** OBS Virtual Camera rejects MJPEG passthrough ("trying the next mode", then "capturing ... (encoded)"). The 05-1 ZIP is 146 MB for about 50 s of video (MP4s 37, 53, 49 MB; master WAV 11 MB). Matters for run 08.6 and server size limits; the spec allows an encoded fallback.
 - **Evidence:** `logs/inspect-05-1.txt`, `logs/app-redacted.log` at 19:07:11.
-- **Status:** open
+- **Status:** closed, by design (2026-10-29). The camera stream is copied without re-encoding (spec §13 decision 23); an encoded fallback exists when the camera rejects MJPEG.
 
 ### Duplicates seen again
 F-019 (camera picker now exists: fixed), F-030, F-031, F-095.
@@ -84,7 +84,7 @@ F-019 (camera picker now exists: fixed), F-030, F-031, F-095.
 - **Expected:** spec silent. For a protocol that asks for video, the server and the analyst can't tell a session without video by design from one where the camera failed.
 - **Actual:** with no camera, `examination.json` has no `videoTakes`, no `videoFile` and no `hardware.cameraFaults`/camera entry; only the app log has `WARN ... protocol wants video but no camera was found`. In the camera-lost case (05-3) the archive does record `cameraFaults` and `videoComplete:false`.
 - **Evidence:** `screenshots/step-7-no-camera-phonation.png`; inspection of the ZIP above.
-- **Status:** open
+- **Status:** fixed (2026-10-30), deployed; not verifiable live in run 16 (no camera can be hidden without admin rights); unit tests only. Fix (NewShare `app/`, uncommitted; web repo `task_protocoller_web_app`, uncommitted): with a video protocol and no camera at start, the session writes `hardware.events` `{device: "camera", event: "unavailable_at_start"}` once; it doesn't affect `videoComplete`; spec §8.10 lists the event values. The web camera tile shows "No camera was found when the session started." (en/cs/de). Tests: `SessionComponentTest` "F-109 ..." (2), `Recording.test.jsx` "F-109: unavailable_at_start is one sentence ...", `sessionExtractor.test.js` pass-through (red before).
 
 ## Orchestrator follow-up (2026-10-29 fix round 2)
 

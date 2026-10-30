@@ -200,7 +200,7 @@ Index ID: **F-133**
 - **Repro:** start a take on a filmed task, then kill the app's `ffmpeg.exe`.
 - **Evidence:** `screenshots/step-2-camera-lost-en.png`.
 - **Notes:** very minor. The layout has no spare room for a 200 px-wide message line.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Cause: the camera message was added under the picture only on error and wrapped to two lines, growing the middle area. Fix (NewShare `app/`, uncommitted): a fixed slot is always reserved under the picture on filmed tasks (48 dp under the 200x150 preview, 32 dp under the wide one). Tests: `FixRound4D4UiTest` "F-133 the camera lost message moves neither the instruction panel nor the level meter" (red before), "F-133 at the 960x720 minimum window ...". Check the CS message length live.
 
 Seen again, not new:
 - The "Camera lost" message and audio-only recording stay on all later tasks of that session (F-107).

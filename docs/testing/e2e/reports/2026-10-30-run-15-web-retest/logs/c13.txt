@@ -1,0 +1,10 @@
+uploads: 9 Counter({('valid', False, False): 9})
+en camera-ish lines: ['E2E 1026 Video protocol · E2E 1026 Video study · E2E 1026 Clinic A · recorded on Oct 26, 2026', 'Camera', 'OBS Virtual Camera', 'Video']
+en undefined? False Details btns: 0
+ errors []
+cs camera-ish lines: ['E2E 1026 Video protocol · E2E 1026 Video study · E2E 1026 Clinic A · nahráno 26. 10. 2026', 'Kamera', 'OBS Virtual Camera', 'Video']
+cs undefined? False Details btns: 0
+ errors []
+de camera-ish lines: ['E2E 1026 Video protocol · E2E 1026 Video study · E2E 1026 Clinic A · aufgenommen am 26. Okt. 2026', 'Kamera', 'OBS Virtual Camera', 'Video']
+de undefined? False Details btns: 0
+ errors []

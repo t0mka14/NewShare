@@ -47,7 +47,7 @@ Other checks: app log has config refresh, check-in and "microphone opened" only 
 - **Severity:** cosmetic  **Area:** desktop-app  **Run / step:** run 04, step 2
 - **Actual:** editor showed End `1:02.8` and Length `8.9 s`; stored stop sample 3018566 is 62.887 s and the clip is 8.987 s (9.0 s rounded).
 - **Evidence:** `screenshots/step-2-editor-pataka-after.png`, `timeline_edited.json`.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Cause: `formatSeconds`/`formatSampleDuration` truncated. Fix (NewShare `app/`, uncommitted): round half up to the shown tenth before splitting units (59.96 s is `1:00.0`); this also applies to the Start, Position and ruler readouts. Tests: `FixRound4DUiTest` "F-105 ..." (2, red before).
 
 ### Duplicates seen again
 F-091 (Q4 option 3 clipped), F-093 ("Acc / ept"), F-025, F-095, F-094, F-072, F-092, F-023.

@@ -171,7 +171,7 @@ Index ID: **F-127**
 - **Repro:** window 1512x876, screens 5, 6, 10.
 - **Evidence:** `screenshots/calibration-W6.png`, `phonation-W6.png`, `sessions-W6.png`, `settings-W6.png` (token and ID blacked out).
 - **Notes:** nothing is unusable.
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): the task and calibration content are capped at 1100 dp and centred (`contentWidth`); on calibration the meter (160 dp) sits 72 dp from the picture. Tests: `FixRound4D4UiTest` "F-127 ..." (2, red before).
 
 ### F-09-11: Plan and notes say the app opens at 800x600; it opens at 1000x820
 Index ID: **F-128**
@@ -181,7 +181,7 @@ Index ID: **F-128**
 - **Expected:** `test-plan.md` §2 and §3.4 ("Opens at 800x600 every time", "resize to 1000x820 after each start").
 - **Actual:** `Main.kt:103` `rememberWindowState(size = DpSize(1000.dp, 820.dp))`, and `list_windows` after each start says 1000x820. The window size is still not remembered between starts. F-124 to F-126 are therefore found below the default size.
 - **Evidence:** `hotrun.log`; `app/src/main/kotlin/org/example/app/Main.kt`.
-- **Status:** open (fix in test-plan v1.2)
+- **Status:** closed, gone in the current code (code check 2026-10-29). `test-plan.md` says the app opens at 1000x820.
 
 Seen again, not re-reported:
 - **F-063:** "Save and go back" needs a scroll at 800x600 and 640x480.

@@ -68,7 +68,7 @@ F-026 (steps 2c, 4a).
   line stayed outside the shaded range. After Next then Previous it showed 0:43.5.
 - **Repro:** open an editor segment, drag the start handle right, look at the position line.
 - **Evidence:** `screenshots/step-2-after-drag-start.png`
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Cause: `applyCandidate` left `positionSample` unchanged. Fix (NewShare `app/`, uncommitted): after an accepted drag or reset, the position is clamped into the segment (the new start, or the new end). Tests: `EditorComponentTest` "F-028 ..." (3).
 
 ### F-029: Reprocessing doesn't regenerate `waveform_cache/`
 

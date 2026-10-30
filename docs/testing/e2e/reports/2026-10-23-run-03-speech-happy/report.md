@@ -133,7 +133,7 @@ plays goes into the microphone. No clip contains it.
 - **Actual:** segments 1 and 2 are both "Recording n of 4 - PHONATION", with no repetition or
   take number. Accept on the last segment ends the session; Next and Previous only navigate.
 - **Evidence:** `screenshots/step-10-editor.png`
-- **Status:** open
+- **Status:** fixed (2026-10-30), confirmed in run 16 (2026-10-30). Fix (NewShare `app/`, uncommitted): segment labels add ", repetition N" (CS ", opakování N") when the task has more than one repetition. Tests: `EditorLabelAndGroupsUiTest` "F-025 ..." (3).
 
 ### F-026: No processing feedback after the editor
 
