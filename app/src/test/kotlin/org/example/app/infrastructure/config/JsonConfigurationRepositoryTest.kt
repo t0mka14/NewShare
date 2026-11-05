@@ -1,5 +1,10 @@
 package org.example.app.infrastructure.config
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import org.slf4j.LoggerFactory
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.example.app.domain.config.ConfigApplyResult
@@ -156,5 +161,86 @@ class JsonConfigurationRepositoryTest {
 
         assertNull(cache.read())
         assertTrue(!java.nio.file.Files.exists(dirs.configDir.resolve("config.json.tmp")))
+    }
+
+    @Test
+    fun `an invalid showIf is logged as a warning and the config still applies`(@TempDir tempDir: Path) {
+        val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+        val appender = ListAppender<ILoggingEvent>().also { it.start() }
+        logger.addAppender(appender)
+        val previousLevel = logger.level
+        logger.level = Level.ALL
+        try {
+            val withBadRule = ConfigFixtures.questionnaireOnly.replaceFirst(
+                "\"questionKey\"",
+                "\"showIf\": { \"questionKey\": \"nope\", \"optionKeys\": [\"x\"] }, \"questionKey\"",
+            )
+            assertTrue(withBadRule != ConfigFixtures.questionnaireOnly, "fixture has no question to modify")
+            val repo = JsonConfigurationRepository(RawConfigCache(TestAppDirectories(tempDir)))
+
+            assertInstanceOf(ConfigApplyResult.Applied::class.java, repo.applyFetched(withBadRule))
+            assertTrue(appender.list.any { it.level == Level.WARN && it.formattedMessage.contains("invalid showIf") })
+        } finally {
+            logger.detachAppender(appender)
+            logger.level = previousLevel
+        }
+    }
+
+    private fun applyWithShowIf(tempDir: Path, showIfJson: String?): Pair<ConfigApplyResult, List<String>> {
+        val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+        val appender = ListAppender<ILoggingEvent>().also { it.start() }
+        logger.addAppender(appender)
+        val previousLevel = logger.level
+        logger.level = Level.ALL
+        try {
+            val withRule = ConfigFixtures.questionnaireOnly.replaceFirst(
+                "\"questionKey\"",
+                "\"showIf\": $showIfJson, \"questionKey\"",
+            )
+            val repo = JsonConfigurationRepository(RawConfigCache(TestAppDirectories(tempDir)))
+            val result = repo.applyFetched(withRule)
+            return result to appender.list.filter { it.level == Level.WARN }.map { it.formattedMessage }
+        } finally {
+            logger.detachAppender(appender)
+            logger.level = previousLevel
+        }
+    }
+
+    @Test
+    fun `every malformed showIf shape still loads, warns, and shows the question`(@TempDir tempDir: Path) {
+        val shapes = listOf(
+            "{}",
+            """{"optionKeys": ["x"]}""",
+            """{"questionKey": "symptoms"}""",
+            """{"questionKey": "symptoms", "optionKeys": null}""",
+            """{"questionKey": null, "optionKeys": ["x"]}""",
+            """{"questionKey": "symptoms", "optionKeys": "x"}""",
+            """{"questionKey": "symptoms", "optionKeys": [1, 2]}""",
+            """{"questionKey": 5, "optionKeys": ["x"]}""",
+            "\"q1\"",
+            "[]",
+            "true",
+        )
+        for (shape in shapes) {
+            val dir = java.nio.file.Files.createTempDirectory(tempDir, "m")
+            val (result, warnings) = applyWithShowIf(dir, shape)
+            assertInstanceOf(ConfigApplyResult.Applied::class.java, result, shape)
+            assertTrue(warnings.any { it.contains("invalid showIf") }, "no warning for $shape")
+            val task = (result as ConfigApplyResult.Applied).config.protocols.flatMap { it.tasks }
+                .filterIsInstance<org.example.app.domain.config.QuestionnaireTask>().first()
+            assertEquals(
+                task.questions.map { it.questionKey },
+                org.example.app.domain.config.displayedQuestions(task.questions).map { it.question.questionKey },
+                shape,
+            )
+            assertEquals(1, org.example.app.domain.config.questionsWithInvalidRule(task.questions).size, shape)
+        }
+    }
+
+    @Test
+    fun `showIf null is no rule and logs no warning`(@TempDir tempDir: Path) {
+        val (result, warnings) = applyWithShowIf(tempDir, "null")
+        assertInstanceOf(ConfigApplyResult.Applied::class.java, result)
+        assertTrue(warnings.none { it.contains("showIf") })
     }
 }

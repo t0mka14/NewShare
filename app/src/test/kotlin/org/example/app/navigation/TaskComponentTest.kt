@@ -6,6 +6,7 @@ import org.example.app.domain.audio.AudioError
 import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.InterruptionReason
 import org.example.app.domain.config.Question
+import org.example.app.domain.config.QuestionCondition
 import org.example.app.domain.config.QuestionType
 import org.example.app.domain.config.QuestionnaireTask
 import org.example.app.domain.config.InfoTask
@@ -429,6 +430,132 @@ class TaskComponentTest {
         assertEquals(listOf("fever"), updated.answers["symptoms"]?.selected)
     }
 
+    // ---- QUESTIONNAIRE showIf (brief section 5) ----
+
+    private fun choice(key: String, type: QuestionType, options: List<String>, showIf: QuestionCondition? = null) =
+        Question(type, key, "$key.text", questionOptions = options, showIf = showIf)
+
+    /** q3 single (o1..o3), q7 required open shown on q3 in {o2, o3}; q4 multiple, q8 shown on q4 has o1. */
+    private val conditionalTask = QuestionnaireTask(
+        titleKey = "q.title",
+        questions = listOf(
+            choice("q3", QuestionType.SINGLE_CHOICE, listOf("o1", "o2", "o3")),
+            choice("q4", QuestionType.MULTIPLE_CHOICE, listOf("o1", "o2")),
+            Question(QuestionType.OPEN, "q7", "q7.text", questionRegex = ".+", showIf = QuestionCondition("q3", listOf("o2", "o3"))),
+            Question(QuestionType.OPEN, "q8", "q8.text", questionRegex = ".+", showIf = QuestionCondition("q4", listOf("o1"))),
+        ),
+    )
+
+    private fun Harness.questionnaire() = component.state.value.content as TaskComponent.Content.Questionnaire
+
+    private fun Harness.keys() = questionnaire().questions.map { it.questionKey }
+
+    @Test
+    fun `showIf case 1 - a conditional question is hidden at start and Finish is allowed`() {
+        val h = Harness(conditionalTask, withRecorder = false)
+        h.component.onOptionToggled("q3", "o1", true)
+        assertEquals(listOf("q3", "q4"), h.keys())
+        assertTrue(h.questionnaire().allValid)
+        h.component.onNext()
+        assertEquals(mapOf("q3" to listOf("o1"), "q4" to emptyList()), h.finished.single().questionnaireAnswers)
+    }
+
+    @Test
+    fun `showIf case 2 - selecting the trigger shows the question and blocks Finish until it is filled`() {
+        val h = Harness(conditionalTask, withRecorder = false)
+        h.component.onOptionToggled("q3", "o2", true)
+        assertEquals(listOf("q3", "q7", "q4"), h.keys()) // display order: q7 directly under q3
+        assertEquals(mapOf("q3" to 0, "q7" to 1, "q4" to 0), h.questionnaire().indentLevels)
+        assertFalse(h.questionnaire().allValid)
+        h.component.onNext()
+        assertEquals(0, h.finished.size)
+        h.component.onOpenAnswerChanged("q7", "text")
+        h.component.onNext()
+        assertEquals(mapOf("q3" to listOf("o2"), "q4" to emptyList(), "q7" to listOf("text")), h.finished.single().questionnaireAnswers)
+    }
+
+    @Test
+    fun `showIf case 3 - hiding clears the text and drops the key from the answers`() {
+        val h = Harness(conditionalTask, withRecorder = false)
+        h.component.onOptionToggled("q3", "o2", true)
+        h.component.onOpenAnswerChanged("q7", "text")
+        h.component.onOptionToggled("q3", "o1", true)
+        assertEquals(listOf("q3", "q4"), h.keys())
+        assertEquals(AnswerState(emptyList(), valid = false, touched = false), h.questionnaire().answers["q7"])
+        h.component.onNext()
+        assertEquals(mapOf("q3" to listOf("o1"), "q4" to emptyList()), h.finished.single().questionnaireAnswers)
+    }
+
+    @Test
+    fun `showIf case 3b - going away from the trigger and back does not restore the old answer`() {
+        val h = Harness(conditionalTask, withRecorder = false)
+        h.component.onOptionToggled("q3", "o2", true)
+        h.component.onOpenAnswerChanged("q7", "text")
+        h.component.onOptionToggled("q3", "o1", true)
+        h.component.onOptionToggled("q3", "o2", true)
+        assertEquals(emptyList<String>(), h.questionnaire().answers["q7"]?.selected)
+        assertFalse(h.questionnaire().allValid)
+    }
+
+    @Test
+    fun `showIf case 4 - multiple choice shows on any of the keys`() {
+        val h = Harness(conditionalTask, withRecorder = false)
+        h.component.onOptionToggled("q4", "o2", true)
+        assertFalse("q8" in h.keys())
+        h.component.onOptionToggled("q4", "o1", true)
+        assertTrue("q8" in h.keys())
+        h.component.onOptionToggled("q4", "o1", false)
+        assertFalse("q8" in h.keys())
+    }
+
+    @Test
+    fun `showIf case 5 - a chain cascades and clears every dependent`() {
+        val task = QuestionnaireTask(
+            titleKey = "q",
+            questions = listOf(
+                choice("a", QuestionType.SINGLE_CHOICE, listOf("a1", "a2")),
+                choice("b", QuestionType.SINGLE_CHOICE, listOf("b1", "b2"), QuestionCondition("a", listOf("a1"))),
+                Question(QuestionType.OPEN, "c", "c.text", questionRegex = ".+", showIf = QuestionCondition("b", listOf("b1"))),
+            ),
+        )
+        val h = Harness(task, withRecorder = false)
+        h.component.onOptionToggled("a", "a1", true)
+        h.component.onOptionToggled("b", "b1", true)
+        h.component.onOpenAnswerChanged("c", "x")
+        assertEquals(listOf("a", "b", "c"), h.keys())
+        assertEquals(mapOf("a" to 0, "b" to 1, "c" to 2), h.questionnaire().indentLevels)
+
+        h.component.onOptionToggled("a", "a2", true)
+        assertEquals(listOf("a"), h.keys())
+        h.component.onOptionToggled("a", "a1", true)
+        assertEquals(listOf("a", "b"), h.keys()) // b is back but empty, so c stays hidden
+        assertEquals(emptyList<String>(), h.questionnaire().answers["b"]?.selected)
+        h.component.onOptionToggled("b", "b1", true)
+        assertEquals(emptyList<String>(), h.questionnaire().answers["c"]?.selected)
+    }
+
+    @Test
+    fun `showIf case 6 - a question that reappears is empty and untouched, and may show its error after a submit attempt`() {
+        val h = Harness(conditionalTask, withRecorder = false)
+        h.component.onOptionToggled("q3", "o2", true)
+        h.component.onOpenAnswerChanged("q7", "text")
+        h.component.onOptionToggled("q3", "o1", true)
+        h.component.onOptionToggled("q3", "o2", true)
+        val fresh = h.questionnaire().answers.getValue("q7")
+        assertFalse(fresh.touched)
+        assertFalse(fresh.showsError(submitAttempted = false))
+
+        h.component.onNext() // blocked by q7
+        val attempted = h.questionnaire()
+        assertTrue(attempted.submitAttempted)
+        assertTrue(attempted.answers.getValue("q7").showsError(attempted.submitAttempted))
+
+        // Hiding does not reset submitAttempted.
+        h.component.onOptionToggled("q3", "o1", true)
+        h.component.onOptionToggled("q3", "o2", true)
+        assertTrue(h.questionnaire().submitAttempted)
+    }
+
     // ---- INFO ----
 
     @Test
@@ -527,5 +654,44 @@ class TaskComponentTest {
         assertEquals(emptyList<Float>(), vocal(h).levelHistory)
         h.recorder.emitLevel(0.7f)
         assertEquals(listOf(0.7f), vocal(h).levelHistory)
+    }
+
+    @Test
+    fun `a required question with an invalid rule is shown and blocks Finish until answered`() {
+        val task = QuestionnaireTask(
+            titleKey = "q",
+            questions = listOf(
+                Question(QuestionType.OPEN, "r", "r.text", questionRegex = ".+", showIf = QuestionCondition("missing", listOf("x"))),
+            ),
+        )
+        val h = Harness(task, withRecorder = false)
+        assertEquals(listOf("r"), h.keys())
+        h.component.onNext()
+        assertEquals(0, h.finished.size)
+        h.component.onOpenAnswerChanged("r", "v")
+        h.component.onNext()
+        assertEquals(mapOf("r" to listOf("v")), h.finished.single().questionnaireAnswers)
+    }
+
+    @Test
+    fun `with duplicate keys the unconditional required copy is shown and blocks Finish`() {
+        val task = QuestionnaireTask(
+            titleKey = "q",
+            questions = listOf(
+                choice("s", QuestionType.SINGLE_CHOICE, listOf("a", "b")),
+                Question(QuestionType.OPEN, "k", "k.text", questionRegex = ".+", showIf = QuestionCondition("s", listOf("a"))),
+                Question(QuestionType.OPEN, "k", "k.text", questionRegex = ".+"),
+                Question(QuestionType.OPEN, "z", "z.text", questionRegex = ".*"),
+            ),
+        )
+        val h = Harness(task, withRecorder = false)
+        h.component.onOptionToggled("s", "b", true)
+        assertEquals(listOf("s", "k", "k", "z"), h.keys())
+        assertFalse(h.questionnaire().allValid)
+        h.component.onNext()
+        assertEquals(0, h.finished.size)
+        h.component.onOpenAnswerChanged("k", "v")
+        h.component.onNext()
+        assertEquals(1, h.finished.size)
     }
 }

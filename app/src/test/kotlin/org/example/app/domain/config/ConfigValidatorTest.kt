@@ -132,4 +132,29 @@ class ConfigValidatorTest {
         )
         assertTrue(ConfigValidator.validate(baseConfig(protocols = listOf(protocol))).isValid)
     }
+
+    private fun questionnaireProtocol(vararg questions: Question) = validProtocol().copy(
+        tasks = listOf(QuestionnaireTask(titleKey = "q.title", questions = questions.toList())),
+    )
+
+    private val sourceQuestion = Question(QuestionType.SINGLE_CHOICE, "q3", "q3.t", questionOptions = listOf("o1", "o2"))
+
+    @Test
+    fun `a showIf pointing at a missing key is a warning, not an error (brief case 7)`() {
+        val bad = Question(QuestionType.OPEN, "q7", "q7.t", questionRegex = ".+", showIf = QuestionCondition("missing", listOf("o1")))
+        val result = ConfigValidator.validate(baseConfig(protocols = listOf(questionnaireProtocol(sourceQuestion, bad))))
+
+        assertTrue(result.isValid)
+        assertTrue(result.errors.isEmpty())
+        assertEquals(listOf(ConfigValidationWarning.InvalidShowIf("Share", "q.title", "q7")), result.warnings)
+    }
+
+    @Test
+    fun `a valid showIf produces no warning`() {
+        val good = Question(QuestionType.OPEN, "q7", "q7.t", showIf = QuestionCondition("q3", listOf("o2")))
+        val result = ConfigValidator.validate(baseConfig(protocols = listOf(questionnaireProtocol(sourceQuestion, good))))
+
+        assertTrue(result.isValid)
+        assertTrue(result.warnings.isEmpty())
+    }
 }

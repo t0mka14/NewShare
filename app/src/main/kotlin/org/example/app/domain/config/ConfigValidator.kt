@@ -17,8 +17,18 @@ sealed interface ConfigValidationError {
     data class InvalidDefaultMicGain(val value: Int) : ConfigValidationError
 }
 
+/**
+ * Findings that do not reject the config (brief §3: a bad rule must not cost the whole config).
+ * Logged by the repository; never part of [ConfigValidationResult.errors].
+ */
+sealed interface ConfigValidationWarning {
+    /** A `showIf` that does not name an earlier choice question / non-empty subset of its options; the question is always shown. */
+    data class InvalidShowIf(val protocolName: String, val taskTitleKey: String, val questionKey: String) : ConfigValidationWarning
+}
+
 data class ConfigValidationResult(
     val errors: List<ConfigValidationError>,
+    val warnings: List<ConfigValidationWarning> = emptyList(),
 ) {
     val isValid: Boolean get() = errors.isEmpty()
 }
@@ -36,6 +46,7 @@ object ConfigValidator {
 
     fun validate(config: RemoteConfig): ConfigValidationResult {
         val errors = mutableListOf<ConfigValidationError>()
+        val warnings = mutableListOf<ConfigValidationWarning>()
 
         if (config.schemaVersion !in SUPPORTED_SCHEMA_VERSIONS) {
             errors += ConfigValidationError.UnsupportedSchemaVersion(config.schemaVersion, SUPPORTED_SCHEMA_VERSIONS)
@@ -60,8 +71,13 @@ object ConfigValidator {
                 .filterNot { it in RecordingsFileNameRenderer.PLAIN_VARIABLES || it.startsWith("field.") }
                 .distinct()
                 .forEach { errors += ConfigValidationError.UnknownTemplateVariable(protocol.name, it) }
+            for (task in protocol.tasks.filterIsInstance<QuestionnaireTask>()) {
+                questionsWithInvalidRule(task.questions).forEach {
+                    warnings += ConfigValidationWarning.InvalidShowIf(protocol.name, task.titleKey, it.questionKey)
+                }
+            }
         }
 
-        return ConfigValidationResult(errors)
+        return ConfigValidationResult(errors, warnings)
     }
 }

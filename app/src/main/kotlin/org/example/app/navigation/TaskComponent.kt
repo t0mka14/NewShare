@@ -25,6 +25,8 @@ import org.example.app.domain.config.Task
 import org.example.app.domain.config.VocalSubtype
 import org.example.app.domain.config.VocalTask
 import org.example.app.domain.config.capturesVideo
+import org.example.app.domain.config.displayedQuestions
+import org.example.app.domain.config.visibleQuestionKeys
 import org.example.app.domain.session.TaskRecord
 import org.example.app.domain.timeline.TaskInstance
 import org.example.app.domain.config.VideoTask
@@ -205,6 +207,8 @@ interface TaskComponent {
             val questions: List<Question>,
             val answers: Map<String, AnswerState>,
             val allValid: Boolean,
+            /** `showIf` nesting depth per visible question (questionKey to depth); roots are 0 or absent. */
+            val indentLevels: Map<String, Int> = emptyMap(),
             /** F-065: Next/Finish was pressed while answers were invalid, so every invalid question shows its error. */
             val submitAttempted: Boolean = false,
         ) : Content
@@ -512,7 +516,7 @@ class DefaultTaskComponent(
                         repetition = taskInstance.repetition,
                         takes = 0,
                         skipped = false,
-                        questionnaireAnswers = answers.mapValues { it.value.selected },
+                        questionnaireAnswers = visibleQuestions().associate { it.questionKey to answers[it.questionKey]?.selected.orEmpty() },
                     ),
                 )
             }
@@ -586,6 +590,7 @@ class DefaultTaskComponent(
         val questionnaire = task as? QuestionnaireTask ?: return
         val question = questionnaire.questions.firstOrNull { it.questionKey == questionKey } ?: return
         answers = answers + (questionKey to AnswerState(selected = listOf(value), valid = question.acceptsOpenAnswer(value), touched = true))
+        resetHiddenQuestions()
         publish()
     }
 
@@ -604,6 +609,7 @@ class DefaultTaskComponent(
             QuestionType.OPEN -> true
         }
         answers = answers + (questionKey to AnswerState(selected = updated, valid = valid, touched = true))
+        resetHiddenQuestions()
         publish()
     }
 
@@ -649,9 +655,26 @@ class DefaultTaskComponent(
         publish()
     }
 
-    private fun allAnswersValid(): Boolean {
-        val questionnaire = task as? QuestionnaireTask ?: return true
-        return questionnaire.questions.all { q -> answers[q.questionKey]?.valid ?: q.validWhenUnanswered() }
+    private fun allAnswersValid(): Boolean =
+        visibleQuestions().all { q -> answers[q.questionKey]?.valid ?: q.validWhenUnanswered() }
+
+    /** The questionnaire's visible questions in config order; empty for any other task. */
+    private fun visibleQuestions(): List<Question> {
+        val questions = (task as? QuestionnaireTask)?.questions ?: return emptyList()
+        val visible = visibleQuestionKeys(questions, answers.mapValues { it.value.selected })
+        return questions.filter { it.questionKey in visible }
+    }
+
+    /**
+     * A question that is hidden forgets its answer (brief §2.4): back to the state of
+     * [initialAnswers], so it reappears empty and untouched. One pass in config order covers
+     * the cascade, since a hidden source hides its dependents.
+     */
+    private fun resetHiddenQuestions() {
+        val questionnaire = task as? QuestionnaireTask ?: return
+        val visible = visibleQuestionKeys(questionnaire.questions, answers.mapValues { it.value.selected })
+        val initial = initialAnswers()
+        answers = answers.mapValues { (key, state) -> if (key in visible) state else initial.getValue(key) }
     }
 
     private fun initialAnswers(): Map<String, AnswerState> {
@@ -701,12 +724,17 @@ class DefaultTaskComponent(
                 indicatorType = indicatorType,
             )
 
-            is QuestionnaireTask -> TaskComponent.Content.Questionnaire(
-                questions = task.questions,
-                answers = answers,
-                allValid = allAnswersValid(),
-                submitAttempted = submitAttempted,
-            )
+            is QuestionnaireTask -> {
+                val visible = visibleQuestionKeys(task.questions, answers.mapValues { it.value.selected })
+                val shown = displayedQuestions(task.questions).filter { it.question.questionKey in visible }
+                TaskComponent.Content.Questionnaire(
+                    questions = shown.map { it.question },
+                    indentLevels = shown.associate { it.question.questionKey to it.depth },
+                    answers = answers,
+                    allValid = allAnswersValid(),
+                    submitAttempted = submitAttempted,
+                )
+            }
 
             is VideoTask -> TaskComponent.Content.Video(
                 screenState = screenState,

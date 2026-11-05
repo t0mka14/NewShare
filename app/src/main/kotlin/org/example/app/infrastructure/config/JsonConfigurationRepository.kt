@@ -14,6 +14,7 @@ import org.example.app.domain.config.ConfigDecoder
 import org.example.app.domain.config.ConfigSchemaMigrator
 import org.example.app.domain.config.ConfigValidateResult
 import org.example.app.domain.config.ConfigValidationError
+import org.example.app.domain.config.ConfigValidationWarning
 import org.example.app.domain.config.ConfigValidator
 import org.example.app.domain.config.ConfigurationRepository
 import org.example.app.domain.config.RemoteConfig
@@ -78,6 +79,7 @@ class JsonConfigurationRepository(
         logDecoderWarnings(decodeResult.warnings)
 
         val validation = ConfigValidator.validate(decodeResult.config)
+        logValidationWarnings(validation.warnings)
         if (!validation.isValid) {
             logger.warn { "fetched config failed validation: ${validation.errors.describe()}" }
             return ConfigValidateResult.Rejected(validation.errors)
@@ -113,6 +115,7 @@ class JsonConfigurationRepository(
         logDecoderWarnings(decodeResult.warnings)
 
         val validation = ConfigValidator.validate(decodeResult.config)
+        logValidationWarnings(validation.warnings)
         if (!validation.isValid) {
             logger.warn { "$source config failed validation; treating as no cache: ${validation.errors.describe()}" }
             return null
@@ -122,6 +125,16 @@ class JsonConfigurationRepository(
 
     private fun logDecoderWarnings(warnings: List<String>) {
         warnings.forEach { logger.warn { it } }
+    }
+
+    /** Config structure only (keys the clinic authored), never participant data. */
+    private fun logValidationWarnings(warnings: List<ConfigValidationWarning>) {
+        warnings.forEach { w ->
+            when (w) {
+                is ConfigValidationWarning.InvalidShowIf ->
+                    logger.warn { "question ${w.questionKey} (task ${w.taskTitleKey}, protocol ${w.protocolName}) has an invalid showIf rule; showing it unconditionally" }
+            }
+        }
     }
 
     private fun List<ConfigValidationError>.describe(): String = joinToString { it::class.simpleName ?: "?" }

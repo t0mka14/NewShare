@@ -224,4 +224,20 @@ class ConfigDecoderTest {
         val result = ConfigDecoder.decode(json)
         assertEquals(1, result.config.schemaVersion)
     }
+
+    @Test
+    fun `showIf decodes on a question and is null when absent`() {
+        val json = minimalConfigJson.replace(
+            "\"tasks\": [",
+            """"tasks": [
+                { "type": "QUESTIONNAIRE", "titleKey": "q_title", "nrepetition": 1, "questions": [
+                  { "questionType": "SINGLE_CHOICE", "questionKey": "a", "questionTextKey": "a_t", "questionOptions": ["a1", "a2"] },
+                  { "questionType": "OPEN", "questionKey": "b", "questionTextKey": "b_t", "questionRegex": ".+",
+                    "showIf": { "questionKey": "a", "optionKeys": ["a1"] } }
+                ] },""",
+        )
+        val task = ConfigDecoder.decode(json).config.protocols[0].tasks.first() as QuestionnaireTask
+        assertEquals(null, task.questions[0].showIf)
+        assertEquals(QuestionCondition("a", listOf("a1")), task.questions[1].showIf)
+    }
 }

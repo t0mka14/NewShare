@@ -101,4 +101,21 @@ class WebSampleConfigsTest {
         assertTrue(questions.any { it.questionType == QuestionType.MULTIPLE_CHOICE })
         assertTrue(questions.any { it.questionOptions == (1..5).map { n -> "rating_$n" } })
     }
+
+    @Test
+    fun `questionnaire sample decodes showIf on q7 and q8 and every rule is valid`() {
+        val tasks = load("web_questionnaires.json").protocols.flatMap { it.tasks }.filterIsInstance<QuestionnaireTask>()
+        val questions = tasks.flatMap { it.questions }.associateBy { it.questionKey }
+
+        assertEquals(QuestionCondition("p60_t3_q3", listOf("p60_t3_q3_o2", "p60_t3_q3_o3")), questions.getValue("p60_t3_q7").showIf)
+        assertEquals(QuestionCondition("p60_t3_q4", listOf("p60_t3_q4_o1")), questions.getValue("p60_t3_q8").showIf)
+        assertTrue(tasks.all { questionsWithInvalidRule(it.questions).isEmpty() })
+
+        val t3 = tasks.first { t -> t.questions.any { it.questionKey == "p60_t3_q7" } }
+        val shape = displayedQuestions(t3.questions).map { it.question.questionKey.substringAfterLast('_') to it.depth }
+        assertEquals(
+            listOf("q3" to 0, "q7" to 1, "q4" to 0, "q8" to 1),
+            shape.filter { it.first in setOf("q3", "q4", "q7", "q8") },
+        )
+    }
 }
