@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.border
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -32,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -41,11 +44,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -154,7 +159,14 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                     // Scrolls when the questions outgrow the middle area; the scrollbar shows that
                     // more follows (F-091: the last option sat unseen under the hard edge)
                     val scrollState = rememberScrollState()
-                    Box(Modifier.contentWidth(1500.dp).fillMaxHeight()) {
+                    Box(
+                        Modifier
+                            .contentWidth(1500.dp)
+                            .fillMaxHeight()
+                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(12.dp))
+                            .testTag(TestTags.Questionnaire.FRAME),
+                    ) {
                         QuestionnaireBody(
                             questions = content.questions,
                             content = content,
@@ -612,6 +624,13 @@ private fun rememberElapsedSeconds(capturing: Boolean, resetKey: Any?): Int {
     return seconds
 }
 
+private val QUESTIONNAIRE_PADDING = 16.dp
+private val QUESTION_DIVIDER_PADDING = 12.dp
+
+/** Start padding added per rule depth of a conditional question, and the depth after which it stops growing. */
+private val QUESTION_INDENT_STEP = 24.dp
+private const val QUESTION_MAX_INDENT_LEVELS = 3
+
 @Composable
 private fun QuestionnaireBody(
     questions: List<Question>,
@@ -621,57 +640,69 @@ private fun QuestionnaireBody(
     onOptionToggled: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        questions.forEach { question ->
-            val answer = content.answers[question.questionKey] ?: AnswerState()
-            val showError = answer.showsError(content.submitAttempted)
-            Column {
-                Text(localization.resolve(question.questionTextKey), style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(4.dp))
-
-                when (question.questionType) {
-                    QuestionType.OPEN -> OutlinedTextField(
-                        value = answer.selected.firstOrNull().orEmpty(),
-                        onValueChange = { onOpenAnswerChanged(question.questionKey, it) },
-                        isError = showError,
-                        modifier = Modifier.fillMaxWidth().testTag(TestTags.Questionnaire.answerField(question.questionKey)),
+    Column(
+        modifier = modifier.padding(QUESTIONNAIRE_PADDING),
+    ) {
+        questions.forEachIndexed { index, question ->
+            key(question.questionKey) {
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = QUESTION_DIVIDER_PADDING)
+                            .testTag(TestTags.Questionnaire.DIVIDER),
                     )
-
-                    QuestionType.SINGLE_CHOICE -> Column {
-                        question.questionOptions.orEmpty().forEach { optionKey ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                RadioButton(
-                                    selected = answer.selected.contains(optionKey),
-                                    onClick = { onOptionToggled(question.questionKey, optionKey, true) },
-                                    modifier = Modifier.testTag(TestTags.Questionnaire.answerOption(question.questionKey, optionKey)),
-                                )
-                                Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
-
-                    QuestionType.MULTIPLE_CHOICE -> Column {
-                        question.questionOptions.orEmpty().forEach { optionKey ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                val checked = answer.selected.contains(optionKey)
-                                Checkbox(
-                                    checked = checked,
-                                    onCheckedChange = { onOptionToggled(question.questionKey, optionKey, it) },
-                                    modifier = Modifier.testTag(TestTags.Questionnaire.answerOption(question.questionKey, optionKey)),
-                                )
-                                Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
                 }
+                val answer = content.answers[question.questionKey] ?: AnswerState()
+                val showError = answer.showsError(content.submitAttempted)
+                val indent = QUESTION_INDENT_STEP * (content.indentLevels[question.questionKey] ?: 0).coerceIn(0, QUESTION_MAX_INDENT_LEVELS)
+                Column(Modifier.padding(start = indent)) {
+                    Text(localization.resolve(question.questionTextKey), style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                if (showError) {
-                    Text(
-                        localization.resolve("questionnaire.error.invalid"),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.testTag(TestTags.Questionnaire.validationError(question.questionKey)),
-                    )
+                    when (question.questionType) {
+                        QuestionType.OPEN -> OutlinedTextField(
+                            value = answer.selected.firstOrNull().orEmpty(),
+                            onValueChange = { onOpenAnswerChanged(question.questionKey, it) },
+                            isError = showError,
+                            modifier = Modifier.fillMaxWidth().testTag(TestTags.Questionnaire.answerField(question.questionKey)),
+                        )
+
+                        QuestionType.SINGLE_CHOICE -> Column {
+                            question.questionOptions.orEmpty().forEach { optionKey ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(
+                                        selected = answer.selected.contains(optionKey),
+                                        onClick = { onOptionToggled(question.questionKey, optionKey, true) },
+                                        modifier = Modifier.testTag(TestTags.Questionnaire.answerOption(question.questionKey, optionKey)),
+                                    )
+                                    Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+
+                        QuestionType.MULTIPLE_CHOICE -> Column {
+                            question.questionOptions.orEmpty().forEach { optionKey ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val checked = answer.selected.contains(optionKey)
+                                    Checkbox(
+                                        checked = checked,
+                                        onCheckedChange = { onOptionToggled(question.questionKey, optionKey, it) },
+                                        modifier = Modifier.testTag(TestTags.Questionnaire.answerOption(question.questionKey, optionKey)),
+                                    )
+                                    Text(localization.resolve(optionKey), style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    }
+
+                    if (showError) {
+                        Text(
+                            localization.resolve("questionnaire.error.invalid"),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.testTag(TestTags.Questionnaire.validationError(question.questionKey)),
+                        )
+                    }
                 }
             }
         }

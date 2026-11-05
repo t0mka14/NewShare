@@ -130,6 +130,12 @@ object TestTags {
         const val CONTAINER = "questionnaire.container"
         const val SCROLLBAR = "questionnaire.scrollbar"
 
+        /** The bordered frame around the question pane (fixed size; CONTAINER and SCROLLBAR sit inside it). */
+        const val FRAME = "questionnaire.frame"
+
+        /** The divider between two adjacent questions; one node per divider, none after the last question. */
+        const val DIVIDER = "questionnaire.divider"
+
         fun answerField(questionKey: String) = "questionnaire.answer.$questionKey"
 
         /** One option toggle (radio/checkbox) within a SINGLE_CHOICE/MULTIPLE_CHOICE question. */
