@@ -1,0 +1,42 @@
+{
+  "sessionId": "d8880a615d564a77b4549ec598d6976a",
+  "installationId": "<installationId>",
+  "protocolName": "E2E run 17 questionnaire rules",
+  "protocolProject": "Test Study 001",
+  "configVersion": "2026-11-05.221421",
+  "startedAt": "2026-11-05T22:22:20.369867100Z",
+  "endedAt": "2026-11-05T22:28:15.993885700Z",
+  "tasks": [
+    {
+      "taskIndex": 0,
+      "type": "QUESTIONNAIRE",
+      "repetition": 1,
+      "questionnaireAnswers": {
+        "p15_t1_q1": [
+          "fake q1"
+        ],
+        "p15_t1_q2": [
+          "p15_t1_q2_o3"
+        ],
+        "p15_t1_q3": [
+          "p15_t1_q3_o2",
+          "p15_t1_q3_o3"
+        ],
+        "p15_t1_q4": [
+          "p15_t1_q4_o1"
+        ],
+        "p15_t1_q5": [
+          "fake q5 maybe"
+        ]
+      }
+    }
+  ],
+  "hardware": {
+    "configuredMicDeviceId": "CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version"
+  },
+  "processing": {
+    "status": "Done",
+    "processedAt": "2026-11-05T22:28:16.114490600Z",
+    "timelineUsed": "original"
+  }
+}

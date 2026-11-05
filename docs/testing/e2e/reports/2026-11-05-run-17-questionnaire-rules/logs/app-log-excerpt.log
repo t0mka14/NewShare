@@ -1,0 +1,26 @@
+2026-11-05 23:18:41.461 [main] INFO  o.e.a.domain.session.StartupRecovery - recovered interrupted session: sessionId=f2ffacfa77f142a089e5a13a4c9d73a2
+2026-11-05 23:18:41.772 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-11-05 23:18:42.010 [DefaultDispatcher-worker-11] WARN  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: this computer is registered to another site (HTTP 409)
+2026-11-05 23:18:44.871 [AWT-EventQueue-0] WARN  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: registered to another site
+2026-11-05 23:18:44.877 [AWT-EventQueue-0] WARN  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: config from another site not applied (HTTP 409), keeping previous configuration
+2026-11-05 23:19:48.461 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-11-05 23:19:48.613 [DefaultDispatcher-worker-11] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-11-05 23:19:48.617 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-11-05 23:19:48.656 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: applied configVersion=2026-11-05.221421 site=Paris
+2026-11-05 23:22:20.453 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=d8880a615d564a77b4549ec598d6976a tasks=1
+2026-11-05 23:28:16.008 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=d8880a615d564a77b4549ec598d6976a tasks=1
+2026-11-05 23:28:16.089 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session d8880a615d564a77b4549ec598d6976a)
+2026-11-05 23:28:16.184 [DefaultDispatcher-worker-5] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 0 clips (session d8880a615d564a77b4549ec598d6976a)
+2026-11-05 23:29:15.021 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+2026-11-05 23:29:15.142 [DefaultDispatcher-worker-1] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-11-05 23:29:15.163 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-11-05 23:29:15.300 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: unchanged configVersion=2026-11-05.221421 site=Paris
+2026-11-05 23:29:57.357 [DefaultDispatcher-worker-9] INFO  o.e.a.i.network.KtorUploadApi - upload ok for session=d8880a615d564a77b4549ec598d6976a: HTTP 200
+2026-11-05 23:29:57.418 [DefaultDispatcher-worker-9] INFO  o.e.a.d.upload.UploadSessionUseCase - upload attempt: session=d8880a615d564a77b4549ec598d6976a attempt=1 outcome=Success
+2026-11-05 23:29:57.430 [AWT-EventQueue-0] INFO  o.e.app.navigation.UploadComponent - upload batch: 1 session(s), 1 ok, 0 failed
+2026-11-05 23:29:57.451 [DefaultDispatcher-worker-7] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+2026-11-05 23:29:57.451 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+2026-11-05 23:30:30.006 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=ff0236e72535462db00fb2c97753d797 tasks=1
+2026-11-05 23:30:53.345 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=ff0236e72535462db00fb2c97753d797 tasks=1
+2026-11-05 23:30:53.410 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session ff0236e72535462db00fb2c97753d797)
+2026-11-05 23:30:53.496 [DefaultDispatcher-worker-10] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 0 clips (session ff0236e72535462db00fb2c97753d797)

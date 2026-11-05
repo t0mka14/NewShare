@@ -216,7 +216,7 @@ Top level:
 | `videoComplete` | bool? | Only with `videoFile`. `false` if the camera failed during the kept take (MP4 shorter than the audio; the take is still kept). Additive; the server may ignore it. |
 | `videoDurationMs` | long? | Only with `videoFile`: MP4 duration (frame count / fps). Additive; may be ignored. |
 | `audioDurationMs` | long? | Only with `videoFile`: duration of the kept take's audio clip. Additive; may be ignored. |
-| `questionnaireAnswers` | object? | QUESTIONNAIRE only: `questionKey → [answer, …]` (always a list, even for single-choice). |
+| `questionnaireAnswers` | object? | QUESTIONNAIRE only: `questionKey → [answer, …]` (always a list, even for single-choice). A visible question that was never answered has an empty list; an `OPEN` answer that was typed and then erased is `[""]`; a question hidden by a `showIf` rule has no key. |
 
 `interruptions[]`: `sampleOffset` (global sample where the loss happened), `start`/`end`
 (ISO UTC), `oldDevice`/`newDevice` (strings, optional), `partFile` (raw part name, which is not in the ZIP),

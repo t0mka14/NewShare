@@ -231,6 +231,32 @@ is `canRepeat` (nothing is recorded, so there is nothing to repeat).
   empty string, so `.*` makes it optional and `.+` required; no regex means free, optional text.
   `SINGLE_CHOICE` needs exactly one option, `MULTIPLE_CHOICE` accepts none.
 - `questionOptions` — localization keys, required for choice types, absent for `OPEN`.
+- `showIf` — optional conditional rule (added 2026-10-31, config alignment row 16). The key is
+  absent when the question has no rule:
+
+  ```json
+  "showIf": { "questionKey": "p60_t3_q3", "optionKeys": ["p60_t3_q3_o2", "p60_t3_q3_o3"] }
+  ```
+
+  - **Fields:**
+    - `questionKey` names an **earlier** `SINGLE_CHOICE` or `MULTIPLE_CHOICE` question of the
+      same task.
+    - `optionKeys` is a non-empty subset of that question's `questionOptions`.
+  - **Visibility:** questions are evaluated in order. A question is visible if it has no
+    `showIf`, or if its source question is visible and the source's current selection contains
+    at least one of the `optionKeys`. For a `MULTIPLE_CHOICE` source, that means any one of them.
+    Rules can chain.
+  - **Hidden questions:** a hidden question is not validated, so a required question that is
+    hidden does not block Finish. Its answer is cleared when it becomes hidden, and the clearing
+    cascades to its dependents. It has no entry in `questionnaireAnswers`.
+  - **Invalid rules:** the web never emits one. If the app receives one, it logs a warning and
+    treats the question as always shown; the config still loads. This covers a `showIf` of the
+    wrong JSON shape, and a rule where the question's own key or its source's key is duplicated
+    in the task. `showIf: null` counts as no rule, without a warning.
+  - **Older apps** ignore the key and show every question.
+  - **Display order** is not part of this contract. This app displays a conditional question
+    directly below its source (`docs/dev/ui.md`).
+  - **Implementation brief:** `docs/questionnaire_rules/03_desktop_brief.md` in the web repository.
 
 ### 4.3 Calibration (not a task)
 

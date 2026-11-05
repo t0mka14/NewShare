@@ -98,6 +98,29 @@ green once `taskLengthSeconds` is reached), and the legacy 3-button bottom row:
   carries `task.skipButton`; otherwise `task.nextButton` → `onNext`. The legacy app had no
   skip concept — this mapping keeps `canSkip` reachable without a fourth button.
 
+### Questionnaire pane
+
+The questions sit in a 1 dp rounded frame that fills the middle area, so its size does not change
+when questions appear or disappear. The list scrolls inside the frame, with its scrollbar (F-091).
+A divider separates adjacent questions.
+
+`Content.Questionnaire.questions` holds only the visible questions, already in display order, and
+`indentLevels` holds their `showIf` depths. `TaskContent` renders that list as given and does not
+evaluate rules itself; the rules are in `domain/config/QuestionRules.kt`.
+
+There are two orders, on purpose:
+
+- **Evaluation and answers** use config order (§4.2.1).
+- **Display** puts a conditional question directly below its source, after any earlier conditional
+  questions of that source, indented 24 dp per rule depth up to 3 levels.
+
+The web preview keeps config order and indents flat, so the two can differ when a protocol does not
+place a conditional question right after its source. Display order is not part of the contract.
+
+Each question is wrapped in `key(questionKey)`, so focus stays with its question when another
+question is inserted above it. This matters only when an answer changes without a click, because a
+mouse click on a radio button moves focus anyway.
+
 `CalibrationContent` is the legacy `CalibrationScreen` (mic-position photo + vertical
 `SoundLevelBar` with the configured loudness band, pill Back / Continue buttons). Back aborts
 to the main menu via `SessionContent`'s `onBackToMenu` (the session component's destroy stops
