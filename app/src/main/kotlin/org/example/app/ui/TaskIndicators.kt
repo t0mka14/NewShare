@@ -6,7 +6,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,24 +70,33 @@ private fun CircleLevelIndicator(level: Float, capturing: Boolean, modifier: Mod
             stiffness = Spring.StiffnessVeryLow,
         ),
     )
-    // Bounded size instead of the legacy fillMaxSize(0.5f) canvas (scaling fix, §13/36);
-    // 160dp comfortably fits the 60dp max radius + stroke
-    Canvas(modifier = modifier.size(160.dp).testTag(TestTags.Task.LEVEL_INDICATOR)) {
+    // Bounded size instead of the legacy fillMaxSize(0.5f) canvas (scaling fix, §13/36): a square of
+    // up to 160dp, smaller when the parent offers less. The drawing scales with it, so at full size
+    // it is the legacy one.
+    Canvas(modifier = modifier.sizeIn(maxWidth = CIRCLE_INDICATOR_SIZE, maxHeight = CIRCLE_INDICATOR_SIZE).aspectRatio(1f).testTag(TestTags.Task.LEVEL_INDICATOR)) {
+        val scale = size.minDimension / CIRCLE_INDICATOR_SIZE.toPx()
         drawCircle(
             color = circleColor,
-            radius = 30.dp.toPx(),
+            radius = 30.dp.toPx() * scale,
         )
         drawCircle(
             color = circleVolumeColor,
-            radius = anim.dp.toPx(),
-            style = Stroke(width = 5.dp.toPx()),
+            radius = anim.dp.toPx() * scale,
+            style = Stroke(width = 5.dp.toPx() * scale),
         )
     }
 }
 
+/** The recording circle's full size; 160dp comfortably fits the 60dp max radius + stroke. */
+private val CIRCLE_INDICATOR_SIZE = 160.dp
+
 /** Level step between the ticks on the waveform's left edge (0.2 → 0.2 … 0.8 each side; the outline marks 1.0). */
 private const val WAVEFORM_TICK_STEP = 0.2f
 private val WAVEFORM_PADDING = 4.dp
+
+/** Full size of the waveform box; `size()` clamps it to what the parent offers, and the ticks and bars follow the drawn size. */
+private val WAVEFORM_WIDTH = 500.dp
+private val WAVEFORM_HEIGHT = 250.dp
 
 /** Widest a bar gets, so the first few points of a take are not absurdly thick. */
 private val WAVEFORM_MAX_STROKE = 6.dp
@@ -122,7 +133,7 @@ private fun WaveformLevelIndicator(history: List<Float>, modifier: Modifier = Mo
 
     Canvas(
         modifier = modifier
-            .size(width = 500.dp, height = 250.dp)
+            .size(width = WAVEFORM_WIDTH, height = WAVEFORM_HEIGHT)
             .border(width = 1.dp, color = outlineColor)
             .padding(all = WAVEFORM_PADDING) // keeps peaks off the outline
             .testTag(TestTags.Task.LEVEL_INDICATOR),

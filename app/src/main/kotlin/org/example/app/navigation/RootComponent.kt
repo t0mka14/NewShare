@@ -11,6 +11,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -30,6 +31,8 @@ import org.example.app.domain.settings.loudnessRange
 import org.example.app.ui.UiLocalization
 import java.time.LocalDate
 import java.time.ZoneId
+
+private val logger = KotlinLogging.logger {}
 
 interface RootComponent {
     val stack: Value<ChildStack<*, Child>>
@@ -213,6 +216,12 @@ class DefaultRootComponent(
 
     private fun onStartProtocolClicked() {
         val protocols = container.configurationRepository.activeConfig.value?.protocols.orEmpty()
+        if (protocols.isEmpty()) {
+            // The menu disables Start with no protocols, but that state trails `activeConfig` by one
+            // main-dispatcher hop; a click in that window must not reach a PatientInfo dead end.
+            logger.warn { "start requested with no protocols; not navigating" }
+            return
+        }
         if (protocols.size > 1) {
             navigation.pushNew(Config.ProtocolPicker)
         } else {

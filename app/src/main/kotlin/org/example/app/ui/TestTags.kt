@@ -33,6 +33,8 @@ object TestTags {
         const val APP_VERSION = "mainMenu.appVersion"
         /** "Offline - using the configuration saved on <date>" (F-048); absent while online. */
         const val OFFLINE_NOTICE = "mainMenu.offlineNotice"
+        /** "No protocol is currently configured for this site." under New examination; only with a protocol-less config. */
+        const val NO_PROTOCOL_MESSAGE = "mainMenu.noProtocolMessage"
         const val PROTOCOL_PDF_BUTTON = "mainMenu.protocolPdfButton"
         const val LANGUAGE_SELECTOR = "mainMenu.languageSelector"
 

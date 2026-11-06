@@ -87,12 +87,12 @@ class ProcessSessionUseCase(
 
     private suspend fun runProcess(folderName: String, onStep: suspend (Step, Float) -> Unit): Outcome {
         fun fail(examination: Examination?, error: ProcessingError, cause: Exception? = null): Outcome.Failed {
-            // Error type, the cause's type and the failing file's NAME, and sessionId only (§11): the
-            // folder name embeds the patient code and the error details can carry paths.
+            // Error type, the cause's type, the failing file's EXTENSION, and sessionId only (§11): the
+            // folder name and every file name here embed the patient code, and error details carry paths.
             val causeInfo = cause?.let { e ->
                 val fsException = generateSequence<Throwable>(e) { it.cause }.filterIsInstance<java.nio.file.FileSystemException>().firstOrNull()
-                val fileName = fsException?.file?.substringAfterLast('/')?.substringAfterLast('\\')
-                ": ${(fsException ?: e)::class.simpleName}" + (fileName?.let { " on $it" } ?: "")
+                val extension = fsException?.file?.let { logFileExtension(it) }
+                ": ${(fsException ?: e)::class.simpleName}" + (extension?.let { " on a $it file" } ?: "")
             }.orEmpty()
             logger.warn { "processing failed: ${error::class.simpleName}$causeInfo (session ${examination?.sessionId ?: "unknown"})" }
             if (examination != null) {

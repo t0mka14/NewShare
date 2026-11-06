@@ -50,13 +50,15 @@ interface MainMenuComponent {
     data class ProtocolPdf(val protocolName: String, val url: String, val project: String? = null)
 
     /**
-     * `startEnabled` mirrors `ConfigurationRepository.activeConfig != null` (§8.6/§12: start
-     * a new protocol is only possible with an active config). `protocolPdfs` lists the
+     * `startEnabled` is true only with an active config that has at least one protocol
+     * (§8.6/§12: starting an examination needs something to run). `protocolPdfs` lists the
      * protocols that declare an instruction-manual URL — empty hides the PDF button, one
      * opens directly, several make the button offer a picker.
      */
     data class State(
         val startEnabled: Boolean = false,
+        /** An active config exists but declares no protocol; false when there is no config at all. */
+        val noProtocolConfigured: Boolean = false,
         val protocolPdfs: List<ProtocolPdf> = emptyList(),
         /** The active config's `siteName`; null (no line shown) when absent or blank. */
         val siteName: String? = null,
@@ -102,7 +104,8 @@ class DefaultMainMenuComponent(
     }
 
     private fun stateOf(config: RemoteConfig?) = MainMenuComponent.State(
-        startEnabled = config != null,
+        startEnabled = config != null && config.protocols.isNotEmpty(),
+        noProtocolConfigured = config != null && config.protocols.isEmpty(),
         siteName = config?.siteName?.trim()?.ifBlank { null },
         appVersion = appVersion,
         recovery = startupRecovery?.pending?.value,

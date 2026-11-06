@@ -3,6 +3,7 @@ package org.example.app.infrastructure.audio
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.example.app.domain.audio.AudioInputGainControl
 import org.example.app.domain.audio.GainApplyResult
+import org.example.app.domain.video.redacted
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.CompoundControl
 import javax.sound.sampled.Control
@@ -68,7 +69,7 @@ class JvmAudioInputGainControl : AudioInputGainControl {
         }
         best?.second
     } catch (e: Exception) {
-        logger.warn(e) { "reading mic gain failed for device='$deviceName'" }
+        logger.warn(redacted(e)) { "reading mic gain failed for device='$deviceName'" }
         null
     }
 
@@ -79,7 +80,7 @@ class JvmAudioInputGainControl : AudioInputGainControl {
                 try {
                     info to AudioSystem.getMixer(info)
                 } catch (e: Exception) {
-                    logger.warn(e) { "port mixer '${info.name}' could not be opened" }
+                    logger.warn(redacted(e)) { "port mixer '${info.name}' could not be opened" }
                     null
                 }
             }
@@ -91,14 +92,14 @@ class JvmAudioInputGainControl : AudioInputGainControl {
             val port = try {
                 mixer.getLine(portInfo) as Port
             } catch (e: Exception) {
-                logger.warn(e) { "port '${portInfo.name}' on '${mixer.mixerInfo.name}' unavailable" }
+                logger.warn(redacted(e)) { "port '${portInfo.name}' on '${mixer.mixerInfo.name}' unavailable" }
                 continue
             }
             try {
                 port.open()
                 port.controls.forEach { control -> walkVolumeControls(control, action) }
             } catch (e: Exception) {
-                logger.warn(e) { "port '${portInfo.name}' on '${mixer.mixerInfo.name}' failed" }
+                logger.warn(redacted(e)) { "port '${portInfo.name}' on '${mixer.mixerInfo.name}' failed" }
             } finally {
                 try {
                     port.close()

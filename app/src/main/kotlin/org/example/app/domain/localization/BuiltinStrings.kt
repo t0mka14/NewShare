@@ -83,6 +83,7 @@ object BuiltinStrings {
         "mainMenu.site" to "Site: {name}",
         "mainMenu.appVersion" to "App version: {version}",
         "mainMenu.offlineNotice" to "Offline – using the configuration saved on {date}",
+        "mainMenu.noProtocolConfigured" to "No protocol is currently configured for this site.",
         "mainMenu.startButton" to "New examination",
         "mainMenu.uploadButton" to "Upload",
         "mainMenu.settingsButton" to "Settings",
@@ -119,7 +120,7 @@ object BuiltinStrings {
 
         // Session browser (§8.11).
         "sessionBrowser.title" to "Sessions",
-        "sessionBrowser.instructions" to "Edit recorded sessions. Open editor: lets you cut unwanted parts out of the session's audio. Process / Retry processing: builds the session's clips and archive from the recording — offered for sessions that are not processed yet or whose processing failed. Saving changes in the editor reprocesses the session by itself.",
+        "sessionBrowser.instructions" to "Edit recorded sessions. Open editor: lets you cut unwanted parts out of the session's audio. Saving changes in the editor reprocesses the session by itself.",
         "sessionBrowser.noSessions" to "No sessions recorded yet.",
         "sessionBrowser.processButton" to "Process",
         "sessionBrowser.retryProcessingButton" to "Retry processing",
@@ -336,6 +337,7 @@ object BuiltinStrings {
         "mainMenu.site" to "Pracoviště: {name}",
         "mainMenu.appVersion" to "Verze aplikace: {version}",
         "mainMenu.offlineNotice" to "Offline – používá se konfigurace uložená {date}",
+        "mainMenu.noProtocolConfigured" to "Pro toto pracoviště není aktuálně nastaven žádný protokol.",
         "mainMenu.startButton" to "Nové vyšetření",
         "mainMenu.uploadButton" to "Odeslání nahrávek",
         "mainMenu.settingsButton" to "Nastavení",
@@ -369,7 +371,7 @@ object BuiltinStrings {
         "upload.error.generic" to "nastala neznámá chyba",
 
         "sessionBrowser.title" to "Sezení",
-        "sessionBrowser.instructions" to "Editace jednotlivých sezení. Otevřít editor: umožní vystřihnout nežádoucí části ze zvukové nahrávky sezení. Zpracovat / Zpracovat znovu: vytvoří klipy a archiv z nahrávky — nabízí se u sezení, která ještě nejsou zpracovaná nebo jejichž zpracování selhalo. Uložení změn v editoru sezení zpracuje samo.",
+        "sessionBrowser.instructions" to "Editace jednotlivých sezení. Otevřít editor: umožní vystřihnout nežádoucí části ze zvukové nahrávky sezení. Uložení změn v editoru sezení zpracuje samo.",
         "sessionBrowser.noSessions" to "Zatím nebyla nahrána žádná sezení.",
         "sessionBrowser.processButton" to "Zpracovat",
         "sessionBrowser.retryProcessingButton" to "Zpracovat znovu",

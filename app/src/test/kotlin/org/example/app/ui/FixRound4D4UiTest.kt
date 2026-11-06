@@ -39,12 +39,13 @@ class FixRound4D4UiTest {
     private val longText = List(12) { "Take a deep breath and then say the vowel steadily for as long as you comfortably can." }
         .joinToString(" ")
     private val localization = UiLocalization(
-        LocalizedStringProvider(builtins = mapOf("ins.first" to longText, "ins.second" to longText)),
+        LocalizedStringProvider(builtins = mapOf("ins.first" to longText, "ins.second" to longText, "ins.short" to "Say aaah for {length} seconds.")),
         "en",
         null,
     )
 
-    private class Rig {
+    /** [instructionKeys] default to the long text; the filming no-movement checks use the short card so the preview fits at 944x681. */
+    private class Rig(instructionKeys: List<String> = listOf("ins.first", "ins.second")) {
         val dispatchers = TestCoroutineDispatchers()
         val videoState = MutableStateFlow<VideoRecorderState>(VideoRecorderState.Previewing)
         val component: DefaultTaskComponent
@@ -55,7 +56,7 @@ class FixRound4D4UiTest {
             val device = AudioInputDevice(id = "default", name = "Default Mic", eligible = true)
             val task = VocalTask(
                 titleKey = "t", subtype = VocalSubtype.PHONATION,
-                instructionKeys = listOf("ins.first", "ins.second"), recordVideo = true,
+                instructionKeys = instructionKeys, recordVideo = true,
             )
             component = DefaultTaskComponent(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -100,7 +101,8 @@ class FixRound4D4UiTest {
     @Test
     fun `F-133 the camera lost message moves neither the instruction panel nor the level meter`() =
         runDesktopComposeUiTest(944, 681) {
-            val rig = Rig()
+            // short instructions: with long ones the preview gives way to them (AC 4) and there is nothing to keep still
+            val rig = Rig(listOf("ins.short"))
             setContent { TaskContent(rig.component, localization) }
             settle(rig)
             val panel = bounds(TestTags.Task.INSTRUCTIONS)
@@ -125,7 +127,7 @@ class FixRound4D4UiTest {
     @Test
     fun `F-133 at the 960x720 minimum window a filming task keeps all its controls on screen`() =
         runDesktopComposeUiTest(944, 681) {
-            val rig = Rig()
+            val rig = Rig(listOf("ins.short"))
             setContent { TaskContent(rig.component, localization) }
             settle(rig)
             rig.videoState.value = VideoRecorderState.Failed(VideoError.CaptureInterrupted("x"))

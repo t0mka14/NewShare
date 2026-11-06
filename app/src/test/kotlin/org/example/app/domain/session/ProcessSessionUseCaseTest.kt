@@ -507,7 +507,7 @@ class ProcessSessionUseCaseTest {
     }
 
     @Test
-    fun `a failure caused by a missing file logs the exception type and file name only, never the path (F-123)`(@TempDir tempDir: Path) {
+    fun `a failure caused by a missing file logs the exception type and file extension only, never the path or name (F-123)`(@TempDir tempDir: Path) {
         val f = Fixture(tempDir)
         f.setUpSession(
             captureFormat = format48k,
@@ -531,7 +531,9 @@ class ProcessSessionUseCaseTest {
 
             val failure = appender.list.single { it.level == Level.WARN && "processing failed" in it.formattedMessage }.formattedMessage
             assertTrue("IoFailure" in failure)
-            assertTrue("NoSuchFileException" in failure && "session_master.part2.wav" in failure, failure)
+            // The file's name can embed the patient code, so only its extension is logged (AC 12).
+            assertTrue("NoSuchFileException" in failure && ".wav" in failure, failure)
+            assertTrue("session_master" !in failure && "part2" !in failure, failure)
             assertTrue(appender.list.none { f.folderName in it.formattedMessage || "HC001" in it.formattedMessage || tempDir.toString() in it.formattedMessage })
         } finally {
             logger.detachAppender(appender)

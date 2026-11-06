@@ -117,12 +117,54 @@ class MainMenuComponentTest {
         val h = Harness(repo)
         assertFalse(h.component.state.value.startEnabled)
 
-        repo.setActiveConfig(sampleConfig())
+        repo.setActiveConfig(sampleConfig().copy(protocols = listOf(protocol("P", null))))
         h.dispatchers.scheduler.advanceUntilIdle()
         assertTrue(h.component.state.value.startEnabled)
 
         h.component.onStartProtocol()
         assertEquals(1, h.startClicks)
+    }
+
+    @Test
+    fun `a config with zero protocols flags noProtocolConfigured and disables start`() {
+        val h = Harness(FakeConfigurationRepository(sampleConfig().copy(protocols = emptyList())))
+        assertTrue(h.component.state.value.noProtocolConfigured)
+        assertFalse(h.component.state.value.startEnabled)
+
+        h.component.onStartProtocol()
+        assertEquals(0, h.startClicks)
+    }
+
+    @Test
+    fun `a config with one protocol enables start and does not flag noProtocolConfigured`() {
+        val h = Harness(FakeConfigurationRepository(sampleConfig().copy(protocols = listOf(protocol("P", null)))))
+        assertFalse(h.component.state.value.noProtocolConfigured)
+        assertTrue(h.component.state.value.startEnabled)
+    }
+
+    @Test
+    fun `no config at all is neither noProtocolConfigured nor startable`() {
+        val h = Harness(FakeConfigurationRepository(initialConfig = null))
+        assertFalse(h.component.state.value.noProtocolConfigured)
+        assertFalse(h.component.state.value.startEnabled)
+    }
+
+    @Test
+    fun `a live config change between zero and one protocol updates both flags`() {
+        val repo = FakeConfigurationRepository(sampleConfig().copy(protocols = emptyList()))
+        val h = Harness(repo)
+        assertTrue(h.component.state.value.noProtocolConfigured)
+        assertFalse(h.component.state.value.startEnabled)
+
+        repo.setActiveConfig(sampleConfig().copy(protocols = listOf(protocol("P", null))))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertFalse(h.component.state.value.noProtocolConfigured)
+        assertTrue(h.component.state.value.startEnabled)
+
+        repo.setActiveConfig(sampleConfig().copy(protocols = emptyList()))
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(h.component.state.value.noProtocolConfigured)
+        assertFalse(h.component.state.value.startEnabled)
     }
 
     @Test

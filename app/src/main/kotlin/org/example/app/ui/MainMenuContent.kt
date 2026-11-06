@@ -211,12 +211,25 @@ private fun MenuButtons(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Button(
-            onClick = component::onStartProtocol,
-            enabled = state.startEnabled,
-            modifier = buttonWidth.testTag(TestTags.MainMenu.START_PROTOCOL_BUTTON),
-        ) {
-            Text(localization.resolve("mainMenu.startButton"), style = buttonText)
+        // The information line sits directly under the button it explains, closer than the 24dp
+        // gap between buttons, so it reads as that button's caption.
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = component::onStartProtocol,
+                enabled = state.startEnabled,
+                modifier = buttonWidth.testTag(TestTags.MainMenu.START_PROTOCOL_BUTTON),
+            ) {
+                Text(localization.resolve("mainMenu.startButton"), style = buttonText)
+            }
+            if (state.noProtocolConfigured) {
+                Text(
+                    localization.resolve("mainMenu.noProtocolConfigured"),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.testTag(TestTags.MainMenu.NO_PROTOCOL_MESSAGE),
+                )
+            }
         }
 
         Button(

@@ -1024,4 +1024,63 @@ class SessionComponentTest {
         val session = lines.filter { "session=" in it }
         assertTrue(session.none { "HC001" in it || folder in it }, "$session")
     }
+
+    /** `Failed(DiskWriteFailed(<raw message>))` must not reach the log through the data class `toString`. */
+    @Test
+    fun `a video take refused because capture failed logs the state type, not its detail`() {
+        // Queued main dispatcher: the screen still sees the camera as ready when Start is pressed,
+        // and the take's coroutine only runs after the camera has failed, which is the race the
+        // recheck in startVideoTake guards.
+        val h = Harness(withCamera = true, queuedMain = true)
+        val component = h.build(repeatedVideoProtocol)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        h.videoRecorder!!.simulateFailure(
+            org.example.app.domain.video.VideoError.DiskWriteFailed("""C:\data\2026-07-01_ABC123_s1\video\t.mjpeg"""),
+        )
+
+        val logs = org.example.app.infrastructure.logging.captureLogs {
+            task.onStart()
+            h.dispatchers.scheduler.advanceUntilIdle()
+        }
+
+        val line = logs.map { it.formattedMessage }.singleOrNull { it.startsWith("ignoring video take") }
+        assertNotNull(line, "the refused-take line was not reached: ${logs.map { it.formattedMessage }}")
+        assertTrue("Failed" in line!!, line)
+        assertTrue(logs.none { "ABC123" in it.formattedMessage || "2026-07-01" in it.formattedMessage }, "${logs.map { it.formattedMessage }}")
+    }
+
+    /** ffmpeg's own words stay in the log (by design); the session path in them must not. */
+    @Test
+    fun `capture start and interruption failures keep ffmpeg's words but lose the session path`() {
+        val ffmpegText = """Error opening output C:\data\2026-07-01_ABC123_s1\video\t.mjpeg: Permission denied"""
+        val errors = listOf(
+            org.example.app.domain.video.VideoError.CaptureStartFailed(ffmpegText),
+            org.example.app.domain.video.VideoError.CaptureInterrupted(ffmpegText),
+        )
+        for (error in errors) {
+            val h = Harness(withCamera = true, queuedMain = true)
+            val component = h.build(repeatedVideoProtocol)
+            h.dispatchers.scheduler.advanceUntilIdle()
+            val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+
+            h.videoRecorder!!.simulateFailure(error)
+            val logs = org.example.app.infrastructure.logging.captureLogs {
+                task.onStart()
+                h.dispatchers.scheduler.advanceUntilIdle()
+            }
+
+            val lines = logs.map { it.formattedMessage }
+            val name = error::class.simpleName
+            val refused = lines.singleOrNull { it.startsWith("ignoring video take") }
+            assertNotNull(refused, "$name: the refused-take line was not reached: $lines")
+            val camera = lines.singleOrNull { it.startsWith("camera failed") }
+            assertNotNull(camera, "$name: the camera-failed line was not reached: $lines")
+            for (line in listOf(refused!!, camera!!)) {
+                assertTrue("Permission denied" in line && "Error opening output" in line, "$name: diagnostic words lost: $line")
+                assertTrue("<path>" in line, "$name: path not replaced: $line")
+            }
+            assertTrue(lines.none { "ABC123" in it || "2026-07-01" in it || "t.mjpeg" in it || "C:\\data" in it }, "$name: $lines")
+        }
+    }
 }

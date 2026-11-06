@@ -5,6 +5,8 @@ import kotlinx.coroutines.withContext
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettingsRepository
+import org.example.app.domain.video.redacted
+import org.example.app.domain.video.redactPaths
 
 private val logger = KotlinLogging.logger {}
 
@@ -58,7 +60,7 @@ class MicGainApplier(
             is GainApplyResult.NoVolumeControl ->
                 logger.warn { "mic gain not applied: mixer='${result.mixerName}' has no input volume control" }
             is GainApplyResult.Failed ->
-                logger.warn { "mic gain not applied for device='${device.name}': ${result.detail}" }
+                logger.warn { "mic gain not applied for device='${device.name}': ${redactPaths(result.detail)}" }
         }
         return result
     }
@@ -67,7 +69,7 @@ class MicGainApplier(
         try {
             gainControl.readInputGain(device.name)
         } catch (e: Exception) {
-            logger.warn(e) { "could not read mic gain for device='${device.name}'" }
+            logger.warn(redacted(e)) { "could not read mic gain for device='${device.name}'" }
             null
         }
     }

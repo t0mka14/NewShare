@@ -48,22 +48,30 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.IntrinsicMeasurable
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.IntrinsicMeasureScope
+import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import org.example.app.domain.config.IndicatorType
 import org.example.app.domain.config.Question
 import org.example.app.domain.config.QuestionType
 import org.example.app.navigation.AnswerState
@@ -105,96 +113,60 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
         // Top line - title and info
         TaskTitle(state, localization)
 
-        // Instructions field, with the example-audio utility row between the two cards
-        // The cards take only the height their text needs and scroll when the window is too short;
-        // a VOCAL task's middle area keeps its full size (the other task types fill the rest).
-        val fixedMiddle = vocal != null
-        InstructionsField(
-            component, state, localization,
-            if (fixedMiddle) Modifier.weight(1f, fill = false).contentWidth(1500.dp) else Modifier.contentWidth(1500.dp),
-            scrollable = fixedMiddle,
-        )
-
-        // Middle area: recording circle / live waveform (VOCAL), the camera preview (VIDEO, or
-        // VOCAL with `recordVideo` — shown even without `showIndicator`, since the examiner
-        // frames the shot by it) or the questionnaire.
-        // Weighted instead of the legacy fillMaxSize(0.5f) so the layout scales (§13/36).
-        val indicatorHeight = if (vocal?.indicatorType == IndicatorType.WAVEFORM) 250.dp else 160.dp
-        val middleModifier = if (vocal != null) {
-            // Never squeezed, but no taller than needed: the indicator (the waveform is 250 tall) or the 150 preview
-            val minHeight = maxOf(if (vocal.showIndicator) indicatorHeight else 0.dp, if (vocal.video != null) 150.dp + CAMERA_MESSAGE_SLOT_NARROW else 0.dp)
-            Modifier.fillMaxWidth().heightIn(min = minHeight)
+        if (vocal != null) {
+            // VOCAL: instructions first at their natural height, the indicator / preview in what is left (see VocalBody)
+            VocalBody(component, state, vocal, capturing, localization, Modifier.weight(1f).fillMaxWidth())
         } else {
-            Modifier.weight(1f).fillMaxWidth()
-        }
-        Box(modifier = middleModifier, contentAlignment = Alignment.Center) {
-            when (val content = state.content) {
-                is TaskComponent.Content.Vocal -> if (content.video != null) {
-                    // Legacy: a small ~200x150 preview beside the recording circle
-                    Row(horizontalArrangement = Arrangement.spacedBy(200.dp), verticalAlignment = Alignment.CenterVertically) {
-                        if (content.showIndicator) {
-                            // Reserve the waveform's footprint from the start (it replaces the circle
-                            // after Stop), which would otherwise shift the preview.
-                            Box(Modifier.weight(1f, fill = false).widthIn(max = 500.dp).height(indicatorHeight), contentAlignment = Alignment.Center) {
-                                TaskLevelIndicator(
-                                    indicatorType = content.indicatorType,
-                                    level = content.level,
-                                    capturing = capturing,
-                                    history = content.levelHistory,
+            // Instructions field, with the example-audio utility row between the two cards
+            InstructionsField(component, state, localization, Modifier.contentWidth(1500.dp), scrollable = false)
+
+            // Middle area: the camera preview (VIDEO) or the questionnaire. Weighted instead of the
+            // legacy fillMaxSize(0.5f) so the layout scales (§13/36).
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                when (val content = state.content) {
+                    is TaskComponent.Content.Vocal -> Unit // handled by VocalBody above
+
+                    is TaskComponent.Content.Questionnaire -> {
+                        // Scrolls when the questions outgrow the middle area; the scrollbar shows that
+                        // more follows (F-091: the last option sat unseen under the hard edge)
+                        val scrollState = rememberScrollState()
+                        Box(
+                            Modifier
+                                .contentWidth(1500.dp)
+                                .fillMaxHeight()
+                                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(12.dp))
+                                .testTag(TestTags.Questionnaire.FRAME),
+                        ) {
+                            QuestionnaireBody(
+                                questions = content.questions,
+                                content = content,
+                                localization = localization,
+                                onOpenAnswerChanged = component::onOpenAnswerChanged,
+                                onOptionToggled = component::onOptionToggled,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testTag(TestTags.Questionnaire.CONTAINER)
+                                    .verticalScroll(scrollState),
+                            )
+                            if (scrollState.maxValue > 0) {
+                                VerticalScrollbar(
+                                    adapter = rememberScrollbarAdapter(scrollState),
+                                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().testTag(TestTags.Questionnaire.SCROLLBAR),
                                 )
                             }
                         }
-                        VideoPreview(content.video, localization, Modifier.width(200.dp), pictureHeight = 150.dp)
                     }
-                } else if (content.showIndicator) {
-                    TaskLevelIndicator(
-                        indicatorType = content.indicatorType,
-                        level = content.level,
-                        capturing = capturing,
-                        history = content.levelHistory,
+
+                    is TaskComponent.Content.Video -> VideoTaskBody(
+                        content = content,
+                        localization = localization,
+                        onPtz = component::onPtz,
+                        modifier = Modifier.contentWidth(1500.dp).fillMaxHeight(),
                     )
+
+                    TaskComponent.Content.Info -> Unit
                 }
-
-                is TaskComponent.Content.Questionnaire -> {
-                    // Scrolls when the questions outgrow the middle area; the scrollbar shows that
-                    // more follows (F-091: the last option sat unseen under the hard edge)
-                    val scrollState = rememberScrollState()
-                    Box(
-                        Modifier
-                            .contentWidth(1500.dp)
-                            .fillMaxHeight()
-                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp))
-                            .testTag(TestTags.Questionnaire.FRAME),
-                    ) {
-                        QuestionnaireBody(
-                            questions = content.questions,
-                            content = content,
-                            localization = localization,
-                            onOpenAnswerChanged = component::onOpenAnswerChanged,
-                            onOptionToggled = component::onOptionToggled,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .testTag(TestTags.Questionnaire.CONTAINER)
-                                .verticalScroll(scrollState),
-                        )
-                        if (scrollState.maxValue > 0) {
-                            VerticalScrollbar(
-                                adapter = rememberScrollbarAdapter(scrollState),
-                                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().testTag(TestTags.Questionnaire.SCROLLBAR),
-                            )
-                        }
-                    }
-                }
-
-                is TaskComponent.Content.Video -> VideoTaskBody(
-                    content = content,
-                    localization = localization,
-                    onPtz = component::onPtz,
-                    modifier = Modifier.contentWidth(1500.dp).fillMaxHeight(),
-                )
-
-                TaskComponent.Content.Info -> Unit
             }
         }
 
@@ -243,6 +215,131 @@ fun TaskContent(component: TaskComponent, localization: UiLocalization) {
                     }
                 },
             )
+        }
+    }
+}
+
+/** Narrowest the leftover may get before the level indicator is left out altogether. */
+internal val MIN_INDICATOR_HEIGHT = 80.dp
+
+/**
+ * Clear space between the instructions and the indicator / preview below them. It is spare height only: it
+ * exists only while something is shown, comes out of the leftover (never out of the instructions) and
+ * collapses toward 0 as the leftover approaches what the shown middle area needs
+ * ([PREVIEW_BLOCK_HEIGHT] with the preview, [MIN_INDICATOR_HEIGHT] without), so it can never cost
+ * the preview or the indicator their place.
+ */
+internal val INSTRUCTIONS_MIDDLE_GAP = 8.dp
+
+private val INSTRUCTIONS_MAX_WIDTH = 1500.dp
+private val INDICATOR_MAX_WIDTH = 500.dp
+private val PREVIEW_WIDTH = 200.dp
+private val PREVIEW_PICTURE_HEIGHT = 150.dp
+private val PREVIEW_INDICATOR_GAP = 200.dp
+
+/** The preview's picture plus its reserved message line: the leftover height it needs to be shown at all. */
+private val PREVIEW_BLOCK_HEIGHT = PREVIEW_PICTURE_HEIGHT + CAMERA_MESSAGE_SLOT_NARROW
+
+private enum class VocalSlot { Instructions, Message, Middle }
+
+/**
+ * The body of a VOCAL task: the instructions at their natural height (they scroll only when they
+ * exceed the space left after the title, timer and buttons), then, below an [INSTRUCTIONS_MIDDLE_GAP]
+ * that is part of the leftover, the indicator and the camera preview in whatever height is left, centred there.
+ *
+ * A [SubcomposeLayout], because what is composed depends on measured heights: the preview and the
+ * indicator are left out (not just clipped) when the leftover is too small, and the camera message
+ * becomes a line of its own only while the preview is hidden. The instructions' natural height is
+ * read through their intrinsic height, so every decision is made before anything is measured and
+ * does not feed back into itself: the preview's fit is judged against the instructions at full
+ * size, and the message line, which only exists while the preview is hidden, can therefore never
+ * bring the preview back.
+ */
+@Composable
+private fun VocalBody(
+    component: TaskComponent,
+    state: TaskComponent.State,
+    vocal: TaskComponent.Content.Vocal,
+    capturing: Boolean,
+    localization: UiLocalization,
+    modifier: Modifier,
+) {
+    val feed = vocal.video
+    val messageShowing = feed?.showsCameraMessage() == true
+    SubcomposeLayout(modifier) { constraints ->
+        val width = constraints.maxWidth
+        val height = constraints.maxHeight
+        val instructionsWidth = minOf(width, INSTRUCTIONS_MAX_WIDTH.roundToPx())
+
+        val instructionsItem = subcompose(VocalSlot.Instructions) {
+            InstructionsField(component, state, localization, Modifier, scrollable = true)
+        }.first()
+        val natural = minOf(instructionsItem.maxIntrinsicHeight(instructionsWidth), height)
+        val previewFits = feed != null && height - natural >= PREVIEW_BLOCK_HEIGHT.roundToPx()
+
+        // Preview hidden and a camera message to show: it takes a line of its own, the instructions give way
+        val messageLine = if (feed != null && messageShowing && !previewFits) {
+            subcompose(VocalSlot.Message) { CameraMessage(feed, localization, Modifier.fillMaxWidth()) }
+                .first().measure(Constraints(maxWidth = width))
+        } else {
+            null
+        }
+        val messageHeight = messageLine?.height ?: 0
+        val instructions = instructionsItem.measure(
+            Constraints(instructionsWidth, instructionsWidth, 0, (height - messageHeight).coerceAtLeast(0)),
+        )
+
+        val room = (height - instructions.height - messageHeight).coerceAtLeast(0)
+        val indicatorShown = vocal.showIndicator && (previewFits || room >= MIN_INDICATOR_HEIGHT.roundToPx())
+        // spare height only: what is left above the shown middle area's required minimum, at most the full gap
+        val required = if (previewFits) PREVIEW_BLOCK_HEIGHT.roundToPx() else MIN_INDICATOR_HEIGHT.roundToPx()
+        val gap = minOf(INSTRUCTIONS_MIDDLE_GAP.roundToPx(), room - required).coerceAtLeast(0)
+        val middle = if (previewFits || indicatorShown) {
+            subcompose(VocalSlot.Middle) {
+                VocalMiddleArea(vocal, capturing, localization, showPreview = previewFits, showIndicator = indicatorShown)
+            }.first().measure(Constraints(maxWidth = width, maxHeight = room - gap))
+        } else {
+            null
+        }
+
+        layout(width, height) {
+            instructions.placeRelative((width - instructions.width) / 2, 0)
+            messageLine?.placeRelative((width - messageLine.width) / 2, height - messageHeight)
+            middle?.placeRelative((width - middle.width) / 2, instructions.height + gap + (room - gap - middle.height) / 2)
+        }
+    }
+}
+
+/** The indicator and/or the 200x150 preview (legacy: a small preview beside the recording circle), each at the height left to it. */
+@Composable
+private fun VocalMiddleArea(
+    vocal: TaskComponent.Content.Vocal,
+    capturing: Boolean,
+    localization: UiLocalization,
+    showPreview: Boolean,
+    showIndicator: Boolean,
+) {
+    val feed = vocal.video
+    val indicator: @Composable () -> Unit = {
+        TaskLevelIndicator(
+            indicatorType = vocal.indicatorType,
+            level = vocal.level,
+            capturing = capturing,
+            history = vocal.levelHistory,
+        )
+    }
+    Box(contentAlignment = Alignment.Center) {
+        if (showPreview && feed != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(PREVIEW_INDICATOR_GAP), verticalAlignment = Alignment.CenterVertically) {
+                if (showIndicator) {
+                    Box(Modifier.weight(1f, fill = false).widthIn(max = INDICATOR_MAX_WIDTH), contentAlignment = Alignment.Center) {
+                        indicator()
+                    }
+                }
+                VideoPreview(feed, localization, Modifier.width(PREVIEW_WIDTH), pictureHeight = PREVIEW_PICTURE_HEIGHT)
+            }
+        } else if (showIndicator) {
+            indicator()
         }
     }
 }
@@ -304,9 +401,9 @@ private fun InstructionsField(
     // task hide the utility row and the second instructions card
     val showSecond = state.repetition <= 1
 
-    // At least ~110dp of the cards stay readable; the scrollbar shows only when they overflow
+    // The scrollbar shows only when the cards overflow the height they were given
     val scrollState = rememberScrollState()
-    Box(modifier = if (scrollable && firstKey != null) modifier.heightIn(min = 110.dp) else modifier) {
+    Box(modifier = modifier) {
         Column(
             modifier = if (scrollable) {
                 Modifier.fillMaxWidth().testTag(TestTags.Task.INSTRUCTIONS).verticalScroll(scrollState)
@@ -340,12 +437,35 @@ private fun InstructionsField(
             }
         }
         if (scrollable && scrollState.maxValue > 0) {
-            VerticalScrollbar(
-                adapter = rememberScrollbarAdapter(scrollState),
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().testTag(TestTags.Task.INSTRUCTIONS_SCROLLBAR),
+            // An overlay of the field's size that stays out of intrinsic queries: VocalBody asks the
+            // field for its intrinsic height, and a scrollbar cannot measure with unbounded height
+            Layout(
+                content = {
+                    VerticalScrollbar(
+                        adapter = rememberScrollbarAdapter(scrollState),
+                        modifier = Modifier.fillMaxHeight().testTag(TestTags.Task.INSTRUCTIONS_SCROLLBAR),
+                    )
+                },
+                modifier = Modifier.matchParentSize(),
+                measurePolicy = EndOverlayPolicy,
             )
         }
     }
+}
+
+/** Places its content at the end edge, as tall as itself; reports no intrinsic size so it never takes part in one. */
+private object EndOverlayPolicy : MeasurePolicy {
+    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
+        val placeables = measurables.map { it.measure(constraints.copy(minWidth = 0, minHeight = 0)) }
+        return layout(constraints.maxWidth, constraints.maxHeight) {
+            placeables.forEach { it.placeRelative(constraints.maxWidth - it.width, 0) }
+        }
+    }
+
+    override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int) = 0
+    override fun IntrinsicMeasureScope.maxIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int) = 0
+    override fun IntrinsicMeasureScope.minIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int) = 0
+    override fun IntrinsicMeasureScope.maxIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int) = 0
 }
 
 @Composable

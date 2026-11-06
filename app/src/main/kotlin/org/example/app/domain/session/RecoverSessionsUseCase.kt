@@ -115,7 +115,7 @@ class RecoverSessionsUseCase(
             val lastSample = original.events.lastOrNull { it.sampleOffset != null }?.sampleOffset
             RecoveryOutcome.Recovered(folderName, examination.sessionId, lastSample)
         } catch (e: Exception) {
-            RecoveryOutcome.Failed(folderName, StorageError.CorruptSessionMetadata(e.message ?: e::class.simpleName.orEmpty()))
+            RecoveryOutcome.Failed(folderName, StorageError.CorruptSessionMetadata(e::class.simpleName ?: "Exception"))
         }
     }
 

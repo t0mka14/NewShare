@@ -146,6 +146,40 @@ class RootComponentTest {
         assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
     }
 
+    /**
+     * The menu disables Start with no protocols, but only after its collector runs on the main
+     * dispatcher. With a queued main dispatcher the collector has not run, so the menu still
+     * believes Start is enabled and passes the click to the root callback while the active config
+     * already has zero protocols. This proves the root's own guard, reached through the menu's
+     * stale state (the root callback is private).
+     */
+    @Test
+    fun `start with zero protocols does not navigate even when the menu state is stale`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers(queuedMain = true)
+        val container = buildContainer(tempDir, dispatchers)
+        container.rawConfigCache.write(ConfigFixtures.questionnaireOnly)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+        val menu = (root.stack.value.active.instance as RootComponent.Child.MainMenu).component
+        assertTrue(menu.state.value.startEnabled)
+
+        val emptied = kotlinx.serialization.json.Json.parseToJsonElement(ConfigFixtures.questionnaireOnly)
+            .let { el ->
+                kotlinx.serialization.json.JsonObject(
+                    el.let { it as kotlinx.serialization.json.JsonObject } +
+                        ("protocols" to kotlinx.serialization.json.JsonArray(emptyList())),
+                )
+            }.toString()
+        container.configurationRepository.applyFetched(emptied)
+        assertTrue(container.configurationRepository.activeConfig.value!!.protocols.isEmpty(), "precondition: zero protocols")
+        assertTrue(menu.state.value.startEnabled, "precondition: the menu has not caught up yet")
+
+        menu.onStartProtocol()
+
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
+        assertEquals(1, root.stack.value.backStack.size + 1)
+    }
+
     /** Validated patient details reach a session child, for a protocol with no VIDEO task. */
     @Test
     fun `validated patient details open the session`(@TempDir tempDir: Path) {

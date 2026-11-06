@@ -117,28 +117,41 @@ fun VideoPreview(feed: VideoFeed, localization: UiLocalization, modifier: Modifi
             modifier = Modifier.fillMaxWidth().height(if (pictureHeight != null) CAMERA_MESSAGE_SLOT_NARROW else CAMERA_MESSAGE_SLOT),
             contentAlignment = Alignment.TopCenter,
         ) {
-            val error = feed.error
-            when {
-                // VOCAL task: the take goes on without video; one line says so (error + audioOnly coincide).
-                feed.audioOnly && (error != null || !feed.ready) -> Text(
-                    text = localization.resolvePlain(
-                        if (error is VideoError.CaptureInterrupted) "task.video.cameraLost" else "task.video.audioOnly",
-                    ),
-                    color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_AUDIO_ONLY),
-                )
-
-                error != null -> Text(
-                    text = localization.resolvePlain(error.messageKey()),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_ERROR),
-                )
-            }
+            CameraMessage(feed, localization)
         }
+    }
+}
+
+/** Whether [CameraMessage] has anything to say: the camera failed, or the take is audio-only because it never came up. */
+internal fun VideoFeed.showsCameraMessage(): Boolean = error != null || (audioOnly && !ready)
+
+/**
+ * The one line saying why there is no (live) picture: audio-only, camera lost, or the capture
+ * error. Draws nothing unless [showsCameraMessage]. Shown under the preview, or on its own in a
+ * VOCAL task whose preview is hidden for lack of room.
+ */
+@Composable
+internal fun CameraMessage(feed: VideoFeed, localization: UiLocalization, modifier: Modifier = Modifier) {
+    val error = feed.error
+    when {
+        // VOCAL task: the take goes on without video; one line says so (error + audioOnly coincide).
+        feed.audioOnly && (error != null || !feed.ready) -> Text(
+            text = localization.resolvePlain(
+                if (error is VideoError.CaptureInterrupted) "task.video.cameraLost" else "task.video.audioOnly",
+            ),
+            color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_AUDIO_ONLY),
+        )
+
+        error != null -> Text(
+            text = localization.resolvePlain(error.messageKey()),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = modifier.padding(top = 8.dp).testTag(TestTags.Task.VIDEO_ERROR),
+        )
     }
 }
 

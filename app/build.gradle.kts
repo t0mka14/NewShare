@@ -204,6 +204,15 @@ tasks.register<JavaExec>("previewSettings") {
     useVideoNatives()
 }
 
+tasks.register<JavaExec>("previewTask") {
+    group = "application"
+    description = "Opens the TaskContent preview harness (VOCAL task: indicator, state, instructions, filming)."
+    mainClass = "org.example.app.ui.previews.TaskPreviewHarnessKt"
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    useVideoNatives()
+}
+
 tasks.register<JavaExec>("previewCamera") {
     group = "application"
     description = "Opens the VideoTaskBody harness over a real camera. -Pautostart opens it at once."

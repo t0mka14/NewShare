@@ -49,6 +49,36 @@ class RedactedThrowableLoggingTest {
         assertTrue(logs.single().throwableProxy.cause.message.contains("<path>"))
     }
 
+    private val micDevice = org.example.app.domain.audio.AudioInputDevice(id = "usb", name = "USBAudioDevice", eligible = true)
+
+    private class ThrowingGain(val failure: Throwable) : org.example.app.domain.audio.AudioInputGainControl {
+        override fun setInputGain(deviceName: String, percent: Int): org.example.app.domain.audio.GainApplyResult = throw failure
+        override fun readInputGain(deviceName: String): Int? = throw failure
+    }
+
+    private fun applier(failure: Throwable) = org.example.app.domain.audio.MicGainApplier(
+        ThrowingGain(failure),
+        org.example.app.fakes.FakeAppSettingsRepository(),
+        org.example.app.fakes.ImmediateCoroutineDispatchers(),
+    )
+
+    @Test
+    fun `MicGainApplier logs a failed gain read through redacted`() {
+        val logs = captureLogs { kotlinx.coroutines.runBlocking { applier(failure()).read(micDevice) } }
+
+        assertNoFolderButFrames(logs)
+    }
+
+    @Test
+    fun `MicGainApplier logs a failed gain write without the path in its message`() {
+        val logs = captureLogs { kotlinx.coroutines.runBlocking { applier(IOException("cannot write $path")).set(micDevice, 50) } }
+
+        val event = logs.single { it.level == ch.qos.logback.classic.Level.WARN }
+        assertFalse(event.fullText.contains(folder), event.fullText)
+        assertFalse(event.fullText.contains("PATIENT-XY7"), event.fullText)
+        assertTrue(event.fullText.contains("<path>"), event.fullText)
+    }
+
     @Test
     fun `ErrorReporter logs the unhandled error with its stack and without the session path`() {
         val logs = captureLogs { ErrorReporter().report(failure()) }

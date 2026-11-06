@@ -22,6 +22,16 @@ class BuiltinStringsTest {
     }
 
     @Test
+    fun `Sessions info card mentions the editor but not the process or retry action`() {
+        val en = BuiltinStrings.en.getValue("sessionBrowser.instructions")
+        val cs = BuiltinStrings.cs.getValue("sessionBrowser.instructions")
+        assertTrue(en.contains("Open editor"), en)
+        assertTrue(cs.contains("Otevřít editor"), cs)
+        listOf("Process", "Retry").forEach { assertTrue(!en.contains(it), "$it in: $en") }
+        assertTrue(!cs.contains("Zpracovat"), cs)
+    }
+
+    @Test
     fun `byLanguage exposes both languages`() {
         assertTrue(BuiltinStrings.byLanguage.keys.containsAll(listOf("en", "cs")))
     }

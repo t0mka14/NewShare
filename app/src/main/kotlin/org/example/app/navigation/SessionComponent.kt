@@ -428,6 +428,18 @@ class DefaultSessionComponent(
         is VideoError.DiskWriteFailed -> "video write failed"
     }.let { text -> folderName?.let { text.replace(it, "<session>") } ?: text }.take(MAX_HARDWARE_DETAIL_CHARS)
 
+    /** The state's type, plus [readableReason] for `Failed`; never the data class `toString`, whose `detail` can name a session path. */
+    private fun describeVideoState(state: VideoRecorderState): String = when (state) {
+        is VideoRecorderState.Failed -> "Failed(${state.error.readableReason()})"
+        else -> state::class.simpleName ?: "VideoRecorderState"
+    }
+
+    /** The state's type, plus the error's type for `Failed`; never an error `detail`. */
+    private fun describeRecorderState(state: RecorderState): String = when (state) {
+        is RecorderState.Failed -> "Failed(${state.error::class.simpleName})"
+        else -> state::class.simpleName ?: "RecorderState"
+    }
+
     /** Every successful microphone open (see [DeviceOpenReportingRecorder]); also the change log. */
     private suspend fun onMicOpened(device: AudioInputDevice, format: CaptureFormat?) {
         val gain = readMicGain(device)
@@ -486,7 +498,7 @@ class DefaultSessionComponent(
             // also the audio-only fallback of a VOCAL task with `recordVideo`: its take goes on
             // without video and gets no `videoTakes[]` entry, which is how a reader tells.
             if (v.state.value != VideoRecorderState.Previewing) {
-                logger.warn { "ignoring video take $take: capture is ${v.state.value}" }
+                logger.warn { "ignoring video take $take: capture is ${describeVideoState(v.state.value)}" }
                 return@launch
             }
             val name = videoFileName(instance, take)
@@ -552,7 +564,7 @@ class DefaultSessionComponent(
         if (r.state.value != RecorderState.Monitoring) {
             // The mic never opened (or was lost); startWriting would throw. Calibration shows the
             // error with Retry, so the caller sends the examiner there instead.
-            logger.warn { "not starting the master recording: recorder is ${r.state.value}" }
+            logger.warn { "not starting the master recording: recorder is ${describeRecorderState(r.state.value)}" }
             return false
         }
         val master = sessionRepository.defaultMasterFile(requireNotNull(folderName))

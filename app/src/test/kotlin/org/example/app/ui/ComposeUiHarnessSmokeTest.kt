@@ -7,6 +7,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.localization.LocalizedStringProvider
 import org.example.app.fakes.FakeConfigurationRepository
@@ -37,6 +38,7 @@ class ComposeUiHarnessSmokeTest {
         schemaVersion = 1,
         configVersion = "v1",
         defaultLanguage = "en",
+        protocols = listOf(Protocol(name = "P", recordingsFileName = "\${taskIndex}")),
     )
 
     @OptIn(ExperimentalTestApi::class)

@@ -111,27 +111,40 @@ private fun DrawScope.drawPreserveAspect(image: ImageBitmap) {
 }
 
 /**
- * Owns the decode target bitmaps. Not a composable concern beyond lifetime, and deliberately
- * not thread-safe: [decode] is only ever called from the single collector coroutine, which
- * `VideoSurface` confines to one dispatcher.
+ * Owns the decode target bitmaps. [decode] runs on the decode dispatcher while [close] runs on the
+ * UI thread when the surface leaves the composition (or the window crosses the preview threshold
+ * mid-take), and cancelling the collecting coroutine does not wait for a native `readPixels` that
+ * is already running. So the two exclude each other under [lock], and [closed] makes every decode
+ * after the close a no-op that allocates nothing. Only one decoder ever runs, so the lock is
+ * uncontended apart from that one race and is held for at most one decode.
  */
-private class VideoFrameHolder {
+internal class VideoFrameHolder {
+    private val lock = Any()
+    private var closed = false
     private var bitmaps: Array<Bitmap>? = null
     private var info: ImageInfo? = null
     private var next = 0
 
-    /** The most recently decoded frame, or null before the first one arrives. */
+    /**
+     * The most recently decoded frame, or null before the first one arrives. Written on the decode
+     * thread, read in the draw phase, hence volatile. It wraps a pool bitmap without copying it.
+     */
+    @Volatile
     var current: ImageBitmap? = null
         private set
 
+    /** Test seam: whether decode target bitmaps are currently allocated. */
+    internal val hasBitmaps: Boolean get() = synchronized(lock) { bitmaps != null }
+
     /** @return true when [current] changed and the surface should be redrawn. */
-    fun decode(jpeg: ByteArray?): Boolean {
+    fun decode(jpeg: ByteArray?): Boolean = synchronized(lock) {
+        if (closed) return@synchronized false
         if (jpeg == null) {
             val had = current != null
             current = null
-            return had
+            return@synchronized had
         }
-        return try {
+        try {
             org.jetbrains.skia.Codec.makeFromData(Data.makeFromBytes(jpeg)).use { codec ->
                 val target = targetInfo(codec.imageInfo.width, codec.imageInfo.height)
                 val bitmap = bitmapFor(target)
@@ -146,7 +159,9 @@ private class VideoFrameHolder {
         }
     }
 
-    fun close() {
+    /** May block the calling (UI) thread for at most the one decode in progress, which is a millisecond or so. */
+    fun close() = synchronized(lock) {
+        closed = true
         bitmaps?.forEach { it.close() }
         bitmaps = null
         current = null
@@ -170,7 +185,9 @@ private class VideoFrameHolder {
     private fun bitmapFor(target: ImageInfo): Bitmap {
         val existing = bitmaps
         if (existing == null || info?.width != target.width || info?.height != target.height) {
-            existing?.forEach { it.close() }
+            // Not closed: `current` wraps one of these very bitmaps (asComposeImageBitmap shares the
+            // pixels, it does not copy), and the draw phase may still be painting it. Skia frees a
+            // dropped bitmap through its cleaner once nothing, `current` included, references it.
             bitmaps = Array(2) { Bitmap().apply { allocPixels(target) } }
             info = target
             next = 0
