@@ -6,8 +6,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTimeout
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.function.ThrowingSupplier
+import java.time.Duration
 
 /** A capture error names the file ffmpeg failed on; the session path embeds the patient code. */
 class ErrorTextTest {
@@ -81,15 +84,25 @@ class ErrorTextTest {
     }
 
     @Test
-    fun `a placeholder is never redacted again and never ends up malformed`() {
-        assertEquals("<path>", redactPaths("<path>/x"))
-        assertEquals("<path>", redactPaths("""<session>\video\x.mjpeg"""))
-        assertEquals("open <path> now", redactPaths("open <path>/x now"))
+    fun `a placeholder is never redacted again and wrapping punctuation exposes nothing`() {
+        assertEquals("<<path>>", redactPaths("<data/ABC123/x>"))
+        assertEquals("<<path>", redactPaths("<path>/x"))
+        assertEquals("<<path>", redactPaths("""<session>\video\x.mjpeg"""))
+        assertEquals("open <<path> now", redactPaths("open <path>/x now"))
         assertEquals("<path>", redactPaths("<path>"))
         assertEquals("<session>", redactPaths("<session>"))
         val once = redactPaths("""a 2026-07-01_ABC123_s1\x b 2026-07-01_ABC123_s1 c""")
         assertEquals("a <path> b <session> c", once)
         assertEquals(once, redactPaths(once))
+    }
+
+    @Test
+    fun `a long run of angle brackets does not slow redaction down`() {
+        val input = "<".repeat(50_000)
+
+        val out = assertTimeout(Duration.ofSeconds(5), ThrowingSupplier { redactPaths(input) })
+
+        assertEquals(input, out)
     }
 
     @Test

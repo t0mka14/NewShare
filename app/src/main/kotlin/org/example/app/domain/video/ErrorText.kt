@@ -32,8 +32,6 @@ private val NOT_A_PATH = Regex(
     """(?i)i/o|input/output|n/a|\d{1,5}(\.\d+)?/\d{1,4}|(in|out|vist|vost|aist|aost|dec|enc)#[\d:]+/[a-z0-9_]+""",
 )
 
-private val PLACEHOLDER_FRAGMENT = Regex("""<+(<(?:path|session)>)>*""")
-
 private fun redactToken(token: String): String {
     val leading = token.takeWhile { it in TOKEN_LEADING }
     val trailing = token.substring(leading.length).takeLastWhile { it in TOKEN_TRAILING }
@@ -58,9 +56,8 @@ private fun redactToken(token: String): String {
  *     POSIX; whatever precedes the first separator goes too) or ends in a session file
  *     extension (bare names such as `ABC123_sess.zip.tmp`);
  *  3. otherwise has any session folder name (`2026-07-01_ABC123_<id>`) replaced by `<session>`.
- * A device string such as `video=OBS Virtual Camera` has no separator and survives. Finally a
- * placeholder that token punctuation wrapped, or that already stood in the input in front of a
- * separator (`<path>/x`), collapses to the single placeholder.
+ * A device string such as `video=OBS Virtual Camera` has no separator and survives. Kept
+ * punctuation can wrap a placeholder (`<C:\x>` gives `<<path>>`, `<path>/x` gives `<<path>`).
  *
  * Ratio bound: `\d{1,5}(\.\d+)?/\d{1,4}`. Five digits cover NTSC's `30000/1001`; a six-digit
  * numerator such as the Czech birth number `790101/1234` stays redacted.
@@ -71,8 +68,7 @@ private fun redactToken(token: String): String {
  * (`12345/678`) is not recognised; and any other token with a slash is redacted, including
  * non-paths such as `and/or`.
  */
-fun redactPaths(text: String): String =
-    text.replace(TOKEN) { redactToken(it.value) }.replace(PLACEHOLDER_FRAGMENT, "$1")
+fun redactPaths(text: String): String = text.replace(TOKEN) { redactToken(it.value) }
 
 /**
  * The last line of [lines] that says something went wrong, for a failure's `detail`: not the
