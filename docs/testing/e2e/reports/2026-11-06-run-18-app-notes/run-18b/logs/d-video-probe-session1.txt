@@ -1,0 +1,12 @@
+clips/E2E18-FAKE-R_Paris_0_PHONATION_Rep1.mp4 14474737B
+codec_name=mjpeg width=1280 height=720 avg_frame_rate=30/1 duration=5.300000 nb_read_frames=159 
+clips/E2E18-FAKE-R_Paris_1_READING_Rep1.mp4 120493239B
+codec_name=mjpeg width=1280 height=720 avg_frame_rate=30/1 duration=44.166667 nb_read_frames=1325 
+clips/E2E18-FAKE-R_Paris_2_MONOLOGUE_Rep1.mp4 13845943B
+codec_name=mjpeg width=1280 height=720 avg_frame_rate=30/1 duration=5.066667 nb_read_frames=152 
+clips/E2E18-FAKE-R_Paris_0_PHONATION_Rep1.wav
+duration=5.200000
+clips/E2E18-FAKE-R_Paris_1_READING_Rep1.wav
+duration=44.150000
+clips/E2E18-FAKE-R_Paris_2_MONOLOGUE_Rep1.wav
+duration=5.050000

@@ -1,0 +1,4 @@
+codec_name=mjpeg
+width=1280
+height=720
+nb_read_packets=2134

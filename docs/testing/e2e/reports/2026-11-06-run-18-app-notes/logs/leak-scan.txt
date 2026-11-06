@@ -1,0 +1,102 @@
+== app.log (run lines) 82 lines
+  patient code E2E18-FAKE                  0
+  Paris token                              0
+  backslash C:\Users                       0
+  forward C:/Users                         0
+  noproto token                            0
+  original token                           0
+  original installationId                  0
+  session id dc050508                      16
+     > 2026-11-06 05:14:43.300 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<session id dc050508> tasks=7
+     > 2026-11-06 05:14:55.868 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<session id dc050508> task=1/7 VocalTask rep=1 take=1
+     > 2026-11-06 05:14:59.622 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<session id dc050508> task=1/7 VocalTask rep=1 take=1
+  folder dc050508                          0
+  session id 929d42e5                      19
+     > 2026-11-06 05:10:05.618 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<session id 929d42e5> tasks=7
+     > 2026-11-06 05:10:31.687 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<session id 929d42e5> task=1/7 VocalTask rep=1 take=1
+     > 2026-11-06 05:10:39.936 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<session id 929d42e5> task=1/7 VocalTask rep=1 take=1
+  folder 929d42e5                          0
+  session id 6aa0f35e                      10
+     > 2026-11-06 05:05:51.358 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<session id 6aa0f35e> tasks=3
+     > 2026-11-06 05:06:17.587 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<session id 6aa0f35e> task=1/3 VocalTask rep=1 take=1
+     > 2026-11-06 05:06:39.262 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<session id 6aa0f35e> task=1/3 VocalTask rep=1 take=1
+  folder 6aa0f35e                          0
+== hotrun-1-noproto.log 62 lines
+  patient code E2E18-FAKE                  0
+  Paris token                              0
+  backslash C:\Users                       1
+     > | JetBrains Runtime: <backslash C:\Users>\<user>\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+  forward C:/Users                         2
+     > ed module (file:/<forward C:/Users>/<user>/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+     > WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/<forward C:/Users>/kou
+  noproto token                            0
+  original token                           0
+  original installationId                  0
+  session id dc050508                      0
+  folder dc050508                          0
+  session id 929d42e5                      0
+  folder 929d42e5                          0
+  session id 6aa0f35e                      0
+  folder 6aa0f35e                          0
+== hotrun-2-noproto-cs.log 65 lines
+  patient code E2E18-FAKE                  0
+  Paris token                              0
+  backslash C:\Users                       1
+     > | JetBrains Runtime: <backslash C:\Users>\<user>\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+  forward C:/Users                         2
+     > ed module (file:/<forward C:/Users>/<user>/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+     > WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/<forward C:/Users>/kou
+  noproto token                            0
+  original token                           0
+  original installationId                  0
+  session id dc050508                      0
+  folder dc050508                          0
+  session id 929d42e5                      0
+  folder 929d42e5                          0
+  session id 6aa0f35e                      0
+  folder 6aa0f35e                          0
+== hotrun-3-paris.log 126 lines
+  patient code E2E18-FAKE                  0
+  Paris token                              0
+  backslash C:\Users                       1
+     > | JetBrains Runtime: <backslash C:\Users>\<user>\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+  forward C:/Users                         2
+     > ed module (file:/<forward C:/Users>/<user>/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/na
+     > WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/<forward C:/Users>/kou
+  noproto token                            0
+  original token                           0
+  original installationId                  0
+  session id dc050508                      16
+     > 05:14:43.300 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<session id dc050508> tasks=7
+     > 05:14:55.868 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<session id dc050508> task=1/7 VocalTask rep=1 take=1
+     > 05:14:59.622 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<session id dc050508> task=1/7 VocalTask rep=1 take=1
+  folder dc050508                          0
+  session id 929d42e5                      19
+     > 05:10:05.618 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<session id 929d42e5> tasks=7
+     > 05:10:31.687 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<session id 929d42e5> task=1/7 VocalTask rep=1 take=1
+     > 05:10:39.936 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<session id 929d42e5> task=1/7 VocalTask rep=1 take=1
+  folder 929d42e5                          0
+  session id 6aa0f35e                      10
+     > 05:05:51.358 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=<session id 6aa0f35e> tasks=3
+     > 05:06:17.587 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=<session id 6aa0f35e> task=1/3 VocalTask rep=1 take=1
+     > 05:06:39.262 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=<session id 6aa0f35e> task=1/3 VocalTask rep=1 take=1
+  folder 6aa0f35e                          0
+== main.chr.log 215 lines
+  patient code E2E18-FAKE                  3
+     >  | 05:05:47.058 | App      | Info  | UiActionHandlerKt | AWT-EventQueue-0 | Handling UI action: '476$d3152a42-d421-4662-b393-d4505c6ec5cc' nodeId=204 action=SetText(text=<patient code E2E18-FAKE>)
+     >  | 05:10:05.274 | App      | Info  | UiActionHandlerKt | AWT-EventQueue-0 | Handling UI action: '664$4d0363cb-d581-4229-99a5-c1e1c6e510be' nodeId=598 action=SetText(text=<patient code E2E18-FAKE>-W)
+     >  | 05:14:42.972 | App      | Info  | UiActionHandlerKt | AWT-EventQueue-0 | Handling UI action: '980$43618b29-82c1-47c3-a6a8-47fd91a032fa' nodeId=1301 action=SetText(text=<patient code E2E18-FAKE>-C)
+  Paris token                              0
+  backslash C:\Users                       0
+  forward C:/Users                         1
+     >  | 05:04:32.736 | Build    | Info  | Gradle | DefaultDispatcher-worker-1 | WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/<forward C:/Users>/<user>/.
+  noproto token                            0
+  original token                           0
+  original installationId                  0
+  session id dc050508                      0
+  folder dc050508                          0
+  session id 929d42e5                      0
+  folder 929d42e5                          0
+  session id 6aa0f35e                      0
+  folder 6aa0f35e                          0
+TOTAL hits 103

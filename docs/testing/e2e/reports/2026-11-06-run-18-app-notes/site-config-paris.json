@@ -1,0 +1,635 @@
+{
+ "schemaVersion": 1,
+ "configVersion": "2026-11-06.040122",
+ "siteName": "Paris",
+ "defaultLanguage": "cs",
+ "languages": [
+  "cs",
+  "en"
+ ],
+ "defaultMicName": "",
+ "enableEditor": false,
+ "indicatorType": "CIRCLE",
+ "useCalibration": true,
+ "protocols": [
+  {
+   "name": "Test1",
+   "version": 1,
+   "project": "Test Study 001",
+   "descriptionKey": "p13_description",
+   "recordingsFileName": "${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+   "patientFields": [
+    {
+     "name": "patient_code",
+     "labelKey": "p13_f_patient_code_label",
+     "helpKey": "p13_f_patient_code_help",
+     "placeholder": "HC001",
+     "regex": "[A-Za-z0-9_-]+",
+     "required": true
+    },
+    {
+     "name": "surname",
+     "labelKey": "p13_f_surname_label",
+     "helpKey": "p13_f_surname_help",
+     "placeholder": "",
+     "regex": "",
+     "required": false
+    },
+    {
+     "name": "sex",
+     "labelKey": "p13_f_sex_label",
+     "helpKey": "p13_f_sex_help",
+     "placeholder": "",
+     "regex": "",
+     "required": true
+    },
+    {
+     "name": "current_date",
+     "labelKey": "p13_f_current_date_label",
+     "helpKey": "p13_f_current_date_help",
+     "placeholder": "",
+     "regex": "",
+     "required": true
+    }
+   ],
+   "tasks": [
+    {
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "titleKey": "p13_t1_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 2,
+     "instructionKeys": [
+      "p13_t1_instr1",
+      "p13_t1_instr2"
+     ],
+     "length": 10,
+     "showIndicator": true,
+     "recordVideo": false,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/phonation_a.wav"
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "PATAKA",
+     "titleKey": "p13_t2_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 2,
+     "instructionKeys": [
+      "p13_t2_instr1",
+      "p13_t2_instr2"
+     ],
+     "length": 7,
+     "showIndicator": true,
+     "recordVideo": false,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/syllableRepeating_pataka.wav"
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "READING",
+     "titleKey": "p13_t3_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p13_t3_instr1",
+      "p13_t3_instr2",
+      "p13_t3_instr3"
+     ],
+     "length": 150,
+     "showIndicator": true,
+     "recordVideo": false
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "titleKey": "p13_t4_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p13_t4_instr1",
+      "p13_t4_instr2"
+     ],
+     "length": 90,
+     "showIndicator": false,
+     "recordVideo": false
+    },
+    {
+     "type": "QUESTIONNAIRE",
+     "titleKey": "p13_t5_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "questions": [
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q1",
+       "questionTextKey": "p13_t5_q1_text",
+       "questionOptions": [
+        "p13_t5_q1_o1",
+        "p13_t5_q1_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q2",
+       "questionTextKey": "p13_t5_q2_text",
+       "questionOptions": [
+        "p13_t5_q2_o1",
+        "p13_t5_q2_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q3",
+       "questionTextKey": "p13_t5_q3_text",
+       "questionOptions": [
+        "p13_t5_q3_o1",
+        "p13_t5_q3_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q4",
+       "questionTextKey": "p13_t5_q4_text",
+       "questionOptions": [
+        "p13_t5_q4_o1",
+        "p13_t5_q4_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q5",
+       "questionTextKey": "p13_t5_q5_text",
+       "questionOptions": [
+        "p13_t5_q5_o1",
+        "p13_t5_q5_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q6",
+       "questionTextKey": "p13_t5_q6_text",
+       "questionOptions": [
+        "p13_t5_q6_o1",
+        "p13_t5_q6_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q7",
+       "questionTextKey": "p13_t5_q7_text",
+       "questionOptions": [
+        "p13_t5_q7_o1",
+        "p13_t5_q7_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q8",
+       "questionTextKey": "p13_t5_q8_text",
+       "questionOptions": [
+        "p13_t5_q8_o1",
+        "p13_t5_q8_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q9",
+       "questionTextKey": "p13_t5_q9_text",
+       "questionOptions": [
+        "p13_t5_q9_o1",
+        "p13_t5_q9_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q10",
+       "questionTextKey": "p13_t5_q10_text",
+       "questionOptions": [
+        "p13_t5_q10_o1",
+        "p13_t5_q10_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q11",
+       "questionTextKey": "p13_t5_q11_text",
+       "questionOptions": [
+        "p13_t5_q11_o1",
+        "p13_t5_q11_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q12",
+       "questionTextKey": "p13_t5_q12_text",
+       "questionOptions": [
+        "p13_t5_q12_o1",
+        "p13_t5_q12_o2"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p13_t5_q13",
+       "questionTextKey": "p13_t5_q13_text",
+       "questionOptions": [
+        "p13_t5_q13_o1",
+        "p13_t5_q13_o2"
+       ]
+      }
+     ],
+     "length": 300
+    }
+   ]
+  },
+  {
+   "name": "E2E run 17 questionnaire rules",
+   "version": 1,
+   "project": "Test Study 001",
+   "recordingsFileName": "${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+   "patientFields": [
+    {
+     "name": "patient_code",
+     "labelKey": "p15_f_patient_code_label",
+     "helpKey": "p15_f_patient_code_help",
+     "placeholder": "HC001",
+     "regex": "[A-Za-z0-9_-]+",
+     "required": true
+    }
+   ],
+   "tasks": [
+    {
+     "type": "QUESTIONNAIRE",
+     "titleKey": "p15_t1_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "questions": [
+      {
+       "questionType": "OPEN",
+       "questionKey": "p15_t1_q1",
+       "questionTextKey": "p15_t1_q1_text",
+       "questionRegex": ".+"
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p15_t1_q2",
+       "questionTextKey": "p15_t1_q2_text",
+       "questionOptions": [
+        "p15_t1_q2_o1",
+        "p15_t1_q2_o2",
+        "p15_t1_q2_o3"
+       ]
+      },
+      {
+       "questionType": "MULTIPLE_CHOICE",
+       "questionKey": "p15_t1_q3",
+       "questionTextKey": "p15_t1_q3_text",
+       "questionOptions": [
+        "p15_t1_q3_o1",
+        "p15_t1_q3_o2",
+        "p15_t1_q3_o3"
+       ]
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p15_t1_q4",
+       "questionTextKey": "p15_t1_q4_text",
+       "questionOptions": [
+        "p15_t1_q4_o1",
+        "p15_t1_q4_o2"
+       ]
+      },
+      {
+       "questionType": "OPEN",
+       "questionKey": "p15_t1_q5",
+       "questionTextKey": "p15_t1_q5_text",
+       "questionRegex": ".+",
+       "showIf": {
+        "questionKey": "p15_t1_q2",
+        "optionKeys": [
+         "p15_t1_q2_o1",
+         "p15_t1_q2_o3"
+        ]
+       }
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p15_t1_q6",
+       "questionTextKey": "p15_t1_q6_text",
+       "questionOptions": [
+        "p15_t1_q6_o1",
+        "p15_t1_q6_o2"
+       ],
+       "showIf": {
+        "questionKey": "p15_t1_q3",
+        "optionKeys": [
+         "p15_t1_q3_o1"
+        ]
+       }
+      },
+      {
+       "questionType": "SINGLE_CHOICE",
+       "questionKey": "p15_t1_q7",
+       "questionTextKey": "p15_t1_q7_text",
+       "questionOptions": [
+        "p15_t1_q7_o1",
+        "p15_t1_q7_o2"
+       ],
+       "showIf": {
+        "questionKey": "p15_t1_q2",
+        "optionKeys": [
+         "p15_t1_q2_o1"
+        ]
+       }
+      },
+      {
+       "questionType": "OPEN",
+       "questionKey": "p15_t1_q8",
+       "questionTextKey": "p15_t1_q8_text",
+       "questionRegex": ".+",
+       "showIf": {
+        "questionKey": "p15_t1_q7",
+        "optionKeys": [
+         "p15_t1_q7_o1"
+        ]
+       }
+      }
+     ],
+     "length": 300
+    }
+   ]
+  },
+  {
+   "name": "E2E18 filming",
+   "version": 2,
+   "project": "Test Study 001",
+   "descriptionKey": "p16_description",
+   "recordingsFileName": "${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+   "patientFields": [
+    {
+     "name": "patient_code",
+     "labelKey": "p16_f_patient_code_label",
+     "helpKey": "p16_f_patient_code_help",
+     "placeholder": "HC001",
+     "regex": "[A-Za-z0-9_-]+",
+     "required": true
+    }
+   ],
+   "tasks": [
+    {
+     "type": "VOCAL",
+     "subtype": "PHONATION",
+     "titleKey": "p16_t1_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p16_t1_instr1",
+      "p16_t1_instr2"
+     ],
+     "length": 10,
+     "showIndicator": true,
+     "recordVideo": true,
+     "audioExamplePath": "http://192.168.122.183:10001/audio/illustrations/phonation_a.wav"
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "READING",
+     "titleKey": "p16_t2_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p16_t2_instr1",
+      "p16_t2_instr2",
+      "p16_t2_instr3"
+     ],
+     "length": 150,
+     "showIndicator": true,
+     "recordVideo": true
+    },
+    {
+     "type": "VOCAL",
+     "subtype": "MONOLOGUE",
+     "titleKey": "p16_t3_title",
+     "canRepeat": true,
+     "canSkip": false,
+     "nrepetition": 1,
+     "instructionKeys": [
+      "p16_t3_instr1",
+      "p16_t3_instr2"
+     ],
+     "length": 30,
+     "showIndicator": true,
+     "recordVideo": true
+    }
+   ]
+  }
+ ],
+ "strings": {
+  "cs": {
+   "p13_t1_title": "Prodloužená fonace - /aaa/",
+   "p13_t1_instr1": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /aaa/. Měl/a byste vydržet alespoň 10 sekund.\nNyní Vám přehraji ukázku.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p13_t1_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než 10 sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</italic>",
+   "p13_t2_title": "PATAKA",
+   "p13_t2_instr1": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>\n\n<italic>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:</italic>\n\n<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p13_t2_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň 12 trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).</italic>",
+   "p13_t3_title": "Čtený text - Severní vítr a Slunce",
+   "p13_t3_instr1": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>\n\n<italic>Dejte účastníkovi TEXT KE ČTENÍ - Severní vítr a Slunce.\nÚčastníkovi nabídněte text s vhodnou velikostí písma.</italic>",
+   "p13_t3_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.</italic>",
+   "p13_t3_instr3": "Severní vítr a Slunce",
+   "p13_t4_title": "Monolog - Volné vyprávění",
+   "p13_t4_instr1": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň 90 sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>\n\n<italic>Požadovaná délka nahrávaného monologu je alespoň 90 sekund.</italic>",
+   "p13_t4_instr2": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání a na konci úlohy tlačítko STOP pro ukončení nahrávání.\nČas monologu měřte. Pokud je monolog krátký nebo obsahově chudý, pokuste se rozvést téma doplňujícími otázkami nebo navrhněte téma nové. V nejhorších případech je možnost přejít k tzv. řízené diskuzi. V případě řízené diskuze se snažte pokládat otevřené otázky, vyžadující dlouhou odpověď. Čistý čas monologu, bez dlouhých pauz a otázek vyšetřujícího, by měl být minimálně 90 sekund.</italic>",
+   "p13_t5_title": "RBD-SQ",
+   "p13_t5_q1_text": "I sometimes have very vivid dreams.",
+   "p13_t5_q1_o1": "Yes",
+   "p13_t5_q1_o2": "No",
+   "p13_t5_q2_text": "My dreams frequently have an aggressive or action-packed content.",
+   "p13_t5_q2_o1": "Yes",
+   "p13_t5_q2_o2": "No",
+   "p13_t5_q3_text": "The dream contents mostly match my nocturnal behavior.",
+   "p13_t5_q3_o1": "Yes",
+   "p13_t5_q3_o2": "No",
+   "p13_t5_q4_text": "I know that my arms or legs move when I sleep.",
+   "p13_t5_q4_o1": "Yes",
+   "p13_t5_q4_o2": "No",
+   "p13_t5_q5_text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+   "p13_t5_q5_o1": "Yes",
+   "p13_t5_q5_o2": "No",
+   "p13_t5_q6_text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+   "p13_t5_q6_o1": "Yes",
+   "p13_t5_q6_o2": "No",
+   "p13_t5_q7_text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+   "p13_t5_q7_o1": "Yes",
+   "p13_t5_q7_o2": "No",
+   "p13_t5_q8_text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+   "p13_t5_q8_o1": "Yes",
+   "p13_t5_q8_o2": "No",
+   "p13_t5_q9_text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+   "p13_t5_q9_o1": "Yes",
+   "p13_t5_q9_o2": "No",
+   "p13_t5_q10_text": "It happens that my movements awake me.",
+   "p13_t5_q10_o1": "Yes",
+   "p13_t5_q10_o2": "No",
+   "p13_t5_q11_text": "After awakening I mostly remember the content of my dreams well.",
+   "p13_t5_q11_o1": "Yes",
+   "p13_t5_q11_o2": "No",
+   "p13_t5_q12_text": "My sleep is frequently disturbed.",
+   "p13_t5_q12_o1": "Yes",
+   "p13_t5_q12_o2": "No",
+   "p13_t5_q13_text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+   "p13_t5_q13_o1": "Yes",
+   "p13_t5_q13_o2": "No",
+   "p13_f_patient_code_label": "Kód účastníka",
+   "p13_f_patient_code_help": "Studijní kód účastníka, např. HC001.",
+   "p13_f_surname_label": "Příjmení",
+   "p13_f_surname_help": "",
+   "p13_f_sex_label": "Pohlaví",
+   "p13_f_sex_help": "",
+   "p13_f_current_date_label": "Datum",
+   "p13_f_current_date_help": "Datum vyšetření (vyplní se automaticky).",
+   "p13_description": "vojta test 1",
+   "p15_t1_title": "Rules questionnaire",
+   "p15_t1_q1_text": "Q1 open, required",
+   "p15_t1_q2_text": "Q2 source: single Yes/No/Maybe",
+   "p15_t1_q2_o1": "Yes",
+   "p15_t1_q2_o2": "No",
+   "p15_t1_q2_o3": "Maybe",
+   "p15_t1_q3_text": "Q3 source: multiple A/B/C",
+   "p15_t1_q3_o1": "A",
+   "p15_t1_q3_o2": "B",
+   "p15_t1_q3_o3": "C",
+   "p15_t1_q4_text": "Q4 plain: single Red/Blue",
+   "p15_t1_q4_o1": "Red",
+   "p15_t1_q4_o2": "Blue",
+   "p15_t1_q5_text": "Q5 (if Q2 is Yes or Maybe), open, required",
+   "p15_t1_q6_text": "Q6 (if Q3 includes A), single Up/Down",
+   "p15_t1_q6_o1": "Up",
+   "p15_t1_q6_o2": "Down",
+   "p15_t1_q7_text": "Q7 (if Q2 is Yes), single Yes/No",
+   "p15_t1_q7_o1": "Yes",
+   "p15_t1_q7_o2": "No",
+   "p15_t1_q8_text": "Q8 (if Q7 is Yes), open, required",
+   "p15_f_patient_code_label": "Kód účastníka",
+   "p15_f_patient_code_help": "Studijní kód účastníka, např. HC001.",
+   "p16_t1_title": "Prodloužená fonace - /aaa/",
+   "p16_t1_instr1": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /aaa/. Měl/a byste vydržet alespoň 10 sekund.\nNyní Vám přehraji ukázku.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+   "p16_t1_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než 10 sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</italic>",
+   "p16_t2_title": "Čtený text - Severní vítr a Slunce",
+   "p16_t2_instr1": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>\n\n<italic>Dejte účastníkovi TEXT KE ČTENÍ - Severní vítr a Slunce.\nÚčastníkovi nabídněte text s vhodnou velikostí písma.</italic>",
+   "p16_t2_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.</italic>",
+   "p16_t2_instr3": "Severní vítr a Slunce",
+   "p16_t3_title": "Monolog - Volné vyprávění",
+   "p16_t3_instr1": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>\n\n<italic>Požadovaná délka nahrávaného monologu je alespoň sekund.</italic>",
+   "p16_t3_instr2": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání a na konci úlohy tlačítko STOP pro ukončení nahrávání.\nČas monologu měřte. Pokud je monolog krátký nebo obsahově chudý, pokuste se rozvést téma doplňujícími otázkami nebo navrhněte téma nové. V nejhorších případech je možnost přejít k tzv. řízené diskuzi. V případě řízené diskuze se snažte pokládat otevřené otázky, vyžadující dlouhou odpověď. Čistý čas monologu, bez dlouhých pauz a otázek vyšetřujícího, by měl být minimálně sekund.</italic>",
+   "p16_f_patient_code_label": "Kód účastníka",
+   "p16_f_patient_code_help": "Studijní kód účastníka, např. HC001.",
+   "p16_description": "run 18 filming + layout"
+  },
+  "en": {
+   "p13_t1_title": "Prolonged phonation - /aaa/",
+   "p13_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should last at least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p13_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+   "p13_t2_title": "PATAKA",
+   "p13_t2_instr1": "<bold>Please repeat the following syllables after me: /pa/-/ta/-/ka/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p13_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 12 triplets of /pa-ta-ka/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
+   "p13_t3_title": "Reading - The North Wind and the Sun",
+   "p13_t3_instr1": "<bold>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</bold>\n\n<italic>Give the participant the READING TEXT - The North Wind and the Sun.\nOffer the participant a text with a suitable font size.</italic>",
+   "p13_t3_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</italic>",
+   "p13_t3_instr3": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.",
+   "p13_t4_title": "Monologue - Free narration",
+   "p13_t4_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least 90 seconds. The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work.</bold>\n\n<italic>The required length of the recorded monologue is at least 90 seconds.</italic>",
+   "p13_t4_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least 90 seconds.</italic>",
+   "p13_t5_title": "RBD-SQ",
+   "p13_t5_q1_text": "I sometimes have very vivid dreams.",
+   "p13_t5_q1_o1": "Yes",
+   "p13_t5_q1_o2": "No",
+   "p13_t5_q2_text": "My dreams frequently have an aggressive or action-packed content.",
+   "p13_t5_q2_o1": "Yes",
+   "p13_t5_q2_o2": "No",
+   "p13_t5_q3_text": "The dream contents mostly match my nocturnal behavior.",
+   "p13_t5_q3_o1": "Yes",
+   "p13_t5_q3_o2": "No",
+   "p13_t5_q4_text": "I know that my arms or legs move when I sleep.",
+   "p13_t5_q4_o1": "Yes",
+   "p13_t5_q4_o2": "No",
+   "p13_t5_q5_text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+   "p13_t5_q5_o1": "Yes",
+   "p13_t5_q5_o2": "No",
+   "p13_t5_q6_text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+   "p13_t5_q6_o1": "Yes",
+   "p13_t5_q6_o2": "No",
+   "p13_t5_q7_text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+   "p13_t5_q7_o1": "Yes",
+   "p13_t5_q7_o2": "No",
+   "p13_t5_q8_text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+   "p13_t5_q8_o1": "Yes",
+   "p13_t5_q8_o2": "No",
+   "p13_t5_q9_text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+   "p13_t5_q9_o1": "Yes",
+   "p13_t5_q9_o2": "No",
+   "p13_t5_q10_text": "It happens that my movements awake me.",
+   "p13_t5_q10_o1": "Yes",
+   "p13_t5_q10_o2": "No",
+   "p13_t5_q11_text": "After awakening I mostly remember the content of my dreams well.",
+   "p13_t5_q11_o1": "Yes",
+   "p13_t5_q11_o2": "No",
+   "p13_t5_q12_text": "My sleep is frequently disturbed.",
+   "p13_t5_q12_o1": "Yes",
+   "p13_t5_q12_o2": "No",
+   "p13_t5_q13_text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+   "p13_t5_q13_o1": "Yes",
+   "p13_t5_q13_o2": "No",
+   "p13_f_patient_code_label": "Participant code",
+   "p13_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+   "p13_f_surname_label": "Surname",
+   "p13_f_surname_help": "",
+   "p13_f_sex_label": "Sex",
+   "p13_f_sex_help": "",
+   "p13_f_current_date_label": "Date",
+   "p13_f_current_date_help": "Date of the examination (filled in automatically).",
+   "p13_description": "vojta test 1",
+   "p15_t1_title": "Rules questionnaire",
+   "p15_t1_q1_text": "Q1 open, required",
+   "p15_t1_q2_text": "Q2 source: single Yes/No/Maybe",
+   "p15_t1_q2_o1": "Yes",
+   "p15_t1_q2_o2": "No",
+   "p15_t1_q2_o3": "Maybe",
+   "p15_t1_q3_text": "Q3 source: multiple A/B/C",
+   "p15_t1_q3_o1": "A",
+   "p15_t1_q3_o2": "B",
+   "p15_t1_q3_o3": "C",
+   "p15_t1_q4_text": "Q4 plain: single Red/Blue",
+   "p15_t1_q4_o1": "Red",
+   "p15_t1_q4_o2": "Blue",
+   "p15_t1_q5_text": "Q5 (if Q2 is Yes or Maybe), open, required",
+   "p15_t1_q6_text": "Q6 (if Q3 includes A), single Up/Down",
+   "p15_t1_q6_o1": "Up",
+   "p15_t1_q6_o2": "Down",
+   "p15_t1_q7_text": "Q7 (if Q2 is Yes), single Yes/No",
+   "p15_t1_q7_o1": "Yes",
+   "p15_t1_q7_o2": "No",
+   "p15_t1_q8_text": "Q8 (if Q7 is Yes), open, required",
+   "p15_f_patient_code_label": "Participant code",
+   "p15_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+   "p16_t1_title": "Prolonged phonation - /aaa/",
+   "p16_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should last at least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+   "p16_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+   "p16_t2_title": "Reading - The North Wind and the Sun",
+   "p16_t2_instr1": "<bold>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</bold>\n\n<italic>Give the participant the READING TEXT - The North Wind and the Sun.\nOffer the participant a text with a suitable font size.</italic>",
+   "p16_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</italic>",
+   "p16_t2_instr3": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.",
+   "p16_t3_title": "Monologue - Free narration",
+   "p16_t3_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least seconds. The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work.</bold>\n\n<italic>The required length of the recorded monologue is at least seconds.</italic>",
+   "p16_t3_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least seconds.</italic>",
+   "p16_f_patient_code_label": "Participant code",
+   "p16_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+   "p16_description": "run 18 filming + layout"
+  }
+ }
+}

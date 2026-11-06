@@ -358,7 +358,9 @@ pulsating circle whose radius/opacity follows the peak level; `WAVEFORM` — the
 envelope drawn on a canvas, growing over the take and kept on screen after Stop (decision 61). The config value is a default: a choice made in Settings
 overrides it (§13 decision 53). Both consume `ContinuousSessionRecorder.fastLevels` (decision 39). A VOCAL
 task with `recordVideo` also shows a small live camera preview: beside the indicator with
-`showIndicator`, alone without it (§13 decision 60).
+`showIndicator`, alone without it (§13 decision 60). On a VOCAL task screen the instructions come
+first: the indicator and the preview get only the height the instructions leave, and are left out
+when it is too small (§13 decision 64).
 
 Config-level fields: `schemaVersion`, `configVersion`, `siteName` (main menu line, §13 decision 54, and the
 `${siteName}` filename variable, §8.8), `defaultLanguage`, `languages`,
@@ -1588,6 +1590,25 @@ Error taxonomy (normative, inlined from the old plan):
     a median of 0.36 and a p90 of 0.48. The default band stays `[0.2, 0.5]` (about −14 to
     −6 dBFS peak, a sensible speech target). An `optimalLoudness` override already written to a
     `settings.json` is now read on the peak scale.
+64. **VOCAL task screens give the instructions priority (2026-11-06, F-145).** The instructions
+    take their natural height, limited only by the space left after the title, timer and buttons,
+    and scroll only beyond that. Their height does not change between Idle, Capturing and Stopped.
+    The indicator gets the leftover height, up to its full size (circle 160 dp, waveform 250 dp),
+    and is left out below 80 dp. The 200×150 preview with its message line (198 dp) is shown only
+    if it fits, and is never scaled. An 8 dp gap above them shrinks towards those 80 and 198 dp
+    limits, so it never costs them their place; above the limits it comes first, so an indicator
+    within 8 dp of full size is drawn up to 8 dp smaller. When the preview is hidden, a camera failure or audio-only
+    message stays visible as its own line, the one case where the instructions give up height.
+    Hiding the preview does not affect capture: `VideoSurface` is only a reader of the recorder's
+    `previewFrames`. The timer and the Stop button remain as the signs of a running take, and with
+    long instructions on a small window the examiner cannot see the shot while filming; both were
+    accepted (user notes of 2026-10-30, and the user's decision of 2026-11-06 that the preview also
+    yields). Questionnaire, standalone video and info tasks keep their weighted middle area.
+65. **A config with no protocols disables New examination (2026-11-06, F-146).** Such a config is
+    valid, but starting from it led to an empty Patient info page and then a misleading
+    "Configuration required" screen. The main menu now disables the button and shows one line under
+    it (`mainMenu.noProtocolConfigured`). A protocol with no patient fields, or with no tasks, is
+    not "no protocol". With no config at all the menu is unchanged.
 
 **Still open:**
 

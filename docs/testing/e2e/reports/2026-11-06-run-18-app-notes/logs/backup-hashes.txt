@@ -1,0 +1,4 @@
+6285b10e31968f3d8cddaffca18e09c77161014039f1ad5f3249eac700681f65 *app/data/config/settings.json
+a20db5d37c402121f4f26450aef53c03b2ab8a10118fce16b3beed889926f1e8 *app/data/config/config.json
+a20db5d37c402121f4f26450aef53c03b2ab8a10118fce16b3beed889926f1e8 *docs/testing/e2e/reports/2026-11-06-run-18-app-notes/backup/config.json
+6285b10e31968f3d8cddaffca18e09c77161014039f1ad5f3249eac700681f65 *docs/testing/e2e/reports/2026-11-06-run-18-app-notes/backup/settings.json

@@ -27,9 +27,10 @@ Only entry points in the **main** source set can be driven by the MCP tools:
 |---|---|
 | Calibration, all 4 states + chip switcher | `./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.PreviewHarnessKt --auto` |
 | Editor, all states | `./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.EditorPreviewHarnessKt --auto` |
+| Task (VOCAL, fake component; chips for indicator / state / instructions / filming, 40 dp tall) | `./gradlew :app:hotRun --mainClass=org.example.app.ui.previews.TaskPreviewHarnessKt --auto` |
 | The real app (real `app/data/`, real config fetch) | `./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto` |
 
-A screen with no main-source-set harness (Task, today) cannot be screenshotted without first
+A screen with no main-source-set harness (Questionnaire, Video task, Info, ... today) cannot be screenshotted without first
 adding one — say so rather than silently skipping the visual check.
 
 ## Procedure

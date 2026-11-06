@@ -1,0 +1,17 @@
+{
+ "schemaVersion": 1,
+ "configVersion": "2026-11-06.040300",
+ "siteName": "E2E18 no protocol",
+ "defaultLanguage": "cs",
+ "languages": [
+  "cs"
+ ],
+ "defaultMicName": "",
+ "enableEditor": false,
+ "indicatorType": "CIRCLE",
+ "useCalibration": true,
+ "protocols": [],
+ "strings": {
+  "cs": {}
+ }
+}

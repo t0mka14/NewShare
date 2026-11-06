@@ -1,0 +1,108 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/<user>/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:cleanMainHotClasses
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:convertXmlValueResourcesForMain NO-SOURCE
+> Task :app:copyNonXmlValueResourcesForMain NO-SOURCE
+> Task :app:prepareComposeResourcesTaskForMain NO-SOURCE
+> Task :app:generateResourceAccessorsForMain SKIPPED
+> Task :app:generateActualResourceCollectorsForMain SKIPPED
+> Task :app:generateComposeResClass SKIPPED
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileKotlin UP-TO-DATE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:processResources NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar UP-TO-DATE
+> Task :app:compileKotlin UP-TO-DATE
+> Task :app:compileJava NO-SOURCE
+> Task :app:assembleMainResources UP-TO-DATE
+> Task :app:generateAppVersionJson UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:hotSnapshotMain
+> Task :app:syncMainStartupClasses UP-TO-DATE
+> Task :app:syncMainStartupLibs UP-TO-DATE
+> Task :app:hotRunArgfile UP-TO-DATE
+> Task :app:unpackVideoNatives UP-TO-DATE
+
+> Task :app:hotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.example.app.MainKt'
+| JetBrains Runtime: C:\Users\<user>\.gradle\jdks\jetbrains_s_r_o_-25-amd64-windows.2\bin\java.exe
+| ________________________________________________________________________________________________
+| Auto Reload Mode:
+| Compose Hot Reload will launch a separate Gradle Daemon 
+| to continuously recompile and reload the application when source code is changed.
+| ________________________________________________________________________________________________
+06:01:42.016 [AWT-EventQueue-0] INFO  o.e.a.i.network.KtorConfigApi - config fetch: HTTP 200
+06:01:42.268 [DefaultDispatcher-worker-1] INFO  o.e.a.i.network.KtorDeviceCheckinApi - device check-in: HTTP 200
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.skiko.Library in an unnamed module (file:/C:/Users/<user>/.gradle/caches/modules-2/files-2.1/org.jetbrains.skiko/skiko-awt/0.9.37.4/fc7470cca1041a52b182a921205c5c224e7709ad/skiko-awt-0.9.37.4.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+06:01:45.249 [AWT-EventQueue-0] INFO  o.e.a.d.upload.DeviceCheckinUseCase - device check-in: ok
+06:01:45.327 [AWT-EventQueue-0] INFO  o.e.a.d.c.RefreshConfigurationUseCase - config refresh: applied configVersion=2026-11-06.040122 site=Paris
+06:02:26.645 [DefaultDispatcher-worker-10] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+06:02:26.658 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+06:02:26.915 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=40e5fa1c42b14833a52f550a9cca619b tasks=3
+06:02:33.007 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+06:02:33.215 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+06:02:40.138 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=40e5fa1c42b14833a52f550a9cca619b task=1/3 VocalTask rep=1 take=1
+06:02:40.167 [DefaultDispatcher-worker-4] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+06:02:45.386 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=40e5fa1c42b14833a52f550a9cca619b task=1/3 VocalTask rep=1 take=1
+06:02:45.461 [DefaultDispatcher-worker-8] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 159 frames
+06:03:02.580 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=40e5fa1c42b14833a52f550a9cca619b task=2/3 VocalTask rep=1 take=1
+06:03:02.624 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+06:04:13.692 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=40e5fa1c42b14833a52f550a9cca619b task=2/3 VocalTask rep=1 take=1
+06:04:13.774 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 2134 frames
+06:04:36.480 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take rejected session=40e5fa1c42b14833a52f550a9cca619b task=2/3 VocalTask rep=1 take=1
+06:04:36.535 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=40e5fa1c42b14833a52f550a9cca619b task=2/3 VocalTask rep=1 take=2
+06:04:36.547 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take02.mjpeg
+06:05:20.689 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=40e5fa1c42b14833a52f550a9cca619b task=2/3 VocalTask rep=1 take=2
+06:05:20.736 [DefaultDispatcher-worker-1] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take02.mjpeg after 1325 frames
+06:05:30.816 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=40e5fa1c42b14833a52f550a9cca619b task=3/3 VocalTask rep=1 take=1
+06:05:30.972 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep01_take01.mjpeg
+06:05:35.930 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=40e5fa1c42b14833a52f550a9cca619b task=3/3 VocalTask rep=1 take=1
+06:05:36.032 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep01_take01.mjpeg after 152 frames
+06:05:38.290 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=40e5fa1c42b14833a52f550a9cca619b tasks=3
+06:05:38.348 [DefaultDispatcher-worker-4] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session 40e5fa1c42b14833a52f550a9cca619b)
+06:05:38.716 [DefaultDispatcher-worker-4] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 159 frames at 30 fps
+06:05:38.718 [DefaultDispatcher-worker-4] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+06:05:39.576 [DefaultDispatcher-worker-4] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take02.mjpeg: 1325 frames at 30 fps
+06:05:39.576 [DefaultDispatcher-worker-4] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 1 rep 1 converted
+06:05:39.796 [DefaultDispatcher-worker-4] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep01_take01.mjpeg: 152 frames at 30 fps
+06:05:39.796 [DefaultDispatcher-worker-4] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 2 rep 1 converted
+06:05:47.212 [DefaultDispatcher-worker-4] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 3 clips (session 40e5fa1c42b14833a52f550a9cca619b)
+06:06:23.011 [DefaultDispatcher-worker-3] INFO  o.e.a.i.a.JvmContinuousSessionRecorder - capture format chosen: CaptureFormat(sampleRate=48000, bits=16, channels=1)
+06:06:23.014 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - microphone opened: 'CABLE Output (VB-Audio Virtual Cable)' (CABLE Output (VB-Audio Virtual Cable)|Unknown Vendor|Unknown Version) gain=null format=CaptureFormat(sampleRate=48000, bits=16, channels=1)
+06:06:23.248 [AWT-EventQueue-0] INFO  o.e.a.d.session.StartSessionUseCase - session created session=fa3de1e3e8234a2cb783638dd2c1468b tasks=3
+06:06:28.437 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - 'OBS Virtual Camera' rejected 1280x720@30 (mjpeg passthrough), trying the next mode
+06:06:28.613 [DefaultDispatcher-worker-9] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - capturing 'OBS Virtual Camera' as 1280x720@30 (encoded)
+06:06:34.034 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=fa3de1e3e8234a2cb783638dd2c1468b task=1/3 VocalTask rep=1 take=1
+06:06:34.087 [DefaultDispatcher-worker-6] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task00_rep01_take01.mjpeg
+06:06:39.336 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=fa3de1e3e8234a2cb783638dd2c1468b task=1/3 VocalTask rep=1 take=1
+06:06:39.344 [DefaultDispatcher-worker-10] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task00_rep01_take01.mjpeg after 158 frames
+06:06:45.512 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=fa3de1e3e8234a2cb783638dd2c1468b task=2/3 VocalTask rep=1 take=1
+06:06:45.531 [DefaultDispatcher-worker-5] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task01_rep01_take01.mjpeg
+06:07:41.242 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=fa3de1e3e8234a2cb783638dd2c1468b task=2/3 VocalTask rep=1 take=1
+06:07:41.279 [DefaultDispatcher-worker-3] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task01_rep01_take01.mjpeg after 1673 frames
+06:07:54.537 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take started session=fa3de1e3e8234a2cb783638dd2c1468b task=3/3 VocalTask rep=1 take=1
+06:07:54.572 [DefaultDispatcher-worker-11] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - recording video to task02_rep01_take01.mjpeg
+06:08:02.191 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - take stopped session=fa3de1e3e8234a2cb783638dd2c1468b task=3/3 VocalTask rep=1 take=1
+06:08:02.236 [DefaultDispatcher-worker-7] INFO  o.e.a.i.v.FfmpegSessionVideoRecorder - stopped recording task02_rep01_take01.mjpeg after 230 frames
+06:08:06.662 [AWT-EventQueue-0] INFO  o.e.app.navigation.SessionComponent - session finished session=fa3de1e3e8234a2cb783638dd2c1468b tasks=3
+06:08:06.694 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - processing started (session fa3de1e3e8234a2cb783638dd2c1468b)
+06:08:07.115 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task00_rep01_take01.mjpeg: 158 frames at 30 fps
+06:08:07.115 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 0 rep 1 converted
+06:08:08.151 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task01_rep01_take01.mjpeg: 1673 frames at 30 fps
+06:08:08.151 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 1 rep 1 converted
+06:08:08.408 [DefaultDispatcher-worker-2] INFO  o.e.a.i.v.FfmpegVideoRemuxService - remuxed task02_rep01_take01.mjpeg: 230 frames at 30 fps
+06:08:08.408 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - video of task 2 rep 1 converted
+06:08:16.464 [DefaultDispatcher-worker-2] INFO  o.e.a.d.s.ProcessSessionUseCase - processing done: 3 clips (session fa3de1e3e8234a2cb783638dd2c1468b)

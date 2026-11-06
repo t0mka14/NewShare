@@ -41,6 +41,7 @@ mode*: leave it running and apply changes with `./gradlew reload` whenever you w
 | `@DevelopmentEntryPoint` functions | `app/src/dev/.../ui/previews/` | **no** | `hotDev`, IDE gutter icons |
 | `PreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewCalibration` |
 | `EditorPreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewEditor` |
+| `TaskPreviewHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewTask` (VOCAL task, fake component; chips: indicator, state, instructions, filming; chip row is 40 dp) |
 | `CameraLiveHarness.main()` | `app/src/main/.../ui/previews/` | yes | `hotRun`, `./gradlew :app:previewCamera` |
 
 `CameraLiveHarness` renders the production `VideoTaskBody` over a **real camera**, with the real
