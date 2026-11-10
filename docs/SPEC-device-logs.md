@@ -108,3 +108,15 @@ The contract is normative in the web repo:
 - Log search or parsing on the server
 - `updater.log`
 - Merging to `master`
+
+## Live check (AC 12), 2026-11-10
+
+Web `newshare` at `cccb136` deployed to the test container (`share_web`), `npm run db:uploads` applied. Real app (`hotRun`, real `app/data`) against `http://192.168.122.183:10001/api`:
+
+| Step | App log line | Server |
+|---|---|---|
+| Start (config refresh) | `5 sent, … 1 not settled`; startup had just rotated `app.2026-11-06.0.log.gz` | 5 rows on device 21 / site 4, `+01:00`, files at `device-logs/21/<sha256>.log.gz`, `zcat` gives the real log text |
+| Refresh in Settings, 31 s and 41 s after the rotation | `0 sent, 5 already done, 1 not settled` | still 5 rows, no duplicates |
+| Refresh 64 s after the rotation | `1 sent, 5 already done, 0 not settled` | row 6, `app.2026-11-06.0.log.gz` |
+
+`app.log` contains neither the site token nor the installation ID. The master's Logs tab still needs a check in the browser (no master credentials in this session).
