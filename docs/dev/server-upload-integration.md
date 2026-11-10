@@ -22,6 +22,8 @@ describes exactly what the server reads.
 | 4 | Send `installationId` and `appVersion` on the config fetch | Registers the device at the site **before** it uploads anything, and lets the admin UI show its app/config version. | `KtorConfigApi` (`configPath`) |
 | 5 | Call `POST /device-checkin` after each config fetch and each upload batch | The admin "Devices" page shows how many sessions are waiting or failed on each clinic computer. Without check-ins the server only learns about a device when it uploads. | new `DeviceCheckinApi`, called from `RefreshConfigurationUseCase` and the upload screen |
 
+| 6 | Send rotated log files with `POST /device-logs` after a successful config refresh and after an upload batch (§13 decision 66) | A master reads the app's logs on the clinic page. | `DeviceLogApi`, `KtorDeviceLogApi`, `SendDeviceLogsUseCase`; contract in `docs/SPEC-device-logs.md` |
+
 Items 1–3 matter for correct uploads. Items 4–5 give admins visibility; the upload path works
 without them.
 
@@ -154,6 +156,8 @@ index / repetition instead. `ProcessSessionLogPrivacyTest` enforces it:
 | upload call (`KtorUploadApi`) | `upload ok for session=…: HTTP 200`, or `rejected` / `conflict` / `failed` / `transport error` with the HTTP status |
 | upload attempt (`UploadSessionUseCase`) | `upload attempt: session=… attempt=n outcome=… retry=…` (WARN on failure; a 409 says `retry=none, needs an administrator`, other failures `retry=manual, no automatic retry`) |
 | upload batch (`UploadComponent`) | `upload batch: n session(s), n ok, n failed` |
+| device logs (`SendDeviceLogsUseCase`) | `device logs: n sent, n unsendable, n retry later, n file failed, n already done, n unreadable, n not settled[, stopped: session running]`, or `skipped, no site token`; counts only |
+| device log call (`KtorDeviceLogApi`) | WARN `will not take the file (HTTP 400 or 413)`, `retry later (HTTP n)`, `transport error: <exception class>`; no file name or path |
 
 Uploads are manual, so the retry decision is always "manual" and there is no delay.
 

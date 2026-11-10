@@ -203,6 +203,7 @@ AudioPlaybackService      example-audio and editor playback
 ConfigApi                 fetch configuration JSON by site token (Ktor)
 UploadApi                 multipart session upload (Ktor)
 DeviceCheckinApi          report this computer's upload backlog (Ktor, §13 decision 62)
+DeviceLogApi              send one rotated log file (Ktor, §13 decision 66)
 ```
 
 #### 5.3.1 ContinuousSessionRecorder
@@ -687,6 +688,9 @@ regenerates local artifacts, but re-upload is blocked.
   are retried only when the examiner presses Upload again (§5.4, decision 34);
   `attempts[]`/`attemptCount` remain as the audit trail. A network failure reads "the server
   could not be reached. The session is kept and can be uploaded later" (§11).
+- Besides session data, the app sends its **rotated log files** to the same server, automatically
+  and never during a session (§13 decision 66). Log files are not session data and are never part
+  of the upload payload.
 - **Primary session data is never deleted after upload** (master, timelines, JSONs,
   participant data). Derived artifacts may be regenerated (§8.8).
 
@@ -900,7 +904,7 @@ detail goes to `logs/app.log` (kotlin-logging + Logback). **Log lines must never
 participant data** (patient code, field values, questionnaire answers) **or the installation
 ID** (it acts as a bearer credential) — sessions are referenced by `sessionId` only. Nor session folder names or
 paths (they embed the patient code): log take/master file names (`task00_rep01_take01.mjpeg`) or `sessionId`s, and exceptions as class + path-redacted message
-(`describeError`). **Clip names and archive names are participant data too**: a clip name is rendered from `recordingsFileName` (patient fields, installation ID, site name) and the ZIP is `<PatientCode>_<SessionId>.zip`, so never log either; log the source take file name and the task index / repetition instead. Network paths log one line per call (listed in §5 of `docs/dev/server-upload-integration.md`). Never surface raw keys, stack traces, or placeholder text in
+(`describeError`). **Clip names and archive names are participant data too**: a clip name is rendered from `recordingsFileName` (patient fields, installation ID, site name) and the ZIP is `<PatientCode>_<SessionId>.zip`, so never log either; log the source take file name and the task index / repetition instead. Network paths log one line per call (listed in §5 of `docs/dev/server-upload-integration.md`); the log sender (§13 decision 66) logs counts only, never file names or paths. Never surface raw keys, stack traces, or placeholder text in
 the UI.
 
 Error taxonomy (normative, inlined from the old plan):
@@ -1609,6 +1613,31 @@ Error taxonomy (normative, inlined from the old plan):
     "Configuration required" screen. The main menu now disables the button and shows one line under
     it (`mainMenu.noProtocolConfigured`). A protocol with no patient fields, or with no tasks, is
     not "no protocol". With no config at all the menu is unchanged.
+66. **Rotated app logs are sent to the server (2026-11-10,
+    `docs/SPEC-device-logs.md`; contract: web repo `docs/device_logs/01_spec.md`).** The user wants
+    the app's logs readable on the clinic page, per computer.
+    - **What and when:** only the rotated files `app.<yyyy-MM-dd>.<n>.log.gz` in the Logback
+      directory (`LOG_PATH`, resolved as `logback.xml` does), never `app.log` or `updater.log`.
+      `SendDeviceLogsUseCase` runs fire-and-forget on the app's own scope after a successful config
+      refresh and after an upload batch, never from a failed refresh, and never while a recording
+      session screen exists (an app-wide `SessionActivity` signal, set by the root component when it
+      builds the session screen and cleared when that screen is destroyed). A run stops before the
+      next file when a session starts. Nothing is sent while no site token is set. There is no
+      periodic worker and no "send logs" button.
+    - **Request:** `POST {WEB_SERVER_BASE_URL}/device-logs`, multipart, text parts `siteToken`,
+      `installationId`, `appVersion`, `utcOffset` (`+01:00`, never `Z`), `fileName`, `sha256`, then
+      the `file` part last. Same timeouts and transport as the upload.
+    - **Answers:** 200 (also a duplicate) is `Sent`; 400 and 413 are `Unsendable` and never retried;
+      other HTTP answers (404, 409, 429, 5xx) are `RetryLater` and record nothing; such an answer ends
+      the run, since its causes hit every following file alike. A transport exception or an
+      unreadable file is `FileFailed`: nothing is recorded and the run goes on with the next file.
+      A file modified in the last 60 s is skipped (Logback may still be compressing it).
+    - **Local record:** `config/device_logs_sent.json` maps the file name to `{sha256, state}`,
+      written atomically after every file. A changed hash is a new file, and entries for files that
+      Logback has deleted are dropped. Files go oldest first by the date and index in the name.
+    - **Privacy:** no new redaction (the logs go to the same secured server as the session data).
+      The sender's own log lines carry counts only, never the token, the installation ID, a file
+      name or a path (§11).
 
 **Still open:**
 

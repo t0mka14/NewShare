@@ -25,7 +25,7 @@ full-fake container (§10.3):
 ```kotlin
 AppContainer(
     directories, clock, idGenerator, dispatchers,
-    configApi, uploadApi,                       // network
+    configApi, uploadApi, deviceCheckinApi, deviceLogApi, // network
     audioInputDeviceProvider, audioClipService, // audio
     waveformService, audioPlaybackService,
     sessionRecorderFactory,                     // () -> ContinuousSessionRecorder — session-scoped
