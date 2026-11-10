@@ -53,3 +53,7 @@ docs/testing/e2e/reports/*-secrets.json
 # Python bytecode from the E2E scripts
 __pycache__/
 *.pyc
+
+### E2E runtime/test data (never in VCS)
+app/data.e2e-*/
+app/fake-sessions-root/
