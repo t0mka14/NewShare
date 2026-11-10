@@ -106,6 +106,8 @@ class ScenarioHarness(tempDir: Path) {
         configApi = FakeConfigApi(),
         uploadApi = uploadApi,
         deviceCheckinApi = deviceCheckinApi,
+        deviceLogApi = org.example.app.fakes.FakeDeviceLogApi(), // no real network in tests
+        logDirectory = tempDir.resolve("device-log-test-dir"),
         audioInputDeviceProvider = deviceProvider,
         audioClipService = audioClipService,
         waveformService = waveformService,

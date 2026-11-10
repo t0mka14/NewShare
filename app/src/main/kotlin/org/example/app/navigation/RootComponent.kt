@@ -345,6 +345,11 @@ class DefaultRootComponent(
             },
         )
 
+        // The signal is cleared when the session screen is destroyed, however it was left, so it
+        // cannot stay set (the log sender stops while it is).
+        val endSessionActivity = container.sessionActivity.begin()
+        childContext.lifecycle.doOnDestroy(endSessionActivity)
+
         return RootComponent.Child.Session(sessionComponent)
     }
 
@@ -424,6 +429,7 @@ class DefaultRootComponent(
                 dispatchers = container.dispatchers,
                 onBackClicked = { navigation.pop() },
                 deviceCheckin = container.deviceCheckinUseCase,
+                deviceLogs = container.deviceLogTrigger,
             ),
         )
 

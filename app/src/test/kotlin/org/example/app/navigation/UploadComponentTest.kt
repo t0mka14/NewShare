@@ -2,6 +2,8 @@ package org.example.app.navigation
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.resume
 import org.example.app.domain.localization.BuiltinStrings
 import org.example.app.domain.session.Examination
 import org.example.app.domain.settings.AppSettings
@@ -18,6 +20,7 @@ import org.example.app.domain.upload.UploadStatusValue
 import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeClock
 import org.example.app.fakes.FakeDeviceCheckinApi
+import org.example.app.fakes.FakeDeviceLogTrigger
 import org.example.app.fakes.FakeFileHashService
 import org.example.app.fakes.FakeSessionRepository
 import org.example.app.fakes.FakeUploadStatusRepository
@@ -62,6 +65,8 @@ class UploadComponentTest {
             write(AppSettings(siteToken = "site-token-0000000", installationId = "install-1"))
         }
         val checkinApi = FakeDeviceCheckinApi()
+        val logTrigger = FakeDeviceLogTrigger()
+        val lifecycle = LifecycleRegistry()
         val uploadSessionUseCase = UploadSessionUseCase(
             sessionRepository = sessionRepository,
             uploadStatusRepository = uploadStatusRepository,
@@ -93,11 +98,12 @@ class UploadComponentTest {
          * `DefaultUploadComponent`'s own eager row snapshot at construction (§8.9: the list is
          * computed on demand, not live-observed). */
         fun build(): UploadComponent = DefaultUploadComponent(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
+            componentContext = DefaultComponentContext(lifecycle),
             eligibleUploadsQuery = eligibleUploadsQuery,
             uploadSessionUseCase = uploadSessionUseCase,
             dispatchers = dispatchers,
             onBackClicked = { backCalled++ },
+            deviceLogs = logTrigger,
             deviceCheckin = DeviceCheckinUseCase(
                 settingsRepository = settingsRepository,
                 installationIdProvider = InstallationIdProvider(settingsRepository),
@@ -107,6 +113,51 @@ class UploadComponentTest {
                 dispatchers = dispatchers,
             ),
         )
+    }
+
+    @Test
+    fun `an upload batch starts a device log run before the check-in, even when a session failed`() {
+        val uploadApi = ScriptedUploadApi(mapOf("session-a" to UploadResult.NetworkFailure))
+        val h = Harness(uploadApi)
+        h.seedSession("folder-a", "session-a", "HC001")
+        val component = h.build()
+        assertEquals(0, h.logTrigger.count)
+
+        component.onUploadClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.logTrigger.count)
+        assertEquals(1, h.checkinApi.calls.size)
+    }
+
+    @Test
+    fun `leaving the screen while the check-in is suspended still leaves exactly one device log trigger`() {
+        val h = Harness()
+        h.seedSession("folder-a", "session-a", "HC001")
+        h.checkinApi.gate = kotlinx.coroutines.CompletableDeferred()
+        val component = h.build()
+        h.lifecycle.resume()
+
+        component.onUploadClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(1, h.logTrigger.count)
+        assertEquals(1, h.checkinApi.calls.size) // suspended inside the check-in
+
+        h.lifecycle.destroy() // the component scope is cancelled
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(1, h.logTrigger.count)
+    }
+
+    @Test
+    fun `an upload press with nothing to upload starts no device log run`() {
+        val h = Harness()
+        val component = h.build()
+
+        component.onUploadClicked()
+        h.dispatchers.scheduler.advanceUntilIdle()
+
+        assertEquals(0, h.logTrigger.count)
     }
 
     @Test

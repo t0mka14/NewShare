@@ -3,6 +3,7 @@ package org.example.app.navigation
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.resume
 import org.example.app.AppContainer
 import org.example.app.domain.audio.AudioInputDevice
 import kotlinx.coroutines.runBlocking
@@ -58,6 +59,8 @@ class RootComponentTest {
             sessionRecorderFactory = { recorder },
             configApi = configApi,
             deviceCheckinApi = org.example.app.fakes.FakeDeviceCheckinApi(),
+            deviceLogApi = org.example.app.fakes.FakeDeviceLogApi(), // no real network in tests
+            logDirectory = tempDir.resolve("device-log-test-dir"),
         )
 
     private fun buildRoot(container: AppContainer): RootComponent =
@@ -362,6 +365,43 @@ class RootComponentTest {
         assertTrue(root.stack.value.active.instance is RootComponent.Child.Blocking)
         assertEquals(listOf("typo"), api.requestedSiteTokens)
         assertEquals(ConfigError.SiteTokenRejected, root.configError.value)
+    }
+
+    // ---- session-active signal for the log sender (§13 decision 66)
+
+    @Test
+    fun `the session-active signal is set while the session screen exists and cleared when it is left`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val container = buildContainer(tempDir, dispatchers)
+        container.rawConfigCache.write(ConfigFixtures.fullProtocol)
+        container.configurationRepository.loadCached()
+        val root = buildRoot(container)
+        assertEquals(false, container.sessionActivity.active.value)
+
+        openShareSession(root, dispatchers)
+        assertEquals(true, container.sessionActivity.active.value)
+
+        root.onSessionFailedBackToMenu()
+        dispatchers.scheduler.advanceUntilIdle()
+        assertTrue(root.stack.value.active.instance is RootComponent.Child.MainMenu)
+        assertEquals(false, container.sessionActivity.active.value)
+    }
+
+    @Test
+    fun `the session-active signal is cleared when the whole app tree is destroyed mid-session`(@TempDir tempDir: Path) {
+        val dispatchers = TestCoroutineDispatchers()
+        val container = buildContainer(tempDir, dispatchers)
+        container.rawConfigCache.write(ConfigFixtures.fullProtocol)
+        container.configurationRepository.loadCached()
+        val lifecycle = LifecycleRegistry()
+        val root = DefaultRootComponent(DefaultComponentContext(lifecycle), container)
+        lifecycle.resume()
+        openShareSession(root, dispatchers)
+        assertEquals(true, container.sessionActivity.active.value)
+
+        lifecycle.destroy()
+
+        assertEquals(false, container.sessionActivity.active.value)
     }
 
     // ---- microphone selection and level at session start (§6.2, §13 decision 44)

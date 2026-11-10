@@ -3,6 +3,7 @@ package org.example.app.domain.config
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.example.app.domain.logs.DeviceLogTrigger
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.upload.DeviceCheckinResult
 import org.example.app.domain.upload.DeviceCheckinUseCase
@@ -34,6 +35,8 @@ class RefreshConfigurationUseCase(
     private val exampleAudioCache: ExampleAudioCache = ExampleAudioCache.None,
     private val deviceIdentity: () -> DeviceIdentity? = { null },
     private val deviceCheckin: DeviceCheckinUseCase? = null,
+    /** Started (fire-and-forget) after a successful refresh: the device is registered by then. */
+    private val deviceLogs: DeviceLogTrigger? = null,
 ) {
     sealed interface Result {
         data class Success(val config: RemoteConfig) : Result
@@ -59,6 +62,7 @@ class RefreshConfigurationUseCase(
             logOutcome(it, previousVersion)
             _lastError.value = (it as? Result.Failed)?.error
             _usingCachedConfig.value = it is Result.OfflineUsingCache
+            if (it is Result.Success) deviceLogs?.trigger()
         }
     }
 

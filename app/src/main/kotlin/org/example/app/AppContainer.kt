@@ -44,6 +44,17 @@ import org.example.app.domain.session.SessionArchiveService
 import org.example.app.domain.session.EmptySessionCleanup
 import org.example.app.domain.session.StartupRecovery
 import org.example.app.domain.session.StartSessionUseCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import org.example.app.domain.logs.DeviceLogApi
+import org.example.app.domain.logs.DeviceLogTrigger
+import org.example.app.domain.logs.LaunchingDeviceLogTrigger
+import org.example.app.domain.logs.SendDeviceLogsUseCase
+import org.example.app.domain.session.SessionActivity
+import org.example.app.infrastructure.logging.LogDirectory
+import org.example.app.infrastructure.network.KtorDeviceLogApi
+import org.example.app.infrastructure.persistence.JsonDeviceLogRecordStore
+import java.nio.file.Path
 import org.example.app.domain.upload.DeviceCheckinApi
 import org.example.app.domain.upload.DeviceCheckinUseCase
 import org.example.app.domain.upload.EligibleUploadsQuery
@@ -81,6 +92,10 @@ class AppContainer(
     // full-fake container; production defaults below.
     val configApi: ConfigApi = KtorConfigApi(),
     val uploadApi: UploadApi = KtorUploadApi(),
+    /** `POST /device-logs`: rotated app logs to the server. */
+    val deviceLogApi: DeviceLogApi = KtorDeviceLogApi(),
+    /** Where Logback writes, resolved like `logback.xml` does. */
+    val logDirectory: Path = LogDirectory.resolve(),
     /** `POST /device-checkin` (§13 decision 62). */
     val deviceCheckinApi: DeviceCheckinApi = KtorDeviceCheckinApi(),
     /** Example-audio downloads (row 13); defaults to a Ktor cache under `configDir`. */
@@ -165,6 +180,27 @@ class AppContainer(
         dispatchers = dispatchers,
     )
 
+    /** True while a recording session screen exists; the log sender never runs over a session. */
+    val sessionActivity = SessionActivity()
+
+    /** Outlives every screen: log sending is started on it and must not die with a component. */
+    private val appScope = CoroutineScope(SupervisorJob() + dispatchers.default)
+
+    val sendDeviceLogsUseCase = SendDeviceLogsUseCase(
+        logDirectory = logDirectory,
+        api = deviceLogApi,
+        recordStore = JsonDeviceLogRecordStore(directories),
+        settingsRepository = appSettingsRepository,
+        installationIdProvider = installationIdProvider,
+        fileHashService = Sha256FileHashService(),
+        sessionActive = sessionActivity.active,
+        appVersion = appVersion,
+        dispatchers = dispatchers,
+    )
+
+    /** Fire-and-forget log sending after a successful config refresh and after an upload batch. */
+    val deviceLogTrigger: DeviceLogTrigger = LaunchingDeviceLogTrigger(appScope, sendDeviceLogsUseCase)
+
     val refreshConfigurationUseCase = RefreshConfigurationUseCase(
         settingsRepository = appSettingsRepository,
         configApi = configApi,
@@ -172,6 +208,7 @@ class AppContainer(
         exampleAudioCache = exampleAudioCache,
         deviceIdentity = { DeviceIdentity(installationIdProvider.get(), appVersion) },
         deviceCheckin = deviceCheckinUseCase,
+        deviceLogs = deviceLogTrigger,
     )
 
     val validateParticipantInfoUseCase = ValidateParticipantInfoUseCase()

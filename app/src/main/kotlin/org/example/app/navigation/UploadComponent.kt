@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
+import org.example.app.domain.logs.DeviceLogTrigger
 import org.example.app.domain.upload.DeviceCheckinUseCase
 import org.example.app.domain.upload.EligibleUpload
 import org.example.app.domain.upload.EligibleUploadsQuery
@@ -66,6 +67,8 @@ class DefaultUploadComponent(
     private val dispatchers: CoroutineDispatchers,
     private val onBackClicked: () -> Unit,
     private val deviceCheckin: DeviceCheckinUseCase? = null,
+    /** Started (fire-and-forget, on the app's scope) after each batch, once the check-in ran. */
+    private val deviceLogs: DeviceLogTrigger? = null,
 ) : UploadComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
@@ -128,6 +131,9 @@ class DefaultUploadComponent(
                 uploading = false,
                 batchResultKey = if (allUploaded) "upload.successMessage" else null,
             )
+            // Before the awaited check-in: leaving the screen cancels this scope, and the trigger
+            // (which runs on the app's scope) must not be lost with it.
+            deviceLogs?.trigger()
             deviceCheckin?.checkIn()
         }
     }

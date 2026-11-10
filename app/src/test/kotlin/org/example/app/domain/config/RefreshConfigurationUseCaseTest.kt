@@ -9,6 +9,7 @@ import org.example.app.fakes.FakeAppSettingsRepository
 import org.example.app.fakes.FakeConfigApi
 import org.example.app.fakes.FakeConfigurationRepository
 import org.example.app.fakes.FakeDeviceCheckinApi
+import org.example.app.fakes.FakeDeviceLogTrigger
 import org.example.app.fakes.FakeExampleAudioCache
 import org.example.app.fakes.FakeSessionRepository
 import org.example.app.fakes.FakeUploadStatusRepository
@@ -67,6 +68,30 @@ class RefreshConfigurationUseCaseTest {
         val result = useCase.refresh()
 
         assertEquals(RefreshConfigurationUseCase.Result.Success(sampleConfig), result)
+    }
+
+    @Test
+    fun `a successful refresh starts a device log run, a failed or offline one does not`() = runTest {
+        val trigger = FakeDeviceLogTrigger()
+        fun build(api: FakeConfigApi, repo: FakeConfigurationRepository): RefreshConfigurationUseCase {
+            val settings = FakeAppSettingsRepository().also { it.write(AppSettings(siteToken = "token-42")) }
+            return RefreshConfigurationUseCase(settings, api, repo, deviceLogs = trigger)
+        }
+
+        val failing = FakeConfigApi().also { it.enqueueServerError(503) }
+        build(failing, FakeConfigurationRepository()).refresh()
+        val offline = FakeConfigApi().also { it.enqueueNetworkUnavailable() }
+        build(offline, FakeConfigurationRepository(initialConfig = sampleConfig)).refresh()
+        val rejected = FakeConfigApi().also { it.enqueueSiteTokenUnknown() }
+        build(rejected, FakeConfigurationRepository()).refresh()
+        assertEquals(0, trigger.count)
+
+        val repo = FakeConfigurationRepository().also { it.enqueueApplyResult(ConfigApplyResult.Applied(sampleConfig)) }
+        val ok = FakeConfigApi().also { it.enqueueSuccess("""{"schemaVersion":1}""") }
+        val result = build(ok, repo).refresh()
+
+        assertTrue(result is RefreshConfigurationUseCase.Result.Success)
+        assertEquals(1, trigger.count)
     }
 
     @Test

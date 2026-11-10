@@ -6,7 +6,8 @@ audiences:
 
 * the app  -- ``GET /api/config/{installationId}`` returns the configuration JSON
   assigned to that installation ID (byte-verbatim), and ``POST /api/upload`` accepts
-  a session ZIP (multipart: installationId, sessionId, zipSha256, zip).
+  a session ZIP (multipart: installationId, sessionId, zipSha256, zip), and
+  ``POST /api/device-logs`` accepts a rotated app log (multipart, text parts then ``file``).
 * a human  -- ``GET /config`` is a small web UI for assigning a configuration JSON
   (file upload or copy-paste) to an installation ID, watching incoming requests and
   inspecting received uploads.
@@ -60,6 +61,10 @@ def semver_key(version: str) -> tuple[int, int, int] | None:
     """
     m = SEMVER_RE.match((version or "").strip())
     return tuple(int(g) for g in m.groups()) if m else None
+
+
+def file_part_size(path: Path) -> int:
+    return path.stat().st_size
 
 
 def safe_name(raw: str, fallback: str = "config") -> str:
@@ -1020,6 +1025,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path in ("/api/upload", "/upload"):
                 self._handle_upload(path, parts, field)
+            elif path in ("/api/device-logs", "/device-logs"):
+                self._handle_device_logs(path, parts, field)
             elif path == "/config":
                 self._handle_save_config(parts, field)
             elif path == "/config/delete":
@@ -1070,6 +1077,58 @@ class Handler(BaseHTTPRequestHandler):
         if warnings:
             msg += f" — stored with {len(warnings)} warning(s), see the table"
         self._redirect("/config?msg=" + quote(msg))
+
+    def _handle_device_logs(self, path: str, parts: dict[str, Part], field) -> None:
+        """POST /device-logs: the app's rotated log files. A lenient stand-in for the web
+        backend (it validates field formats and gzip magic, but not the site token)."""
+        installation_id = field("installationId")
+        sha256 = field("sha256").lower()
+        file_name = field("fileName")
+        file_part = parts.get("file")
+        bad = (
+            not re.fullmatch(r"[A-Za-z0-9-]{1,64}", installation_id)
+            or not re.fullmatch(r"[0-9a-f]{64}", sha256)
+            or not re.fullmatch(r"app\.\d{4}-\d{2}-\d{2}\.\d{1,3}\.log\.gz", file_name)
+            or not re.fullmatch(r"[+-]\d{2}:\d{2}", field("utcOffset"))
+            or not field("appVersion")
+            or not field("siteToken")
+            or file_part is None or file_part.path is None
+        )
+        if bad:
+            self._log_app_request(path, installation_id or None, 400, "bad device-logs request")
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "bad_request"})
+            return
+
+        digest = hashlib.sha256()
+        with open(file_part.path, "rb") as f:
+            head = f.read(2)
+            f.seek(0)
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                digest.update(chunk)
+        if head != b"\x1f\x8b":
+            self._log_app_request(path, installation_id, 400, "device log not gzip")
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "not_gzip"})
+            return
+        if digest.hexdigest() != sha256:
+            self._log_app_request(path, installation_id, 400, "device log sha256 mismatch")
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "checksum_mismatch"})
+            return
+
+        target_dir = self.store.root / "device-logs" / safe_name(installation_id)
+        target = target_dir / f"{sha256}.log.gz"
+        duplicate = target.exists()
+        if not duplicate:
+            target_dir.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(file_part.path), target)
+            file_part.path = None  # moved; nothing to clean up
+        self._log_app_request(path, installation_id, 200,
+                              f"device log {file_name}, {file_part_size(target)} B"
+                              + (" (duplicate)" if duplicate else ""))
+        body = {"status": "ok", "sha256": sha256, "bytes": target.stat().st_size,
+                "receivedAt": now_iso()}
+        if duplicate:
+            body["duplicate"] = True
+        self._send_json(HTTPStatus.OK, body)
 
     def _handle_upload(self, path: str, parts: dict[str, Part], field) -> None:
         installation_id = field("installationId")
