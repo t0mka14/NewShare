@@ -1,5 +1,8 @@
 import java.nio.file.Files
 
+val hostIsWindows = System.getProperty("os.name").lowercase().contains("win")
+val hostIsLinux = System.getProperty("os.name").lowercase().contains("linux")
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
@@ -60,6 +63,9 @@ val repairGraalvmLaunchers = tasks.register("repairGraalvmLaunchers") {
     val home = graalLauncher.map { it.metadata.installationPath.asFile }
     // The toolchain is an external, mutable directory: no declared outputs, so never up-to-date.
     outputs.upToDateWhen { false }
+    // Linux-only: the zero-byte symlink problem is a tarball/symlink artefact. The Windows GraalVM
+    // ships real native-image.cmd / lib/svm/bin/native-image.exe files, nothing to repair.
+    onlyIf { hostIsLinux }
     doLast {
         val jdkHome = home.get().toPath()
         listOf("native-image", "native-image-configure", "native-image-utils").forEach { name ->
@@ -100,16 +106,27 @@ graalvmNative {
             "--install-exit-handlers",
             "-H:+ReportExceptionStackTraces",
         )
+        if (hostIsWindows) {
+            // The updater is a launcher that runs before the app window exists: a console window
+            // flashing up on every start would be wrong. Link it as a GUI-subsystem executable
+            // (PE Subsystem = 2). With /SUBSYSTEM:WINDOWS the linker wants WinMain, but the image's
+            // entry point is the C runtime's `main`, so name mainCRTStartup as the entry explicitly.
+            // Everything is logged to <install_dir>/updater.log (UpdaterLog), never to stdout/stderr.
+            buildArgs.addAll(
+                "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
+                "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
+            )
+        }
     }
 }
 
-/** The native binary `:packaging` places at `<install_dir>/updater` (§9). */
+/** The native binary `:packaging` places at `<install_dir>/updater[.exe]` (§9). */
 configurations.consumable("installUpdaterBinary")
 
 artifacts {
     // nativeCompile writes <buildDir>/native/nativeCompile/<imageName>; imageName is pinned to
     // "updater" above, so this path is deterministic.
-    add("installUpdaterBinary", layout.buildDirectory.file("native/nativeCompile/updater")) {
+    add("installUpdaterBinary", layout.buildDirectory.file(if (hostIsWindows) "native/nativeCompile/updater.exe" else "native/nativeCompile/updater")) {
         builtBy(tasks.named("nativeCompile"))
     }
 }

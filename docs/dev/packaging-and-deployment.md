@@ -29,6 +29,19 @@ remain a worklist (§5). See "Building a release" below for the two commands.
 tools/release/publish.sh 1.0.1                            # -> the demo server, no restart needed
 ```
 
+On a **Windows** host the same release is built with the Windows task (jlink and native-image only
+produce output for the host they run on, so each task fails fast on the wrong OS):
+
+```bash
+./gradlew -PappVersion=1.0.1 -PserverBaseUrl=https://server.example :packaging:releaseWindowsX64
+```
+
+It needs the MSVC toolchain for `updater.exe` (Visual Studio 2022 Build Tools with the "Desktop
+development with C++" workload; check with `vswhere -requires
+Microsoft.VisualStudio.Component.VC.Tools.x86.x64`). The artifacts are the same, named
+`*-windows-x86_64.zip`, with `install-windows-x64.zip` (the §9 layout at the archive root, `.exe`
+updater, no unix modes) in place of the tar.gz. `updater.exe` is a GUI-subsystem binary.
+
 `appVersion` (in `gradle.properties`, overridable with `-P`) is the single version source: it
 feeds every module's Gradle `version`, the generated `app/version.json`, the resource
 `BuildInfo.appVersion` reads for the window title, and jpackage's `packageVersion`. It is

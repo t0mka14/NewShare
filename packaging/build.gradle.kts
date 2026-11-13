@@ -26,6 +26,25 @@ val appVersionJson by configurations.creating { isCanBeConsumed = false; isCanBe
 val videoNatives by configurations.creating { isCanBeConsumed = false; isCanBeResolved = true }
 val updaterBinary by configurations.creating { isCanBeConsumed = false; isCanBeResolved = true }
 
+// --------------------------------------------------------------------------------------
+// Host platform. jlink and native-image can only produce output for the machine they run on, so
+// the release platform is the host's; `releaseLinuxX64` / `releaseWindowsX64` fail fast on the
+// wrong host rather than packaging the wrong binaries.
+// --------------------------------------------------------------------------------------
+
+val hostIsWindows: Boolean = System.getProperty("os.name").lowercase().contains("win")
+val hostIsLinux: Boolean = System.getProperty("os.name").lowercase().contains("linux")
+
+/** The platform token the updater asks the server for, and the directory name FfmpegBinaryLocator
+ * looks under at runtime. Bytedeco's classifier vocabulary (same as `updater/.../HostPlatform.kt`)
+ * — not Compose's `linux-x64` target id. */
+val platformToken: String = if (hostIsWindows) "windows-x86_64" else "linux-x86_64"
+
+/** The install bundle's platform suffix: `install-<this>.tar.gz` / `.zip`. */
+val installBundleToken: String = if (hostIsWindows) "windows-x64" else "linux-x64"
+
+val ffmpegFileName: String = if (hostIsWindows) "ffmpeg.exe" else "ffmpeg"
+
 dependencies {
     appJar(project(path = ":app", configuration = "installAppJar"))
     appVersionJson(project(path = ":app", configuration = "installVersionJson"))
@@ -211,10 +230,10 @@ $entries
 
 val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
     group = "share packaging"
-    description = "Assembles the §9 install layout for linux-x64 under build/install/linux-x64."
-    into(layout.buildDirectory.dir("install/linux-x64"))
+    description = "Assembles the §9 install layout for $installBundleToken under build/install/$installBundleToken."
+    into(layout.buildDirectory.dir("install/$installBundleToken"))
 
-    from(updaterBinary) { filePermissions { unix("0755") } }  // -> updater
+    from(updaterBinary) { if (!hostIsWindows) filePermissions { unix("0755") } }  // -> updater[.exe]
     from(generateUpdaterProperties)                           // -> updater.properties
     from(generateInstalledState)                              // -> installed.json
     from(jlinkRuntime.flatMap { it.runtimeDir }) {
@@ -222,7 +241,7 @@ val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
         // Map each file's mode from its source rather than taking a blanket setting: bin/java and
         // the .so files must stay executable, while jlink writes legal/* as read-only (0444),
         // which a second Sync into the same destination cannot overwrite in place.
-        eachFile { permissions { unix(if (file.canExecute()) "0755" else "0644") } }
+        if (!hostIsWindows) eachFile { permissions { unix(if (file.canExecute()) "0755" else "0644") } }
     }
     from(appJar) { into("app"); rename { "app.jar" } }
     from(appVersionJson) { into("app") }                      // -> app/version.json
@@ -231,8 +250,8 @@ val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
     // two different naming schemes and FfmpegBinaryLocator looks up this one.
     from(videoNatives) {
         into("native/ffmpeg")
-        include("linux-x86_64/**")
-        eachFile { permissions { unix(if (file.canExecute()) "0755" else "0644") } }
+        include("$platformToken/**")
+        if (!hostIsWindows) eachFile { permissions { unix(if (file.canExecute()) "0755" else "0644") } }
     }
 
     doFirst {
@@ -248,9 +267,17 @@ val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
     doLast {
         // Copy preserves source unix modes, but an install whose updater is not executable fails
         // in a confusing way much later, so assert it here.
-        listOf("updater", "runtime/bin/java", "native/ffmpeg/linux-x86_64/ffmpeg").forEach { path ->
+        val required = if (hostIsWindows) {
+            listOf("updater.exe", "runtime/bin/java.exe", "runtime/bin/javaw.exe",
+                "native/ffmpeg/$platformToken/$ffmpegFileName", "app/app.jar", "app/version.json")
+        } else {
+            listOf("updater", "runtime/bin/java", "native/ffmpeg/linux-x86_64/ffmpeg")
+        }
+        required.forEach { path ->
             val file = destinationDir.resolve(path)
-            check(file.canExecute()) { "$file is missing its executable bit" }
+            check(file.isFile) { "$file is missing from the staged install" }
+            // Windows has no executable bit; presence of the .exe is the whole check there.
+            if (!hostIsWindows) check(file.canExecute()) { "$file is missing its executable bit" }
         }
     }
 }
@@ -258,10 +285,6 @@ val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
 // --------------------------------------------------------------------------------------
 // Release artifacts
 // --------------------------------------------------------------------------------------
-
-/** The platform token the updater asks for, and the directory name FfmpegBinaryLocator looks
- * under at runtime. Bytedeco's classifier vocabulary — not Compose's `linux-x64` target id. */
-val platformToken = "linux-x86_64"
 
 /** A release may bump without the app bumping (a natives-only release), which is exactly what
  * keeps app.zip byte-identical so clients skip re-downloading it. */
@@ -308,6 +331,27 @@ val packageAppZip = tasks.register<Zip>("packageAppZip") {
         check(entries == sortedSetOf("app.jar", "version.json")) {
             "app.zip must contain exactly app.jar and version.json at its root " +
                 "(Replacer.unzip resolves entry names straight into <install_dir>/app/), got: $entries"
+        }
+    }
+}
+
+/** Windows first-install bundle: the §9 layout at the ZIP root (unzip into the install dir). */
+val packageInstallBundleZip = tasks.register<Zip>("packageInstallBundleZip") {
+    group = "share packaging"
+    description = "Builds the self-contained first-install bundle for windows-x64."
+    archiveFileName.set("install-windows-x64.zip")
+    destinationDirectory.set(releaseDir)
+    isReproducibleFileOrder = true
+    isPreserveFileTimestamps = false
+    from(stageInstallDir)
+    doLast {
+        assertRootEntries(archiveFile.get().asFile, mustContain = "updater.exe", forbiddenPrefix = "share-")
+        val names = java.util.zip.ZipFile(archiveFile.get().asFile).use { zip ->
+            zip.entries().asSequence().map { it.name }.toSet()
+        }
+        listOf("updater.properties", "installed.json", "runtime/bin/java.exe", "runtime/bin/javaw.exe",
+            "app/app.jar", "app/version.json", "native/ffmpeg/windows-x86_64/ffmpeg.exe").forEach {
+            check(it in names) { "install-windows-x64.zip must contain '$it'" }
         }
     }
 }
@@ -373,7 +417,7 @@ val packageRuntimeZip = tasks.register<Zip>("packageRuntimeZip") {
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
     from(jlinkRuntime.flatMap { it.runtimeDir })
-    doLast { assertRootEntries(archiveFile.get().asFile, mustContain = "bin/java", forbiddenPrefix = "runtime/") }
+    doLast { assertRootEntries(archiveFile.get().asFile, mustContain = if (hostIsWindows) "bin/java.exe" else "bin/java", forbiddenPrefix = "runtime/") }
 }
 
 /** The ffmpeg component: the contents of one platform directory, again at the archive root. */
@@ -386,7 +430,7 @@ val packageFfmpegZip = tasks.register<Zip>("packageFfmpegZip") {
     isPreserveFileTimestamps = false
     from(provider { videoNatives.singleFile.resolve(platformToken) })
     dependsOn(videoNatives)
-    doLast { assertRootEntries(archiveFile.get().asFile, mustContain = "ffmpeg", forbiddenPrefix = "$platformToken/") }
+    doLast { assertRootEntries(archiveFile.get().asFile, mustContain = ffmpegFileName, forbiddenPrefix = "$platformToken/") }
 }
 
 /**
@@ -430,11 +474,33 @@ $components
 val releaseChecksums = tasks.register<Sha256SidecarTask>("releaseChecksums") {
     group = "share packaging"
     description = "Writes .sha256 sidecars for the release artifacts."
-    artifacts.from(packageAppZip, packageRuntimeZip, packageFfmpegZip, packageInstallBundle, generateReleaseManifest)
+    artifacts.from(
+        packageAppZip, packageRuntimeZip, packageFfmpegZip,
+        if (hostIsWindows) packageInstallBundleZip else packageInstallBundle,
+        generateReleaseManifest,
+    )
 }
+
+/** Fails before jlink / native-image run for minutes when the host cannot build [platform]. */
+fun requireHost(taskName: String, platform: String, ok: Boolean) {
+    if (ok) return
+    val message = "$taskName must run on $platform: jlink and native-image only build for the host " +
+        "(this host is '${System.getProperty("os.name")}')."
+    gradle.taskGraph.whenReady {
+        if (hasTask(":packaging:$taskName")) throw GradleException(message)
+    }
+}
+requireHost("releaseLinuxX64", "Linux", hostIsLinux)
+requireHost("releaseWindowsX64", "Windows", hostIsWindows)
 
 tasks.register("releaseLinuxX64") {
     group = "share packaging"
-    description = "Builds build/release/<version>/{app.zip,install-linux-x64.tar.gz} + sidecars."
+    description = "Linux host only: builds build/release/<version>/{app.zip,install-linux-x64.tar.gz} + sidecars."
+    dependsOn(releaseChecksums)
+}
+
+tasks.register("releaseWindowsX64") {
+    group = "share packaging"
+    description = "Windows host only: builds build/release/<version>/{app.zip,install-windows-x64.zip} + sidecars (needs MSVC for updater.exe)."
     dependsOn(releaseChecksums)
 }
