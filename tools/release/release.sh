@@ -14,6 +14,10 @@
 #   --host ALIAS       ssh alias of the server (default: share_web)
 #   --no-build         publish what is already in packaging/build/release/<version>/
 #   --dry-run          build and check locally, upload nothing
+#   --check-only       only the server checks (not yet published, newer than live); no build
+#
+# Usually run through Gradle, which builds first and then calls this with --no-build:
+#   ./gradlew -PappVersion=1.0.1 -PserverBaseUrl=https://malenia.feld.cvut.cz/koubic :packaging:publishWindowsRelease
 #
 # Publishing is atomic: files go to <releases>/.incoming-<v>/, are verified there, and only then
 # renamed to <releases>/<v>/. The backend ignores names that are not plain x.y.z, so clients never
@@ -29,6 +33,7 @@ PLATFORM="windows-x86_64"
 BUNDLE="install-windows-x64.zip"
 BUILD=1
 DRY_RUN=0
+CHECK_ONLY=0
 
 die() { echo "release: $*" >&2; exit 1; }
 step() { echo; echo "==> $*"; }
@@ -41,7 +46,8 @@ while [[ $# -gt 0 ]]; do
     --host) HOST="${2:?--host needs an ssh alias}"; shift 2 ;;
     --no-build) BUILD=0; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+    --check-only) CHECK_ONLY=1; shift ;;
+    -h|--help) sed -n '2,27p' "$0"; exit 0 ;;
     -*) die "unknown option $1" ;;
     *) [[ -z "$version" ]] || die "only one version allowed"; version="$1"; shift ;;
   esac
@@ -75,6 +81,10 @@ except Exception: print("")')
   fi
   echo "live release: ${live:-none}"
 fi
+if [[ $CHECK_ONLY -eq 1 ]]; then
+  [[ $DRY_RUN -eq 0 ]] || die "--check-only and --dry-run together check nothing"
+  step "$version can be published"; exit 0
+fi
 
 if [[ $BUILD -eq 1 ]]; then
   step "building (gradle :packaging:releaseWindowsX64)"
@@ -104,7 +114,8 @@ with zipfile.ZipFile(f"{out}/app.zip") as z:
 problems = []
 if endpoint != f"{server}/api/version/latest": problems.append(f"updater endpoint is {endpoint}")
 if baked != server: problems.append(f"app.jar serverBaseUrl is {baked}")
-if app_version != version: problems.append(f"app.zip version.json says {app_version}")
+# app_version may lag the release on a runtime- or natives-only release (releaseVersion bumped
+# alone), so only the release recorded for a fresh install has to equal the directory's version.
 if installed.get("release") != version: problems.append(f"installed.json release is {installed.get('release')}")
 for p in problems: print("  " + p, file=sys.stderr)
 print(f"updater endpoint {endpoint}\napp serverBaseUrl {baked}\napp version {app_version}")

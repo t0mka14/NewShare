@@ -171,7 +171,8 @@ val generateUpdaterProperties = tasks.register("generateUpdaterProperties") {
     outputs.file(out)
     doLast {
         out.get().asFile.writeText(
-            "# <install_dir>/updater.properties — read by UpdaterConfig (§9).\n" +
+            // ASCII only: java.util.Properties reads the file as ISO-8859-1.
+            "# <install_dir>/updater.properties - read by UpdaterConfig (spec section 9).\n" +
                 "endpoint=${endpoint.get()}\n"
         )
     }
@@ -499,8 +500,76 @@ tasks.register("releaseLinuxX64") {
     dependsOn(releaseChecksums)
 }
 
-tasks.register("releaseWindowsX64") {
+val releaseWindowsX64 = tasks.register("releaseWindowsX64") {
     group = "share packaging"
     description = "Windows host only: builds build/release/<version>/{app.zip,install-windows-x64.zip} + sidecars (needs MSVC for updater.exe)."
     dependsOn(releaseChecksums)
 }
+
+// --------------------------------------------------------------------------------------
+// Publishing (docs/SPEC-release-pipeline.md): the build runs in Gradle, everything that talks to
+// the server stays in tools/release/release.sh, so the script still works on its own.
+//
+//   ./gradlew -PappVersion=1.0.1 -PserverBaseUrl=https://malenia.feld.cvut.cz/koubic :packaging:publishWindowsRelease
+// --------------------------------------------------------------------------------------
+
+val releaseScript: File = rootProject.file("tools/release/release.sh")
+
+/** The serverBaseUrl the app and updater are built with (same normalisation as :app). */
+val publishServerBaseUrl: String = providers.gradleProperty("serverBaseUrl")
+    .map { it.trim().trimEnd('/') }.orElse("http://192.168.122.183:10001").get()
+
+/**
+ * share_web is the server malenia serves to every clinic, so a build pointing anywhere else (the
+ * gradle.properties default is the plain-HTTP test container) would cut real clients off from
+ * their server after they update. Only an explicit -PallowTestPublish=true lets one through.
+ */
+fun requirePublishableServer() {
+    val allowTest = providers.gradleProperty("allowTestPublish").map { it.toBoolean() }.getOrElse(false)
+    if (!publishServerBaseUrl.startsWith("https://") && !allowTest) {
+        throw GradleException(
+            "Refusing to publish a build for '$publishServerBaseUrl': releases on share_web reach every " +
+                "client. Pass -PserverBaseUrl=https://malenia.feld.cvut.cz/koubic, or " +
+                "-PallowTestPublish=true for a deliberate test-container release."
+        )
+    }
+}
+
+/** Git Bash on Windows (not WSL's System32\bash.exe, which cannot see the Windows ssh config). */
+fun bashExecutable(): String {
+    if (!hostIsWindows) return "bash"
+    val candidates = listOfNotNull(
+        providers.gradleProperty("bashPath").orNull,
+        "C:/Program Files/Git/bin/bash.exe",
+        "C:/Program Files (x86)/Git/bin/bash.exe",
+    )
+    return candidates.firstOrNull { File(it).isFile }
+        ?: throw GradleException("Git Bash not found (tried $candidates); pass -PbashPath=<path to bash.exe>.")
+}
+
+fun Exec.runReleaseScript(vararg mode: String) {
+    executable = bashExecutable()
+    val verifyApi = providers.gradleProperty("releaseVerifyApi").orNull
+    args(listOf(releaseScript.absolutePath, releaseVersion, *mode, "--server", publishServerBaseUrl) +
+        (if (verifyApi != null) listOf("--verify-api", verifyApi) else emptyList()))
+}
+
+val checkReleasePublishable = tasks.register<Exec>("checkReleasePublishable") {
+    group = "share packaging"
+    description = "Fails fast (before the build) when the version is already published or not newer than the live release."
+    doFirst { requirePublishableServer() }
+    runReleaseScript("--check-only")
+}
+
+// The server checks take seconds; a build takes minutes. Never build first and fail after.
+releaseWindowsX64.configure { mustRunAfter(checkReleasePublishable) }
+tasks.named("releaseChecksums") { mustRunAfter(checkReleasePublishable) }
+
+tasks.register<Exec>("publishWindowsRelease") {
+    group = "share packaging"
+    description = "Builds the Windows release and publishes it to share_web (tools/release/release.sh)."
+    dependsOn(checkReleasePublishable, releaseWindowsX64)
+    doFirst { requirePublishableServer() }
+    runReleaseScript("--no-build")
+}
+requireHost("publishWindowsRelease", "Windows", hostIsWindows)
