@@ -225,7 +225,7 @@ Studio 2022 Build Tools, "Desktop development with C++" workload) because native
 (`-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS` + `/ENTRY:mainCRTStartup`, PE Subsystem = 2) so no
 console window appears; the updater never writes to stdout/stderr, only to `updater.log`.
 `repairGraalvmLaunchers` is Linux-only and skips itself on Windows. The launched app runs via
-`runtimein\javaw.exe`. Build with `./gradlew :packaging:releaseWindowsX64`.
+`runtime/bin/javaw.exe`. Build with `./gradlew :packaging:releaseWindowsX64`.
 
 See `docs/dev/packaging-and-deployment.md` §1b for the full install layout and release flow.
 
