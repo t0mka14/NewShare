@@ -143,6 +143,40 @@ val appVersionJsonFile: Provider<RegularFile> =
 // and packageUberJarForCurrentOS — no manual dependsOn anywhere.
 sourceSets["main"].resources.srcDir(generateAppVersionJson.flatMap { it.outputDirectory })
 
+/**
+ * Generates `org/example/app/server.json` from the root `serverBaseUrl` property, the same way
+ * [GenerateAppVersionJson] does for the version. Read once by `ServerEndpoints.kt`.
+ */
+abstract class GenerateServerJson : DefaultTask() {
+    @get:Input abstract val serverBaseUrl: Property<String>
+
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val file = outputDirectory.get().asFile.resolve("org/example/app/server.json")
+        file.parentFile.mkdirs()
+        file.writeText("""{"serverBaseUrl":"${serverBaseUrl.get()}"}""" + "\n")
+    }
+}
+
+/** Validated and normalised root `serverBaseUrl` (http/https, no trailing slash). */
+val normalizedServerBaseUrl: String =
+    (providers.gradleProperty("serverBaseUrl").orNull ?: "http://192.168.122.183:10001")
+        .trim().trimEnd('/').also {
+            require(it.startsWith("http://") || it.startsWith("https://")) {
+                "serverBaseUrl must start with http:// or https://, got \"$it\""
+            }
+        }
+
+val generateServerJson = tasks.register<GenerateServerJson>("generateServerJson") {
+    group = "build"
+    description = "Generates org/example/app/server.json from the root serverBaseUrl property."
+    serverBaseUrl.set(normalizedServerBaseUrl)
+    outputDirectory.set(layout.buildDirectory.dir("generated/serverJson"))
+}
+sourceSets["main"].resources.srcDir(generateServerJson.flatMap { it.outputDirectory })
+
 /** Dev runs and tests find ffmpeg through this property; packaging ships `native/ffmpeg/`. */
 fun JavaExec.useVideoNatives() {
     dependsOn(unpackVideoNatives)
@@ -158,6 +192,8 @@ tasks.test {
     // Lets BuildInfoTest assert that the generated version resource actually reached the
     // classpath, and carries the value the build was invoked with.
     systemProperty("share.expectedVersion", project.version.toString())
+    // Likewise for ServerEndpointsTest and the generated server.json resource.
+    systemProperty("share.expectedServerBaseUrl", normalizedServerBaseUrl)
     // §10.3: headless Compose UI tests run under Skia software rendering. CI must
     // also run these with no visible display; on Linux CI runners that additionally
     // means launching under Xvfb (or another virtual framebuffer) since AWT/Skiko

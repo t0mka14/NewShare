@@ -27,7 +27,35 @@ class ProcessAppLauncherTest {
     }
 
     @Test
-    fun `uses java-exe on windows`(@TempDir tempDir: Path) {
+    fun `prefers javaw-exe on windows`(@TempDir tempDir: Path) {
+        val runtimeDir = tempDir.resolve("runtime")
+        Files.createDirectories(runtimeDir.resolve("bin"))
+        Files.writeString(runtimeDir.resolve("bin/java.exe"), "stub")
+        val javaw = runtimeDir.resolve("bin/javaw.exe")
+        Files.writeString(javaw, "stub")
+
+        val resolved = ProcessAppLauncher.resolveJavaExecutable(
+            runtimeDir = runtimeDir,
+            isWindows = true,
+            javaHome = "C:\\fallback",
+        )
+
+        assertEquals(javaw, resolved)
+    }
+
+    @Test
+    fun `windows fallback paths use javaw-exe`(@TempDir tempDir: Path) {
+        val runtimeDir = tempDir.resolve("runtime") // never created
+
+        assertEquals(
+            Path.of("C:\\fallback", "bin", "javaw.exe"),
+            ProcessAppLauncher.resolveJavaExecutable(runtimeDir, true, "C:\\fallback"),
+        )
+        assertEquals(Path.of("javaw.exe"), ProcessAppLauncher.resolveJavaExecutable(runtimeDir, true, null))
+    }
+
+    @Test
+    fun `uses java-exe on windows when the runtime has no javaw`(@TempDir tempDir: Path) {
         val runtimeDir = tempDir.resolve("runtime")
         Files.createDirectories(runtimeDir.resolve("bin"))
         val bundledJava = runtimeDir.resolve("bin/java.exe")

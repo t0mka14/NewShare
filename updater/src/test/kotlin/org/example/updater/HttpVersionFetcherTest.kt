@@ -60,6 +60,54 @@ class HttpVersionFetcherTest {
         assertEquals("runtime", result.response.components[1].target)
     }
 
+    private fun componentUrls(endpoint: String, tempDir: Path, vararg urls: String): List<String> {
+        val body = """{"release":"2.1.0","components":[""" +
+            urls.mapIndexed { i, u -> """{"id":"c$i","target":"t$i","url":"$u","checksum":"abc"}""" }.joinToString(",") + "]}"
+        val server = startServer(200, body)
+        val fetcher = HttpVersionFetcher(endpoint.replace("SERVER", server), UpdaterLog(tempDir.resolve("updater.log")))
+        val result = fetcher.fetchLatest() as VersionCheckResult.Available
+        return result.response.components.map { it.url }
+    }
+
+    @Test
+    fun `resolves a relative component url against the endpoint`(@TempDir tempDir: Path) {
+        val urls = componentUrls("SERVER", tempDir, "download/1.0.1/app.zip")
+        val base = server!!.address.port
+        assertEquals(listOf("http://127.0.0.1:$base/api/version/download/1.0.1/app.zip"), urls)
+    }
+
+    @Test
+    fun `keeps an absolute component url and ignores the query string when resolving`(@TempDir tempDir: Path) {
+        val urls = componentUrls(
+            "SERVER?channel=beta", tempDir,
+            "https://cdn.example.test/app.zip", "download/1.0.1/rt.zip",
+        )
+        val port = server!!.address.port
+        assertEquals(
+            listOf("https://cdn.example.test/app.zip", "http://127.0.0.1:$port/api/version/download/1.0.1/rt.zip"),
+            urls,
+        )
+    }
+
+    @Test
+    fun `resolves against a prefixed https endpoint without its query`(@TempDir tempDir: Path) {
+        // Pure resolution: no request is made, so the unreachable host does not matter.
+        val fetcher = HttpVersionFetcher(
+            "https://malenia.feld.cvut.cz/koubic/api/version/latest?platform=x",
+            UpdaterLog(tempDir.resolve("updater.log")),
+        )
+        val out = fetcher.resolveComponentUrls(
+            listOf(
+                org.example.shared.model.ComponentDescriptor("app", "app", "download/1.0.1/app.zip", "abc"),
+                org.example.shared.model.ComponentDescriptor("bad", "bad", "file:///etc/passwd", "abc"),
+            ),
+        )
+        assertEquals(
+            listOf("https://malenia.feld.cvut.cz/koubic/api/version/download/1.0.1/app.zip"),
+            out.map { it.url },
+        )
+    }
+
     @Test
     fun `asks the server for this platform's components`(@TempDir tempDir: Path) {
         val endpoint = startServer(200, """{"release":"2.1.0","components":[]}""")

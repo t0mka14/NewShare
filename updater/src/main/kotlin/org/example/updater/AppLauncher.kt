@@ -10,7 +10,7 @@ fun interface AppLauncher {
 }
 
 /**
- * Launches `runtime/bin/java -jar app/app.jar` (§9 pt 3, the bundled jlink JRE). Falls back to
+ * Launches `runtime/bin/java -jar app/app.jar` (`javaw.exe` on Windows) (§9 pt 3, the bundled jlink JRE). Falls back to
  * the updater's own JVM's `java` binary when `runtime/` is absent — the dev/unpackaged layout,
  * since packaging the bundled runtime is out of scope for this change (§9 packaging is a
  * separate concern).
@@ -35,9 +35,14 @@ class ProcessAppLauncher(private val log: UpdaterLog) : AppLauncher {
          * process. [javaHome] is nullable because in a GraalVM native image — which is how this
          * updater actually ships (§9) — there is no `java.home` system property at all. */
         fun resolveJavaExecutable(runtimeDir: Path, isWindows: Boolean, javaHome: String?, log: UpdaterLog? = null): Path {
-            val binName = if (isWindows) "java.exe" else "java"
+            // On Windows prefer javaw.exe (no console window); java.exe if the runtime lacks it.
+            val binName = if (isWindows) "javaw.exe" else "java"
             val bundled = runtimeDir.resolve("bin").resolve(binName)
             if (Files.isRegularFile(bundled)) return bundled
+            if (isWindows) {
+                val console = runtimeDir.resolve("bin").resolve("java.exe")
+                if (Files.isRegularFile(console)) return console
+            }
             if (javaHome == null) {
                 // Native image with no bundled runtime/ — a half-assembled install. Nothing better
                 // to point at than PATH, which ProcessBuilder resolves; if that misses too, the

@@ -137,7 +137,16 @@ val jlinkRuntime = tasks.register<JlinkRuntimeTask>("jlinkRuntime") {
 val generateUpdaterProperties = tasks.register("generateUpdaterProperties") {
     group = "share packaging"
     description = "Writes <install_dir>/updater.properties from the root updateEndpoint property."
-    val endpoint = providers.gradleProperty("updateEndpoint")
+    // -PupdateEndpoint wins; otherwise derived from the same serverBaseUrl the app is built with.
+    val endpoint = providers.gradleProperty("updateEndpoint").orElse(
+        providers.gradleProperty("serverBaseUrl").map { base ->
+            val url = base.trim().trimEnd('/')
+            require(url.startsWith("http://") || url.startsWith("https://")) {
+                "serverBaseUrl must start with http:// or https://, got \"$url\""
+            }
+            "$url/api/version/latest"
+        }.orElse("http://192.168.122.183:10001/api/version/latest")
+    )
     val out = layout.buildDirectory.file("generated/updater.properties")
     inputs.property("endpoint", endpoint)
     outputs.file(out)
