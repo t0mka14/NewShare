@@ -24,6 +24,8 @@ remain a worklist (§5). See "Building a release" below for the two commands.
 
 ## 1b. Building a release (implemented)
 
+Step-by-step manual for publishing a new version: [`releasing.md`](releasing.md).
+
 ```bash
 ./gradlew -PappVersion=1.0.1 :packaging:releaseLinuxX64   # -> packaging/build/release/1.0.1/
 tools/release/publish.sh 1.0.1                            # -> the demo server, no restart needed
