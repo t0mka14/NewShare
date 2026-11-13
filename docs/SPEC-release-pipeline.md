@@ -111,3 +111,26 @@ agents (integration-engineer for the backend, updater and pipeline), with review
   malenia-configured clients would silently skip example audio. Separate fix (relative or per-origin URLs).
 - MSI/installer, code signing, macOS/Linux release through this pipeline, an admin UI for releases,
   rollback/yank of a published release (manual delete of the directory for now), `trust proxy` behind malenia.
+
+## Progress (2026-11-13)
+
+| # | Increment | State | Evidence |
+|---|---|---|---|
+| 1 | Backend version API | done | web repo branch `release-endpoint` (`c1114aa`, `2751c6c`); backend `npm test` 803 passed / 98 skipped (DB) |
+| 2 | Deploy to share_web | done | only `server.js` + 4 new files copied (server was exactly `newshare`); nginx `/api/version/download/` block; `/srv/task-protocoller/releases`; backups `/root/*.bak-20261113-*` |
+| 3 | Server URL + updater fixes | done | `6939993`; app 1093 / updater 48 / shared 5 tests green |
+| 4 | Windows packaging | done | `6882c5b`; `updater.exe` PE subsystem 2 (GUI); smoke run launched `javaw.exe` |
+| 5 | Pipeline | done | `release.sh` (`4ead6d2`), Gradle `checkReleasePublishable` / `publishWindowsRelease` (`3d4d642`) |
+| 6 | End-to-end update | done | 1.0.0 install → test 1.0.1 published → `updater.exe` downloaded only `app` (runtime/ffmpeg zips byte-identical), window title `SHARE (v1.0.1)`, marker cleared, 2nd run deleted the backup. Test release removed afterwards. |
+| 6b | Production 1.0.0 | published | `https://malenia.feld.cvut.cz/koubic` baked into app and updater; verified through `:10001`. **Open: check through malenia** (not reachable from the build machine). |
+
+Found and fixed on the way: `gradle.properties` pinned `releaseVersion=1.0.0`, which overrode `-PappVersion`
+(a 1.0.1 build went out as release 1.0.0 on the test server and was removed). `releaseVersion` now
+follows `appVersion`, and `release.sh` refuses an app version newer than its release (`965df81`).
+
+Release command:
+
+    ./gradlew -PappVersion=<x.y.z> -PserverBaseUrl=https://malenia.feld.cvut.cz/koubic :packaging:publishWindowsRelease
+
+Clinics install from `packaging/build/release/<v>/install-windows-x64.zip` (unzip to a user-writable
+folder, start `updater.exe`).
