@@ -61,6 +61,10 @@ VERIFY_API="${VERIFY_API%/}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 out="$root/packaging/build/release/$version"
 ssh_cmd=(ssh -o BatchMode=yes -o ServerAliveInterval=10 "$HOST")
+tmp_body="$(mktemp)"; trap 'rm -f "$tmp_body"' EXIT
+# Exactly what a release consists of. Only these are uploaded, so a stale file left in the build
+# directory (say an install-*.tar.gz from another host) can never become downloadable.
+ARTIFACTS=(app.zip "runtime-$PLATFORM.zip" "ffmpeg-$PLATFORM.zip" "$BUNDLE" "manifest-$PLATFORM.json")
 
 # Numeric x.y.z comparison: prints -1, 0 or 1.
 vcmp() { python -c 'import sys; a,b=(tuple(map(int,v.split("."))) for v in sys.argv[1:3]); print((a>b)-(a<b))' "$1" "$2"; }
@@ -73,9 +77,15 @@ if [[ $DRY_RUN -eq 0 ]]; then
   if "${ssh_cmd[@]}" "test -e '$RELEASES_DIR/$version'"; then
     die "$version is already published on $HOST; releases are immutable, bump the version"
   fi
-  live=$(curl -s -m 20 "$VERIFY_API/version/latest?platform=$PLATFORM" | python -c 'import sys,json
-try: print(json.load(sys.stdin).get("release",""))
-except Exception: print("")')
+  # Only a 404 means "nothing published yet". Any other failure must stop the run: otherwise a
+  # server hiccup would silently skip the "newer than live" guard.
+  code=$(curl -s -m 20 -o "$tmp_body" -w '%{http_code}' "$VERIFY_API/version/latest?platform=$PLATFORM") || code=000
+  case "$code" in
+    200) live=$(python -c 'import sys,json; print(json.load(open(sys.argv[1]))["release"])' "$tmp_body") \
+           || die "live endpoint answered 200 with an unreadable body" ;;
+    404) live="" ;;
+    *) die "cannot read the live release from $VERIFY_API (HTTP $code); refusing to guess" ;;
+  esac
   if [[ -n "$live" && "$(vcmp "$version" "$live")" != "1" ]]; then
     die "$version is not newer than the live release $live; clients would ignore it"
   fi
@@ -93,10 +103,13 @@ fi
 
 step "checking the build in $out"
 [[ -d "$out" ]] || die "no build output at $out"
-for f in app.zip "runtime-$PLATFORM.zip" "ffmpeg-$PLATFORM.zip" "$BUNDLE" "manifest-$PLATFORM.json"; do
+upload=()
+for f in "${ARTIFACTS[@]}"; do
   [[ -f "$out/$f" && -f "$out/$f.sha256" ]] || die "missing $f or its .sha256"
+  upload+=("$out/$f" "$out/$f.sha256")
 done
-(cd "$out" && sha256sum -c --quiet ./*.sha256) || die "local checksums do not match"
+(cd "$out" && for f in "${ARTIFACTS[@]}"; do sha256sum -c --quiet "$f.sha256" || exit 1; done) \
+  || die "local checksums do not match"
 
 # The server URL is baked in at build time, so a test build must never be published by mistake:
 # check both places it ends up against --server.
@@ -132,16 +145,25 @@ fi
 incoming="$RELEASES_DIR/.incoming-$version"
 step "uploading to $HOST:$incoming"
 "${ssh_cmd[@]}" "rm -rf '$incoming' && install -d -m 755 '$incoming'"
-scp -o BatchMode=yes -q "$out"/* "$HOST:$incoming/"
+scp -o BatchMode=yes -q "${upload[@]}" "$HOST:$incoming/"
 
 step "verifying on the server, then publishing"
 "${ssh_cmd[@]}" "set -e; cd '$incoming' && sha256sum -c --quiet ./*.sha256 && chmod 644 ./* && cd .. &&
   test ! -e '$version' && mv '.incoming-$version' '$version' && ls -l '$version'"
 
+# The release is visible from the moment of the mv. If the live check fails, take it out of
+# sight again (a non-x.y.z name is ignored by the backend) instead of leaving clients a broken one.
+withdraw() {
+  local parked=".failed-$version-$(date +%Y%m%d-%H%M%S)"
+  "${ssh_cmd[@]}" "cd '$RELEASES_DIR' && mv '$version' '$parked'" \
+    && die "the live endpoint does not serve $version correctly; withdrawn to $RELEASES_DIR/$parked" \
+    || die "the live endpoint does not serve $version correctly AND withdrawing failed: remove $RELEASES_DIR/$version by hand"
+}
+
 step "checking the live endpoint ($VERIFY_API)"
-python - "$VERIFY_API" "$PLATFORM" "$version" "$out" <<'EOF' || die "the live endpoint does not serve $version correctly"
+python - "$VERIFY_API" "$PLATFORM" "$version" "$out" "$BUNDLE" <<'EOF' || withdraw
 import json, os, sys, urllib.parse, urllib.request
-api, platform, version, out = sys.argv[1:5]
+api, platform, version, out, bundle = sys.argv[1:6]
 endpoint = f"{api}/version/latest"
 with urllib.request.urlopen(f"{endpoint}?platform={platform}", timeout=30) as r:
     body = json.load(r)
@@ -162,6 +184,12 @@ for cid, artifact in expected.items():
     good = c["checksum"] == local and length == os.path.getsize(f"{out}/{artifact}")
     ok &= good
     print(f"  {cid}: {'ok' if good else 'MISMATCH'}  {url}  {length} bytes")
+# The install bundle is not a component, but it is what clinics are handed: check it too.
+url = urllib.parse.urljoin(endpoint, f"download/{version}/{bundle}")
+with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30) as r:
+    good = int(r.headers["Content-Length"]) == os.path.getsize(f"{out}/{bundle}")
+ok &= good
+print(f"  {bundle}: {'ok' if good else 'MISMATCH'}  {url}")
 sys.exit(0 if ok else 1)
 EOF
 

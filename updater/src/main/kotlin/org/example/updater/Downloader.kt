@@ -18,6 +18,8 @@ class HttpDownloader(
     private val log: UpdaterLog,
     private val client: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
+        // NORMAL: follows a proxy's 301/302 (e.g. a slash or host redirect), never https -> http.
+        .followRedirects(HttpClient.Redirect.NORMAL)
         .build(),
 ) : Downloader {
     override fun download(url: String, destination: Path): Boolean {
