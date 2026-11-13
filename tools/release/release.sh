@@ -115,7 +115,10 @@ problems = []
 if endpoint != f"{server}/api/version/latest": problems.append(f"updater endpoint is {endpoint}")
 if baked != server: problems.append(f"app.jar serverBaseUrl is {baked}")
 # app_version may lag the release on a runtime- or natives-only release (releaseVersion bumped
-# alone), so only the release recorded for a fresh install has to equal the directory's version.
+# alone), but it can never be ahead of it: that means the release version was not bumped.
+key = lambda v: tuple(int(p) for p in v.split("."))
+if key(app_version) > key(version):
+    problems.append(f"app version {app_version} is newer than release {version} (releaseVersion not bumped?)")
 if installed.get("release") != version: problems.append(f"installed.json release is {installed.get('release')}")
 for p in problems: print("  " + p, file=sys.stderr)
 print(f"updater endpoint {endpoint}\napp serverBaseUrl {baked}\napp version {app_version}")

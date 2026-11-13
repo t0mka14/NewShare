@@ -65,8 +65,11 @@ Each packaging task asserts this; it is silent and destructive otherwise.
 
 `appVersion` and `releaseVersion` are separate for one concrete reason: a release that only
 rebuilds the runtime keeps `app.zip` byte-identical, and identical bytes are exactly what lets the
-updater skip re-downloading 77 MB. Bump both for an app change; bump `releaseVersion` alone for a
-runtime- or natives-only release.
+updater skip re-downloading 77 MB. `releaseVersion` follows `appVersion` unless passed with
+`-PreleaseVersion`, so an app change only needs `-PappVersion`. Pass `-PreleaseVersion` (newer
+than the live release, `appVersion` unchanged) for a runtime- or natives-only release. Never pin it
+in `gradle.properties`: that silently overrides every `-PappVersion` (it once published app 1.0.1
+as release 1.0.0). `release.sh` refuses a build whose app version is newer than its release.
 
 Notes worth knowing before changing any of this:
 
