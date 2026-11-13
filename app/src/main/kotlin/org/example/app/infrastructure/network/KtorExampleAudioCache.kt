@@ -25,10 +25,45 @@ import java.security.MessageDigest
 private val logger = KotlinLogging.logger {}
 
 /**
- * Ktor-backed [ExampleAudioCache] (config alignment row 13). Files live in
- * `configDir/example_audio/`, named `sha256(url)` + the URL's extension, so one URL always maps to
- * one file: an unchanged URL is never downloaded again, and new audio needs a new URL. Only
- * `http`/`https` URLs are fetched; each download streams to a `.tmp` file, is capped at
+ * Resolves a config `audioExamplePath` to the URL that is fetched and keyed on, or `null` when it
+ * must not be fetched.
+ * - An absolute `http`/`https` URL with a host is returned **unchanged** (the exact same string, so
+ *   cache keys of existing installs do not change).
+ * - Anything else without a scheme is a path relative to [serverBase] (the build's server base, no
+ *   `/api`): leading `/`s are stripped, so `/audio/x.wav` stays under a prefixed base such as
+ *   `https://host/koubic`. The result is normalized and must stay under the base path; `..`
+ *   escapes (also percent-encoded ones) are rejected.
+ * - Any other scheme (`file:`, `C:`, …), a blank value or an unparsable one gives `null`.
+ */
+internal fun resolveExampleUrl(raw: String, serverBase: String): String? {
+    val value = raw.trim()
+    if (value.isEmpty()) return null
+    val uri = try { URI(value) } catch (e: Exception) { return null }
+    if (uri.scheme != null) return value.takeIf { uri.isHttpWithHost() }
+
+    val base = try { URI(serverBase.trim().trimEnd('/') + "/").normalize() } catch (e: Exception) { return null }
+    if (!base.isHttpWithHost()) return null
+    val path = value.trimStart('/')
+    if (path.isEmpty()) return null
+    val resolved = try { base.resolve(URI(path)).normalize() } catch (e: Exception) { return null }
+    if (!resolved.isHttpWithHost()) return null
+    if (resolved.host != base.host || resolved.port != base.port) return null
+    val resolvedPath = resolved.path.orEmpty()
+    val basePath = base.path.orEmpty()
+    if (!resolvedPath.startsWith(basePath) || resolvedPath == basePath) return null
+    if (resolvedPath.split('/').any { it == ".." || it == "." }) return null
+    return resolved.toString()
+}
+
+private fun URI.isHttpWithHost(): Boolean =
+    scheme?.lowercase() in setOf("http", "https") && !host.isNullOrBlank()
+
+/**
+ * Ktor-backed [ExampleAudioCache] (config alignment row 13). Each config value is first resolved
+ * with [resolveExampleUrl] against [serverBaseUrl]; `sync`, `localFileFor` and pruning all use the
+ * resolved URL. Files live in `configDir/example_audio/`, named `sha256(resolved url)` + the URL's
+ * extension, so one URL always maps to one file: an unchanged URL is never downloaded again, and
+ * new audio needs a new URL. Only `http`/`https` URLs are fetched; each download streams to a `.tmp` file, is capped at
  * [maxBytes], and is moved into place atomically, so a failed or oversized download leaves nothing
  * behind. HTTPS uses the JVM's default trust store, as [KtorConfigApi] does.
  */
@@ -36,6 +71,7 @@ class KtorExampleAudioCache(
     directories: AppDirectories,
     engine: HttpClientEngine = CIO.create(),
     private val maxBytes: Long = 20L * 1024 * 1024,
+    private val serverBaseUrl: String = SERVER_BASE_URL,
 ) : ExampleAudioCache {
 
     private val cacheDir: Path = directories.configDir.resolve("example_audio")
@@ -49,13 +85,16 @@ class KtorExampleAudioCache(
     }
 
     override fun localFileFor(url: String): Path? {
-        val name = fileNameFor(url) ?: return null
+        val name = resolveExampleUrl(url, serverBaseUrl)?.let(::fileNameFor) ?: return null
         return cacheDir.resolve(name).takeIf { Files.isRegularFile(it) }
     }
 
     override suspend fun sync(urls: Set<String>) {
-        val wanted = urls.mapNotNull { url -> fileNameFor(url)?.let { url to it } }.toMap()
-        urls.filter { it !in wanted }.forEach { logger.warn { "example audio skipped, not an http(s) URL: $it" } }
+        val resolved = urls.associateWith { resolveExampleUrl(it, serverBaseUrl) }
+        resolved.filterValues { it == null }.keys
+            .forEach { logger.warn { "example audio skipped, not an http(s) URL or path under the server base: $it" } }
+        val wanted = resolved.values.filterNotNull()
+            .mapNotNull { url -> fileNameFor(url)?.let { url to it } }.toMap()
 
         try {
             Files.createDirectories(cacheDir)
@@ -127,7 +166,7 @@ class KtorExampleAudioCache(
         private val SAFE_EXTENSION = Regex("[A-Za-z0-9]{1,5}")
 
         /** `sha256(url)` + the path's extension (`.wav` when missing or unusual); `null` for a
-         *  URL that is not `http`/`https`. */
+         *  URL that is not `http`/`https`. Takes an already [resolveExampleUrl]-resolved URL. */
         internal fun fileNameFor(url: String): String? {
             val uri = try { URI(url) } catch (e: Exception) { return null }
             if (uri.scheme?.lowercase() !in setOf("http", "https") || uri.host.isNullOrBlank()) return null

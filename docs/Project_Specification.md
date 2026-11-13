@@ -1443,16 +1443,23 @@ Error taxonomy (normative, inlined from the old plan):
     user request). Settings still saves every change immediately; the label only tells the
     examiner that nothing is lost by leaving.
 
-51. **Example audio is downloaded and cached (2026-09-30, config alignment row 13).**
-    `audioExamplePath` is an absolute `http(s)` URL. After a refresh applies a config,
-    `RefreshConfigurationUseCase` syncs `ExampleAudioCache` with every URL the config references
-    (before reporting success; a failure never fails the refresh). `KtorExampleAudioCache` keeps
-    the files in `configDir/example_audio/`, named `sha256(url)` + the URL's extension, so an
+51. **Example audio is downloaded and cached (2026-09-30, config alignment row 13; relative paths 2026-11-13, app 1.0.2).**
+    `audioExamplePath` is an absolute `http(s)` URL or a path relative to the build's server base
+    URL (`SERVER_BASE_URL`, no `/api`; a leading `/` is still relative to the base, so a prefixed
+    base such as `https://malenia.feld.cvut.cz/koubic` keeps `/koubic`). `KtorExampleAudioCache`
+    resolves every value with `resolveExampleUrl` before `sync`, `localFileFor` and pruning, so
+    all three use the same key: absolute http(s) URLs pass through unchanged, relative paths are
+    resolved and normalized and must stay under the base (`..` escapes are rejected), and any
+    other scheme is rejected. The web sends the relative form only to apps reporting `appVersion`
+    ≥ 1.0.2; older apps keep getting absolute URLs. After a refresh applies a config,
+    `RefreshConfigurationUseCase` syncs `ExampleAudioCache` with every value the config references
+    (before reporting success; a failure never fails the refresh). The files live in
+    `configDir/example_audio/`, named `sha256(resolved url)` + the URL's extension, so an
     unchanged URL is never downloaded again; downloads stream to a `.tmp`, are capped at 20 MB
     and moved into place atomically; files no URL references any more are deleted. Offline or
     failed refreshes leave the cache as it is, so earlier downloads keep playing offline. A task
-    whose URL is not cached shows no example button (`SessionComponent` maps the URL through
-    `localFileFor`). Relative paths are no longer supported.
+    whose value is not cached, or does not resolve, shows no example button (`SessionComponent`
+    maps the value through `localFileFor`).
 
 52. **Mic device refresh and "level cannot be set" note in Settings (2026-10-10, from the
     reverted 2026-10 legacy-parity round).** A refresh icon button beside the microphone

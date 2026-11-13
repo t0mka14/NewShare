@@ -181,10 +181,16 @@ two exported clips.
   It is not shown on screen (the passage is read off paper) and is kept out of the instruction
   cards; the app keeps a hidden panel for it that can be switched back on (decision 59 of the
   project specification).
-- `audioExamplePath` — optional example audio, played on demand, never recorded. An absolute
-  `http(s)` URL: the app downloads it when a new config is applied and caches it locally, so it
-  also plays offline afterwards. No key, a non-http value, or a download that failed means no
-  example button. A changed file needs a new URL (the cache is keyed by URL).
+- `audioExamplePath` — optional example audio, played on demand, never recorded. Either an
+  absolute `http(s)` URL, or (app 1.0.2 and later) a path relative to the build's server base URL
+  (`serverBaseUrl`, without `/api`), e.g. `audio/illustrations/phonation_a.wav` →
+  `https://malenia.feld.cvut.cz/koubic/audio/illustrations/phonation_a.wav`. A leading `/` is
+  still relative to the base, so a prefixed base such as `/koubic` is kept. A relative path that
+  leaves the base (`..`) or any other scheme (`file:` etc.) is rejected. The app downloads the
+  audio when a new config is applied and caches it locally, so it also plays offline afterwards.
+  No key, a rejected value, or a download that failed means no example button. A changed file
+  needs a new URL or path (the cache is keyed by the resolved URL). The web sends the relative
+  form only to apps reporting `appVersion` ≥ 1.0.2; older apps keep getting absolute URLs.
 - `recordVideo` — optional, default `false`. Also films every take with the camera, alongside
   the audio. A small live camera preview is shown on this task's screen (even with
   `showIndicator: false`); with `showIndicator` it sits beside the usual `indicatorType`

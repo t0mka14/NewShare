@@ -4,12 +4,15 @@ import java.nio.file.Path
 
 /**
  * Local copies of the config's example audio (config alignment row 13): `VocalTask.audioExamplePath`
- * is an absolute `https://…` URL, downloaded when a new config is applied so the example button
- * works offline afterwards. A URL that was never downloaded (or failed to) has no file, and the
- * task screen then shows no example button.
+ * is either an absolute `http(s)://…` URL or a path relative to the build's server base URL (e.g.
+ * `audio/illustrations/phonation_a.wav`; a leading `/` is still relative to the base). It is
+ * downloaded when a new config is applied so the example button works offline afterwards. Both
+ * methods take the value exactly as the config holds it; the implementation resolves it. A value
+ * that was never downloaded (or failed to, or does not resolve to an http(s) URL under the server
+ * base) has no file, and the task screen then shows no example button.
  */
 interface ExampleAudioCache {
-    /** The cached file for [url], or `null` when it is not cached. */
+    /** The cached file for [url] (absolute or server-relative, as in the config), or `null` when it is not cached. */
     fun localFileFor(url: String): Path?
 
     /**

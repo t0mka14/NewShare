@@ -22,6 +22,8 @@ class KtorExampleAudioCacheTest {
 
     private val url = "https://assets.example/audio/illustrations/phonation_a.wav"
     private val wav = ByteArray(1000) { it.toByte() }
+    private val base = "https://malenia.feld.cvut.cz/koubic"
+    private val resolvedRelative = "https://malenia.feld.cvut.cz/koubic/audio/illustrations/phonation_a.wav"
 
     private fun cacheDir(tempDir: Path) = TestAppDirectories(tempDir).configDir.resolve("example_audio")
 
@@ -52,14 +54,77 @@ class KtorExampleAudioCacheTest {
     }
 
     @Test
-    fun `non-http URLs are skipped without a request`(@TempDir tempDir: Path) = runTest {
+    fun `non-http URLs and paths escaping the server base are skipped without a request`(@TempDir tempDir: Path) = runTest {
         var requests = 0
-        val cache = KtorExampleAudioCache(TestAppDirectories(tempDir), MockEngine { requests++; respond(wav, HttpStatusCode.OK) })
+        val cache = KtorExampleAudioCache(
+            TestAppDirectories(tempDir), MockEngine { requests++; respond(wav, HttpStatusCode.OK) }, serverBaseUrl = base,
+        )
 
-        cache.sync(setOf("audio_instructions/aaa.wav", "file:///etc/passwd"))
+        cache.sync(setOf("file:///etc/passwd", "../../x.wav", "C:\\audio\\a.wav", " "))
 
         assertEquals(0, requests)
-        assertNull(cache.localFileFor("audio_instructions/aaa.wav"))
+        assertNull(cache.localFileFor("file:///etc/passwd"))
+        assertNull(cache.localFileFor("../../x.wav"))
+    }
+
+    @Test
+    fun `a relative path resolves under the server base, with or without a leading slash`() {
+        assertEquals(resolvedRelative, resolveExampleUrl("audio/illustrations/phonation_a.wav", base))
+        assertEquals(resolvedRelative, resolveExampleUrl("/audio/illustrations/phonation_a.wav", base))
+        assertEquals(resolvedRelative, resolveExampleUrl("audio/illustrations/phonation_a.wav", "$base/"))
+        assertEquals(resolvedRelative, resolveExampleUrl("audio/./illustrations/phonation_a.wav", base))
+        assertEquals(
+            "http://192.168.122.183:10001/audio/illustrations/phonation_a.wav",
+            resolveExampleUrl("audio/illustrations/phonation_a.wav", "http://192.168.122.183:10001"),
+        )
+    }
+
+    @Test
+    fun `an absolute http(s) URL is returned unchanged`() {
+        assertEquals(url, resolveExampleUrl(url, base))
+        val odd = "http://192.168.122.183:10001/audio/../audio/illustrations/phonation_a.wav?v=1"
+        assertEquals(odd, resolveExampleUrl(odd, base))
+    }
+
+    @Test
+    fun `escapes, other schemes and garbage are rejected`() {
+        assertNull(resolveExampleUrl("../../x.wav", base))
+        assertNull(resolveExampleUrl("audio/../../x.wav", base))
+        assertNull(resolveExampleUrl("/../koubic2/x.wav", base))
+        assertNull(resolveExampleUrl("audio/%2e%2e/%2e%2e/x.wav", base))
+        assertNull(resolveExampleUrl("file:///etc/passwd", base))
+        assertNull(resolveExampleUrl("ftp://h/x.wav", base))
+        assertNull(resolveExampleUrl("https:///x.wav", base))
+        assertNull(resolveExampleUrl("", base))
+        assertNull(resolveExampleUrl("   ", base))
+        assertNull(resolveExampleUrl("/", base))
+        assertNull(resolveExampleUrl("a b|<>.wav", base))
+        assertNull(resolveExampleUrl("audio/x.wav", "not a base"))
+    }
+
+    @Test
+    fun `sync, localFileFor and prune agree on the resolved key for a relative path`(@TempDir tempDir: Path) = runTest {
+        val relative = "audio/illustrations/phonation_a.wav"
+        val requested = mutableListOf<String>()
+        val cache = KtorExampleAudioCache(
+            TestAppDirectories(tempDir),
+            MockEngine { request -> requested += request.url.toString(); respond(wav, HttpStatusCode.OK) },
+            serverBaseUrl = base,
+        )
+
+        cache.sync(setOf(relative))
+        val file = requireNotNull(cache.localFileFor(relative))
+        assertArrayEquals(wav, Files.readAllBytes(file))
+        assertEquals(listOf(resolvedRelative), requested)
+        assertEquals(KtorExampleAudioCache.fileNameFor(resolvedRelative), file.fileName.toString())
+        assertEquals(file, cache.localFileFor("/$relative"))
+
+        cache.sync(setOf(relative))
+
+        assertEquals(file, cache.localFileFor(relative))
+        assertTrue(Files.isRegularFile(file))
+        assertEquals(1, requested.size)
+        assertEquals(listOf(file), Files.list(cacheDir(tempDir)).use { it.toList() })
     }
 
     @Test
