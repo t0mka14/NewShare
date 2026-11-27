@@ -1,4 +1,4 @@
-# Run 07 step 7: types a clinic token (read from the secrets file, never printed) into the focused field of the SHARE window via the clipboard (Ctrl+A, Ctrl+V with keybd_event), then clears the clipboard.
+# Run 07 step 7: types a clinic token (read from the secrets file, never printed) into the focused field of the Recita window via the clipboard (Ctrl+A, Ctrl+V with keybd_event), then clears the clipboard.
 # Usage: .\paste_token.ps1 -Key E2E-1026-Clinic-B [-Secrets <path>]   (focus the field first, e.g. with MCP click on settings.siteTokenField)
 param([Parameter(Mandatory)][string]$Key, [string]$Secrets = (Join-Path $PSScriptRoot '..\..\reports\2026-10-26-secrets.json'))
 $t = (Get-Content -Raw -Encoding UTF8 $Secrets | ConvertFrom-Json).$Key

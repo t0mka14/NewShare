@@ -1,6 +1,6 @@
 # Remote Configuration — JSON Specification
 
-**Status:** Normative · **Date:** 2026-07-01 (rev. 2026-08-22) · **Target:** SHARE clinical
+**Status:** Normative · **Date:** 2026-07-01 (rev. 2026-08-22) · **Target:** Recita clinical
 recording app (rewrite)
 
 Companion to [Project_Specification.md](Project_Specification.md) (§6). This document defines

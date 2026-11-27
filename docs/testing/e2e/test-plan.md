@@ -28,7 +28,7 @@ Changes in 1.1, from 1.0 (from the 2026-10-23 run, see [`findings.md`](findings.
 - Window size, mouse-drag helper, screenshot focus and installation-ID redaction notes.
 - New run 09 (window sizes and layout); the summary moves to run 10.
 
-This plan covers the whole SHARE process against the real web backend:
+This plan covers the whole Recita process against the real web backend:
 
 1. An administrator sets up sites, projects and protocols in the web app.
 2. The desktop app loads that configuration by site token.
@@ -108,7 +108,7 @@ Related documents:
 | Item | Value |
 |---|---|
 | Host | Windows Server 2022 VM (KVM), reached over RDP. The app window, the browser and OBS all live on the RDP desktop. |
-| Desktop app | `./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto`. Window title `SHARE (v1.0.0)`. Data dir `app/data/`. Opens at 1000×820 every time (`Main.kt`, the size isn't remembered); runs 02–08 keep that size (§3.4). |
+| Desktop app | `./gradlew :app:hotRun --mainClass=org.example.app.MainKt --auto`. Window title `Recita (v1.0.0)`. Data dir `app/data/`. Opens at 1000×820 every time (`Main.kt`, the size isn't remembered); runs 02–08 keep that size (§3.4). |
 | JDK | `C:\Users\koubato2\.jdks\ms-25.0.4.1` (`JAVA_HOME` and `org.gradle.java.home`); the app itself runs on the JetBrains Runtime 25 that the hot-reload plugin downloads. |
 | Server API | `http://192.168.122.183:10001/api`, compiled into the app as `WEB_SERVER_BASE_URL`. |
 | Admin UI | `http://192.168.122.183:10001`, master login `master@test.com` / `1234`. |
@@ -372,11 +372,11 @@ Severity:
 - Anything else (Windows dialogs, OBS, a frozen window):
 
   ```powershell
-  docs\testing\e2e\tools\Capture-Screen.ps1 -Path <run folder>\screenshots\F-nnn-x.png -WindowTitle "SHARE"
+  docs\testing\e2e\tools\Capture-Screen.ps1 -Path <run folder>\screenshots\F-nnn-x.png -WindowTitle "Recita"
   ```
 
-- `take_screenshot` captures screen pixels, so whatever covers the SHARE window ends up in the
-  image (after a restart it is often the terminal). Bring SHARE to the front first, for example
+- `take_screenshot` captures screen pixels, so whatever covers the Recita window ends up in the
+  image (after a restart it is often the terminal). Bring Recita to the front first, for example
   with a click at (5, 5) through `tools/Drag-InWindow.ps1`, and look at the image.
 - Before saving a screenshot, check that it shows no secrets, and mention in the finding what to
   look at:
@@ -623,7 +623,7 @@ Precondition: run 02 passed. Each part is independent; restart the app between p
    upload it. Then the user runs:
 
    ```powershell
-   New-NetFirewallRule -DisplayName "E2E block SHARE server" -Direction Outbound -Protocol TCP -RemoteAddress 192.168.122.183 -RemotePort 10001 -Action Block
+   New-NetFirewallRule -DisplayName "E2E block Recita server" -Direction Outbound -Protocol TCP -RemoteAddress 192.168.122.183 -RemotePort 10001 -Action Block
    ```
 
    Restart the app **after** the rule is in place, so no connection opened earlier survives it.
@@ -637,7 +637,7 @@ Precondition: run 02 passed. Each part is independent; restart the app between p
    Then part 3, still blocked:
    - Upload `E2E<MMDD>-08-2`. Check: a network failure message, and the session stays Failed and
      retryable.
-   - The user removes the rule: `Remove-NetFirewallRule -DisplayName "E2E block SHARE server"`.
+   - The user removes the rule: `Remove-NetFirewallRule -DisplayName "E2E block Recita server"`.
      Retry, and check it uploads, and the server has one attempt (the blocked one never arrived).
 5. **App killed mid-take**: during a take, kill the app process (`Stop-Process`), then start it
    again.

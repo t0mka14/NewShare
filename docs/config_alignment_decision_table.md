@@ -2,7 +2,7 @@
 
 ## Context
 
-The external desktop app (SHARE) fetches its config via `GET /site-config/:token`. Today the endpoint returns the web app's **native** protocol serialization (built by `assembleProtocol()` in `backend/src/controllers/protocolController.js`, served by `getSiteConfig` in `backend/src/controllers/siteController.js`) — transformation to the app's format was deliberately deferred (`docs/newshare_changes.md`). The external app's normative format is `docs/ext_app_Task_Configuration_JSON_Spec.md` + `docs/ext_app_full_example_config.json`. This document decides, per aspect, which framework changes. **No implementation — planning artifact only.**
+The external desktop app (Recita) fetches its config via `GET /site-config/:token`. Today the endpoint returns the web app's **native** protocol serialization (built by `assembleProtocol()` in `backend/src/controllers/protocolController.js`, served by `getSiteConfig` in `backend/src/controllers/siteController.js`) — transformation to the app's format was deliberately deferred (`docs/newshare_changes.md`). The external app's normative format is `docs/ext_app_Task_Configuration_JSON_Spec.md` + `docs/ext_app_full_example_config.json`. This document decides, per aspect, which framework changes. **No implementation — planning artifact only.**
 
 ## Current-state summary
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a Windows release of SHARE, publish it to the web backend in share_web, and check that the
+# Build a Windows release of Recita, publish it to the web backend in share_web, and check that the
 # live version endpoint serves it. Spec: docs/SPEC-release-pipeline.md.
 #
 #   tools/release/release.sh 1.0.1                       # production build (malenia)
@@ -30,7 +30,7 @@ VERIFY_API="http://192.168.122.183:10001/api"
 HOST="share_web"
 RELEASES_DIR="/srv/task-protocoller/releases"
 PLATFORM="windows-x86_64"
-BUNDLE="install-windows-x64.zip"
+BUNDLE="install-recita-windows-x64.zip"
 BUILD=1
 DRY_RUN=0
 CHECK_ONLY=0

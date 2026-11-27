@@ -9,7 +9,7 @@
 #>
 param(
     [int]$FromX, [int]$FromY, [int]$ToX, [int]$ToY = -1,
-    [string]$WindowTitle = 'SHARE',
+    [string]$WindowTitle = 'Recita',
     [int]$Steps = 20, [int]$StepDelayMs = 15,
     [switch]$InfoOnly
 )

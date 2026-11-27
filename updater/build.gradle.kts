@@ -93,7 +93,7 @@ graalvmNative {
     metadataRepository { enabled.set(false) }
 
     binaries.named("main") {
-        imageName.set("updater")
+        imageName.set("recita")
         // :updater does not apply the `application` plugin, so this cannot be inferred.
         mainClass.set("org.example.updater.MainKt")
         javaLauncher.set(graalLauncher)
@@ -120,13 +120,13 @@ graalvmNative {
     }
 }
 
-/** The native binary `:packaging` places at `<install_dir>/updater[.exe]` (§9). */
+/** The native binary `:packaging` places at `<install_dir>/recita[.exe]` (§9). */
 configurations.consumable("installUpdaterBinary")
 
 artifacts {
     // nativeCompile writes <buildDir>/native/nativeCompile/<imageName>; imageName is pinned to
-    // "updater" above, so this path is deterministic.
-    add("installUpdaterBinary", layout.buildDirectory.file(if (hostIsWindows) "native/nativeCompile/updater.exe" else "native/nativeCompile/updater")) {
+    // "recita" above, so this path is deterministic.
+    add("installUpdaterBinary", layout.buildDirectory.file(if (hostIsWindows) "native/nativeCompile/recita.exe" else "native/nativeCompile/recita")) {
         builtBy(tasks.named("nativeCompile"))
     }
 }

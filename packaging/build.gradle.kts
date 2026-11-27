@@ -8,7 +8,7 @@
  * Two things come out of `releaseLinuxX64`, in `build/release/<version>/`:
  *
  *  - `app.zip` — the §9 update package. What the updater downloads and `Replacer` unzips.
- *  - `install-linux-x64.tar.gz` — the whole install layout, for a first-time install on a
+ *  - `install-recita-linux-x64.tar.gz` — the whole install layout, for a first-time install on a
  *    machine with no JDK.
  */
 
@@ -123,7 +123,7 @@ abstract class JlinkRuntimeTask : DefaultTask() {
 }
 
 val jlinkRuntime = tasks.register<JlinkRuntimeTask>("jlinkRuntime") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds <install_dir>/runtime — a jlink JRE sized to app.jar's actual modules."
     applicationJar.set(layout.file(provider { appJar.singleFile }))
     dependsOn(appJar)
@@ -154,7 +154,7 @@ val jlinkRuntime = tasks.register<JlinkRuntimeTask>("jlinkRuntime") {
 // --------------------------------------------------------------------------------------
 
 val generateUpdaterProperties = tasks.register("generateUpdaterProperties") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Writes <install_dir>/updater.properties from the root updateEndpoint property."
     // -PupdateEndpoint wins; otherwise derived from the same serverBaseUrl the app is built with.
     val endpoint = providers.gradleProperty("updateEndpoint").orElse(
@@ -185,7 +185,7 @@ val generateUpdaterProperties = tasks.register("generateUpdaterProperties") {
  * brand-new install re-downloads ~140 MB it already has on disk.
  */
 val generateInstalledState = tasks.register("generateInstalledState") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Writes the updater's installed.json for a fresh install."
     val out = layout.buildDirectory.file("generated/installed.json")
     val components = mapOf(
@@ -230,11 +230,11 @@ $entries
 }
 
 val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Assembles the §9 install layout for $installBundleToken under build/install/$installBundleToken."
     into(layout.buildDirectory.dir("install/$installBundleToken"))
 
-    from(updaterBinary) { if (!hostIsWindows) filePermissions { unix("0755") } }  // -> updater[.exe]
+    from(updaterBinary) { if (!hostIsWindows) filePermissions { unix("0755") } }  // -> recita[.exe]
     from(generateUpdaterProperties)                           // -> updater.properties
     from(generateInstalledState)                              // -> installed.json
     from(jlinkRuntime.flatMap { it.runtimeDir }) {
@@ -269,10 +269,10 @@ val stageInstallDir = tasks.register<Sync>("stageInstallDir") {
         // Copy preserves source unix modes, but an install whose updater is not executable fails
         // in a confusing way much later, so assert it here.
         val required = if (hostIsWindows) {
-            listOf("updater.exe", "runtime/bin/java.exe", "runtime/bin/javaw.exe",
+            listOf("recita.exe", "runtime/bin/java.exe", "runtime/bin/javaw.exe",
                 "native/ffmpeg/$platformToken/$ffmpegFileName", "app/app.jar", "app/version.json")
         } else {
-            listOf("updater", "runtime/bin/java", "native/ffmpeg/linux-x86_64/ffmpeg")
+            listOf("recita", "runtime/bin/java", "native/ffmpeg/linux-x86_64/ffmpeg")
         }
         required.forEach { path ->
             val file = destinationDir.resolve(path)
@@ -316,7 +316,7 @@ fun assertRootEntries(archive: File, mustContain: String, forbiddenPrefix: Strin
 }
 
 val packageAppZip = tasks.register<Zip>("packageAppZip") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds the §9 update package (app.jar + version.json)."
     archiveFileName.set("app.zip")
     destinationDirectory.set(releaseDir)
@@ -338,35 +338,35 @@ val packageAppZip = tasks.register<Zip>("packageAppZip") {
 
 /** Windows first-install bundle: the §9 layout at the ZIP root (unzip into the install dir). */
 val packageInstallBundleZip = tasks.register<Zip>("packageInstallBundleZip") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds the self-contained first-install bundle for windows-x64."
-    archiveFileName.set("install-windows-x64.zip")
+    archiveFileName.set("install-recita-windows-x64.zip")
     destinationDirectory.set(releaseDir)
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
     from(stageInstallDir)
     doLast {
-        assertRootEntries(archiveFile.get().asFile, mustContain = "updater.exe", forbiddenPrefix = "share-")
+        assertRootEntries(archiveFile.get().asFile, mustContain = "recita.exe", forbiddenPrefix = "recita-")
         val names = java.util.zip.ZipFile(archiveFile.get().asFile).use { zip ->
             zip.entries().asSequence().map { it.name }.toSet()
         }
         listOf("updater.properties", "installed.json", "runtime/bin/java.exe", "runtime/bin/javaw.exe",
             "app/app.jar", "app/version.json", "native/ffmpeg/windows-x86_64/ffmpeg.exe").forEach {
-            check(it in names) { "install-windows-x64.zip must contain '$it'" }
+            check(it in names) { "install-recita-windows-x64.zip must contain '$it'" }
         }
     }
 }
 
 val packageInstallBundle = tasks.register<Tar>("packageInstallBundle") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds the self-contained first-install bundle for linux-x64."
-    archiveFileName.set("install-linux-x64.tar.gz")
+    archiveFileName.set("install-recita-linux-x64.tar.gz")
     destinationDirectory.set(releaseDir)
     compression = Compression.GZIP
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
     from(stageInstallDir) {
-        into("share-${project.version}")
+        into("recita-${project.version}")
         // Archive tasks normalise permissions for reproducibility, which would ship a
         // non-executable updater and runtime/bin/java — the tar is what a user actually unpacks,
         // so the modes have to be carried across explicitly.
@@ -411,7 +411,7 @@ abstract class Sha256SidecarTask : DefaultTask() {
  * `<install_dir>/runtime/runtime/bin/java`.
  */
 val packageRuntimeZip = tasks.register<Zip>("packageRuntimeZip") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds the runtime component (the jlink JRE)."
     archiveFileName.set("runtime-$platformToken.zip")
     destinationDirectory.set(releaseDir)
@@ -423,7 +423,7 @@ val packageRuntimeZip = tasks.register<Zip>("packageRuntimeZip") {
 
 /** The ffmpeg component: the contents of one platform directory, again at the archive root. */
 val packageFfmpegZip = tasks.register<Zip>("packageFfmpegZip") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds the ffmpeg component for $platformToken."
     archiveFileName.set("ffmpeg-$platformToken.zip")
     destinationDirectory.set(releaseDir)
@@ -440,7 +440,7 @@ val packageFfmpegZip = tasks.register<Zip>("packageFfmpegZip") {
  * keeping one source for each fact.
  */
 val generateReleaseManifest = tasks.register("generateReleaseManifest") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Writes manifest-$platformToken.json describing this release's components."
     val out = releaseDir.map { it.file("manifest-$platformToken.json") }
     val appArtifact = packageAppZip.flatMap { it.archiveFileName }
@@ -473,7 +473,7 @@ $components
 }
 
 val releaseChecksums = tasks.register<Sha256SidecarTask>("releaseChecksums") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Writes .sha256 sidecars for the release artifacts."
     artifacts.from(
         packageAppZip, packageRuntimeZip, packageFfmpegZip,
@@ -495,14 +495,14 @@ requireHost("releaseLinuxX64", "Linux", hostIsLinux)
 requireHost("releaseWindowsX64", "Windows", hostIsWindows)
 
 tasks.register("releaseLinuxX64") {
-    group = "share packaging"
-    description = "Linux host only: builds build/release/<version>/{app.zip,install-linux-x64.tar.gz} + sidecars."
+    group = "recita packaging"
+    description = "Linux host only: builds build/release/<version>/{app.zip,install-recita-linux-x64.tar.gz} + sidecars."
     dependsOn(releaseChecksums)
 }
 
 val releaseWindowsX64 = tasks.register("releaseWindowsX64") {
-    group = "share packaging"
-    description = "Windows host only: builds build/release/<version>/{app.zip,install-windows-x64.zip} + sidecars (needs MSVC for updater.exe)."
+    group = "recita packaging"
+    description = "Windows host only: builds build/release/<version>/{app.zip,install-recita-windows-x64.zip} + sidecars (needs MSVC for recita.exe)."
     dependsOn(releaseChecksums)
 }
 
@@ -555,7 +555,7 @@ fun Exec.runReleaseScript(vararg mode: String) {
 }
 
 val checkReleasePublishable = tasks.register<Exec>("checkReleasePublishable") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Fails fast (before the build) when the version is already published or not newer than the live release."
     doFirst { requirePublishableServer() }
     runReleaseScript("--check-only")
@@ -566,7 +566,7 @@ releaseWindowsX64.configure { mustRunAfter(checkReleasePublishable) }
 tasks.named("releaseChecksums") { mustRunAfter(checkReleasePublishable) }
 
 tasks.register<Exec>("publishWindowsRelease") {
-    group = "share packaging"
+    group = "recita packaging"
     description = "Builds the Windows release and publishes it to share_web (tools/release/release.sh)."
     dependsOn(checkReleasePublishable, releaseWindowsX64)
     doFirst { requirePublishableServer() }

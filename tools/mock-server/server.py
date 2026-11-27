@@ -48,7 +48,7 @@ SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 # Artifacts every release has regardless of its manifest. The rest are whatever that release's
 # manifest-<platform>.json declares — see Store.release_asset_names, which is what keeps the
 # download route from reading arbitrary files out of the data directory.
-BASE_RELEASE_ASSETS = ("app.zip", "install-linux-x64.tar.gz")
+BASE_RELEASE_ASSETS = ("app.zip", "install-recita-linux-x64.tar.gz")
 MANIFEST_GLOB = "manifest-*.json"
 
 
@@ -405,7 +405,7 @@ class Store:
     # -- releases ------------------------------------------------------------------
     # Published app packages, laid out exactly as :packaging builds them so publishing is a
     # plain `scp -r` of build/release/<version>/ with no renaming:
-    #   releases/<x.y.z>/{app.zip, app.zip.sha256, install-linux-x64.tar.gz, ...sha256}
+    #   releases/<x.y.z>/{app.zip, app.zip.sha256, install-recita-linux-x64.tar.gz, ...sha256}
     # Every read hits the filesystem, so a publish needs no server restart.
 
     def release_dir(self, version: str) -> Path:
@@ -922,7 +922,7 @@ class Handler(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/version/download/([^/]+)(?:/([^/]+))?", path)
         if m:
             # The artifact segment is optional: /download/1.0.1 is the spec-shaped form and
-            # defaults to the update package; /download/1.0.1/install-linux-x64.tar.gz fetches
+            # defaults to the update package; /download/1.0.1/install-recita-linux-x64.tar.gz fetches
             # the full install bundle.
             version, name = m.group(1), m.group(2) or "app.zip"
             asset = self.store.release_asset(version, name)

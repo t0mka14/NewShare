@@ -12,11 +12,11 @@ linux-only. Goal: one command builds a Windows release pointed at
 reverse-proxies `/koubic/` to that container with the prefix stripped
 (`docs/container_deployment.md:12` in the web repo), so installed clients then update themselves.
 
-Decisions taken with the user: **Windows x64**, **native GraalVM `updater.exe`** (install the MSVC
+Decisions taken with the user: **Windows x64**, **native GraalVM `recita.exe`** (install the MSVC
 Build Tools), **publish by scp to a release dir** (no upload API).
 
 ```
-Goal:        A clinic PC with SHARE installed gets every new release automatically from malenia.
+Goal:        A clinic PC with Recita installed gets every new release automatically from malenia.
 Deliverable: (a) a version/download API in the web backend, deployed to share_web;
              (b) a Windows release build of the desktop app with a configurable server URL;
              (c) tools/release/release.sh <x.y.z> [--server URL] that builds, publishes and verifies.
@@ -32,8 +32,8 @@ Deliverable: (a) a version/download API in the web backend, deployed to share_we
    Backend vitest tests cover criteria 1 and 2, and `npm test` is green.
 3. `./gradlew -PappVersion=X -PserverBaseUrl=https://malenia.feld.cvut.cz/koubic :packaging:releaseWindowsX64`
    produces `packaging/build/release/X/` containing `app.zip`, `runtime-windows-x86_64.zip`,
-   `ffmpeg-windows-x86_64.zip`, `install-windows-x64.zip`, `manifest-windows-x86_64.json` and
-   `.sha256` sidecars. The install bundle contains `updater.exe` (native, with no console window).
+   `ffmpeg-windows-x86_64.zip`, `install-recita-windows-x64.zip`, `manifest-windows-x86_64.json` and
+   `.sha256` sidecars. The install bundle contains `recita.exe` (native, with no console window).
    Its `updater.properties` holds `https://malenia.feld.cvut.cz/koubic/api/version/latest`.
    The built `app.jar` uses `https://malenia.feld.cvut.cz/koubic/api` for config, upload, check-in and logs.
    Without `-PserverBaseUrl`, both still default to the test container.
@@ -41,7 +41,7 @@ Deliverable: (a) a version/download API in the web backend, deployed to share_we
    (atomic: copy to `.incoming-X`, verify sha256 on the remote, then `mv`), and finishes by asserting
    that the live endpoint reports `release: X` with checksums equal to the local sidecars.
 5. End to end on this Windows machine against the test container: install 1.0.0 from
-   `install-windows-x64.zip`, publish 1.0.1, start `updater.exe`. `installed.json` then says 1.0.1,
+   `install-recita-windows-x64.zip`, publish 1.0.1, start `recita.exe`. `installed.json` then says 1.0.1,
    the app launches showing 1.0.1 in its title, and only the components that changed were downloaded.
 6. `:app:test :updater:test :shared:test` are green, and existing linux packaging is unchanged.
 
@@ -68,7 +68,7 @@ Deliverable: (a) a version/download API in the web backend, deployed to share_we
 - **Server URL at build time**: `-PserverBaseUrl` → a generated resource read by `ServerEndpoints`,
   following the `GenerateAppVersionJson`/`BuildInfo` pattern (`app/build.gradle.kts:115-144`).
   `updateEndpoint` defaults to `${serverBaseUrl}/api/version/latest`.
-- **Windows console**: link `updater.exe` with `/SUBSYSTEM:WINDOWS` (it already logs to a file), and
+- **Windows console**: link `recita.exe` with `/SUBSYSTEM:WINDOWS` (it already logs to a file), and
   start the app with `javaw.exe` (`AppLauncher.kt:38`).
 
 ### Increments (each ends at a checkpoint)
@@ -83,7 +83,7 @@ Deliverable: (a) a version/download API in the web backend, deployed to share_we
    in the updater, `javaw`, tests. → checkpoint: the three test suites green.
 4. **Windows packaging**: the user installs VS 2022 Build Tools (C++ workload). Parameterize the
    platform in `packaging/build.gradle.kts` (hard-coded at line 255, `unix("0755")`, the tar bundle, the
-   `updater` vs `updater.exe` copy at line 112), add `releaseWindowsX64`, make `repairGraalvmLaunchers`
+   `updater` vs `recita.exe` copy at line 112), add `releaseWindowsX64`, make `repairGraalvmLaunchers`
    linux-only, and add the `/SUBSYSTEM:WINDOWS` link option. → checkpoint: the criterion 3 bundle inspected.
 5. **Pipeline script** `tools/release/release.sh` (build → atomic scp via `ssh share_web` → live
    verify), replacing the mock-only `publish.sh` flow (keep the old one for the mock). → checkpoint:
@@ -103,7 +103,7 @@ agents (integration-engineer for the backend, updater and pipeline), with review
   `share_web` ssh alias. VPN MTU 1400 is already set (large transfers hang otherwise).
 - Clinic installs go to a user-writable folder (the app writes `data/` beside itself), so the install
   is a zip and not an MSI.
-- No signing for now: SmartScreen will warn on the first run of the unsigned `updater.exe`.
+- No signing for now: SmartScreen will warn on the first run of the unsigned `recita.exe`.
 - Releases are public (no auth on version/download), the same as the mock. The artifacts contain no secrets.
 
 ### Out of scope / follow-ups
@@ -119,9 +119,9 @@ agents (integration-engineer for the backend, updater and pipeline), with review
 | 1 | Backend version API | done | web repo branch `release-endpoint` (`c1114aa`, `2751c6c`); backend `npm test` 803 passed / 98 skipped (DB) |
 | 2 | Deploy to share_web | done | only `server.js` + 4 new files copied (server was exactly `newshare`); nginx `/api/version/download/` block; `/srv/task-protocoller/releases`; backups `/root/*.bak-20261113-*` |
 | 3 | Server URL + updater fixes | done | `6939993`; app 1093 / updater 48 / shared 5 tests green |
-| 4 | Windows packaging | done | `6882c5b`; `updater.exe` PE subsystem 2 (GUI); smoke run launched `javaw.exe` |
+| 4 | Windows packaging | done | `6882c5b`; `recita.exe` PE subsystem 2 (GUI); smoke run launched `javaw.exe` |
 | 5 | Pipeline | done | `release.sh` (`4ead6d2`), Gradle `checkReleasePublishable` / `publishWindowsRelease` (`3d4d642`) |
-| 6 | End-to-end update | done | 1.0.0 install → test 1.0.1 published → `updater.exe` downloaded only `app` (runtime/ffmpeg zips byte-identical), window title `SHARE (v1.0.1)`, marker cleared, 2nd run deleted the backup. Test release removed afterwards. |
+| 6 | End-to-end update | done | 1.0.0 install → test 1.0.1 published → `updater.exe` (now `recita.exe`) downloaded only `app` (runtime/ffmpeg zips byte-identical), window title `SHARE (v1.0.1)`, marker cleared, 2nd run deleted the backup. Test release removed afterwards. |
 | 6b | Production 1.0.0 | published | `https://malenia.feld.cvut.cz/koubic` baked into app and updater; verified through `:10001`. **Open: check through malenia** (not reachable from the build machine). |
 
 Found and fixed on the way: `gradle.properties` pinned `releaseVersion=1.0.0`, which overrode `-PappVersion`
@@ -132,5 +132,5 @@ Release command:
 
     ./gradlew -PappVersion=<x.y.z> -PserverBaseUrl=https://malenia.feld.cvut.cz/koubic :packaging:publishWindowsRelease
 
-Clinics install from `packaging/build/release/<v>/install-windows-x64.zip` (unzip to a user-writable
-folder, start `updater.exe`).
+Clinics install from `packaging/build/release/<v>/install-recita-windows-x64.zip` (unzip to a user-writable
+folder, start `recita.exe`).

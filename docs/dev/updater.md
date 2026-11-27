@@ -12,7 +12,7 @@ The updater assumes it runs from `<install_dir>`, laid out as:
 
 ```
 <install_dir>/
-  updater[.exe]
+  recita[.exe]
   updater.properties      optional — see "Configuration" below
   installed.json          what the updater believes is installed (see "Components")
   update_pending.json     present only between a replace and a confirmed app launch
@@ -201,7 +201,7 @@ comparison, malformed-version handling) lives in `:shared` next to the model.
 ## Packaging (implemented 2026-09-08)
 
 `./gradlew :updater:nativeCompile` produces a standalone GraalVM native binary at
-`updater/build/native/nativeCompile/updater` (~28 MB; `ldd` shows only `libz` and `libc`, no
+`updater/build/native/nativeCompile/recita` (~28 MB; `ldd` shows only `libz` and `libc`, no
 `libjvm`). GraalVM Community 25 is downloaded on demand by the foojay toolchain resolver — nothing
 is installed system-wide. No `META-INF/native-image` config is needed: the module's only non-JDK
 dependency is `kotlinx-serialization-json` and every call site uses an explicit `X.serializer()`,
@@ -218,8 +218,8 @@ Two things worth knowing:
   and runs before `nativeCompile`. Without it the build fails with an opaque "A problem occurred
   starting process".
 
-**Windows (`updater.exe`).** The same `nativeCompile` on a Windows host produces
-`updater/build/native/nativeCompile/updater.exe` (~27 MB). It needs the MSVC toolchain (Visual
+**Windows (`recita.exe`).** The same `nativeCompile` on a Windows host produces
+`updater/build/native/nativeCompile/recita.exe` (~27 MB). It needs the MSVC toolchain (Visual
 Studio 2022 Build Tools, "Desktop development with C++" workload) because native-image links with
 `link.exe`. The image is linked as a **GUI-subsystem** executable
 (`-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS` + `/ENTRY:mainCRTStartup`, PE Subsystem = 2) so no

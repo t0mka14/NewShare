@@ -18,8 +18,8 @@ package org.example.app.domain.localization
 object BuiltinStrings {
     val en: Map<String, String> = mapOf(
         // Application chrome / single-instance lock (§5.2).
-        "app.title" to "SHARE",
-        "app.alreadyRunning" to "SHARE is already running. Close the other instance before starting a new one.",
+        "app.title" to "Recita",
+        "app.alreadyRunning" to "Recita is already running. Close the other instance before starting a new one.",
 
         // Blocking "configuration required" screen (§6.1 pt 4) and its per-reason detail text.
         "error.config.required" to "Configuration required. Connect to the network and refresh, or contact your administrator.",
@@ -279,8 +279,8 @@ object BuiltinStrings {
     )
 
     val cs: Map<String, String> = mapOf(
-        "app.title" to "SHARE",
-        "app.alreadyRunning" to "SHARE už běží. Před spuštěním nové instance zavřete tu původní.",
+        "app.title" to "Recita",
+        "app.alreadyRunning" to "Recita už běží. Před spuštěním nové instance zavřete tu původní.",
 
         "error.config.required" to "Je potřeba konfigurace. Připojte se k síti a aktualizujte ji, nebo kontaktujte správce.",
         "error.config.siteTokenMissing" to "Není nastaven token pracoviště. Otevřete Nastavení a zadejte token od správce.",

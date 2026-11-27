@@ -1,6 +1,6 @@
 # Releasing a new version
 
-How to build a new Windows release of SHARE and publish it, so that every installed client updates
+How to build a new Windows release of Recita and publish it, so that every installed client updates
 itself on its next start. Background and design: [`docs/SPEC-release-pipeline.md`](../SPEC-release-pipeline.md),
 [`updater.md`](updater.md), [`packaging-and-deployment.md`](packaging-and-deployment.md).
 
@@ -20,7 +20,7 @@ published, or the release was withdrawn again (see [When it fails](#when-it-fail
 ```
 build machine (Windows)                share_web container                 clinic PC
 -----------------------                ---------------------------          ------------------
-gradlew publishWindowsRelease   ssh    /srv/task-protocoller/releases/     updater.exe
+gradlew publishWindowsRelease   ssh    /srv/task-protocoller/releases/     recita.exe
   1. server checks  ─────────────────▶   1.0.1/  1.0.2/ ...                  GET .../api/version/latest
   2. build release                       read by the web backend  ◀───────── ?platform=windows-x86_64
   3. release.sh: upload, verify, mv      GET /api/version/latest            downloads changed parts,
@@ -32,7 +32,7 @@ gradlew publishWindowsRelease   ssh    /srv/task-protocoller/releases/     updat
   Publishing to `share_web` therefore publishes to every clinic.
 - The backend reads the releases directory on every request. No restart, no database.
 - A release is three components plus an install bundle: `app.zip`, `runtime-windows-x86_64.zip`,
-  `ffmpeg-windows-x86_64.zip`, `install-windows-x64.zip`. Clients download only the components
+  `ffmpeg-windows-x86_64.zip`, `install-recita-windows-x64.zip`. Clients download only the components
   whose checksum changed. An app-only release costs them about 80 MB.
 
 ## Prerequisites (once per build machine)
@@ -42,7 +42,7 @@ gradlew publishWindowsRelease   ssh    /srv/task-protocoller/releases/     updat
 | Windows x64 host (jlink and native-image build only for the host OS) | — |
 | Git for Windows (Git Bash: `bash`, `ssh`, `scp`, `sha256sum`, `curl`) | `bash --version` |
 | Python 3 on `PATH` (release.sh uses it to read JSON and zips) | `python --version` |
-| VS 2022 Build Tools, C++ workload (native `updater.exe`) | `"/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath` prints a path |
+| VS 2022 Build Tools, C++ workload (native `recita.exe`) | `"/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath` prints a path |
 | `ssh share_web` works without a password prompt (`~/.ssh/config` alias, root key) | `ssh -o BatchMode=yes share_web true` |
 | VPN MTU 1400 (larger MTU makes big uploads hang) | see the web repo's `docs/container_deployment.md` |
 
@@ -104,7 +104,7 @@ release 1.0.2
   app: ok  .../api/version/download/1.0.2/app.zip  79775494 bytes
   runtime: ok  ...
   ffmpeg: ok  ...
-  install-windows-x64.zip: ok  ...
+  install-recita-windows-x64.zip: ok  ...
 ==> published 1.0.2
 ```
 
@@ -122,22 +122,22 @@ intended: the updater resolves them against its endpoint.
 
 ### 5. What happens on clinic PCs
 
-Each install updates itself the next time someone starts it through `updater.exe`. It downloads
+Each install updates itself the next time someone starts it through `recita.exe`. It downloads
 the changed components, swaps them in with rollback, and starts the app. The window title shows
-the new version (`SHARE (v1.0.2)`). If the new app does not start, the next run restores the
+the new version (`Recita (v1.0.2)`). If the new app does not start, the next run restores the
 previous version and skips that release until a newer one appears.
 
-**`updater.exe` itself is never updated** (it is not a component). Updater changes reach clinics
+**`recita.exe` itself is never updated** (it is not a component). Updater changes reach clinics
 only through a fresh install bundle (next step).
 
 ### 6. New installs
 
-Hand out `packaging/build/release/<x.y.z>/install-windows-x64.zip`. It is also downloadable from
-`https://malenia.feld.cvut.cz/koubic/api/version/download/<x.y.z>/install-windows-x64.zip`.
+Hand out `packaging/build/release/<x.y.z>/install-recita-windows-x64.zip`. It is also downloadable from
+`https://malenia.feld.cvut.cz/koubic/api/version/download/<x.y.z>/install-recita-windows-x64.zip`.
 
 1. Unzip it into a folder the user can write to (the app keeps `data/` next to itself; not
    `Program Files`).
-2. Start `updater.exe` (pin a shortcut to it, not to the jar).
+2. Start `recita.exe` (pin a shortcut to it, not to the jar).
 3. The first start may show a SmartScreen warning: the binaries are not signed yet.
 
 ## Test releases (test container)
@@ -153,8 +153,8 @@ To try the update flow without real clients picking up a test build:
 - **Always remove a test release right after the test**, and pick a version far above
   production so it can't be confused with one:
   `ssh share_web 'rm -rf /srv/task-protocoller/releases/9.0.0'`.
-- Test installs: unzip that version's `install-windows-x64.zip` into a scratch folder and run its
-  `updater.exe`. Its log is `updater.log` next to it.
+- Test installs: unzip that version's `install-recita-windows-x64.zip` into a scratch folder and run its
+  `recita.exe`. Its log is `updater.log` next to it.
 
 ## Withdrawing a release
 

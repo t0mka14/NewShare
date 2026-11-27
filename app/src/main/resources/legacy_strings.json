@@ -1,7 +1,7 @@
 {
   "app_name": {
-    "cs": "Share App",
-    "en": "Share App"
+    "cs": "Recita",
+    "en": "Recita"
   },
   "next_button_text_glob": {
     "cs": "Pokračovat",
@@ -12,7 +12,7 @@
     "en": "Back"
   },
   "menu_title": {
-    "cs": "SHARE - Řečový protokol",
+    "cs": "Recita - Řečový protokol",
     "en": "Speech examination"
   },
   "menu_button_graf": {

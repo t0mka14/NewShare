@@ -13,7 +13,7 @@ remain a worklist (§5). See "Building a release" below for the two commands.
 
 ```
 <install_dir>/
-  updater[.exe]        the :updater entry point (native image or launcher script, §4 below)
+  recita[.exe]          the :updater entry point (native image or launcher script, §4 below)
   updater.properties   version-check endpoint (see §6)
   runtime/             jlink'd JRE used to run the app (and the updater, in option A)
   app/
@@ -38,11 +38,11 @@ produce output for the host they run on, so each task fails fast on the wrong OS
 ./gradlew -PappVersion=1.0.1 -PserverBaseUrl=https://server.example :packaging:releaseWindowsX64
 ```
 
-It needs the MSVC toolchain for `updater.exe` (Visual Studio 2022 Build Tools with the "Desktop
+It needs the MSVC toolchain for `recita.exe` (Visual Studio 2022 Build Tools with the "Desktop
 development with C++" workload; check with `vswhere -requires
 Microsoft.VisualStudio.Component.VC.Tools.x86.x64`). The artifacts are the same, named
-`*-windows-x86_64.zip`, with `install-windows-x64.zip` (the §9 layout at the archive root, `.exe`
-updater, no unix modes) in place of the tar.gz. `updater.exe` is a GUI-subsystem binary.
+`*-windows-x86_64.zip`, with `install-recita-windows-x64.zip` (the §9 layout at the archive root, `.exe`
+updater, no unix modes) in place of the tar.gz. `recita.exe` is a GUI-subsystem binary.
 
 `appVersion` (in `gradle.properties`, overridable with `-P`) is the single version source: it
 feeds every module's Gradle `version`, the generated `app/version.json`, the resource
@@ -59,7 +59,7 @@ A release is a set of independently downloadable **components** plus a manifest,
 | `runtime-linux-x86_64.zip` | The jlink JRE |
 | `ffmpeg-linux-x86_64.zip` | The ffmpeg binary and its shared libraries |
 | `manifest-linux-x86_64.json` | Which components this release has and where each installs. No URLs or checksums — the server owns both. |
-| `install-linux-x64.tar.gz` | The whole §9 layout for a first-time install, including a seeded `installed.json`. No JDK needed on the target. |
+| `install-recita-linux-x64.tar.gz` | The whole §9 layout for a first-time install, including a seeded `installed.json`. No JDK needed on the target. |
 
 **Every component zip's entries sit at the archive root**, because the updater unzips a component
 straight into its target directory — an enclosing folder would produce `runtime/runtime/bin/java`.
@@ -81,7 +81,7 @@ Notes worth knowing before changing any of this:
   tolerates jdeps failing outright. `jdk.crypto.ec` is in that list because it is
   ServiceLoader-provided and structurally invisible to bytecode analysis.
 - **Archive tasks normalise unix permissions.** Both `stageInstallDir` and `packageInstallBundle`
-  map each file's mode from its source, or the shipped `updater` and `runtime/bin/java` arrive
+  map each file's mode from its source, or the shipped `recita` launcher and `runtime/bin/java` arrive
   non-executable. `stageInstallDir` asserts the three that matter.
 - **Gradle's JDK auto-provisioning does not preserve symlinks**, so GraalVM's
   `bin/native-image` extracts as a zero-byte file while the real 25 MB launcher sits in
@@ -137,7 +137,7 @@ Two options, in order of pragmatism:
 
 ## 5. Code signing / notarization
 
-- **Windows:** sign `updater.exe` (or the launcher), `app.jar` is not signed but the
+- **Windows:** sign `recita.exe` (or the launcher), `app.jar` is not signed but the
   installer is — build an MSI/installer around the §1 layout and sign it with
   `signtool sign /fd SHA256 ...` using an EV or Azure Trusted Signing certificate.
   Unsigned installers trip SmartScreen on clinic machines.

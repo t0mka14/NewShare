@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
         log = log,
     )
 
-    // On Windows updater.exe is a GUI-subsystem binary with no console, so an escaping exception
+    // On Windows recita.exe is a GUI-subsystem binary with no console, so an escaping exception
     // (e.g. a missing runtime\bin\javaw.exe) would vanish without a trace. updater.log is the only
     // place a user or support can see why nothing started.
     try {

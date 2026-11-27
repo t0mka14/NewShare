@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Logging sinks for the SHARE app (§11).
+  Logging sinks for the Recita app (§11).
 
   §11 (normative): log lines must never contain participant data (patient code, field
   values, questionnaire answers) or the installation ID (bearer credential, §6.1).

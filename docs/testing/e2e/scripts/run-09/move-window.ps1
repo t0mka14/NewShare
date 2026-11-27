@@ -1,5 +1,5 @@
-# Moves the SHARE window's top-left corner (outer) to X,Y without resizing. Usage: move-window.ps1 [-X 0] [-Y 0] [-WindowTitle SHARE]
-param([int]$X = 0, [int]$Y = 0, [string]$WindowTitle = 'SHARE')
+# Moves the Recita window's top-left corner (outer) to X,Y without resizing. Usage: move-window.ps1 [-X 0] [-Y 0] [-WindowTitle Recita]
+param([int]$X = 0, [int]$Y = 0, [string]$WindowTitle = 'Recita')
 Add-Type @'
 using System; using System.Runtime.InteropServices;
 public static class Mv { [StructLayout(LayoutKind.Sequential)] public struct R { public int L,T,Rt,B; }

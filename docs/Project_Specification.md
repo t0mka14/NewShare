@@ -1,6 +1,8 @@
-# SHARE Clinical Recording App — Project Specification (Rewrite)
+# Recita Clinical Recording App — Project Specification (Rewrite)
 
 **Status:** Active · **Date:** 2026-07-02 (rev. 3, post second design review) · **Audience:** AI agents and developers working on this repository
+
+> **Naming note:** the app was formerly called SHARE and is now **Recita**. The legacy `shareapp` repository/paths referenced below keep their old name; the study protocol named "Share" is unrelated to the app name.
 
 This document is the single source of truth for the rewrite of the original `shareapp`
 (located at `/home/tomas/IdeaProjects/shareapp`). It supersedes `specs.txt` in the repo root.
@@ -814,7 +816,7 @@ minimal:
 4. Unreachable server ⇒ launch existing app without updating.
 5. The updater never touches `data/`.
 
-Install layout: `<install_dir>/{updater[.exe], runtime/, app/, data/}` — built for the two
+Install layout: `<install_dir>/{recita[.exe], runtime/, app/, data/}` — built for the two
 target platforms, Windows and macOS (macOS distribution requires signing/notarization; a
 packaging concern outside this document's scope). Anything beyond this (delta updates,
 channels, UI) is out of scope.

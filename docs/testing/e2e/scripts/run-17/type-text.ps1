@@ -1,4 +1,4 @@
-# Types text into the focused SHARE window with SendInput (KEYEVENTF_UNICODE, one key-down/up per char). Usage: .\type-text.ps1 -Text "E2E17-001" [-Mode unicode|scan]
+# Types text into the focused Recita window with SendInput (KEYEVENTF_UNICODE, one key-down/up per char). Usage: .\type-text.ps1 -Text "E2E17-001" [-Mode unicode|scan]
 param([Parameter(Mandatory)][string]$Text, [string]$Mode = 'unicode')
 Add-Type @'
 using System; using System.Runtime.InteropServices;
@@ -17,7 +17,7 @@ public static class Ti {
   }
 }
 '@
-$p = Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -like 'SHARE*' } | Select-Object -First 1
+$p = Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -like 'Recita*' } | Select-Object -First 1
 [Ti]::SetForegroundWindow($p.MainWindowHandle) | Out-Null; Start-Sleep -Milliseconds 300
 $n = 0; foreach ($c in $Text.ToCharArray()) { $n += [Ti]::Send($c, ($Mode -eq 'unicode')); Start-Sleep -Milliseconds 40 }
 "sent $n input events for $($Text.Length) chars"

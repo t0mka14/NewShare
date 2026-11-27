@@ -1,4 +1,4 @@
-# SHARE Clinical Recording App (rewrite)
+# Recita Clinical Recording App (rewrite)
 
 Desktop app (Kotlin/JVM, Compose Multiplatform, Decompose) for recording speech data from
 participants in clinical protocols: patient info → calibration → guided tasks over one

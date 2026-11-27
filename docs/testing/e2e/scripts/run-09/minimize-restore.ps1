@@ -1,5 +1,5 @@
-# Minimizes the SHARE window, waits, restores it (ShowWindow SW_MINIMIZE / SW_RESTORE). Usage: minimize-restore.ps1 [-Seconds 5] [-WindowTitle SHARE]
-param([int]$Seconds = 5, [string]$WindowTitle = 'SHARE')
+# Minimizes the Recita window, waits, restores it (ShowWindow SW_MINIMIZE / SW_RESTORE). Usage: minimize-restore.ps1 [-Seconds 5] [-WindowTitle Recita]
+param([int]$Seconds = 5, [string]$WindowTitle = 'Recita')
 Add-Type @'
 using System; using System.Runtime.InteropServices;
 public static class Mn { [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int c);

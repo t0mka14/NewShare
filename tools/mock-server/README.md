@@ -37,7 +37,7 @@ purpose to exercise the app's error paths.
 | GET | `/config`, POST `/config`, `/config/delete`, `/config/toggle`, GET `/config/raw/{name}` | web UI |
 | GET | `/uploads/{sessionId}/session.zip` | download a received session |
 | GET | `/api/version/latest` | **What the updater calls** (spec §9). `{version, downloadUrl, checksum}` for the highest published release; 404 if nothing is published. |
-| GET | `/api/version/download/{version}[/{artifact}]` | The release payload. Artifact defaults to `app.zip` (the §9 update package); `install-linux-x64.tar.gz` is the full first-install bundle. |
+| GET | `/api/version/download/{version}[/{artifact}]` | The release payload. Artifact defaults to `app.zip` (the §9 update package); `install-recita-linux-x64.tar.gz` is the full first-install bundle. |
 | GET | `/api/version/releases` | Everything published, for scripts. |
 
 Upload responses: `200` with `{"status":"ok","sessionId":…,"bytes":…,"sha256":…,"receivedAt":…}`

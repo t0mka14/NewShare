@@ -104,7 +104,7 @@
       "symptom_pain": "Bolest",
       "info_title": "Hotovo",
       "info_done": "Vyšetření je dokončeno.",
-      "welcome_message": "<bold>Vítejte</bold> v aplikaci SHARE.",
+      "welcome_message": "<bold>Vítejte</bold> v aplikaci Recita.",
       "bold_notice": "Uposlechněte <bold>pokyny</bold> pečlivě."
     },
     "en": {
@@ -132,7 +132,7 @@
       "symptom_pain": "Pain",
       "info_title": "Done",
       "info_done": "The examination is complete.",
-      "welcome_message": "<bold>Welcome</bold> to the SHARE app.",
+      "welcome_message": "<bold>Welcome</bold> to the Recita app.",
       "bold_notice": "Please follow the <bold>instructions</bold> carefully."
     }
   }

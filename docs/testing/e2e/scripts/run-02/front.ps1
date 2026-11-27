@@ -1,6 +1,6 @@
-# Bring the SHARE window to the front (the terminal usually covers it after a start).
-# Usage: .\front.ps1 [-WindowTitle SHARE]
-param([string]$WindowTitle = 'SHARE')
+# Bring the Recita window to the front (the terminal usually covers it after a start).
+# Usage: .\front.ps1 [-WindowTitle Recita]
+param([string]$WindowTitle = 'Recita')
 Add-Type @'
 using System;
 using System.Runtime.InteropServices;

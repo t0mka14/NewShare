@@ -105,7 +105,7 @@ fun main() {
                     container.singleInstanceLock.release()
                     exitApplication()
                 },
-                title = "SHARE (v$version)",
+                title = "Recita (v$version)",
                 state = rememberWindowState(size = DpSize(1000.dp, 820.dp)),
                 // Window/taskbar icon: the SAMI logo (also the main screen's bottom-right logo).
                 icon = painterResource(APP_ICON_RESOURCE),
@@ -151,7 +151,7 @@ private fun showAlreadyRunningAndExit(container: AppContainer) {
     val message = container.localizedStringProvider.resolveRaw("app.alreadyRunning", "en", null)
     val dismissLabel = container.localizedStringProvider.resolveRaw("error.dialog.dismiss", "en", null)
     application {
-        Window(onCloseRequest = ::exitApplication, title = "SHARE", icon = painterResource(APP_ICON_RESOURCE)) {
+        Window(onCloseRequest = ::exitApplication, title = "Recita", icon = painterResource(APP_ICON_RESOURCE)) {
             MaterialTheme {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(message, modifier = Modifier.testTag(TestTags.Blocking.SINGLE_INSTANCE_MESSAGE))

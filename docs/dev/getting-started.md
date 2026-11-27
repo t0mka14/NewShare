@@ -1,6 +1,6 @@
 # Getting started
 
-SHARE clinical recording app — Kotlin/JVM, Compose Multiplatform for Desktop, Decompose.
+Recita clinical recording app — Kotlin/JVM, Compose Multiplatform for Desktop, Decompose.
 The normative spec is [`docs/Project_Specification.md`](../Project_Specification.md); the
 remote-config format is [`docs/Task_Configuration_JSON_Spec.md`](../Task_Configuration_JSON_Spec.md).
 All design decisions of record live in spec **§13** — check there before changing behavior.
