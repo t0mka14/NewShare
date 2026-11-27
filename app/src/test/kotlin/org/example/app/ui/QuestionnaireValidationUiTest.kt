@@ -56,7 +56,7 @@ class QuestionnaireValidationUiTest {
         positionInProtocol = 1,
         totalInstanceCount = 1,
         previousTaskSkipped = false,
-        availableDevices = listOf(AudioInputDevice(id = "default", name = "Default Mic", eligible = true)),
+        availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(AudioInputDevice(id = "default", name = "Default Mic", eligible = true))),
         currentDevice = AudioInputDevice(id = "default", name = "Default Mic", eligible = true),
         resolvedAudioExamplePath = null,
         audioPlaybackService = FakeAudioPlaybackService(),

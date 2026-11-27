@@ -7,6 +7,7 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.example.app.domain.CoroutineDispatchers
 import org.example.app.domain.audio.AudioInputDevice
@@ -21,6 +22,9 @@ interface CalibrationComponent {
 
     /** Re-opens the selected device after [State.micFailed]. */
     fun onRetry()
+
+    /** The examiner opened the mic dropdown: rescan the devices now instead of waiting for the poll. */
+    fun onDeviceMenuOpened()
 
     data class State(
         val titleKey: String,
@@ -57,7 +61,10 @@ class DefaultCalibrationComponent(
     /** Target band, from `AppSettings.loudnessRange()`. */
     private val loudness: ClosedFloatingPointRange<Double>,
     initialDevice: AudioInputDevice,
-    availableDevices: List<AudioInputDevice>,
+    /** Live mic list (hot-plug); collected into [CalibrationComponent.State.availableDevices]. */
+    availableDevices: StateFlow<List<AudioInputDevice>>,
+    /** Rescans devices now; called when the mic dropdown opens. */
+    private val refreshDevices: suspend () -> Unit = {},
     private val onConfirmed: () -> Unit,
     /** An explicit examiner pick (never the automatic initial selection): saved as the default mic (F-062). */
     private val onDevicePicked: (AudioInputDevice) -> Unit = {},
@@ -72,7 +79,7 @@ class DefaultCalibrationComponent(
             instructionKeys = listOf("calibration.instructions"),
             minLoudness = loudness.start,
             maxLoudness = loudness.endInclusive,
-            availableDevices = availableDevices,
+            availableDevices = availableDevices.value,
             selectedDevice = initialDevice,
             micFailed = recorder.state.value is RecorderState.Failed,
             canConfirm = recorder.state.value is RecorderState.Monitoring,
@@ -86,6 +93,11 @@ class DefaultCalibrationComponent(
     init {
         lifecycle.doOnDestroy { scope.cancel() }
 
+        scope.launch(dispatchers.main) {
+            availableDevices.collect { devices ->
+                _state.value = _state.value.copy(availableDevices = devices)
+            }
+        }
         scope.launch(dispatchers.main) {
             recorder.levels.collect { level ->
                 val inRange = level.toDouble() in loudness
@@ -112,6 +124,10 @@ class DefaultCalibrationComponent(
         _state.value = _state.value.copy(selectedDevice = device, deviceLost = false)
         onDevicePicked(device)
         reopen(device)
+    }
+
+    override fun onDeviceMenuOpened() {
+        scope.launch(dispatchers.default) { refreshDevices() }
     }
 
     override fun onRetry() {

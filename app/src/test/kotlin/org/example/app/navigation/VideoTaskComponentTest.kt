@@ -50,7 +50,7 @@ class VideoTaskComponentTest {
             dispatchers = dispatchers,
             positionInProtocol = 3,
             totalInstanceCount = 5,
-            availableDevices = listOf(AudioInputDevice(id = "d", name = "Mic", eligible = true)),
+            availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(AudioInputDevice(id = "d", name = "Mic", eligible = true))),
             currentDevice = null,
             resolvedAudioExamplePath = null,
             audioPlaybackService = FakeAudioPlaybackService(),

@@ -292,7 +292,7 @@ class DefaultTaskComponent(
     private val previousTaskSkipped: Boolean = false,
     /** Device list + the device in use when this task screen was created (§8.5), so the
      * device-lost dialog needs nothing from the UI layer beyond this component's own state. */
-    private val availableDevices: List<AudioInputDevice>,
+    private val availableDevices: StateFlow<List<AudioInputDevice>>,
     private val currentDevice: AudioInputDevice?,
     /** `null` when the task has no `audioExamplePath`, or example playback isn't wired for a
      * no-master session; resolved to an absolute path by [SessionComponent] (§8.6 follow-up). */
@@ -334,6 +334,7 @@ class DefaultTaskComponent(
     /** Per-take WAVEFORM history (F-144); appended only while `Capturing`, cleared by the next take. */
     private var levelHistory: List<Float> = emptyList()
     private var deviceLost = false
+    private var devices: List<AudioInputDevice> = availableDevices.value
     private var exampleAudioPlaying = false
     private var skipConfirmationOpen = false
     private var answers: Map<String, AnswerState> = initialAnswers()
@@ -349,6 +350,13 @@ class DefaultTaskComponent(
     init {
         lifecycle.doOnDestroy { scope.cancel() }
         eventLogger(TimelineEventType.TASK_SCREEN_ENTERED, null, null)
+
+        scope.launch(dispatchers.main) {
+            availableDevices.collect { list ->
+                devices = list
+                publish()
+            }
+        }
 
         if (task is VocalTask && recorder != null) {
             scope.launch(dispatchers.main) {
@@ -795,8 +803,9 @@ class DefaultTaskComponent(
             previousTaskSkipped = previousTaskSkipped,
             content = content,
             buttons = buttons,
-            availableDevices = availableDevices,
-            currentDevice = currentDevice,
+            availableDevices = devices,
+            // Resolved against the live list; kept as given if it vanished (the recorder's loss flow handles that).
+            currentDevice = currentDevice?.let { cd -> devices.firstOrNull { it.id == cd.id } ?: cd },
         )
     }
 

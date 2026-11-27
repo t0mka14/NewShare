@@ -78,6 +78,8 @@ import org.example.app.infrastructure.persistence.JsonUploadStatusRepository
 import org.example.app.infrastructure.persistence.JvmDiskSpaceProvider
 import org.example.app.infrastructure.persistence.Sha256FileHashService
 import org.example.app.infrastructure.persistence.ZipSessionArchiveService
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Manual DI root (§5.2). Every port gets a production binding here; tests build
@@ -101,6 +103,8 @@ class AppContainer(
     /** Example-audio downloads (row 13); defaults to a Ktor cache under `configDir`. */
     val exampleAudioCache: ExampleAudioCache = KtorExampleAudioCache(directories),
     val audioInputDeviceProvider: AudioInputDeviceProvider = JvmAudioInputDeviceProvider(),
+    /** Mic hot-plug poll period of a session; tests pass INFINITE so `advanceUntilIdle` can finish. */
+    val audioDevicePollInterval: Duration = 2.seconds,
     /** OS-level microphone gain, addressed by device name (§13 decision 44). */
     val audioInputGainControl: AudioInputGainControl = JvmAudioInputGainControl(),
     val audioClipService: AudioClipService = JvmAudioClipService(),

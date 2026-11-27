@@ -39,10 +39,12 @@ fun <T> DropdownSelector(
     onSelected: (T) -> Unit,
     itemEnabled: (T) -> Boolean = { true },
     modifier: Modifier = Modifier,
+    /** Called each time the menu opens (e.g. to rescan a hot-pluggable list). */
+    onExpanded: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier = modifier) {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.testTag(triggerTag)) {
+        OutlinedButton(onClick = { expanded = true; onExpanded() }, modifier = Modifier.testTag(triggerTag)) {
             Text(selectedLabel)
             Icon(if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = null)
         }

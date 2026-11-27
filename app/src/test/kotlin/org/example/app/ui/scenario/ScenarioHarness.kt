@@ -109,6 +109,7 @@ class ScenarioHarness(tempDir: Path) {
         deviceLogApi = org.example.app.fakes.FakeDeviceLogApi(), // no real network in tests
         logDirectory = tempDir.resolve("device-log-test-dir"),
         audioInputDeviceProvider = deviceProvider,
+        audioDevicePollInterval = kotlin.time.Duration.INFINITE, // advanceUntilIdle must terminate
         audioClipService = audioClipService,
         waveformService = waveformService,
         audioPlaybackService = audioPlaybackService,

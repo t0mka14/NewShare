@@ -288,6 +288,8 @@ class DefaultRootComponent(
         if (protocol == null || activeConfig == null) return RootComponent.Child.Blocking
 
         val savedSettings = container.appSettingsRepository.read()
+        // Fingerprint BEFORE the scan: a change after this snapshot makes the watcher's first poll rescan.
+        val deviceFingerprint = container.audioInputDeviceProvider.deviceFingerprint()
         val devices = container.audioInputDeviceProvider.availableDevices()
         // §6.2: the device saved in Settings wins; the config's `defaultMicName` is the fallback
         // (matched tolerantly, §13 decision 44); then any usable device.
@@ -304,7 +306,10 @@ class DefaultRootComponent(
             // (questionnaire/info-only) protocols, where it is never actually opened; a zero-device
             // machine is an unsupported/edge deployment, not exercised by the fakes used in tests.
             initialDevice = initialDevice ?: org.example.app.domain.audio.AudioInputDevice(id = "none", name = "No microphone", eligible = false),
-            availableDevices = devices,
+            initialDevices = devices,
+            initialDeviceFingerprint = deviceFingerprint,
+            audioInputDeviceProvider = container.audioInputDeviceProvider,
+            devicePollInterval = container.audioDevicePollInterval,
             // Every device open (bootstrap, calibration switch, device-loss resume) first sets the
             // microphone level — the single trigger for `defaultMicGain`/the Settings slider (§13
             // decision 44). The session's own config is used, like every other snapshot value.

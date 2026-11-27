@@ -146,6 +146,7 @@ fun CalibrationContent(component: CalibrationComponent, localization: UiLocaliza
                     itemEnabled = { it.eligible },
                     itemTag = { "${TestTags.Calibration.DEVICE_SELECT}.${it.id}" },
                     onSelected = component::onDeviceSelected,
+                    onExpanded = component::onDeviceMenuOpened,
                 )
                 Button(
                     onClick = component::onConfirm,

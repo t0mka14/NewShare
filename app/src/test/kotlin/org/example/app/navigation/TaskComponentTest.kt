@@ -45,6 +45,7 @@ class TaskComponentTest {
         val resumeCalls = mutableListOf<Pair<AudioInputDevice, Path>>()
         val instance = TaskInstance(taskIndex = taskIndex, repetition = repetition, task = task)
         val devices = listOf(AudioInputDevice(id = "default", name = "Default Mic", eligible = true))
+        val deviceFlow = kotlinx.coroutines.flow.MutableStateFlow(devices)
         val audioPlaybackService = FakeAudioPlaybackService()
         val resolvedAudioExamplePath = audioExamplePath
 
@@ -62,7 +63,7 @@ class TaskComponentTest {
             positionInProtocol = taskIndex + 1,
             totalInstanceCount = taskIndex + 1,
             previousTaskSkipped = previousTaskSkipped,
-            availableDevices = devices,
+            availableDevices = deviceFlow,
             currentDevice = devices.first(),
             resolvedAudioExamplePath = resolvedAudioExamplePath,
             audioPlaybackService = audioPlaybackService,
@@ -693,5 +694,20 @@ class TaskComponentTest {
         h.component.onOpenAnswerChanged("k", "v")
         h.component.onNext()
         assertEquals(1, h.finished.size)
+    }
+
+    @Test
+    fun `device list in task state follows the live flow and currentDevice stays when it vanishes`() {
+        val h = Harness(vocalTask)
+        val plugged = AudioInputDevice(id = "usb", name = "USB Mic", eligible = true)
+
+        h.deviceFlow.value = h.devices + plugged
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(h.devices + plugged, h.component.state.value.availableDevices)
+
+        h.deviceFlow.value = listOf(plugged)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(listOf(plugged), h.component.state.value.availableDevices)
+        assertEquals(h.devices.first(), h.component.state.value.currentDevice)
     }
 }

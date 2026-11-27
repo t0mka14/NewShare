@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.create
 import com.arkivanov.essenty.lifecycle.destroy
 import org.example.app.domain.audio.AudioError
+import org.example.app.domain.audio.AudioInputDevice
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.InterruptionReason
 import org.example.app.domain.config.IndicatorType
@@ -108,6 +109,9 @@ class SessionComponentTest {
             cameras ?: if (withCamera) listOf(FakeVideoInputDeviceProvider.DEFAULT_CAMERA) else emptyList(),
         )
 
+        val audioDeviceProvider = FakeAudioInputDeviceProvider(
+            listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
+        )
         val clock = FakeClock(Instant.parse("2026-07-03T09:00:00Z"))
         val dispatchers = TestCoroutineDispatchers(queuedMain = queuedMain)
         val lifecycle = LifecycleRegistry()
@@ -144,6 +148,8 @@ class SessionComponentTest {
             protocol: Protocol,
             useCalibration: Boolean = true,
             indicatorType: IndicatorType = IndicatorType.CIRCLE,
+            // INFINITE: a live poll loop would keep `advanceUntilIdle` spinning forever.
+            devicePollInterval: kotlin.time.Duration = kotlin.time.Duration.INFINITE,
         ): SessionComponent = DefaultSessionComponent(
             componentContext = DefaultComponentContext(lifecycle),
             installationId = "install-1",
@@ -152,7 +158,9 @@ class SessionComponentTest {
             rawConfigJson = """{"schemaVersion":1}""",
             participantFieldValues = mapOf("patient_code" to "HC001"),
             initialDevice = FakeAudioInputDeviceProvider.DEFAULT_DEVICE,
-            availableDevices = listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
+            initialDevices = audioDeviceProvider.availableDevices(),
+            audioInputDeviceProvider = audioDeviceProvider,
+            devicePollInterval = devicePollInterval,
             videoInputDeviceProvider = videoDeviceProvider,
             savedCameraDeviceId = savedCameraDeviceId,
             videoRecorderFactory = {
@@ -1082,5 +1090,59 @@ class SessionComponentTest {
             }
             assertTrue(lines.none { "ABC123" in it || "2026-07-01" in it || "t.mjpeg" in it || "C:\\data" in it }, "$name: $lines")
         }
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun `a mic plugged in mid-session reaches calibration and the task screen state`() {
+        val h = Harness()
+        val component = h.build(vocalProtocol, devicePollInterval = kotlin.time.Duration.parse("2s"))
+        h.dispatchers.scheduler.runCurrent()
+        h.dispatchers.scheduler.advanceTimeBy(100)
+        h.dispatchers.scheduler.runCurrent()
+        val calibration = (component.stack.value.active.instance as SessionComponent.Child.Calibration).component
+        assertEquals(2, calibration.state.value.availableDevices.size)
+
+        val plugged = AudioInputDevice(id = "usb-hotplug", name = "Hot-plugged Mic", eligible = true)
+        h.audioDeviceProvider.setDevices(h.audioDeviceProvider.availableDevices() + plugged)
+        h.dispatchers.scheduler.advanceTimeBy(2_500)
+        h.dispatchers.scheduler.runCurrent()
+        assertTrue(calibration.state.value.availableDevices.any { it.id == plugged.id })
+
+        calibration.onConfirm()
+        h.dispatchers.scheduler.runCurrent()
+        val task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertTrue(task.state.value.availableDevices.any { it.id == plugged.id })
+
+        // A later plug-in reaches the already open task screen too.
+        val later = AudioInputDevice(id = "usb-later", name = "Later Mic", eligible = true)
+        h.audioDeviceProvider.setDevices(h.audioDeviceProvider.availableDevices() + later)
+        h.dispatchers.scheduler.advanceTimeBy(2_500)
+        h.dispatchers.scheduler.runCurrent()
+        assertTrue(task.state.value.availableDevices.any { it.id == later.id })
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun `the current mic stays the next task screen currentDevice after a scan drops it`() {
+        val h = Harness()
+        val component = h.build(vocalProtocol, devicePollInterval = kotlin.time.Duration.parse("2s"))
+        h.dispatchers.scheduler.runCurrent()
+        h.dispatchers.scheduler.advanceTimeBy(100)
+        h.dispatchers.scheduler.runCurrent()
+        (component.stack.value.active.instance as SessionComponent.Child.Calibration).component.onConfirm()
+        h.dispatchers.scheduler.runCurrent()
+        var task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertEquals(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, task.state.value.currentDevice)
+
+        h.audioDeviceProvider.setDevices(listOf(FakeAudioInputDeviceProvider.SECONDARY_DEVICE))
+        h.dispatchers.scheduler.advanceTimeBy(2_500)
+        h.dispatchers.scheduler.runCurrent()
+        assertTrue(task.state.value.availableDevices.none { it.id == FakeAudioInputDeviceProvider.DEFAULT_DEVICE.id })
+
+        task.onStart(); task.onStop(); task.onNext()
+        h.dispatchers.scheduler.runCurrent()
+        task = (component.stack.value.active.instance as SessionComponent.Child.TaskScreen).component
+        assertEquals(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, task.state.value.currentDevice)
     }
 }

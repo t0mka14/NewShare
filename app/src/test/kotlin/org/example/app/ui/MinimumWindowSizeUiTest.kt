@@ -81,7 +81,7 @@ class MinimumWindowSizeUiTest {
             dispatchers = TestCoroutineDispatchers(),
             positionInProtocol = 1,
             totalInstanceCount = 1,
-            availableDevices = listOf(AudioInputDevice(id = "default", name = "Default Mic", eligible = true)),
+            availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(AudioInputDevice(id = "default", name = "Default Mic", eligible = true))),
             currentDevice = AudioInputDevice(id = "default", name = "Default Mic", eligible = true),
             resolvedAudioExamplePath = Path.of("example.wav"),
             audioPlaybackService = FakeAudioPlaybackService(),
@@ -190,7 +190,7 @@ class MinimumWindowSizeUiTest {
             dispatchers = TestCoroutineDispatchers(),
             loudness = 0.2..0.6,
             initialDevice = device,
-            availableDevices = listOf(device, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
+            availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(device, FakeAudioInputDeviceProvider.SECONDARY_DEVICE)),
             onConfirmed = {},
             onDevicePicked = {},
         )

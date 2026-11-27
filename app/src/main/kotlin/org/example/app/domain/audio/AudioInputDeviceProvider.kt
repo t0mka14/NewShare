@@ -6,6 +6,14 @@ package org.example.app.domain.audio
  */
 interface AudioInputDeviceProvider {
     fun availableDevices(): List<AudioInputDevice>
+
+    /**
+     * Cheap change-detection token for mic hot-plug polling ([AudioDeviceWatcher]): two calls
+     * returning equal values mean the device set is unchanged, so the full (format-probing)
+     * [availableDevices] scan can be skipped. The default is the full list itself, which is
+     * correct for fakes; real providers override it with something much cheaper.
+     */
+    fun deviceFingerprint(): Any = availableDevices()
 }
 
 data class AudioInputDevice(

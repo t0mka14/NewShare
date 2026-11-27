@@ -18,7 +18,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.example.app.domain.Clock
 import org.example.app.domain.CoroutineDispatchers
+import org.example.app.domain.audio.AudioDeviceWatcher
 import org.example.app.domain.audio.AudioInputDevice
+import org.example.app.domain.audio.AudioInputDeviceProvider
 import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.audio.ContinuousSessionRecorder
@@ -54,11 +56,14 @@ import org.example.app.domain.video.VideoError
 import org.example.app.domain.video.redactPaths
 import org.example.app.domain.video.VideoRecorderState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.example.app.domain.video.VideoCaptureFormat
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoInputDeviceProvider
 import org.example.app.domain.timeline.TimelineRepository
 import java.nio.file.Path
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
 
@@ -110,7 +115,13 @@ class DefaultSessionComponent(
     private val rawConfigJson: String,
     private val participantFieldValues: Map<String, String>,
     private val initialDevice: AudioInputDevice,
-    private val availableDevices: List<AudioInputDevice>,
+    /** Mics enumerated when the session was built: the starting value of the hot-plug watcher's list. */
+    initialDevices: List<AudioInputDevice>,
+    /** Polled for the whole session so a mic plugged in mid-session reaches calibration, task screens and the device-lost dialog. */
+    audioInputDeviceProvider: AudioInputDeviceProvider,
+    devicePollInterval: Duration = 2.seconds,
+    /** `deviceFingerprint()` taken before [initialDevices] were enumerated; null makes the first poll rescan. */
+    initialDeviceFingerprint: Any? = null,
     private val recorderFactory: () -> ContinuousSessionRecorder,
     /**
      * Where the camera comes from, rather than a camera already chosen.
@@ -154,6 +165,9 @@ class DefaultSessionComponent(
 ) : SessionComponent, ComponentContext by componentContext {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
+
+    private val deviceWatcher = AudioDeviceWatcher(audioInputDeviceProvider, initialDevices, dispatchers, devicePollInterval, initialDeviceFingerprint)
+    private val availableDevices: StateFlow<List<AudioInputDevice>> = deviceWatcher.devices
     private val navigation = StackNavigation<Config>()
 
     private val _startError = MutableValue(SessionComponent.StartError())
@@ -185,6 +199,15 @@ class DefaultSessionComponent(
     private var examination: Examination? = null
     private var navigableInstances: List<TaskInstance> = emptyList()
     private var currentDeviceId: String? = initialDevice.id
+
+    /** Last known object for [currentDeviceId]; survives the live list dropping that device. */
+    private var lastKnownDevice: AudioInputDevice = initialDevice
+
+    private fun resolveCurrentDevice(): AudioInputDevice? {
+        val id = currentDeviceId ?: return null
+        availableDevices.value.firstOrNull { it.id == id }?.let { lastKnownDevice = it; return it }
+        return lastKnownDevice.takeIf { it.id == id }
+    }
     private var pendingInterruption: PendingInterruption? = null
     private var interruptionPartCounter = 1
 
@@ -208,6 +231,7 @@ class DefaultSessionComponent(
         )
 
     init {
+        deviceWatcher.start(scope)
         lifecycle.doOnDestroy {
             scope.cancel()
             // Not [scope]: a job launched into it here would be cancelled before the main
@@ -308,6 +332,7 @@ class DefaultSessionComponent(
                     loudness = calibrationLoudness,
                     initialDevice = initialDevice,
                     availableDevices = availableDevices,
+                    refreshDevices = deviceWatcher::refreshNow,
                     onConfirmed = ::onCalibrationConfirmed,
                     onDevicePicked = onMicDevicePicked,
                 ),
@@ -321,7 +346,7 @@ class DefaultSessionComponent(
         val task = instance.task
         val resolvedAudioExamplePath = (task as? VocalTask)?.audioExamplePath
             ?.let(exampleAudioCache::localFileFor)
-        val currentDevice = availableDevices.firstOrNull { it.id == currentDeviceId }
+        val currentDevice = resolveCurrentDevice()
 
         // The camera is opened here rather than from a lifecycle callback for two reasons:
         // `childFactory` runs exactly once per screen entry (every transition is `replaceAll`,
@@ -444,6 +469,7 @@ class DefaultSessionComponent(
     private suspend fun onMicOpened(device: AudioInputDevice, format: CaptureFormat?) {
         val gain = readMicGain(device)
         currentDeviceId = device.id
+        lastKnownDevice = device
         logger.info { "microphone opened: '${device.name}' (${device.id}) gain=$gain format=$format" }
         updateHardware {
             it.copy(
@@ -594,7 +620,7 @@ class DefaultSessionComponent(
 
         recorder?.let { r ->
             // Somebody turning the OS mic level mid-session is invisible otherwise.
-            val device = availableDevices.firstOrNull { it.id == currentDeviceId } ?: initialDevice
+            val device = resolveCurrentDevice() ?: initialDevice
             val last = hardware.micUses.lastOrNull()
             val gainNow = readMicGain(device)
             if (last != null && gainNow != last.inputGainPercent) {
@@ -640,6 +666,7 @@ class DefaultSessionComponent(
         val pending = pendingInterruption ?: return
         pendingInterruption = null
         currentDeviceId = device.id
+        lastKnownDevice = device
 
         // The cut, not the live counter: the new part is already being written, and INTERRUPTED/RESUMED
         // carry one value (decision 20) which crash recovery reads as the base of the newest part.

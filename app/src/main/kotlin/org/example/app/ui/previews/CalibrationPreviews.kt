@@ -30,6 +30,7 @@ private class PreviewCalibrationComponent(state: CalibrationComponent.State) : C
     override fun onDeviceSelected(device: AudioInputDevice) = Unit
     override fun onConfirm() = Unit
     override fun onRetry() = Unit
+    override fun onDeviceMenuOpened() = Unit
 }
 
 private val previewMic = AudioInputDevice(id = "mic-1", name = "USB microphone", eligible = true)

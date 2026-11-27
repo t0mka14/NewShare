@@ -42,7 +42,7 @@ class TaskRepetitionUiTest {
             dispatchers = TestCoroutineDispatchers(),
             positionInProtocol = repetition,
             totalInstanceCount = 2,
-            availableDevices = listOf(device),
+            availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(device)),
             currentDevice = device,
             resolvedAudioExamplePath = null,
             audioPlaybackService = FakeAudioPlaybackService(),

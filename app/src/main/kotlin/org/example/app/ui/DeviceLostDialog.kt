@@ -34,9 +34,16 @@ fun DeviceLostDialog(
     messageTag: String,
     onDeviceAction: (AudioInputDevice) -> Unit,
 ) {
-    var selected by remember(availableDevices, defaultDevice) {
-        mutableStateOf(defaultDevice ?: availableDevices.firstOrNull())
-    }
+    // Keyed on the default device's id only: a hot-plug changes `availableDevices`, and a rescan or
+    // a live-vs-construction-time copy changes the default's other fields; neither may reset the
+    // examiner's pick. Effective choice: pick (if listed) -> default (if listed) -> first eligible
+    // -> first -> the (absent) default -> none.
+    var picked by remember(defaultDevice?.id) { mutableStateOf(defaultDevice ?: availableDevices.firstOrNull()) }
+    val selected = picked?.takeIf { p -> availableDevices.any { it.id == p.id } }
+        ?: defaultDevice?.takeIf { d -> availableDevices.any { it.id == d.id } }
+        ?: availableDevices.firstOrNull { it.eligible }
+        ?: availableDevices.firstOrNull()
+        ?: defaultDevice
 
     AlertDialog(
         onDismissRequest = { /* blocking: dismissable only via reconnect/resume (§8.5) */ },
@@ -54,7 +61,7 @@ fun DeviceLostDialog(
                     itemEnabled = { it.eligible },
                     itemTag = { "${TestTags.DeviceLostDialog.DEVICE_SELECT}.${it.id}" },
                     onSelected = { device ->
-                        selected = device
+                        picked = device
                         if (!requiresExplicitResume) onDeviceAction(device)
                     },
                 )

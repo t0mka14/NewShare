@@ -65,7 +65,7 @@ class FixRound4D4UiTest {
                 dispatchers = dispatchers,
                 positionInProtocol = 1,
                 totalInstanceCount = 1,
-                availableDevices = listOf(device),
+                availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(device)),
                 currentDevice = device,
                 resolvedAudioExamplePath = Path.of("example.wav"),
                 audioPlaybackService = FakeAudioPlaybackService(),
@@ -171,7 +171,7 @@ class FixRound4D4UiTest {
                 dispatchers = TestCoroutineDispatchers(),
                 loudness = 0.2..0.6,
                 initialDevice = device,
-                availableDevices = listOf(device, FakeAudioInputDeviceProvider.SECONDARY_DEVICE),
+                availableDevices = kotlinx.coroutines.flow.MutableStateFlow(listOf(device, FakeAudioInputDeviceProvider.SECONDARY_DEVICE)),
                 onConfirmed = {},
                 onDevicePicked = {},
             )

@@ -56,6 +56,7 @@ class RootComponentTest {
             // opens its device; the device list and recorder are faked for the same reason.
             audioInputGainControl = gainControl,
             audioInputDeviceProvider = deviceProvider,
+            audioDevicePollInterval = kotlin.time.Duration.INFINITE, // advanceUntilIdle must terminate
             sessionRecorderFactory = { recorder },
             configApi = configApi,
             deviceCheckinApi = org.example.app.fakes.FakeDeviceCheckinApi(),

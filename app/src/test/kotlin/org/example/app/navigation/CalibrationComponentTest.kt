@@ -21,6 +21,8 @@ class CalibrationComponentTest {
         val dispatchers = TestCoroutineDispatchers()
         val recorder = FakeContinuousSessionRecorder(clock)
         var confirmed = 0
+        var refreshes = 0
+        val devices = kotlinx.coroutines.flow.MutableStateFlow(listOf(FakeAudioInputDeviceProvider.DEFAULT_DEVICE, FakeAudioInputDeviceProvider.SECONDARY_DEVICE))
         val picked = mutableListOf<AudioInputDevice>()
         val device = FakeAudioInputDeviceProvider.DEFAULT_DEVICE
         val secondary = FakeAudioInputDeviceProvider.SECONDARY_DEVICE
@@ -38,7 +40,8 @@ class CalibrationComponentTest {
             dispatchers = dispatchers,
             loudness = 0.2..0.6,
             initialDevice = device,
-            availableDevices = listOf(device, secondary),
+            availableDevices = devices,
+            refreshDevices = { refreshes++ },
             onConfirmed = { confirmed++ },
             onDevicePicked = { picked += it },
         )
@@ -185,5 +188,29 @@ class CalibrationComponentTest {
         h.dispatchers.scheduler.advanceUntilIdle()
 
         assertEquals(listOf(h.secondary), h.picked)
+    }
+
+    @Test
+    fun `device list in state follows the live flow and the selection survives its removal`() {
+        val h = Harness()
+        val plugged = AudioInputDevice(id = "usb2", name = "New USB Mic", eligible = true)
+
+        h.devices.value = listOf(h.device, h.secondary, plugged)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(listOf(h.device, h.secondary, plugged), h.component.state.value.availableDevices)
+
+        h.devices.value = listOf(h.secondary)
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(listOf(h.secondary), h.component.state.value.availableDevices)
+        assertEquals(h.device, h.component.state.value.selectedDevice, "a vanished selection stays shown as selected")
+    }
+
+    @Test
+    fun `opening the device menu triggers a device refresh`() {
+        val h = Harness()
+        assertEquals(0, h.refreshes)
+        h.component.onDeviceMenuOpened()
+        h.dispatchers.scheduler.advanceUntilIdle()
+        assertEquals(1, h.refreshes)
     }
 }
