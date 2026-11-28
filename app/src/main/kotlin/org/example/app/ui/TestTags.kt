@@ -186,6 +186,27 @@ object TestTags {
         const val DISCARD_DIALOG = "editor.discardDialog"
         const val DISCARD_CONFIRM_BUTTON = "editor.discardConfirmButton"
         const val DISCARD_CANCEL_BUTTON = "editor.discardCancelButton"
+
+        // Enhanced editor (cut / zoom).
+        const val ZOOM_IN_BUTTON = "editor.zoomInButton"
+        const val ZOOM_OUT_BUTTON = "editor.zoomOutButton"
+        const val ZOOM_FIT_BUTTON = "editor.zoomFitButton"
+        const val PAN_BAR = "editor.panBar"
+        const val SELECTION_LABEL = "editor.selectionLabel"
+        const val SELECTION_BAND = "editor.selectionBand"
+        const val SELECTION_START_HANDLE = "editor.selectionStartHandle"
+        const val SELECTION_STOP_HANDLE = "editor.selectionStopHandle"
+        const val SELECTION_GROUP = "editor.selectionGroup"
+        const val PLAY_SELECTION_BUTTON = "editor.playSelectionButton"
+        const val CUT_SELECTION_BUTTON = "editor.cutSelectionButton"
+        const val CLEAR_SELECTION_BUTTON = "editor.clearSelectionButton"
+        const val CUT_REJECTION_MESSAGE = "editor.cutRejectionMessage"
+        const val VIDEO_NOT_CUT_NOTE = "editor.videoNotCutNote"
+        const val DURATION_LABEL = "editor.durationLabel"
+        const val CUT_BAND_PREFIX = "editor.cutBand."
+        const val RESTORE_CUT_BUTTON_PREFIX = "editor.restoreCutButton."
+        fun cutBand(index: Int) = CUT_BAND_PREFIX + index
+        fun restoreCutButton(index: Int) = RESTORE_CUT_BUTTON_PREFIX + index
     }
 
     /** Processing progress screen (§8.8) — blocks navigation while `ProcessSessionUseCase` runs. */
@@ -278,6 +299,8 @@ object TestTags {
         fun indicatorOption(type: String) = "settings.indicatorOption.$type"
         /** Clears the local indicator override; shown only while one exists. */
         const val INDICATOR_RESET_BUTTON = "settings.indicatorResetButton"
+        /** Material Switch enabling the enhanced editor (cut-outs, zoom). */
+        const val ENHANCED_EDITOR_SWITCH = "settings.enhancedEditorSwitch"
     }
 
     /** Last-resort uncaught-error dialog rendered over any screen (ErrorReporter). */

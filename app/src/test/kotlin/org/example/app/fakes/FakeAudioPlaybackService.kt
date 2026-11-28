@@ -19,6 +19,7 @@ class FakeAudioPlaybackService : AudioPlaybackService {
 
     val playCalls = mutableListOf<Path>()
     val playRangeCalls = mutableListOf<PlayRangeCall>()
+    val playRangesCalls = mutableListOf<PlayRangesCall>()
     var stopCallCount = 0
         private set
 
@@ -38,6 +39,13 @@ class FakeAudioPlaybackService : AudioPlaybackService {
         _isPlaying.value = true
     }
 
+    override fun playRanges(file: Path, ranges: List<LongRange>) {
+        require(ranges.isNotEmpty()) { "ranges must not be empty" }
+        playRangesCalls += PlayRangesCall(file, ranges)
+        _positionSamples.value = ranges.first().first
+        _isPlaying.value = true
+    }
+
     override fun stop() {
         stopCallCount++
         _isPlaying.value = false
@@ -47,6 +55,8 @@ class FakeAudioPlaybackService : AudioPlaybackService {
     fun setPosition(sample: Long) {
         _positionSamples.value = sample
     }
+
+    data class PlayRangesCall(val file: Path, val ranges: List<LongRange>)
 
     data class PlayRangeCall(val file: Path, val startSample: Long, val stopSample: Long)
 }

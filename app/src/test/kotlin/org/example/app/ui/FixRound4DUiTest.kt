@@ -59,6 +59,7 @@ class FixRound4DUiTest {
         override fun onRefreshDevicesClicked() = Unit
         override fun onIndicatorTypeSelected(type: IndicatorType) = Unit
         override fun onIndicatorTypeReset() = Unit
+        override fun onEnhancedEditorChanged(enabled: Boolean) = Unit
         override fun onMicGainChanged(value: Int) = Unit
         override fun onMicGainChangeFinished() = Unit
         override fun onMicGainReset() = Unit

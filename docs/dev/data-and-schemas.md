@@ -12,14 +12,15 @@ data/
   app.lock                          single-instance lock (FileChannel.tryLock)
   config/
     config.json                     raw cached remote config (RawConfigCache)
-    settings.json                   AppSettings — mic + camera device ids, generated installation ID, site token, language
+    settings.json                   AppSettings — mic + camera device ids, generated installation ID, site token, language, indicator type, enhanced-editor switch
   sessions/<yyyy-MM-dd_Patient_SessionId>/
     participant.json                ParticipantRecord
     examination.json                Examination — updated after every task (atomic)
     task_configuration_snapshot.json  raw config the session ran with (immutable)
     timeline.events.jsonl           append-only event log, fsync per event, never deleted
     timeline_original.json          compacted on clean stop / recovery (immutable)
-    timeline_edited.json            ONLY if an editor boundary moved; complete segment list
+    timeline_edited.json            ONLY if an editor boundary moved or a part was cut out; complete segment
+                                    list, a segment may carry optional `cuts[]` (global samples)
     master/session_master.wav       immutable; .partial.wav while recording; .partN.wav after
                                     device-loss resume (each part in its own negotiated format)
     waveform_cache/                 derived; versioned peak cache (regenerable)

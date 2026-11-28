@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.example.app.domain.audio.AudioPlaybackService
 import org.example.app.domain.audio.CaptureFormat
+import org.example.app.domain.audio.RangeTimeMap
 import java.io.RandomAccessFile
 import java.nio.file.Path
 
@@ -58,19 +59,29 @@ class JvmAudioPlaybackService(
             return
         }
         val totalFrames = header.format.framesIn(header.dataSize)
-        startPlayback(file, header.format, 0L, totalFrames)
+        if (totalFrames <= 0) return
+        startPlayback(file, header.format, RangeTimeMap(listOf(0L until totalFrames)))
     }
 
     override fun playRange(file: Path, startSample: Long, stopSample: Long) {
         try {
             require(startSample >= 0) { "startSample must be >= 0, was $startSample" }
             require(startSample < stopSample) { "startSample ($startSample) must be < stopSample ($stopSample)" }
+            playRanges(file, listOf(startSample until stopSample))
+        } catch (e: Exception) {
+            logger.warn(redacted(e)) { "cannot start range playback for ${file.fileName}" }
+        }
+    }
+
+    override fun playRanges(file: Path, ranges: List<LongRange>) {
+        try {
+            val map = RangeTimeMap(ranges)
             val header = WavIo.readHeader(file)
             val totalFrames = header.format.framesIn(header.dataSize)
-            require(stopSample <= totalFrames) {
-                "range [$startSample, $stopSample) exceeds frame count $totalFrames for $file"
+            require(ranges.last().last < totalFrames) {
+                "ranges end at frame ${ranges.last().last}, exceeding frame count $totalFrames for $file"
             }
-            startPlayback(file, header.format, startSample, stopSample)
+            startPlayback(file, header.format, map)
         } catch (e: Exception) {
             logger.warn(redacted(e)) { "cannot start range playback for ${file.fileName}" }
         }
@@ -81,42 +92,49 @@ class JvmAudioPlaybackService(
         _isPlaying.value = false
     }
 
-    private fun startPlayback(file: Path, format: CaptureFormat, startFrame: Long, stopFrame: Long) {
+    private fun startPlayback(file: Path, format: CaptureFormat, map: RangeTimeMap) {
         stopPlaybackThreadAndLine() // port contract: starting a new playback stops the previous one
-        _positionSamples.value = startFrame
+        _positionSamples.value = map.sourceFrameAt(0)
         _isPlaying.value = true
 
         val line = lineFactory()
         currentLine = line
-        val thread = Thread({ playbackLoop(file, format, startFrame, stopFrame, line) }, "audio-playback")
+        val thread = Thread({ playbackLoop(file, format, map, line) }, "audio-playback")
         thread.isDaemon = true
         playbackThread = thread
         thread.start()
     }
 
-    private fun playbackLoop(file: Path, format: CaptureFormat, startFrame: Long, stopFrame: Long, line: PlaybackLine) {
+    private fun playbackLoop(file: Path, format: CaptureFormat, map: RangeTimeMap, line: PlaybackLine) {
         try {
             line.open(format)
             val frameSize = format.frameSize()
             val chunkFrames = (format.bytesForMillis(CHUNK_MS).coerceAtLeast(frameSize) / frameSize).coerceAtLeast(1)
             RandomAccessFile(file.toFile(), "r").use { raf ->
-                raf.seek(WavHeader.HEADER_SIZE.toLong() + startFrame * frameSize)
                 val buffer = ByteArray(chunkFrames * frameSize)
-                var frame = startFrame
-                while (frame < stopFrame && !Thread.currentThread().isInterrupted) {
-                    val framesToRead = minOf(chunkFrames.toLong(), stopFrame - frame).toInt()
-                    val bytesToRead = framesToRead * frameSize
-                    raf.readFully(buffer, 0, bytesToRead)
-                    line.write(buffer, 0, bytesToRead)
-                    frame += framesToRead
-                    // Once the line's buffer is full each write returns after roughly CHUNK_MS of
-                    // real time, so this publishes the rendered position ~50x/s. While the buffer
-                    // is still filling the writes return instantly and the position correctly
-                    // stays parked at startFrame — the sound has not begun yet.
-                    publishPosition(line, startFrame, stopFrame, writtenFrame = frame)
+                var played = 0L
+                // Ranges are written back-to-back on the same line: no gap, no fade.
+                for (range in map.ranges) {
+                    raf.seek(WavHeader.HEADER_SIZE.toLong() + range.first * frameSize)
+                    var frame = range.first
+                    val stopFrame = range.last + 1
+                    while (frame < stopFrame && !Thread.currentThread().isInterrupted) {
+                        val framesToRead = minOf(chunkFrames.toLong(), stopFrame - frame).toInt()
+                        val bytesToRead = framesToRead * frameSize
+                        raf.readFully(buffer, 0, bytesToRead)
+                        line.write(buffer, 0, bytesToRead)
+                        frame += framesToRead
+                        played += framesToRead
+                        // Once the line's buffer is full each write returns after roughly CHUNK_MS of
+                        // real time, so this publishes the rendered position ~50x/s. While the buffer
+                        // is still filling the writes return instantly and the position correctly
+                        // stays parked at the start — the sound has not begun yet.
+                        publishPosition(line, map, writtenFrames = played)
+                    }
+                    if (Thread.currentThread().isInterrupted) break
                 }
                 if (!Thread.currentThread().isInterrupted) {
-                    drainTracking(line, startFrame, stopFrame)
+                    drainTracking(line, map)
                 }
             }
         } catch (e: InterruptedException) {
@@ -135,16 +153,13 @@ class JvmAudioPlaybackService(
     }
 
     /**
-     * Publishes the position the device is actually sounding. [writtenFrame] is only the fallback
+     * Publishes the SOURCE frame the device is actually sounding: the line's rendered frame count
+     * mapped through [map], so the position jumps over cuts. [writtenFrames] is only the fallback
      * for lines with no position clock (test fakes) — see [PlaybackLine.framePosition].
      */
-    private fun publishPosition(line: PlaybackLine, startFrame: Long, stopFrame: Long, writtenFrame: Long) {
+    private fun publishPosition(line: PlaybackLine, map: RangeTimeMap, writtenFrames: Long) {
         val rendered = line.framePosition()
-        _positionSamples.value = if (rendered >= 0) {
-            (startFrame + rendered).coerceIn(startFrame, stopFrame)
-        } else {
-            writtenFrame
-        }
+        _positionSamples.value = map.sourceFrameAt(if (rendered >= 0) rendered else writtenFrames)
     }
 
     /**
@@ -152,18 +167,18 @@ class JvmAudioPlaybackService(
      * `PlaybackLine.drain()` blocks silently, which used to pin the editor's position line at the
      * segment end for the last buffer's worth of audio.
      */
-    private fun drainTracking(line: PlaybackLine, startFrame: Long, stopFrame: Long) {
+    private fun drainTracking(line: PlaybackLine, map: RangeTimeMap) {
         if (line.framePosition() < 0) {
             line.drain()
+            _positionSamples.value = map.sourceFrameAt(map.totalPlayedFrames)
             return
         }
-        val totalFrames = stopFrame - startFrame
-        while (!Thread.currentThread().isInterrupted && line.framePosition() < totalFrames) {
-            publishPosition(line, startFrame, stopFrame, writtenFrame = stopFrame)
+        while (!Thread.currentThread().isInterrupted && line.framePosition() < map.totalPlayedFrames) {
+            publishPosition(line, map, writtenFrames = map.totalPlayedFrames)
             Thread.sleep(POSITION_TICK_MS)
         }
         if (!Thread.currentThread().isInterrupted) {
-            publishPosition(line, startFrame, stopFrame, writtenFrame = stopFrame)
+            publishPosition(line, map, writtenFrames = map.totalPlayedFrames)
             line.drain()
         }
     }

@@ -4,6 +4,7 @@ import org.example.app.domain.config.RecordingsFileNameRenderer
 import org.example.app.domain.timeline.TakeSelector
 import org.example.app.domain.timeline.TimelineEditedSegment
 import org.example.app.domain.timeline.TimelineEvent
+import org.example.app.domain.timeline.keptRanges
 
 /**
  * One clip to cut from a master part into `clips/` (§8.8): the last take of one VOCAL task
@@ -14,8 +15,13 @@ data class ClipExportPlan(
     val repetition: Int,
     val subtype: String,
     val sourcePart: MasterPart,
-    /** `[start, stop)` frame offsets local to [sourcePart]'s own file. */
+    /** Overall `[start, stop)` span (cuts included) in frame offsets local to [sourcePart]'s own file. */
     val localRange: LongRange,
+    /**
+     * The ranges actually exported, in order, as inclusive frame ranges local to [sourcePart]'s
+     * file. One range equal to [localRange] when there are no cuts (and for the original timeline).
+     */
+    val keepRanges: List<LongRange>,
     /** File name only (no `clips/` prefix), e.g. `"install1_HC001_3_PHONATION_1.wav"`. */
     val clipFileName: String,
 )
@@ -33,6 +39,10 @@ sealed interface ClipPlanningError {
     /** No last-take `[start, stop)` range could be derived from `timeline_original.json`
      * (§8.3) for a non-skipped VOCAL instance recorded with at least one take. */
     data class MissingTakeRange(val taskIndex: Int, val repetition: Int) : ClipPlanningError
+
+    /** An edited segment whose cuts remove every sample, so nothing is left to export. The editor and
+     * [org.example.app.domain.timeline.TimelineBoundaryValidator] must prevent this. */
+    data class EmptyKeepRanges(val taskIndex: Int, val repetition: Int) : ClipPlanningError
 
     /** The resolved sample range does not fit entirely inside one master part (§8.5) — should
      * never happen since a take is always auto-rejected before an interruption gap. */
@@ -78,6 +88,7 @@ object ClipExportPlanner {
                 continue
             }
 
+            var globalKeep: List<LongRange>? = null
             val range: LongRange = if (editedSegments != null) {
                 val segment = editedSegments.firstOrNull {
                     it.taskIndex == record.taskIndex && it.repetition == record.repetition
@@ -86,6 +97,12 @@ object ClipExportPlanner {
                     errors += ClipPlanningError.MissingEditedSegment(record.taskIndex, record.repetition)
                     continue
                 }
+                val kept = segment.keptRanges()
+                if (kept.isEmpty()) {
+                    errors += ClipPlanningError.EmptyKeepRanges(record.taskIndex, record.repetition)
+                    continue
+                }
+                globalKeep = kept
                 segment.startSample until segment.stopSample
             } else {
                 val lastTake = TakeSelector.lastTake(originalEvents, record.taskIndex, record.repetition)
@@ -105,6 +122,10 @@ object ClipExportPlanner {
                 continue
             }
             val (part, localRange) = resolved
+            // Cuts live in global samples; shift each kept range by the part's offset (the same
+            // shift `resolve` applied to the overall span).
+            val shift = localRange.first - range.first
+            val keepRanges = globalKeep?.map { (it.first + shift)..(it.last + shift) } ?: listOf(localRange)
 
             val clipBaseName = RecordingsFileNameRenderer.render(
                 template = recordingsFileNameTemplate,
@@ -121,6 +142,7 @@ object ClipExportPlanner {
                 subtype = subtype,
                 sourcePart = part,
                 localRange = localRange,
+                keepRanges = keepRanges,
                 clipFileName = "$clipBaseName.wav",
             )
         }

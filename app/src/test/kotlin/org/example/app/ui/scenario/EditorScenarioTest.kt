@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import org.example.app.domain.session.TimelineSource
+import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.timeline.TimelineEventType
 import org.example.app.fakes.ConfigFixtures
 import org.example.app.ui.TestTags
@@ -38,7 +39,7 @@ class EditorScenarioTest {
      * instances -> Questionnaire -> Info, landing on the editor screen. Returns the completed
      * session's folder name. */
     @OptIn(ExperimentalTestApi::class)
-    private fun ComposeUiTest.runProtocolIntoEditor(harness: ScenarioHarness, patientCode: String) {
+    private fun ComposeUiTest.runProtocolIntoEditor(harness: ScenarioHarness, patientCode: String, takeMillis: Long = 500) {
         onNodeWithTag(TestTags.MainMenu.START_PROTOCOL_BUTTON).performClick()
         // fullProtocol defines two protocols ("Share"/"QuestionnaireOnly", §3 follow-up).
         onNodeWithTag(TestTags.ProtocolPicker.protocolButton("Share", "Demo study")).performClick()
@@ -55,7 +56,7 @@ class EditorScenarioTest {
         // Two VOCAL task instances (nrepetition: 2), one take each — plain accept, no repeats.
         repeat(2) {
             onNodeWithTag(TestTags.Task.START_BUTTON).assertIsDisplayed().performClick()
-            advanceBoth(harness.clock, 500)
+            advanceBoth(harness.clock, takeMillis)
             onNodeWithTag(TestTags.Task.STOP_BUTTON).performClick()
             onNodeWithTag(TestTags.Task.NEXT_BUTTON).performClick()
             harness.dispatchers.scheduler.advanceUntilIdle()
@@ -197,5 +198,80 @@ class EditorScenarioTest {
             assertEquals(true, call.stopSample in originalStartStops, "cut stop must be an original take offset, unchanged")
         }
         assertEquals(2, vocalTaskIndexes.size)
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `scenario 4c - cutting a selection in the enhanced editor removes it from the exported clip`(
+        @TempDir tempDir: Path,
+    ) = runComposeUiTest {
+        val harness = ScenarioHarness(tempDir)
+        harness.loadConfig(ConfigFixtures.fullProtocol)
+        harness.container.appSettingsRepository.write(AppSettings(enhancedEditor = true))
+
+        setContent { ScenarioApp(harness) }
+
+        // 4 s takes: after a cut the segment must still keep at least MIN_KEPT_SECONDS of audio.
+        runProtocolIntoEditor(harness, "HC008", takeMillis = 4000)
+
+        val folderName = harness.sessionFolderName()
+        val originalTimeline = harness.container.timelineRepository.readOriginal(folderName)!!
+        val taskIndex = harness.container.sessionRepository.readExamination(folderName)!!
+            .tasks.filter { it.type == "VOCAL" }.map { it.taskIndex }.minOrNull()!!
+        val segStart = originalTimeline.events.single {
+            it.type == TimelineEventType.START_BUTTON_PRESSED && it.taskIndex == taskIndex
+        }.sampleOffset!!
+        val segStop = originalTimeline.events.single {
+            it.type == TimelineEventType.STOP_BUTTON_PRESSED && it.taskIndex == taskIndex
+        }.sampleOffset!!
+
+        onNodeWithTag(TestTags.Editor.WAVEFORM_CANVAS).assertIsDisplayed()
+
+        // Drag-select across the middle third of the segment, located via the boundary handles.
+        val startX = onNodeWithTag(TestTags.Editor.START_BOUNDARY_HANDLE).fetchSemanticsNode().boundsInRoot.center.x
+        val stopX = onNodeWithTag(TestTags.Editor.STOP_BOUNDARY_HANDLE).fetchSemanticsNode().boundsInRoot.center.x
+        val canvasLeft = onNodeWithTag(TestTags.Editor.WAVEFORM_CANVAS).fetchSemanticsNode().boundsInRoot.left
+        val fromX = startX - canvasLeft + (stopX - startX) / 3f
+        val toX = startX - canvasLeft + 2f * (stopX - startX) / 3f
+        onNodeWithTag(TestTags.Editor.WAVEFORM_CANVAS).performMouseInput {
+            val y = height / 2f
+            moveTo(Offset(fromX, y))
+            press()
+            moveTo(Offset((fromX + toX) / 2f, y))
+            moveTo(Offset(toX, y))
+            release()
+        }
+        waitForIdle()
+
+        onNodeWithTag(TestTags.Editor.SELECTION_LABEL).assertIsDisplayed()
+        onNodeWithTag(TestTags.Editor.CUT_SELECTION_BUTTON).performClick()
+        waitForIdle()
+        onNodeWithTag(TestTags.Editor.cutBand(0)).assertIsDisplayed()
+
+        onNodeWithTag(TestTags.Editor.ACCEPT_BUTTON).performClick()
+        harness.dispatchers.scheduler.advanceUntilIdle()
+        waitForIdle()
+        onNodeWithTag(TestTags.SessionSummary.DONE_BUTTON).assertIsDisplayed()
+
+        // ---- timeline_edited.json: one cut, in global samples, strictly inside the segment ----
+        val edited = harness.container.timelineRepository.readEdited(folderName)
+        assertNotNull(edited, "a cut is an edit - timeline_edited.json must exist")
+        val seg = edited!!.segments.single { it.taskIndex == taskIndex }
+        assertEquals(segStart, seg.startSample, "cutting must not move the boundaries")
+        assertEquals(segStop, seg.stopSample)
+        val cut = seg.cuts.single()
+        assertEquals(true, cut.startSample > segStart && cut.stopSample < segStop, "cut $cut must lie inside $segStart..$segStop (global samples)")
+        assertEquals(true, cut.stopSample > cut.startSample)
+        // The other segment is untouched.
+        assertEquals(true, edited.segments.filter { it.taskIndex != taskIndex }.all { it.cuts.isEmpty() })
+
+        // ---- processing exported the segment minus the cut ----
+        val examinationAfter = harness.container.sessionRepository.readExamination(folderName)!!
+        assertEquals(TimelineSource.EDITED, examinationAfter.processing?.timelineUsed)
+        val call = harness.audioClipService.cutClipCalls.single { it.startSample == segStart && it.stopSample == segStop }
+        assertEquals(2, call.keepRanges.size, "one cut splits the segment into two kept pieces")
+        assertEquals(segStart..(cut.startSample - 1), call.keepRanges[0])
+        assertEquals(cut.stopSample..(segStop - 1), call.keepRanges[1])
+        // Audio-only protocol: audioDurationMs is only recorded for video takes, so it is not asserted here.
     }
 }

@@ -26,6 +26,7 @@ import org.example.app.domain.config.ConfigError
 import org.example.app.domain.config.Protocol
 import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.enhancedEditorEnabled
 import org.example.app.domain.settings.indicatorType
 import org.example.app.domain.settings.loudnessRange
 import org.example.app.ui.UiLocalization
@@ -368,6 +369,8 @@ class DefaultRootComponent(
                 waveformService = container.waveformService,
                 audioPlaybackService = container.audioPlaybackService,
                 dispatchers = container.dispatchers,
+                enhanced = container.appSettingsRepository.read().enhancedEditorEnabled(),
+                audioClipService = container.audioClipService,
                 onDone = { folderName, needsReprocess ->
                     if (config.returnToBrowser) {
                         // F-066: an edit made from Sessions must reach examination.json and the

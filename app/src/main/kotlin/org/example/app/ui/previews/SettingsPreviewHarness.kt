@@ -93,6 +93,10 @@ private class PreviewSettingsComponent(initial: SettingsComponent.State) : Setti
         _state.value = _state.value.copy(indicatorTypeOverride = null)
     }
 
+    override fun onEnhancedEditorChanged(enabled: Boolean) {
+        _state.value = _state.value.copy(enhancedEditor = enabled)
+    }
+
     override fun onMicGainChanged(value: Int) {
         _state.value = _state.value.copy(micGain = value)
     }

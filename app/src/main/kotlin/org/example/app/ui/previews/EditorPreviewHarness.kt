@@ -18,5 +18,7 @@ fun main() = singleWindowApplication(title = "Editor — preview harness") {
         "Loading" to { EditorLoadingPreview() },
         "No segments" to { EditorNoSegmentsPreview() },
         "Dark" to { EditorDarkPreview() },
+        "Enhanced" to { EditorEnhancedPreview() },
+        "Enhanced dark" to { EditorEnhancedDarkPreview() },
     )
 }

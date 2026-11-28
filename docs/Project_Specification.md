@@ -369,8 +369,9 @@ Config-level fields: `schemaVersion`, `configVersion`, `siteName` (main menu lin
 `${siteName}` filename variable, §8.8), `defaultLanguage`, `languages`,
 `defaultMicName` (the session's microphone when Settings has none saved — a saved device
 wins; §13 decision 44), `defaultMicGain` (0..100 input level for that microphone, overridden by
-the Settings slider; decision 44), `enableEditor`, `indicatorType` (overridden by Settings;
-decision 53), `useCalibration`,
+the Settings slider; decision 44), `enableEditor` (the enhanced editor, §8.7 / decision 67, is
+a separate local Settings switch, `AppSettings.enhancedEditor`), `indicatorType` (overridden by
+Settings; decision 53), `useCalibration`,
 `protocols[]` and `strings{lang → {key → value}}`. Each protocol carries its own
 `patientFields[]` (participant-input field definitions — name, label key, help key,
 placeholder, regex, required), shown after the protocol is picked; catalogue names
@@ -621,12 +622,42 @@ VOCAL task instance; the editor shows one segment at a time.
   untouched pass writes nothing and `timelineUsed` stays `"original"`.
 - Boundary validation: start < stop, within recorded range, no overlap with adjacent
   segments' final boundaries.
-- **Editing from the session browser (§8.11)** reprocesses automatically when Accept changed
+- **Enhanced editor (local setting, §13 decision 67).** Settings has an "Editor" section with a
+  switch `enhancedEditor` (`AppSettings.enhancedEditor`, `settings.json`; absent or null = off).
+  It only matters when `enableEditor` is true. With it off the editor is exactly the one above.
+  With it on, a segment may also have **cuts**: parts of the clip, inside it, removed from the
+  export (a free-speech clip where the examiner asked the participant a supporting question).
+  - *Selection:* press and drag on the waveform between the boundary lines; a plain click still
+    seeks. The selection is clamped to the clip and cannot cross or start inside an existing cut.
+    Delete/Esc act only while a selection exists (cut / clear it).
+  - *Cut:* "Cut selection" (or Delete) turns the selection into a cut. Both edges snap to the
+    nearest zero crossing within +-5 ms (mono mix if stereo; unchanged if there is none), so the
+    stored cut, the preview and the export use the same points. A cut that touches or overlaps
+    another is merged. A cut is drawn in place as a dark hatched band labelled with its length,
+    with a small circular x button that restores it. There is no undo history beyond restore and Reset.
+  - *Validation:* a cut must lie strictly inside the boundaries (`start < cut.start < cut.stop <
+    stop`); a selection that touches a clip edge is rejected with a hint (move the boundary marker
+    instead), as is one that would leave less than **0.5 s** of audio. Cuts are sorted and neither
+    overlap nor touch. A boundary drag into or past a cut is rejected like any invalid drag.
+  - *Zoom/pan:* -/+ buttons, "Fit", Ctrl+wheel, and a scrollbar. "Fit" is the clip +- 5 s; the
+    narrowest view is 2 s; peaks are fetched for the visible window only.
+  - *Playback:* "Play" plays the clip as exported, skipping cuts (the playhead jumps over the
+    hatched bands); "Play selection" plays the selection only.
+  - *Reset* returns the segment to the boundaries it had when the editor opened **and clears all
+    its cuts**; it is enabled when boundaries or cuts differ. Discard drops cuts with the rest.
+    "Edited" means a boundary moved or a cut exists; `timeline_edited.json` is written iff so,
+    and a changed set of cuts makes `needsReprocess` true.
+  - *Setting off later:* cuts already saved are still applied and shown and can still be
+    restored; creating cuts and zooming are hidden.
+  - *Video:* the video of a cut instance is **not** cut, so the audio is shorter than the video;
+    the editor shows the note "Video is not cut - audio will be shorter than video." for filmed
+    instances.
+- **Editing from the session browser (§8.11)** reprocesses automatically when Finish (formerly Accept) changed
   the edit state on disk (a different `timeline_edited.json` written, or an existing one
   deleted because all boundaries are back at the original) or when the last `Done` processing
   used a different timeline (`timelineUsed`) than the one now in effect (a stale session): the editor is replaced by the
   processing screen, which returns to the browser, so `examination.json` (`timelineUsed`) and
-  the ZIP never lag the edit. An Accept with neither condition just returns to the browser.
+  the ZIP never lag the edit. A Finish with neither condition just returns to the browser.
 
 ### 8.8 Processing
 
@@ -634,7 +665,10 @@ VOCAL task instance; the editor shows one segment at a time.
 
 1. Choose `timeline_edited.json` if present, else `timeline_original.json`.
 2. Cut the **last take** of each VOCAL task instance from the master (sample-accurate,
-   resampling to target format if the capture format differs).
+   resampling to target format if the capture format differs). A segment with `cuts` (§8.7) is
+   exported as the segment minus its cuts: each kept range is read and converted, and the pieces
+   are concatenated raw, with no fade (the joins sit on zero crossings; audio is bit-exact when no
+   conversion is needed). `audioDurationMs` (step 5) is the kept samples / source rate.
 3. Write clips to `clips/` named by the protocol's `recordingsFileName` template
    (variables: `${installationId}`, `${siteName}` from the config snapshot, `${taskIndex}`, `${task.subtype}`, `${repetition}`,
    `${field.<name>}` with values read from `participant.json`).
@@ -754,7 +788,10 @@ than the current task's answers, and recovery (§8.4) always finds `captureForma
 // timeline_edited.json  (segment-shaped — directly consumable by the cutter)
 { "version": 1, "sessionId": "…", "sampleRate": 48000, "basedOn": "original",
   "segments": [ { "taskIndex": 3, "repetition": 1,
-                  "startSample": 1230000, "stopSample": 1710000 } ] }
+                  "startSample": 1230000, "stopSample": 1710000,
+                  "cuts": [ { "startSample": 1400000, "stopSample": 1450000 } ] } ] }
+// "cuts" (optional, omitted when empty): global samples, stop exclusive, strictly inside the
+// segment, sorted, non-overlapping; the clip is the segment minus its cuts (§8.7, §8.8).
 
 // metadata/upload_status.json  (authoritative, §5.4)
 { "version": 1, "status": "Uploaded", "zipSha256": "…", "uploadedAt": "…",
@@ -1647,6 +1684,26 @@ Error taxonomy (normative, inlined from the old plan):
     - **Privacy:** no new redaction (the logs go to the same secured server as the session data).
       The sender's own log lines carry counts only, never the token, the installation ID, a file
       name or a path (§11).
+
+67. **Enhanced editor: cutting out middle segments (2026-11-28, `docs/SPEC-enhanced-editor.md`).**
+    Examiners sometimes ask the participant a supporting question during free speech and want it
+    out of the exported clip. Decisions:
+    - **Additive `cuts` field, `version` stays 1.** `TimelineEditedSegment.cuts: List<SampleRange>`
+      is not encoded when empty, so old files and old readers are unaffected and files without cuts
+      are byte-identical to before. (Rejected: version 2, a separate file.)
+    - **Cuts are shown in place, hatched,** not collapsed out of the view: the context stays and a
+      cut is easy to reverse. (Rejected: a compacted view.)
+    - **Zero-crossing snap instead of fades (the user's choice, like Audacity's "At Zero
+      Crossings").** Cut edges snap to a zero crossing within +-5 ms when created; the splice is raw
+      with no fade or crossfade. A join can still click inside loud noise with no crossing nearby.
+    - **Audio-only cut for video tasks (the user's choice).** The video is exported whole, so the
+      audio can be shorter than the video; `videoDurationMs`/`audioDurationMs` expose it and the
+      editor shows a note. Cutting video is out of scope.
+    - **A local setting, not remote config.** `AppSettings.enhancedEditor` (off by default, Settings
+      "Editor" section), as `indicatorType` is local; it is a per-computer examiner preference. It
+      only matters when the remote `enableEditor` is true.
+    - **Minimum 0.5 s kept** per clip; cuts may not touch the clip edges (move the boundary
+      instead); zoom bottoms out at 2 s; undo/redo history is out of scope (restore and Reset).
 
 **Still open:**
 

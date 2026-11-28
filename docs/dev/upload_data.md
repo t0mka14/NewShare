@@ -60,7 +60,7 @@ text parts come before `zip`:
 ├── participant.json
 ├── task_configuration_snapshot.json
 ├── timeline_original.json
-├── timeline_edited.json                 (only if the editor moved a boundary)
+├── timeline_edited.json                 (only if the editor moved a boundary or cut out a part)
 └── manifest.json                        always the last entry
 ```
 
@@ -70,7 +70,7 @@ text parts come before `zip`:
 | `examination.json` | always | JSON | Session metadata, per-task outcomes, questionnaire answers, devices used (§5.2). |
 | `task_configuration_snapshot.json` | always | JSON | The site config the session ran with, byte-for-byte (§5.3). |
 | `timeline_original.json` | always | JSON | Compacted event log (§5.4). |
-| `timeline_edited.json` | only if an editor boundary was moved | JSON | The edited clip boundaries (§5.5). |
+| `timeline_edited.json` | only if an editor boundary was moved or a part was cut out | JSON | The edited clip boundaries (§5.5). |
 | `master/session_master.wav` | if `examination.captureFormat` is non-null | WAV | The whole session's audio (§4.1). |
 | `clips/*.wav` | per recorded VOCAL instance | WAV | One clip per task instance (§4.2). |
 | `clips/*.mp4` | per filmed instance | MP4 | One video per task instance (§4.3). |
@@ -137,7 +137,8 @@ Suggested server checks, in order:
 - Same format as the master (48 kHz / 16-bit / mono PCM WAV).
 - One per **non-skipped VOCAL task instance**. It holds the **last take only**, cut sample-accurately at the
   take's START/STOP offsets from `timeline_original.json`, or at the segment boundaries from
-  `timeline_edited.json` when that file exists.
+  `timeline_edited.json` when that file exists. If that segment has `cuts` (§5.5), the clip is the
+  segment minus the cuts, spliced together without a fade, so it is shorter than `stopSample - startSample`.
 - The task instance a clip belongs to is given by `examination.json.tasks[].clipFile` (e.g.
   `"clips/<name>.wav"`). Use that, not file-name parsing.
 
@@ -315,7 +316,7 @@ The clips are already cut correctly, so this matters only for analyzing the mast
 
 ### 5.5 `timeline_edited.json` (optional)
 
-Present only if the examiner moved at least one boundary in the editor. When present, it is the complete
+Present only if the examiner moved at least one boundary, or cut out a part, in the editor. When present, it is the complete
 segment list the clips were cut from, and `examination.processing.timelineUsed` is `"edited"`.
 
 | Field | Type | Meaning |
@@ -325,10 +326,25 @@ segment list the clips were cut from, and `examination.processing.timelineUsed` 
 | `sampleRate` | int | Units of the sample fields. |
 | `basedOn` | string | `"original"` (omitted, since that is the default). |
 | `segments[]` | array | `{ taskIndex, repetition, startSample, stopSample }`, one per exported VOCAL instance; `stopSample` is exclusive. |
+| `segments[].cuts[]` | array? | Optional, omitted when empty. `{ startSample, stopSample }` in global samples (same units as the segment), `stopSample` exclusive. Parts removed from the clip. |
+
+`cuts` lie strictly inside the segment (`startSample < cut.startSample < cut.stopSample < stopSample`),
+are sorted, and neither overlap nor touch. The clip is the segment minus its cuts, spliced at points
+snapped to zero crossings, with no fade, so its length is `stopSample - startSample - sum(cut lengths)`
+(at the clip's sample rate, +-1 sample per join). The video of the same instance is not cut, so
+`examination.json` `audioDurationMs` can be shorter than the video.
 
 ```json
 {"sessionId":"…","sampleRate":48000,
  "segments":[{"taskIndex":3,"repetition":1,"startSample":1230000,"stopSample":1710000}]}
+```
+
+With a cut-out part:
+
+```json
+{"sessionId":"…","sampleRate":48000,
+ "segments":[{"taskIndex":3,"repetition":1,"startSample":1230000,"stopSample":1710000,
+              "cuts":[{"startSample":1400000,"stopSample":1450000}]}]}
 ```
 
 ## 6. Conventions for consumers

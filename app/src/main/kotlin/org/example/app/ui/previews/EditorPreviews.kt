@@ -75,6 +75,16 @@ private class PreviewEditorComponent(initial: EditorComponent.State) : EditorCom
         _state.value = _state.value.copy(isPlaying = !_state.value.isPlaying)
     }
 
+    override fun onSelect(anchorLocal: Long, movingLocal: Long) = Unit
+    override fun onClearSelection() = Unit
+    override fun onCutSelection() = Unit
+    override fun onRestoreCut(index: Int) = Unit
+    override fun onZoomIn(anchorLocal: Long) = Unit
+    override fun onZoomOut(anchorLocal: Long) = Unit
+    override fun onZoomFit() = Unit
+    override fun onPan(newVisibleStart: Long) = Unit
+    override fun onPlaySelection() = Unit
+
     override fun onAccept() = Unit
     override fun onResetSegment() = Unit
     override fun onDiscard() = Unit
@@ -176,6 +186,40 @@ private fun previewState(isPlaying: Boolean = false): EditorComponent.State {
     )
 }
 
+/**
+ * Enhanced editor: a 60 s clip zoomed to a 30 s window, two cuts, a selection, and a video task
+ * (so the "video is not cut" note shows).
+ */
+private fun enhancedPreviewState(): EditorComponent.State {
+    val rate = PREVIEW_SAMPLE_RATE.toLong()
+    val start = 12L * rate
+    val stop = 72L * rate
+    val visibleStart = 20L * rate
+    val visibleStop = 50L * rate
+    val range = (visibleStop - visibleStart).toFloat()
+    val segment = previewSegment(start, stop).copy(
+        cuts = listOf(
+            EditorComponent.Span(30L * rate, 38L * rate + rate / 10),
+            EditorComponent.Span(44L * rate, 51L * rate + rate * 4 / 10),
+        ),
+        hasVideo = true,
+    )
+    return previewState().copy(
+        segments = listOf(segment),
+        visibleStartSample = visibleStart,
+        visibleStopSample = visibleStop,
+        fitStartSample = 7L * rate,
+        fitStopSample = 77L * rate,
+        waveform = previewPeaks(
+            bucketCount = EditorComponent.WAVEFORM_BUCKET_COUNT,
+            segmentFraction = (start - visibleStart) / range..(stop - visibleStart) / range,
+        ),
+        positionSample = 25L * rate,
+        enhanced = true,
+        selection = EditorComponent.Span(39L * rate, 43L * rate + rate * 3 / 10),
+    )
+}
+
 @Composable
 private fun EditorPreview(
     state: EditorComponent.State,
@@ -221,6 +265,16 @@ fun EditorLoadingPreview() = EditorPreview(EditorComponent.State(loading = true)
 @Preview
 @Composable
 fun EditorNoSegmentsPreview() = EditorPreview(EditorComponent.State(loading = false))
+
+/** Enhanced editor with a selection, two cuts, a zoomed window and the video note. */
+@Preview
+@Composable
+fun EditorEnhancedPreview() = EditorPreview(enhancedPreviewState())
+
+/** Enhanced editor in dark theme. */
+@Preview
+@Composable
+fun EditorEnhancedDarkPreview() = EditorPreview(enhancedPreviewState(), dark = true)
 
 /** The app runs light, but nothing on this screen may be a hard-coded light-theme color. */
 @Preview

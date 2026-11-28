@@ -1,7 +1,9 @@
 package org.example.app.infrastructure.persistence
 
 import org.example.app.domain.settings.AppSettings
+import org.example.app.domain.settings.enhancedEditorEnabled
 import org.example.app.fakes.TestAppDirectories
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -43,6 +45,27 @@ class JsonAppSettingsRepositoryTest {
 
         assertEquals("DEMO-001", read?.installationId)
         assertEquals(null, read?.siteToken)
+    }
+
+    @Test
+    fun `enhancedEditor round-trips and an old file without it reads as off`(@TempDir tempDir: Path) {
+        val dirs = TestAppDirectories(tempDir)
+        val repository = JsonAppSettingsRepository(dirs)
+        repository.write(AppSettings(enhancedEditor = true))
+        assertEquals(true, repository.read()?.enhancedEditor)
+        assertTrue(repository.read().enhancedEditorEnabled())
+
+        Files.writeString(dirs.configDir.resolve("settings.json"), """{"version":1,"language":"cs"}""")
+        val old = repository.read()
+        assertNull(old?.enhancedEditor)
+        assertFalse(old.enhancedEditorEnabled())
+    }
+
+    @Test
+    fun `a null enhancedEditor is not encoded`(@TempDir tempDir: Path) {
+        val dirs = TestAppDirectories(tempDir)
+        JsonAppSettingsRepository(dirs).write(AppSettings(language = "en"))
+        assertFalse(Files.readString(dirs.configDir.resolve("settings.json")).contains("enhancedEditor"))
     }
 
     @Test

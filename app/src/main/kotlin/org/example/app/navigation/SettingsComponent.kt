@@ -27,6 +27,7 @@ import org.example.app.domain.config.RemoteConfig
 import org.example.app.domain.settings.AppSettings
 import org.example.app.domain.settings.AppSettingsRepository
 import org.example.app.domain.settings.InstallationIdProvider
+import org.example.app.domain.settings.enhancedEditorEnabled
 import org.example.app.domain.video.VideoInputDevice
 import org.example.app.domain.video.VideoInputDeviceProvider
 import org.example.app.domain.config.messageKey
@@ -59,6 +60,9 @@ interface SettingsComponent {
 
     /** Drop the indicator override; the config's `indicatorType` applies again. */
     fun onIndicatorTypeReset()
+
+    /** The enhanced-editor switch was toggled; saved at once. */
+    fun onEnhancedEditorChanged(enabled: Boolean)
 
     data class State(
         val availableDevices: List<AudioInputDevice> = emptyList(),
@@ -106,6 +110,8 @@ interface SettingsComponent {
         val indicatorTypeOverride: IndicatorType? = null,
         /** The active config's `indicatorType` (its default when there is no config). */
         val configIndicatorType: IndicatorType = IndicatorType.CIRCLE,
+        /** The persisted enhanced-editor switch (`AppSettings.enhancedEditor`); off by default. */
+        val enhancedEditor: Boolean = false,
     ) {
         /** What the next session's task screens will show. */
         val indicatorType: IndicatorType get() = indicatorTypeOverride ?: configIndicatorType
@@ -191,6 +197,7 @@ class DefaultSettingsComponent(
             configMicGain = configGainFor(config, selected),
             indicatorTypeOverride = saved?.indicatorType,
             configIndicatorType = config?.indicatorType ?: IndicatorType.CIRCLE,
+            enhancedEditor = saved.enhancedEditorEnabled(),
         ).withSliderPosition()
     }
 
@@ -293,6 +300,11 @@ class DefaultSettingsComponent(
         persist()
     }
 
+    override fun onEnhancedEditorChanged(enabled: Boolean) {
+        _state.value = _state.value.copy(enhancedEditor = enabled)
+        persist()
+    }
+
     /** The saved language, or the config's default when the config doesn't offer it (mirrors
      *  `RootComponent`'s rule, so the dropdown shows the language the app actually uses). */
     private fun effectiveLanguage(saved: String?, config: RemoteConfig?): String? {
@@ -354,6 +366,8 @@ class DefaultSettingsComponent(
                 language = current.selectedLanguage,
                 micGain = current.micGainOverride,
                 indicatorType = current.indicatorTypeOverride,
+                // Off is stored as absent so a file never carries an explicit "false".
+                enhancedEditor = if (current.enhancedEditor) true else null,
             ),
         )
     }

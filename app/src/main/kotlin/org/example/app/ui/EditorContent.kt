@@ -3,6 +3,11 @@ package org.example.app.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +23,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -35,17 +48,37 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isCtrlPressed
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -86,9 +119,26 @@ import kotlin.math.roundToInt
 fun EditorContent(component: EditorComponent, localization: UiLocalization) {
     val state by component.state.subscribeAsState()
     val segment = state.currentSegment
+    val enhanced = state.enhanced
+    val latestState = rememberUpdatedState(state)
+    val focusRequester = remember { FocusRequester() }
+    if (enhanced) LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }
+
+    // Delete / Esc only exist in the enhanced editor; the default screen gets no extra modifiers.
+    val keyModifier = if (!enhanced) Modifier else Modifier
+        .focusRequester(focusRequester)
+        .focusable()
+        .onPreviewKeyEvent { event ->
+            if (event.type != KeyEventType.KeyDown || latestState.value.selection == null) return@onPreviewKeyEvent false
+            when (event.key) {
+                Key.Delete -> { component.onCutSelection(); true }
+                Key.Escape -> { component.onClearSelection(); true }
+                else -> false
+            }
+        }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 24.dp),
+        modifier = Modifier.fillMaxSize().then(keyModifier).padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -99,7 +149,7 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
             if (segment != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    localization.resolve("editor.instructions"),
+                    localization.resolve(if (enhanced) "editor.instructions.enhanced" else "editor.instructions"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -147,17 +197,13 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
             EditorPanel(
                 modifier = Modifier.weight(1f),
                 localization = localization,
-                waveform = state.waveform,
-                visibleStart = state.visibleStartSample,
-                visibleStop = state.visibleStopSample,
-                startSample = segment.startSample,
-                stopSample = segment.stopSample,
-                positionSample = state.positionSample,
-                sampleRate = state.sampleRate,
-                onDragStart = component::onDragStart,
-                onDragStop = component::onDragStop,
-                onSeek = component::onSeek,
+                state = state,
+                segment = segment,
+                component = component,
             )
+
+            // Enhanced mode reserves this line inside the panel so the waveform never changes height.
+            if (segment.videoNotCut && !enhanced) VideoNotCutNote(localization, Modifier.contentWidth(EDITOR_MAX_WIDTH))
 
             EditorControls(
                 localization = localization,
@@ -167,6 +213,11 @@ fun EditorContent(component: EditorComponent, localization: UiLocalization) {
                 onPrevious = component::onPrevious,
                 onPlayToggle = component::onPlayToggle,
                 onNext = component::onNext,
+                enhanced = enhanced,
+                hasSelection = state.selection != null,
+                onPlaySelection = component::onPlaySelection,
+                onCutSelection = component::onCutSelection,
+                onClearSelection = component::onClearSelection,
                 canReset = segment.changedSinceOpened,
                 onReset = component::onResetSegment,
                 onDiscard = component::onDiscard,
@@ -201,36 +252,90 @@ private fun DiscardConfirmDialog(component: EditorComponent, localization: UiLoc
 /** Editor width cap, shared by the panel and the control row so both edges line up. */
 private val EDITOR_MAX_WIDTH = 1600.dp
 private val HANDLE_HIT_WIDTH = 24.dp
-private val MIN_GROUP_GAP = 8.dp
+private val NOTE_LINE_HEIGHT = 26.dp
 private const val RULER_HEIGHT_DP = 26
 private const val WAVEFORM_MIN_HEIGHT_DP = 150
+
+@Composable
+private fun VideoNotCutNote(localization: UiLocalization, modifier: Modifier) {
+    Row(
+        modifier = modifier.testTag(TestTags.Editor.VIDEO_NOT_CUT_NOTE),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            Icons.Filled.Info,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            localization.resolve("editor.videoNotCut"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+    }
+}
 
 /**
  * The instrument itself: time ruler on top, waveform below it, readouts underneath. Ruler and
  * waveform share one [BoxWithConstraints] so both map samples onto exactly the same pixel range.
+ * In the enhanced editor a toolbar sits above it and a pan bar under it; everything is drawn with
+ * the `visibleStart..visibleStop` mapping, so zooming only changes that window.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun EditorPanel(
     modifier: Modifier,
     localization: UiLocalization,
-    waveform: WaveformPeaks?,
-    visibleStart: Long,
-    visibleStop: Long,
-    startSample: Long,
-    stopSample: Long,
-    positionSample: Long?,
-    sampleRate: Int,
-    onDragStart: (Long) -> Unit,
-    onDragStop: (Long) -> Unit,
-    onSeek: (Long) -> Unit,
+    state: EditorComponent.State,
+    segment: EditorComponent.Segment,
+    component: EditorComponent,
 ) {
+    val waveform = state.waveform
+    val visibleStart = state.visibleStartSample
+    val visibleStop = state.visibleStopSample
+    val startSample = segment.startSample
+    val stopSample = segment.stopSample
+    val positionSample = state.positionSample
+    val sampleRate = state.sampleRate
+    val enhanced = state.enhanced
+    val selection = state.selection
+    val latestState = rememberUpdatedState(state)
+
     Surface(
-        modifier = modifier.contentWidth(EDITOR_MAX_WIDTH).heightIn(min = (WAVEFORM_MIN_HEIGHT_DP + 90).dp),
+        modifier = modifier.contentWidth(EDITOR_MAX_WIDTH)
+            .heightIn(min = (WAVEFORM_MIN_HEIGHT_DP + 90 + if (enhanced) 60 else 0).dp),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            if (enhanced) {
+                EditorToolbar(localization, state, component)
+                // Fixed-height line: the cut-rejection message and the video note come and go
+                // here without taking space from the waveform.
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(NOTE_LINE_HEIGHT).padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    if (segment.videoNotCut) {
+                        VideoNotCutNote(localization, Modifier.weight(1f, fill = false))
+                    }
+                    state.lastCutRejected?.let { rejection ->
+                        Text(
+                            localization.resolve(rejectionKey(rejection)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            maxLines = 1,
+                            modifier = Modifier.testTag(TestTags.Editor.CUT_REJECTION_MESSAGE),
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = WAVEFORM_MIN_HEIGHT_DP.dp),
             ) {
@@ -239,6 +344,7 @@ private fun EditorPanel(
 
                 fun sampleToX(sample: Long): Float = ((sample - visibleStart).toFloat() / range) * widthPx
                 fun xToSample(x: Float): Long = visibleStart + ((x / widthPx) * range).toLong()
+                fun onScreen(x: Float) = x >= -0.5f && x <= widthPx + 0.5f
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     TimeRuler(
@@ -256,6 +362,23 @@ private fun EditorPanel(
                             // display rather than as ink on the panel.
                             .clip(MaterialTheme.shapes.small)
                             .background(MaterialTheme.colorScheme.surface)
+                            .then(
+                                if (!enhanced) Modifier else Modifier.onPointerEvent(PointerEventType.Scroll) { event ->
+                                    val change = event.changes.firstOrNull() ?: return@onPointerEvent
+                                    val delta = if (change.scrollDelta.y != 0f) change.scrollDelta.y else change.scrollDelta.x
+                                    if (delta == 0f) return@onPointerEvent
+                                    val current = latestState.value
+                                    if (event.keyboardModifiers.isCtrlPressed) {
+                                        val anchor = visibleStart + ((change.position.x / widthPx) * range).toLong()
+                                        if (delta < 0f) component.onZoomIn(anchor) else component.onZoomOut(anchor)
+                                        change.consume()
+                                    } else if (current.zoomed) {
+                                        val step = (range / 10f * delta).toLong()
+                                        component.onPan(current.visibleStartSample + step)
+                                        change.consume()
+                                    }
+                                },
+                            )
                             .testTag(TestTags.Editor.WAVEFORM_CANVAS),
                     ) {
                         WaveformCanvas(
@@ -263,31 +386,303 @@ private fun EditorPanel(
                             startX = sampleToX(startSample),
                             stopX = sampleToX(stopSample),
                             positionX = positionSample?.let(::sampleToX),
-                            onSeekToPixelX = { x -> onSeek(xToSample(x)) },
+                            onSeekToPixelX = { x -> component.onSeek(xToSample(x)) },
+                            onSelectDrag = if (!enhanced) null else { anchorX, currentX ->
+                                val anchor = xToSample(anchorX)
+                                if (anchor in segment.startSample..segment.stopSample) {
+                                    component.onSelect(anchor, xToSample(currentX))
+                                }
+                            },
                         )
-                        EditorBoundaryHandle(
-                            xPx = sampleToX(startSample),
-                            testTag = TestTags.Editor.START_BOUNDARY_HANDLE,
-                            onDragToPixelX = { newXPx -> onDragStart(xToSample(newXPx)) },
-                        )
-                        EditorBoundaryHandle(
-                            xPx = sampleToX(stopSample),
-                            testTag = TestTags.Editor.STOP_BOUNDARY_HANDLE,
-                            onDragToPixelX = { newXPx -> onDragStop(xToSample(newXPx)) },
-                        )
+                        if (enhanced) {
+                            selection?.let { sel ->
+                                SelectionBand(
+                                    startX = sampleToX(sel.startSample),
+                                    stopX = sampleToX(sel.stopSample),
+                                    onDragStartEdge = { x -> component.onSelect(sel.stopSample, xToSample(x)) },
+                                    onDragStopEdge = { x -> component.onSelect(sel.startSample, xToSample(x)) },
+                                )
+                            }
+                        }
+                        segment.cuts.forEachIndexed { index, cut ->
+                            val x0 = sampleToX(cut.startSample)
+                            val x1 = sampleToX(cut.stopSample)
+                            if (x1 > 0f && x0 < widthPx) {
+                                CutBand(
+                                    localization = localization,
+                                    index = index,
+                                    xPx = x0,
+                                    widthPx = x1 - x0,
+                                    lengthText = formatSampleDuration(cut.length, sampleRate),
+                                    onRestore = { component.onRestoreCut(index) },
+                                )
+                            }
+                        }
+                        if (onScreen(sampleToX(startSample))) {
+                            EditorBoundaryHandle(
+                                xPx = sampleToX(startSample),
+                                testTag = TestTags.Editor.START_BOUNDARY_HANDLE,
+                                onDragToPixelX = { newXPx -> component.onDragStart(xToSample(newXPx)) },
+                            )
+                        }
+                        if (onScreen(sampleToX(stopSample))) {
+                            EditorBoundaryHandle(
+                                xPx = sampleToX(stopSample),
+                                testTag = TestTags.Editor.STOP_BOUNDARY_HANDLE,
+                                onDragToPixelX = { newXPx -> component.onDragStop(xToSample(newXPx)) },
+                            )
+                        }
                     }
                 }
+            }
+
+            if (enhanced && state.zoomed) {
+                Spacer(modifier = Modifier.height(6.dp))
+                PanBar(state = state, onPan = component::onPan)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
             EditorReadouts(
                 localization = localization,
-                startSample = startSample,
-                stopSample = stopSample,
+                segment = segment,
                 positionSample = positionSample,
                 sampleRate = sampleRate,
             )
         }
+    }
+}
+
+private fun rejectionKey(rejection: EditorComponent.CutRejection): String = when (rejection) {
+    EditorComponent.CutRejection.KEPT_TOO_SHORT -> "editor.cutRejected.tooShort"
+    EditorComponent.CutRejection.OUTSIDE_SEGMENT -> "editor.cutRejected.outside"
+    EditorComponent.CutRejection.SELECTION_EMPTY, EditorComponent.CutRejection.INVALID -> "editor.cutRejected.generic"
+}
+
+/** Zoom buttons on the left, the selection read-out on the right. */
+@Composable
+private fun EditorToolbar(localization: UiLocalization, state: EditorComponent.State, component: EditorComponent) {
+    val anchor = state.positionSample?.takeIf { it in state.visibleStartSample..state.visibleStopSample }
+        ?: ((state.visibleStartSample + state.visibleStopSample) / 2)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                localization.resolvePlain("editor.zoom"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedIconButton(
+                onClick = { component.onZoomOut(anchor) },
+                modifier = Modifier.size(32.dp).testTag(TestTags.Editor.ZOOM_OUT_BUTTON),
+            ) { Icon(Icons.Filled.Remove, contentDescription = localization.resolvePlain("editor.zoomOut"), modifier = Modifier.size(18.dp)) }
+            OutlinedIconButton(
+                onClick = { component.onZoomIn(anchor) },
+                modifier = Modifier.size(32.dp).testTag(TestTags.Editor.ZOOM_IN_BUTTON),
+            ) { Icon(Icons.Filled.Add, contentDescription = localization.resolvePlain("editor.zoomIn"), modifier = Modifier.size(18.dp)) }
+            OutlinedButton(
+                onClick = component::onZoomFit,
+                enabled = state.zoomed,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.height(32.dp).testTag(TestTags.Editor.ZOOM_FIT_BUTTON),
+                contentPadding = PaddingValues(horizontal = 12.dp),
+            ) { ButtonLabel(localization.resolve("editor.zoomFit")) }
+        }
+        state.selection?.let { sel ->
+            Text(
+                localization.resolve(
+                    "editor.selection",
+                    mapOf(
+                        "start" to formatSampleTime(sel.startSample, state.sampleRate),
+                        "stop" to formatSampleTime(sel.stopSample, state.sampleRate),
+                        "length" to formatSampleDuration(sel.length, state.sampleRate),
+                    ),
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.testTag(TestTags.Editor.SELECTION_LABEL),
+            )
+        }
+    }
+}
+
+/** Selection band (accent-tinted) with a draggable handle on each edge. */
+@Composable
+private fun SelectionBand(
+    startX: Float,
+    stopX: Float,
+    onDragStartEdge: (Float) -> Unit,
+    onDragStopEdge: (Float) -> Unit,
+) {
+    val accent = MaterialTheme.colorScheme.tertiary
+    val widthDp = with(LocalDensity.current) { (stopX - startX).coerceAtLeast(0f).toDp() }
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(startX.roundToInt(), 0) }
+            .width(widthDp)
+            .fillMaxHeight()
+            .background(accent.copy(alpha = 0.28f))
+            .border(1.dp, accent.copy(alpha = 0.8f))
+            .testTag(TestTags.Editor.SELECTION_BAND),
+    )
+    SelectionEdgeHandle(startX, TestTags.Editor.SELECTION_START_HANDLE, accent, onDragStartEdge)
+    SelectionEdgeHandle(stopX, TestTags.Editor.SELECTION_STOP_HANDLE, accent, onDragStopEdge)
+}
+
+private val SELECTION_HANDLE_HIT_WIDTH = 16.dp
+
+@Composable
+private fun SelectionEdgeHandle(xPx: Float, testTag: String, color: Color, onDragToPixelX: (Float) -> Unit) {
+    val latestXPx = rememberUpdatedState(xPx)
+    val latestOnDrag = rememberUpdatedState(onDragToPixelX)
+    var gestureBaseXPx by remember { mutableStateOf(0f) }
+    var accumulatedPx by remember { mutableStateOf(0f) }
+    Box(
+        modifier = Modifier
+            .offset { IntOffset((xPx - SELECTION_HANDLE_HIT_WIDTH.toPx() / 2).roundToInt(), 0) }
+            .width(SELECTION_HANDLE_HIT_WIDTH)
+            .fillMaxHeight()
+            .pointerHoverIcon(HORIZONTAL_RESIZE_CURSOR)
+            .testTag(testTag)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        gestureBaseXPx = latestXPx.value
+                        accumulatedPx = 0f
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        accumulatedPx += dragAmount.x
+                        latestOnDrag.value(gestureBaseXPx + accumulatedPx)
+                    },
+                )
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(modifier = Modifier.width(6.dp).height(28.dp).clip(RoundedCornerShape(3.dp)).background(color))
+    }
+}
+
+/** A removed part: dark hatched band, its length when it fits, and a restore button on top. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CutBand(
+    localization: UiLocalization,
+    index: Int,
+    xPx: Float,
+    widthPx: Float,
+    lengthText: String,
+    onRestore: () -> Unit,
+) {
+    val fill = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+    val stripe = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
+    val widthDp = with(LocalDensity.current) { widthPx.coerceAtLeast(0f).toDp() }
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(xPx.roundToInt(), 0) }
+            .width(widthDp)
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(2.dp))
+            .testTag(TestTags.Editor.cutBand(index)),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRect(fill)
+            clipRect {
+                val gap = 9.dp.toPx()
+                var x = -size.height
+                while (x < size.width) {
+                    drawLine(stripe, Offset(x, size.height), Offset(x + size.height, 0f), strokeWidth = 2.dp.toPx())
+                    x += gap
+                }
+            }
+        }
+        if (widthDp >= 84.dp) {
+            Text(
+                localization.resolve("editor.cutBand", mapOf("length" to lengthText)),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+        val restoreText = localization.resolvePlain("editor.restoreCut")
+        TooltipArea(
+            tooltip = {
+                Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.inverseSurface) {
+                    Text(
+                        restoreText,
+                        color = MaterialTheme.colorScheme.inverseOnSurface,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(6.dp),
+                    )
+                }
+            },
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant, CircleShape)
+                    .testTag(TestTags.Editor.restoreCutButton(index))
+                    .semantics { contentDescription = restoreText; role = Role.Button }
+                    .clickable(onClick = onRestore),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurface)
+            }
+        }
+    }
+}
+
+/** Visible window inside the fit window; dragging the thumb pans. */
+@Composable
+private fun PanBar(state: EditorComponent.State, onPan: (Long) -> Unit) {
+    val latestState = rememberUpdatedState(state)
+    val latestOnPan = rememberUpdatedState(onPan)
+    val trackColor = MaterialTheme.colorScheme.outlineVariant
+    val thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+    var baseStart by remember { mutableStateOf(0L) }
+    var accumulatedPx by remember { mutableStateOf(0f) }
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(12.dp)
+            .testTag(TestTags.Editor.PAN_BAR)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        baseStart = latestState.value.visibleStartSample
+                        accumulatedPx = 0f
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        accumulatedPx += dragAmount.x
+                        val s = latestState.value
+                        val fitSpan = (s.fitStopSample - s.fitStartSample).coerceAtLeast(1L)
+                        latestOnPan.value(baseStart + (accumulatedPx / size.width * fitSpan).toLong())
+                    },
+                )
+            },
+    ) {
+        val fitSpan = (state.fitStopSample - state.fitStartSample).coerceAtLeast(1L).toFloat()
+        val left = ((state.visibleStartSample - state.fitStartSample) / fitSpan * size.width).coerceIn(0f, size.width)
+        val right = ((state.visibleStopSample - state.fitStartSample) / fitSpan * size.width).coerceIn(left, size.width)
+        val radius = CornerRadius(size.height / 2, size.height / 2)
+        drawRoundRect(trackColor, size = size, cornerRadius = radius)
+        drawRoundRect(
+            thumbColor,
+            topLeft = Offset(left, 0f),
+            size = Size((right - left).coerceAtLeast(8f), size.height),
+            cornerRadius = radius,
+        )
     }
 }
 
@@ -304,6 +699,7 @@ private fun WaveformCanvas(
     stopX: Float,
     positionX: Float?,
     onSeekToPixelX: (Float) -> Unit,
+    onSelectDrag: ((anchorX: Float, currentX: Float) -> Unit)? = null,
 ) {
     val insideColor = MaterialTheme.colorScheme.primary
     val outsideColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
@@ -311,12 +707,25 @@ private fun WaveformCanvas(
     val zeroLineColor = MaterialTheme.colorScheme.outlineVariant
     val boundaryColor = MaterialTheme.colorScheme.secondary
     val playheadColor = MaterialTheme.colorScheme.error
+    val latestSelectDrag = rememberUpdatedState(onSelectDrag)
 
     Canvas(
         modifier = Modifier
             .fillMaxSize()
             .pointerHoverIcon(PointerIcon.Crosshair)
-            .pointerInput(Unit) { detectTapGestures { offset -> onSeekToPixelX(offset.x) } },
+            .pointerInput(Unit) { detectTapGestures { offset -> onSeekToPixelX(offset.x) } }
+            .then(
+                if (onSelectDrag == null) Modifier else Modifier.pointerInput(Unit) {
+                    var anchorX = 0f
+                    detectDragGestures(
+                        onDragStart = { offset -> anchorX = offset.x },
+                        onDrag = { change, _ ->
+                            change.consume()
+                            latestSelectDrag.value?.invoke(anchorX, change.position.x)
+                        },
+                    )
+                },
+            ),
     ) {
         val midY = size.height / 2f
         // Peaks stop short of the frame so a full-scale sample still reads as a peak and not as
@@ -448,11 +857,12 @@ private const val MINOR_TICK_LENGTH_PX = 4f
 @Composable
 private fun EditorReadouts(
     localization: UiLocalization,
-    startSample: Long,
-    stopSample: Long,
+    segment: EditorComponent.Segment,
     positionSample: Long?,
     sampleRate: Int,
 ) {
+    val startSample = segment.startSample
+    val stopSample = segment.stopSample
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -463,8 +873,17 @@ private fun EditorReadouts(
             Readout(localization.resolvePlain("editor.stopLabel"), formatSampleTime(stopSample, sampleRate))
             Readout(
                 localization.resolvePlain("editor.durationLabel"),
-                formatSampleDuration((stopSample - startSample).coerceAtLeast(0L), sampleRate),
+                formatSampleDuration(segment.keptDurationSamples.coerceAtLeast(0L), sampleRate),
                 emphasized = true,
+                suffix = if (segment.cutCount == 0) null else localization.resolve(
+                    if (segment.cutCount == 1) "editor.cutInfo.one" else "editor.cutInfo.other",
+                    mapOf(
+                        "original" to formatSampleDuration(segment.originalDurationSamples.coerceAtLeast(0L), sampleRate),
+                        "count" to segment.cutCount.toString(),
+                        "removed" to formatSampleDuration(segment.removedSamples, sampleRate),
+                    ),
+                ).text,
+                testTag = TestTags.Editor.DURATION_LABEL,
             )
         }
         Readout(
@@ -475,7 +894,7 @@ private fun EditorReadouts(
 }
 
 @Composable
-private fun Readout(label: String, value: String, emphasized: Boolean = false) {
+private fun Readout(label: String, value: String, emphasized: Boolean = false, suffix: String? = null, testTag: String? = null) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = label,
@@ -486,7 +905,16 @@ private fun Readout(label: String, value: String, emphasized: Boolean = false) {
             text = value,
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
             color = if (emphasized) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            modifier = if (testTag != null && suffix == null) Modifier.testTag(testTag) else Modifier,
         )
+        if (suffix != null) {
+            Text(
+                text = suffix,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = if (testTag != null) Modifier.testTag(testTag) else Modifier,
+            )
+        }
     }
 }
 
@@ -501,70 +929,136 @@ private fun EditorControls(
     onPrevious: () -> Unit,
     onPlayToggle: () -> Unit,
     onNext: () -> Unit,
+    enhanced: Boolean,
+    hasSelection: Boolean,
+    onPlaySelection: () -> Unit,
+    onCutSelection: () -> Unit,
+    onClearSelection: () -> Unit,
     canReset: Boolean,
     onReset: () -> Unit,
     onDiscard: () -> Unit,
     onAccept: () -> Unit,
 ) {
-    // FlowRow: if the three groups ever exceed the width they wrap as whole groups instead of
-    // squeezing the labels (F-093, F-125).
-    FlowRow(
-        modifier = Modifier.contentWidth(EDITOR_MAX_WIDTH),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
-        // F-130: two groups — navigation (Previous, Next) and segment actions (Play, Reset,
-        // Discard, Accept). Each group stays on one row; only whole groups wrap. The navigation
-        // group carries 8dp of end padding so the groups are never closer than that, while the
-        // actions group stays flush with the right edge.
-        Row(
-            modifier = Modifier.padding(end = MIN_GROUP_GAP).testTag(TestTags.Editor.NAVIGATION_GROUP),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    val previousButton: @Composable () -> Unit = {
+        Button(
+            onClick = onPrevious,
+            enabled = hasPrevious,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.testTag(TestTags.Editor.PREVIOUS_SEGMENT_BUTTON),
         ) {
-            Button(
-                onClick = onPrevious,
-                enabled = hasPrevious,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.testTag(TestTags.Editor.PREVIOUS_SEGMENT_BUTTON),
+            ButtonIcon(Icons.Filled.ChevronLeft)
+            ButtonLabel(localization.resolve("action.previous"))
+        }
+    }
+    val nextButton: @Composable () -> Unit = {
+        Button(
+            onClick = onNext,
+            enabled = hasNext,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.testTag(TestTags.Editor.NEXT_SEGMENT_BUTTON),
+        ) {
+            ButtonLabel(localization.resolve("action.next"))
+            ButtonIcon(Icons.Filled.ChevronRight, trailing = true)
+        }
+    }
+    val playButton: @Composable () -> Unit = {
+        Button(
+            onClick = onPlayToggle,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.testTag(TestTags.Editor.PLAY_SEGMENT_BUTTON),
+        ) {
+            ButtonIcon(if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow)
+            ButtonLabel(localization.resolve(if (isPlaying) "action.stop" else "action.play"))
+        }
+    }
+    val resetButton: @Composable () -> Unit = {
+        OutlinedButton(
+            onClick = onReset,
+            enabled = canReset,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.testTag(TestTags.Editor.RESET_SEGMENT_BUTTON),
+        ) {
+            ButtonIcon(Icons.Filled.Refresh)
+            ButtonLabel(localization.resolve("editor.reset"))
+        }
+    }
+
+    if (enhanced) {
+        // Enhanced editor: two full-width rows, every button spread evenly across its row so both
+        // rows share the same left and right edges. Top row = listening and cutting tools,
+        // bottom row = moving between recordings and finishing.
+        Column(
+            modifier = Modifier.contentWidth(EDITOR_MAX_WIDTH),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().testTag(TestTags.Editor.SELECTION_GROUP),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                ButtonIcon(Icons.Filled.ChevronLeft)
-                ButtonLabel(localization.resolve("action.previous"))
+                playButton()
+                OutlinedButton(
+                    onClick = onPlaySelection,
+                    enabled = hasSelection,
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.testTag(TestTags.Editor.PLAY_SELECTION_BUTTON),
+                ) {
+                    ButtonIcon(Icons.Filled.PlayArrow)
+                    ButtonLabel(localization.resolve("editor.playSelection"))
+                }
+                OutlinedButton(
+                    onClick = onCutSelection,
+                    enabled = hasSelection,
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.testTag(TestTags.Editor.CUT_SELECTION_BUTTON),
+                ) {
+                    ButtonIcon(Icons.Filled.ContentCut)
+                    ButtonLabel(localization.resolve("editor.cutSelection"))
+                    ShortcutHint(localization.resolvePlain("editor.shortcut.delete"))
+                }
+                OutlinedButton(
+                    onClick = onClearSelection,
+                    enabled = hasSelection,
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.testTag(TestTags.Editor.CLEAR_SELECTION_BUTTON),
+                ) {
+                    ButtonLabel(localization.resolve("editor.clearSelection"))
+                    ShortcutHint(localization.resolvePlain("editor.shortcut.escape"))
+                }
             }
-            Button(
-                onClick = onNext,
-                enabled = hasNext,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.testTag(TestTags.Editor.NEXT_SEGMENT_BUTTON),
+            Row(
+                modifier = Modifier.fillMaxWidth().testTag(TestTags.Editor.ACTIONS_GROUP),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                ButtonLabel(localization.resolve("action.next"))
-                ButtonIcon(Icons.Filled.ChevronRight, trailing = true)
+                previousButton()
+                nextButton()
+                resetButton()
+                DiscardButton(localization, onDiscard)
+                AcceptButton(localization, onAccept)
             }
         }
+        return
+    }
 
+    // Same structure as the enhanced editor: Play on the top row, then one full-width row with
+    // every navigation and finishing button spread evenly (Previous and Next stay together on one
+    // row, F-130; labels never squeeze, F-093/F-125).
+    Column(
+        modifier = Modifier.contentWidth(EDITOR_MAX_WIDTH),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            playButton()
+        }
         Row(
-            modifier = Modifier.testTag(TestTags.Editor.ACTIONS_GROUP),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().testTag(TestTags.Editor.ACTIONS_GROUP),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Button(
-                onClick = onPlayToggle,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.testTag(TestTags.Editor.PLAY_SEGMENT_BUTTON),
-            ) {
-                ButtonIcon(if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow)
-                ButtonLabel(localization.resolve(if (isPlaying) "action.stop" else "action.play"))
-            }
-            OutlinedButton(
-                onClick = onReset,
-                enabled = canReset,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.testTag(TestTags.Editor.RESET_SEGMENT_BUTTON),
-            ) {
-                ButtonIcon(Icons.Filled.Refresh)
-                ButtonLabel(localization.resolve("editor.reset"))
-            }
+            previousButton()
+            nextButton()
+            resetButton()
             DiscardButton(localization, onDiscard)
             AcceptButton(localization, onAccept)
         }
@@ -593,6 +1087,18 @@ private fun AcceptButton(localization: UiLocalization, onAccept: () -> Unit) {
         ButtonIcon(Icons.Filled.Check)
         ButtonLabel(localization.resolve("action.accept"))
     }
+}
+
+@Composable
+private fun ShortcutHint(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        softWrap = false,
+        modifier = Modifier.padding(start = 8.dp),
+    )
 }
 
 /** Button labels never wrap: the button keeps its intrinsic width and the row wraps instead. */

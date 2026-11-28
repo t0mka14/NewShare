@@ -67,6 +67,53 @@ class JvmAudioPlaybackServiceTest {
     }
 
     @Test
+    fun `playRanges writes only the kept ranges back-to-back on one line`(@TempDir dir: Path) {
+        val file = dir.resolve("clip.wav")
+        writeTestWav(file, format, monoRamp(1000))
+
+        service.playRanges(file, listOf(0L..99L, 300L..399L, 900L..999L))
+        awaitIdle()
+
+        val line = lines.single()
+        assertEquals(300 * 2, line.writes.sumOf { it.size })
+        assertEquals(1000L, service.positionSamples.value)
+        assertTrue(line.drained)
+    }
+
+    @Test
+    fun `playRanges position jumps over cuts and never sits inside one`(@TempDir dir: Path) {
+        val file = dir.resolve("clip.wav")
+        writeTestWav(file, format, monoRamp(800))
+        val line = BufferingPlaybackLine(bufferFrames = 100)
+        val service = JvmAudioPlaybackService(lineFactory = { line })
+
+        service.playRanges(file, listOf(0L..99L, 500L..599L))
+
+        awaitCondition("line did not fill") { line.writtenFrames >= 100 }
+        assertEquals(0L, service.positionSamples.value)
+        line.renderedFrames = 100 // exactly at the cut: next kept range starts
+        awaitCondition("position did not jump the cut") { service.positionSamples.value == 500L }
+        line.renderedFrames = 150
+        awaitCondition("position did not advance") { service.positionSamples.value == 550L }
+        line.renderedFrames = 200
+        awaitCondition("playback did not finish") { !service.isPlaying.value }
+        assertEquals(600L, service.positionSamples.value)
+    }
+
+    @Test
+    fun `playRanges rejects invalid ranges without opening a line`(@TempDir dir: Path) {
+        val file = dir.resolve("clip.wav")
+        writeTestWav(file, format, monoRamp(100))
+
+        service.playRanges(file, emptyList())
+        service.playRanges(file, listOf(10L..20L, 15L..30L))
+        service.playRanges(file, listOf(20L..30L, 0L..5L))
+        service.playRanges(file, listOf(0L..100L)) // last frame index 99
+        assertTrue(lines.isEmpty())
+        assertFalse(service.isPlaying.value)
+    }
+
+    @Test
     fun `play with a missing or unreadable file is a no-op instead of an exception`(@TempDir dir: Path) {
         val missing = dir.resolve("missing.wav")
 

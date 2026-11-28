@@ -1,5 +1,6 @@
 package org.example.app.infrastructure.persistence
 
+import org.example.app.domain.timeline.SampleRange
 import org.example.app.domain.timeline.TimelineEdited
 import org.example.app.domain.timeline.TimelineEditedSegment
 import org.example.app.domain.timeline.TimelineEvent
@@ -86,6 +87,56 @@ class JsonTimelineRepositoryTest {
 
         assertTrue(repository.editedExists("s1"))
         assertEquals(edited, repository.readEdited("s1"))
+    }
+
+    private fun editedPath(tempDir: Path) =
+        TestAppDirectories(tempDir).sessionDir("s1").resolve("timeline_edited.json")
+
+    private val noCutsJson =
+        """{"sessionId":"s1","sampleRate":48000,"segments":[{"taskIndex":0,"repetition":1,"startSample":1000,"stopSample":5000}]}"""
+
+    @Test
+    fun `timeline_edited with cuts round-trips and writes the cuts key`(@TempDir tempDir: Path) {
+        val repository = repo(tempDir)
+        val edited = TimelineEdited(
+            sessionId = "s1",
+            sampleRate = 48_000,
+            segments = listOf(
+                TimelineEditedSegment(
+                    0, 1, 1000, 90_000,
+                    cuts = listOf(SampleRange(2000, 3000), SampleRange(5000, 6000)),
+                ),
+            ),
+        )
+        repository.writeEdited("s1", edited)
+        assertEquals(edited, repository.readEdited("s1"))
+        val text = String(Files.readAllBytes(editedPath(tempDir)), StandardCharsets.UTF_8)
+        assertTrue(
+            text.contains(""""cuts":[{"startSample":2000,"stopSample":3000},{"startSample":5000,"stopSample":6000}]"""),
+            text,
+        )
+    }
+
+    @Test
+    fun `timeline_edited without cuts has no cuts key and is unchanged`(@TempDir tempDir: Path) {
+        val repository = repo(tempDir)
+        repository.writeEdited(
+            "s1",
+            TimelineEdited(sessionId = "s1", sampleRate = 48_000, segments = listOf(TimelineEditedSegment(0, 1, 1000, 5000))),
+        )
+        val text = String(Files.readAllBytes(editedPath(tempDir)), StandardCharsets.UTF_8)
+        assertFalse(text.contains("cuts"), text)
+        assertEquals(noCutsJson, text.trim())
+    }
+
+    @Test
+    fun `old timeline_edited json without the cuts field reads as empty cuts`(@TempDir tempDir: Path) {
+        val repository = repo(tempDir)
+        val path = editedPath(tempDir)
+        Files.createDirectories(path.parent)
+        Files.write(path, noCutsJson.toByteArray(StandardCharsets.UTF_8))
+        val read = repository.readEdited("s1")!!
+        assertTrue(read.segments.single().cuts.isEmpty())
     }
 
     @Test

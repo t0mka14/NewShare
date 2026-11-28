@@ -23,7 +23,27 @@ interface AudioClipService {
      * out-of-range or empty ranges are rejected with [IllegalArgumentException],
      * never silently clamped or truncated (clinical data).
      */
-    fun cutClip(sourceWav: Path, startSample: Long, stopSample: Long, targetFormat: CaptureFormat, output: Path)
+    fun cutClip(sourceWav: Path, startSample: Long, stopSample: Long, targetFormat: CaptureFormat, output: Path) =
+        cutClip(sourceWav, listOf(startSample until stopSample), targetFormat, output)
+
+    /**
+     * Splices [keepRanges] (inclusive frame ranges in [sourceWav]'s own frames) in list order into
+     * one clip at [targetFormat], written atomically to [output]. Each range is converted on its
+     * own and the pieces are joined raw (no fade). Ranges must be non-empty, ascending,
+     * non-overlapping and within the file, and the list must not be empty. Violations throw
+     * [IllegalArgumentException] and write nothing.
+     */
+    fun cutClip(sourceWav: Path, keepRanges: List<LongRange>, targetFormat: CaptureFormat, output: Path)
+
+    /**
+     * Zero-crossing snap for cut boundaries. Scans frames `[sample - maxRadiusSamples,
+     * sample + maxRadiusSamples]` of [sourceWav] (clamped to the file; multi-channel mixed to
+     * mono; PCM16) for the frame index `i` closest to [sample] where the signal changes sign
+     * between frame `i-1` and `i`, or where frame `i` is exactly 0 (ties go to the earlier
+     * index). Returns that index, usable as a `[start, stop)` boundary, or [sample] unchanged
+     * if there is no such frame.
+     */
+    fun nearestZeroCrossing(sourceWav: Path, sample: Long, maxRadiusSamples: Long): Long
 
     /** Converts the whole [sourceWav] to [targetFormat] (resample/downmix as needed), writing [output]. */
     fun convert(sourceWav: Path, targetFormat: CaptureFormat, output: Path)

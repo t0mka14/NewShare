@@ -1,5 +1,6 @@
 package org.example.app.domain.session
 
+import org.example.app.domain.timeline.SampleRange
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -784,4 +785,26 @@ class ProcessSessionUseCaseTest {
     }
 
     // endregion
+
+    @Test
+    fun `edited cuts are exported as keep ranges and shorten the audio duration of a filmed task`(@TempDir tempDir: Path) {
+        val f = Fixture(tempDir)
+        f.setUpOneFilmedTake(hardware = null)
+        // Original take is [0, 48_000); keep [0, 12_000) + [24_000, 48_000) => 36_000 samples = 750 ms.
+        f.writeEdited(
+            listOf(
+                TimelineEditedSegment(
+                    taskIndex = 0, repetition = 1, startSample = 0, stopSample = 48_000,
+                    cuts = listOf(SampleRange(12_000, 24_000)),
+                ),
+            ),
+        )
+
+        val task = f.processedTask()
+
+        val call = f.audioClipService.cutClipCalls.single()
+        assertEquals(listOf(0L..11_999L, 24_000L..47_999L), call.keepRanges)
+        assertEquals(750L, task.audioDurationMs)
+        assertEquals(1000L, task.videoDurationMs) // video is exported whole
+    }
 }

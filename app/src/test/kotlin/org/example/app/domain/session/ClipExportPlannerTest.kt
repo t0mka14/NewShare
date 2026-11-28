@@ -1,5 +1,6 @@
 package org.example.app.domain.session
 
+import org.example.app.domain.timeline.SampleRange
 import org.example.app.domain.audio.CaptureFormat
 import org.example.app.domain.timeline.TimelineEditedSegment
 import org.example.app.domain.timeline.TimelineEvent
@@ -169,5 +170,87 @@ class ClipExportPlannerTest {
 
         assertEquals("install1_HC001_3_PATAKA_1.wav", result.plans[0].clipFileName)
         assertEquals(masterFile, result.plans[0].sourcePart.file)
+    }
+
+    @Test
+    fun `no cuts yields one keep range equal to the local span`() {
+        val result = ClipExportPlanner.plan(
+            vocalTaskRecords = listOf(vocalRecord(0, 1)),
+            originalEvents = listOf(start(0, 1, 1, 100), stop(0, 1, 1, 900)),
+            editedSegments = null,
+            masterParts = singlePart,
+            recordingsFileNameTemplate = template,
+            installationId = "install1",
+            siteName = null,
+            fieldValues = mapOf("patient_code" to "HC001"),
+        )
+        assertEquals(listOf(100L until 900L), result.plans.single().keepRanges)
+    }
+
+    @Test
+    fun `edited cuts become inclusive keep ranges`() {
+        val edited = listOf(
+            TimelineEditedSegment(
+                taskIndex = 0, repetition = 1, startSample = 100, stopSample = 1000,
+                cuts = listOf(SampleRange(300, 400), SampleRange(600, 700)),
+            ),
+        )
+        val result = ClipExportPlanner.plan(
+            vocalTaskRecords = listOf(vocalRecord(0, 1)),
+            originalEvents = listOf(start(0, 1, 1, 0), stop(0, 1, 1, 1000)),
+            editedSegments = edited,
+            masterParts = singlePart,
+            recordingsFileNameTemplate = template,
+            installationId = "install1",
+            siteName = null,
+            fieldValues = mapOf("patient_code" to "HC001"),
+        )
+        val plan = result.plans.single()
+        assertEquals(listOf(100L..299L, 400L..599L, 700L..999L), plan.keepRanges)
+        assertEquals(100L until 1000L, plan.localRange)
+    }
+
+    @Test
+    fun `keep ranges are translated by the master part offset`() {
+        val interruption = Interruption(sampleOffset = 500L, start = "t", partFile = "session_master.part2.wav", captureFormat = format)
+        val parts = MasterPartMap.build(masterFile, format, listOf(interruption), sessionDir)
+        val edited = listOf(
+            TimelineEditedSegment(
+                taskIndex = 0, repetition = 1, startSample = 600, stopSample = 900,
+                cuts = listOf(SampleRange(700, 750)),
+            ),
+        )
+        val result = ClipExportPlanner.plan(
+            vocalTaskRecords = listOf(vocalRecord(0, 1)),
+            originalEvents = emptyList(),
+            editedSegments = edited,
+            masterParts = parts,
+            recordingsFileNameTemplate = template,
+            installationId = "install1",
+            siteName = null,
+            fieldValues = mapOf("patient_code" to "HC001"),
+        )
+        val plan = result.plans.single()
+        assertEquals(parts[1].file, plan.sourcePart.file)
+        assertEquals(listOf(100L..199L, 250L..399L), plan.keepRanges) // global minus 500
+    }
+
+    @Test
+    fun `a segment cut entirely away is a planning error`() {
+        val edited = listOf(
+            TimelineEditedSegment(0, 1, 100, 200, cuts = listOf(SampleRange(100, 200))),
+        )
+        val result = ClipExportPlanner.plan(
+            vocalTaskRecords = listOf(vocalRecord(0, 1)),
+            originalEvents = emptyList(),
+            editedSegments = edited,
+            masterParts = singlePart,
+            recordingsFileNameTemplate = template,
+            installationId = "install1",
+            siteName = null,
+            fieldValues = mapOf("patient_code" to "HC001"),
+        )
+        assertTrue(result.plans.isEmpty())
+        assertTrue(result.errors.single() is ClipPlanningError.EmptyKeepRanges)
     }
 }

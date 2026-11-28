@@ -19,20 +19,77 @@ import java.nio.file.StandardCopyOption
  */
 class JvmAudioClipService : AudioClipService {
 
-    override fun cutClip(sourceWav: Path, startSample: Long, stopSample: Long, targetFormat: CaptureFormat, output: Path) {
-        require(startSample >= 0) { "startSample must be >= 0, was $startSample" }
-        require(startSample < stopSample) { "startSample ($startSample) must be < stopSample ($stopSample)" }
-
+    override fun cutClip(sourceWav: Path, keepRanges: List<LongRange>, targetFormat: CaptureFormat, output: Path) {
+        require(keepRanges.isNotEmpty()) { "keepRanges must not be empty" }
         val header = WavIo.readHeader(sourceWav)
         val sourceFormat = header.format
         val totalFrames = sourceFormat.framesIn(header.dataSize)
-        require(stopSample <= totalFrames) {
-            "range [$startSample, $stopSample) exceeds source frame count $totalFrames for $sourceWav"
+        var previousEnd = 0L // exclusive end of the previous range
+        for (r in keepRanges) {
+            require(r.first >= 0) { "range start must be >= 0, was ${r.first}" }
+            require(r.first <= r.last) { "range $r is empty" }
+            require(r.first >= previousEnd) { "ranges must be ascending and non-overlapping, but $r starts before $previousEnd" }
+            require(r.last + 1 <= totalFrames) {
+                "range [${r.first}, ${r.last + 1}) exceeds source frame count $totalFrames for $sourceWav"
+            }
+            previousEnd = r.last + 1
         }
 
-        val raw = WavIo.readFrameRange(sourceWav, sourceFormat, startSample, stopSample - startSample)
-        val converted = convertPcm(raw, stopSample - startSample, sourceFormat, targetFormat)
-        writeWav(output, targetFormat, converted)
+        val pieces = keepRanges.map { r ->
+            val count = r.last - r.first + 1
+            val raw = WavIo.readFrameRange(sourceWav, sourceFormat, r.first, count)
+            convertPcm(raw, count, sourceFormat, targetFormat)
+        }
+        val joined = ByteArray(pieces.sumOf { it.size })
+        var offset = 0
+        for (piece in pieces) {
+            piece.copyInto(joined, offset)
+            offset += piece.size
+        }
+        writeWav(output, targetFormat, joined)
+    }
+
+    override fun nearestZeroCrossing(sourceWav: Path, sample: Long, maxRadiusSamples: Long): Long {
+        require(maxRadiusSamples >= 0) { "maxRadiusSamples must be >= 0, was $maxRadiusSamples" }
+        val header = WavIo.readHeader(sourceWav)
+        val format = header.format
+        require(format.bits == 16) { "nearestZeroCrossing supports 16-bit PCM only (was ${format.bits}-bit)" }
+        val totalFrames = format.framesIn(header.dataSize)
+        if (totalFrames == 0L) return sample
+
+        val lo = (sample - maxRadiusSamples).coerceAtLeast(0)
+        val hi = (sample + maxRadiusSamples).coerceAtMost(totalFrames - 1)
+        if (lo > hi) return sample
+
+        // Read one extra frame before the window so a crossing exactly at `lo` is detectable.
+        val readStart = if (lo > 0) lo - 1 else 0L
+        val bytes = WavIo.readFrameRange(sourceWav, format, readStart, hi - readStart + 1)
+        val channels = format.channels
+        val bb = java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        fun mono(frame: Long): Int {
+            var sum = 0
+            val base = ((frame - readStart) * channels).toInt() * 2
+            for (c in 0 until channels) sum += bb.getShort(base + c * 2).toInt()
+            return sum / channels
+        }
+
+        var best = -1L
+        var bestDist = Long.MAX_VALUE
+        for (i in lo..hi) {
+            val cur = mono(i)
+            var crossing = cur == 0
+            if (!crossing && i > readStart) {
+                val prev = mono(i - 1)
+                crossing = (prev < 0 && cur > 0) || (prev > 0 && cur < 0)
+            }
+            if (!crossing) continue
+            val dist = kotlin.math.abs(i - sample)
+            if (dist < bestDist) { // ascending scan: first hit at equal distance is the earlier index
+                best = i
+                bestDist = dist
+            }
+        }
+        return if (best >= 0) best else sample
     }
 
     override fun convert(sourceWav: Path, targetFormat: CaptureFormat, output: Path) {

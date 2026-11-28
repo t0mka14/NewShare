@@ -107,7 +107,29 @@ class SettingsComponentTest {
         )
     }
 
-    private val secondaryName = FakeAudioInputDeviceProvider.SECONDARY_DEVICE.name
+    @Test
+    fun `enhanced editor is off by default and toggling persists without touching other settings`() {
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(language = "cs", siteToken = "tok")) }
+        val h = Harness(settingsRepository = settings)
+        assertFalse(h.component.state.value.enhancedEditor)
+
+        h.component.onEnhancedEditorChanged(true)
+        assertTrue(h.component.state.value.enhancedEditor)
+        assertEquals(true, settings.read()?.enhancedEditor)
+        assertEquals("tok", settings.read()?.siteToken)
+
+        h.component.onEnhancedEditorChanged(false)
+        assertFalse(h.component.state.value.enhancedEditor)
+        assertNull(settings.read()?.enhancedEditor)
+    }
+
+    @Test
+    fun `saved enhanced editor setting is shown on arrival`() {
+        val settings = FakeAppSettingsRepository().apply { write(AppSettings(enhancedEditor = true)) }
+        assertTrue(Harness(settingsRepository = settings).component.state.value.enhancedEditor)
+    }
+
+    private val secondaryName =FakeAudioInputDeviceProvider.SECONDARY_DEVICE.name
 
     private val cam2 = VideoInputDevice("cam-2", "Second Camera", 0, 1, true)
 

@@ -45,7 +45,12 @@ data class AppSettings(
      * `indicatorType`; null follows the config. See [indicatorType].
      */
     val indicatorType: IndicatorType? = null,
+    /** Enhanced waveform editor (cut-outs, zoom) switched on in Settings; null (absent in old files) = off. */
+    val enhancedEditor: Boolean? = null,
 )
+
+/** Whether the enhanced editor is on; off unless the examiner switched it on in Settings. */
+fun AppSettings?.enhancedEditorEnabled(): Boolean = this?.enhancedEditor == true
 
 /** The Settings override when set, else the config's `indicatorType` (local wins, §13 decision 53). */
 fun AppSettings?.indicatorType(config: RemoteConfig): IndicatorType = this?.indicatorType ?: config.indicatorType

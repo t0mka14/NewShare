@@ -23,6 +23,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -187,6 +188,22 @@ fun SettingsContent(component: SettingsComponent, localization: UiLocalization, 
                     Text(localization.resolve("settings.indicator.reset", mapOf("value" to configured)))
                 }
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Editor section: opt-in enhanced waveform editor.
+            Text(localization.resolve("settings.editor.title"), style = MaterialTheme.typography.headlineSmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Switch(
+                    checked = state.enhancedEditor,
+                    onCheckedChange = component::onEnhancedEditorChanged,
+                    modifier = Modifier.testTag(TestTags.Settings.ENHANCED_EDITOR_SWITCH),
+                )
+                Text(localization.resolve("settings.editor.enhanced.label"), style = MaterialTheme.typography.titleMedium)
+            }
+            Text(localization.resolve("settings.editor.enhanced.description"), style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(12.dp))

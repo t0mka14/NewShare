@@ -18,5 +18,12 @@ interface AudioPlaybackService {
     /** Play only [startSample, stopSample) of the file (editor segment playback). */
     fun playRange(file: Path, startSample: Long, stopSample: Long)
 
+    /**
+     * Play [ranges] (inclusive, file-local frame ranges; ascending, non-overlapping) back-to-back
+     * on one line — no gap, no fade — so cuts are skipped. [positionSamples] reports the SOURCE
+     * frame and jumps over the cuts (see [RangeTimeMap]).
+     */
+    fun playRanges(file: Path, ranges: List<LongRange>)
+
     fun stop()
 }

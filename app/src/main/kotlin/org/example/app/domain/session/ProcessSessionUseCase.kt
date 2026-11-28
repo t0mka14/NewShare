@@ -199,8 +199,7 @@ class ProcessSessionUseCase(
                 planningResult.plans.forEachIndexed { index, plan ->
                     audioClipService.cutClip(
                         sourceWav = plan.sourcePart.file,
-                        startSample = plan.localRange.first,
-                        stopSample = plan.localRange.last + 1,
+                        keepRanges = plan.keepRanges,
                         targetFormat = CaptureFormat.PREFERRED,
                         output = clipsDir.resolve(plan.clipFileName),
                     )
@@ -208,9 +207,9 @@ class ProcessSessionUseCase(
                 }
 
                 planningResult.plans.forEach {
-                    // Source samples / source rate: the clip is resampled, not stretched.
+                    // Kept source samples / source rate: the clip is resampled, not stretched.
                     audioDurationByKey[it.taskIndex to it.repetition] =
-                        (it.localRange.last + 1 - it.localRange.first) * 1000L / it.sourcePart.format.sampleRate
+                        it.keepRanges.sumOf { r -> r.last - r.first + 1 } * 1000L / it.sourcePart.format.sampleRate
                 }
                 val clipByKey = planningResult.plans.associateBy { it.taskIndex to it.repetition }
                 updatedTasks = updatedTasks.map { task ->

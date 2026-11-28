@@ -33,12 +33,30 @@ class FakeAudioClipService : AudioClipService {
     /** If set, the next call (of any kind) throws this instead of being recorded — tests error paths. */
     var failNextWith: RuntimeException? = null
 
-    override fun cutClip(sourceWav: Path, startSample: Long, stopSample: Long, targetFormat: CaptureFormat, output: Path) {
+    /** `nearestZeroCrossing` calls recorded as (sample, maxRadiusSamples). */
+    val zeroCrossingCalls = mutableListOf<Pair<Long, Long>>()
+
+    /** Override hook for [nearestZeroCrossing]; default returns the input sample unchanged. */
+    var zeroCrossingResolver: (sourceWav: Path, sample: Long, maxRadiusSamples: Long) -> Long = { _, sample, _ -> sample }
+
+    // The single-range overload is the interface default and delegates here.
+    override fun cutClip(sourceWav: Path, keepRanges: List<LongRange>, targetFormat: CaptureFormat, output: Path) {
         maybeFail()
-        require(startSample >= 0) { "startSample must be >= 0, was $startSample" }
-        require(startSample < stopSample) { "startSample ($startSample) must be < stopSample ($stopSample)" }
-        cutClipCalls += CutClipCall(sourceWav, startSample, stopSample, targetFormat, output)
+        require(keepRanges.isNotEmpty()) { "keepRanges must not be empty" }
+        var previousEnd = 0L
+        for (r in keepRanges) {
+            require(r.first >= 0) { "range start must be >= 0, was ${r.first}" }
+            require(r.first <= r.last) { "range $r is empty" }
+            require(r.first >= previousEnd) { "ranges must be ascending and non-overlapping" }
+            previousEnd = r.last + 1
+        }
+        cutClipCalls += CutClipCall(sourceWav, keepRanges, targetFormat, output)
         writeStub(output, targetFormat)
+    }
+
+    override fun nearestZeroCrossing(sourceWav: Path, sample: Long, maxRadiusSamples: Long): Long {
+        zeroCrossingCalls += sample to maxRadiusSamples
+        return zeroCrossingResolver(sourceWav, sample, maxRadiusSamples)
     }
 
     override fun convert(sourceWav: Path, targetFormat: CaptureFormat, output: Path) {
@@ -71,11 +89,16 @@ class FakeAudioClipService : AudioClipService {
 
     data class CutClipCall(
         val sourceWav: Path,
-        val startSample: Long,
-        val stopSample: Long,
+        val keepRanges: List<LongRange>,
         val targetFormat: CaptureFormat,
         val output: Path,
-    )
+    ) {
+        /** Overall span start (first kept sample) — for single-range assertions. */
+        val startSample: Long get() = keepRanges.first().first
+
+        /** Overall span end, exclusive (after the last kept sample). */
+        val stopSample: Long get() = keepRanges.last().last + 1
+    }
 
     data class ConvertCall(val sourceWav: Path, val targetFormat: CaptureFormat, val output: Path)
 
